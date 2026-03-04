@@ -143,8 +143,8 @@ export class HeatmapComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.routerSub = this.router.events
-      .pipe(filter(e => e instanceof NavigationEnd))
-      .subscribe((e: NavigationEnd) => {
+      .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
+      .subscribe((e) => {
         const slug = e.urlAfterRedirects.replace(/^\//, '').split('/')[0];
         this.currentSlug = slug || '';
         if (this.visible) this.loadDots();
