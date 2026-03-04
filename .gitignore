@@ -23,3 +23,6 @@ src/environments/environment.prod.ts
 
 # Vercel
 .vercel
+
+# SSH deploy keys (never commit private keys)
+.ssh/
