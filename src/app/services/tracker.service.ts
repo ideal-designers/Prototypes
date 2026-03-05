@@ -17,14 +17,16 @@ export interface ProtoEvent {
 
 @Injectable({ providedIn: 'root' })
 export class TrackerService {
-  private supabase: SupabaseClient;
+  private supabase: SupabaseClient | null = null;
   private sessionId = this.generateSessionId();
   private clickHandler?: (e: MouseEvent) => void;
   private scrollHandler?: () => void;
   private scrollCheckpoints = new Set<number>();
 
   constructor() {
-    this.supabase = createClient(environment.supabaseUrl, environment.supabaseAnonKey);
+    if (environment.supabaseUrl && environment.supabaseAnonKey) {
+      this.supabase = createClient(environment.supabaseUrl, environment.supabaseAnonKey);
+    }
   }
 
   private generateSessionId(): string {
@@ -99,6 +101,7 @@ export class TrackerService {
   }
 
   private async send(event: ProtoEvent): Promise<void> {
+    if (!this.supabase) return;
     try {
       const { error } = await this.supabase.from('proto_events').insert(event);
       if (error) console.warn('[Tracker]', error.message);

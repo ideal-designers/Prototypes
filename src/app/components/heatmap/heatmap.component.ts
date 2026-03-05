@@ -133,12 +133,14 @@ export class HeatmapComponent implements OnInit, OnDestroy {
   currentSlug = '';
   Math = Math;
 
-  private supabase: SupabaseClient;
+  private supabase: SupabaseClient | null = null;
   private routerSub?: Subscription;
   private router = inject(Router);
 
   constructor() {
-    this.supabase = createClient(environment.supabaseUrl, environment.supabaseAnonKey);
+    if (environment.supabaseUrl && environment.supabaseAnonKey) {
+      this.supabase = createClient(environment.supabaseUrl, environment.supabaseAnonKey);
+    }
   }
 
   ngOnInit(): void {
@@ -169,6 +171,7 @@ export class HeatmapComponent implements OnInit, OnDestroy {
   }
 
   private async loadDots(): Promise<void> {
+    if (!this.supabase) return;
     this.loading = true;
     this.dots = [];
     try {
