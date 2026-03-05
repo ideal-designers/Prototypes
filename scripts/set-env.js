@@ -16,4 +16,4 @@ fs.writeFileSync(
   content
 );
 
-console.log('environment.prod.ts generated');
+console.log(`environment.prod.ts generated (SUPABASE_URL set: ${!!supabaseUrl}, SUPABASE_ANON_KEY set: ${!!supabaseAnonKey})`);
