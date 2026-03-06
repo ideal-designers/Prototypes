@@ -151,17 +151,23 @@ interface Integration {
     </div>
   `,
   styles: [`
-    /* ── Design tokens from Figma ── */
+    /* ── Design tokens — FVDR Design System (Figma liyNDiFf1piO8SQmHNKoeU) ── */
     :host {
-      --green-500: #2C9C74;
-      --green-400: #3FB67D;
-      --green-50:  #EBF7EF;
-      --text-primary: #1F2028;
-      --text-secondary: #5F6168;
-      --text-disabled: #BBBDC7;
-      --surface: #F7F7F7;
-      --white: #FFFFFF;
-      --border: #E8E8EC;
+      /* Colors/Primary */
+      --green-500: #2C9C74;   /* Button primary default */
+      --green-600: #1C8269;   /* Button primary hover */
+      --green-700: #12695C;   /* Button primary active */
+      --green-50:  #EBF8EF;   /* Tab selected bg */
+      /* Colors/Neutral */
+      --text-primary:   #1F2129;  /* Body/Title text */
+      --text-secondary: #5F616A;  /* Secondary/placeholder */
+      --text-disabled:  #BBBDC7;
+      --border-default: #DEE0EB;  /* Card & tab border */
+      --surface:        #F7F7F7;
+      --white:          #FFFFFF;
+      /* Typography */
+      --font-body:   14px;
+      --font-label:  16px;
       font-family: 'Open Sans', sans-serif;
       display: block;
     }
@@ -236,27 +242,31 @@ interface Integration {
     /* ── Content ── */
     .content-area { flex: 1; overflow-y: auto; padding: 24px 32px; background: var(--white); }
 
-    /* ── Tabs — map to storybook Tabs ── */
+    /* ── Tabs — DS: "Tabs - padding 24", h=48px ── */
     .tabs-bar {
-      display: flex; gap: 2px;
-      border-bottom: 1px solid var(--border);
+      display: flex;
+      border-bottom: 2px solid var(--border-default);
       margin-bottom: 20px;
     }
     .tab-item {
-      padding: 10px 16px;
+      height: 48px;
+      padding: 0 24px;          /* DS: padding 24 */
       border: none; background: transparent;
-      font-size: 14px; font-weight: 500;
-      color: var(--text-secondary);
+      font-size: var(--font-label); /* 16px */
+      font-weight: 400;
+      color: var(--text-secondary); /* unselected: #5f616a */
       cursor: pointer;
       border-bottom: 2px solid transparent;
-      margin-bottom: -1px;
-      transition: color 0.15s, border-color 0.15s;
+      border-radius: 4px 4px 0 0; /* DS: radius top [4,4,0,0] */
+      margin-bottom: -2px;
+      transition: color 0.15s, background 0.15s, border-color 0.15s;
     }
     .tab-item.active {
-      color: var(--text-primary);
-      border-bottom-color: var(--green-500);
+      background: var(--green-50);           /* #ebf8ef */
+      color: var(--text-primary);            /* #1f2129 */
+      border-bottom-color: var(--green-500); /* 2px #2c9c74 */
     }
-    .tab-item:hover:not(.active) { color: var(--text-primary); }
+    .tab-item:hover:not(.active) { color: var(--text-primary); background: var(--surface); }
 
     /* ── Info banners — map to storybook Message ── */
     .info-banners { display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px; }
@@ -274,35 +284,35 @@ interface Integration {
     .link { color: var(--green-500); text-decoration: none; }
     .link:hover { text-decoration: underline; }
 
-    /* ── Cards grid — map to storybook Card ── */
+    /* ── Cards grid — DS: Card, border 1px #dee0eb → active 1px #2c9c74, radius 4px ── */
     .cards-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
       gap: 16px;
     }
     .integration-card {
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 20px;
+      border: 1px solid var(--border-default); /* DS: #dee0eb */
+      border-radius: 4px;                       /* DS: radius=4 */
+      padding: 16px;                            /* DS: padding=16 */
       background: var(--white);
       display: flex; flex-direction: column; gap: 14px;
       transition: border-color 0.15s, box-shadow 0.15s;
     }
-    .integration-card:hover { border-color: #C8E8DC; box-shadow: 0 2px 12px rgba(44,156,116,.08); }
-    .integration-card.allowed { border-color: var(--green-500); }
+    .integration-card:hover,
+    .integration-card.allowed { border-color: var(--green-500); } /* DS: State=hover-active / Selector=On */
 
     /* Card header */
     .card-header { display: flex; align-items: center; gap: 12px; }
     .integration-logo {
-      width: 44px; height: 44px;
-      border-radius: 10px;
+      width: 40px; height: 40px;
+      border-radius: 4px;  /* DS: radius=4 */
       display: flex; align-items: center; justify-content: center;
-      font-size: 16px; font-weight: 700;
+      font-size: var(--font-label); font-weight: 600;  /* DS: Title 16px w600 */
       flex-shrink: 0;
     }
     .integration-meta { display: flex; flex-direction: column; gap: 2px; }
-    .integration-name { font-size: 15px; font-weight: 600; color: var(--text-primary); }
-    .integration-domain { font-size: 12px; color: var(--text-secondary); }
+    .integration-name { font-size: var(--font-label); font-weight: 600; color: var(--text-primary); }  /* DS: Title 16px w600 #1f2129 */
+    .integration-domain { font-size: 12px; color: var(--text-secondary); }  /* DS: Badge 12px #2c9c74 variant → secondary here */
 
     /* Description */
     .card-description {
@@ -312,47 +322,58 @@ interface Integration {
       margin: 0;
     }
 
-    /* Features — map to storybook Checkbox ── */
+    /* Features — DS: Checkbox 16×16px, radius 1px ── */
     .feature-list { display: flex; flex-direction: column; gap: 8px; }
     .feature-item {
       display: flex; align-items: center; gap: 8px;
-      font-size: 13px; color: var(--text-secondary);
+      font-size: var(--font-body);  /* 14px */
+      color: var(--text-secondary);
       cursor: default;
     }
     .feature-item.checked { color: var(--text-primary); }
     .checkbox {
-      width: 16px; height: 16px;
-      border-radius: 4px;
-      border: 1.5px solid var(--border);
+      width: 16px; height: 16px;  /* DS: 16×16px */
+      border-radius: 1px;          /* DS: radius=1 */
+      border: 1.5px solid var(--border-default);  /* DS: unselected border #dee0eb */
       background: var(--white);
       display: flex; align-items: center; justify-content: center;
       flex-shrink: 0;
+      transition: background 0.15s, border-color 0.15s;
     }
-    .checkbox.checked { background: var(--green-500); border-color: var(--green-500); }
+    .checkbox.checked {
+      background: var(--green-500);      /* DS: selected fill #2c9c74 */
+      border-color: var(--green-500);
+    }
+    .checkbox.checked:hover {
+      background: var(--green-600);      /* DS: hover+selected #1c8269 */
+      border-color: var(--green-600);
+    }
 
     /* Card footer */
     .card-footer { margin-top: auto; padding-top: 4px; }
 
-    /* Button — map to storybook Button ── */
+    /* Button — DS: Type=Primary Size=M, h=40px, radius=4, padding=16/12/16/12, text 14px w400 ── */
     .btn-allow {
       width: 100%;
-      padding: 9px 16px;
-      border-radius: 8px;
-      border: 1.5px solid var(--green-500);
-      background: var(--green-500);
+      height: 40px;               /* DS: Size=M h=40px */
+      padding: 0 12px;            /* DS: p=16/12/16/12 (top/right/bottom/left) */
+      border-radius: 4px;         /* DS: radius=4 */
+      border: none;
+      background: var(--green-500);  /* DS: Type=Primary fill #2c9c74 */
       color: #fff;
-      font-size: 14px; font-weight: 600;
+      font-size: var(--font-body);   /* DS: 14px */
+      font-weight: 400;              /* DS: w400 */
       cursor: pointer;
       font-family: inherit;
       transition: background 0.15s;
     }
-    .btn-allow:hover { background: var(--green-400); border-color: var(--green-400); }
+    .btn-allow:hover { background: var(--green-600); }  /* DS: hover #1c8269 */
+    .btn-allow:active { background: var(--green-700); } /* DS: active #12695c */
     .btn-allow.allowed {
-      background: var(--green-50);
-      border-color: var(--green-500);
+      background: var(--green-50);   /* DS: secondary/ghost variant on green bg */
       color: var(--green-500);
     }
-    .btn-allow.allowed:hover { background: #d6f0e4; }
+    .btn-allow.allowed:hover { background: #d4f0e3; }
   `],
 })
 export class CaSettingsIntegrationsComponent implements OnInit, OnDestroy {
