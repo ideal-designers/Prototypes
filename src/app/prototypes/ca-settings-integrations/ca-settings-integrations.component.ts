@@ -1,6 +1,7 @@
 import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TrackerService } from '../../services/tracker.service';
+import { DS_COMPONENTS, TabItem } from '../../shared/ds';
 
 interface Integration {
   id: string;
@@ -20,25 +21,36 @@ interface Integration {
 @Component({
   selector: 'fvdr-ca-settings-integrations',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ...DS_COMPONENTS],
   template: `
-    <!-- Layout: left sidebar 72px + main content -->
+    <!-- tokens.css loaded globally via angular.json styles[] -->
     <div class="page-layout">
 
-      <!-- Left sidebar — storybook: no direct component, use nav icons -->
+      <!-- Left sidebar 72px -->
       <nav class="sidebar">
         <div class="sidebar-logo">
           <div class="logo-mark">CA</div>
         </div>
         <div class="sidebar-nav">
           <button class="nav-item active" data-track="nav-overview" title="Overview">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="2" y="2" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="11" y="2" width="7" height="7" rx="1.5" fill="currentColor" opacity=".4"/><rect x="2" y="11" width="7" height="7" rx="1.5" fill="currentColor" opacity=".4"/><rect x="11" y="11" width="7" height="7" rx="1.5" fill="currentColor" opacity=".4"/></svg>
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <rect x="2" y="2" width="7" height="7" rx="1.5" fill="currentColor"/>
+              <rect x="11" y="2" width="7" height="7" rx="1.5" fill="currentColor" opacity=".4"/>
+              <rect x="2" y="11" width="7" height="7" rx="1.5" fill="currentColor" opacity=".4"/>
+              <rect x="11" y="11" width="7" height="7" rx="1.5" fill="currentColor" opacity=".4"/>
+            </svg>
           </button>
           <button class="nav-item" data-track="nav-projects" title="Projects">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 5a2 2 0 012-2h10a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V5z" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M7 9h6M7 13h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <path d="M3 5a2 2 0 012-2h10a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V5z" stroke="currentColor" stroke-width="1.5" fill="none"/>
+              <path d="M7 9h6M7 13h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
           </button>
           <button class="nav-item" data-track="nav-settings" title="Settings">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="2.5" stroke="currentColor" stroke-width="1.5"/><path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.22 4.22l1.42 1.42M14.36 14.36l1.42 1.42M4.22 15.78l1.42-1.42M14.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <circle cx="10" cy="10" r="2.5" stroke="currentColor" stroke-width="1.5"/>
+              <path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.22 4.22l1.42 1.42M14.36 14.36l1.42 1.42M4.22 15.78l1.42-1.42M14.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
           </button>
         </div>
       </nav>
@@ -46,58 +58,52 @@ interface Integration {
       <!-- Main area -->
       <div class="main-area">
 
-        <!-- Header — storybook: Avatar component for user icon -->
+        <!-- Header 64px -->
         <header class="page-header">
           <div class="breadcrumb">
-            <span class="breadcrumb-item muted">Corporate account</span>
-            <span class="breadcrumb-sep">›</span>
-            <span class="breadcrumb-item muted">Settings</span>
-            <span class="breadcrumb-sep">›</span>
-            <span class="breadcrumb-item active">Integrations</span>
+            <span class="bc-item muted">Corporate account</span>
+            <span class="bc-sep">›</span>
+            <span class="bc-item muted">Settings</span>
+            <span class="bc-sep">›</span>
+            <span class="bc-item active">Integrations</span>
           </div>
-          <!-- storybook: <fvdr-avatar> -->
-          <div class="header-actions">
-            <div class="avatar" data-track="header-avatar">PA</div>
-          </div>
+          <!-- DS: <fvdr-avatar> -->
+          <fvdr-avatar initials="PA" size="md" data-track="header-avatar" />
         </header>
 
-        <!-- Content area -->
+        <!-- Content -->
         <div class="content-area">
 
-          <!-- Tabs — storybook: Tabs component -->
-          <div class="tabs-bar">
-            <button
-              *ngFor="let tab of tabs"
-              class="tab-item"
-              [class.active]="activeTab === tab.id"
-              (click)="setTab(tab.id)"
-              [attr.data-track]="'tab-' + tab.id"
-            >{{ tab.label }}</button>
+          <!-- DS: <fvdr-tabs> -->
+          <fvdr-tabs
+            [tabs]="tabs"
+            [(activeId)]="activeTab"
+            (tabChange)="tracker.trackTask('ca-settings-integrations', 'task_complete')"
+          />
+
+          <!-- DS: <fvdr-info-banner> -->
+          <div class="banners">
+            <fvdr-info-banner
+              message="Only integrations allowed at the corporate account level can be enabled for individual projects."
+            />
+            <fvdr-info-banner
+              message="This applies to new projects only and doesn't affect the ones created before the settings update."
+            />
           </div>
 
-          <!-- Info banners — storybook: Message component -->
-          <div class="info-banners">
-            <div class="info-banner">
-              <svg class="info-icon" width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="#5F6168" stroke-width="1.3"/><path d="M8 7v4M8 5v.5" stroke="#5F6168" stroke-width="1.3" stroke-linecap="round"/></svg>
-              <p>Only integrations allowed at the corporate account level can be enabled for individual projects. <a href="#" class="link" data-track="learn-more">Learn more</a></p>
-            </div>
-            <div class="info-banner">
-              <svg class="info-icon" width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="#5F6168" stroke-width="1.3"/><path d="M8 7v4M8 5v.5" stroke="#5F6168" stroke-width="1.3" stroke-linecap="round"/></svg>
-              <p>This applies to new projects only and doesn't affect the ones created before the settings update</p>
-            </div>
-          </div>
-
-          <!-- Integration cards grid — storybook: Card component -->
+          <!-- Cards grid — DS: <fvdr-card> -->
           <div class="cards-grid">
-            <div
+            <fvdr-card
               *ngFor="let item of integrations"
-              class="integration-card"
-              [class.allowed]="item.allowed"
+              [active]="item.allowed"
+              [hoverable]="true"
             >
-              <!-- Card header: logo + name + domain -->
-              <div class="card-header">
-                <!-- storybook: Logo or Avatar component for integration icon -->
-                <div class="integration-logo" [style.background]="item.logoColor + '20'" [style.color]="item.logoColor">
+              <!-- card-header-actions slot -->
+              <ng-container card-header-actions></ng-container>
+
+              <!-- Card content -->
+              <div class="integration-header">
+                <div class="integration-logo" [style.background]="item.logoColor + '18'" [style.color]="item.logoColor">
                   {{ item.logoInitial }}
                 </div>
                 <div class="integration-meta">
@@ -106,44 +112,25 @@ interface Integration {
                 </div>
               </div>
 
-              <!-- Description -->
-              <p class="card-description">{{ item.description }}</p>
+              <p class="integration-desc">{{ item.description }}</p>
 
-              <!-- Features — storybook: Checkbox component -->
+              <!-- DS: <fvdr-checkbox> × 3 -->
               <div class="feature-list">
-                <label class="feature-item" [class.checked]="item.features.enabledProjects">
-                  <!-- storybook: <fvdr-checkbox [(ngModel)]="item.features.enabledProjects"> -->
-                  <span class="checkbox" [class.checked]="item.features.enabledProjects">
-                    <svg *ngIf="item.features.enabledProjects" width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4l3 3 5-6" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                  </span>
-                  <span>Enabled projects</span>
-                </label>
-                <label class="feature-item" [class.checked]="item.features.availableDocuments">
-                  <span class="checkbox" [class.checked]="item.features.availableDocuments">
-                    <svg *ngIf="item.features.availableDocuments" width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4l3 3 5-6" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                  </span>
-                  <span>Available documents</span>
-                </label>
-                <label class="feature-item" [class.checked]="item.features.permissionDownloads">
-                  <span class="checkbox" [class.checked]="item.features.permissionDownloads">
-                    <svg *ngIf="item.features.permissionDownloads" width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4l3 3 5-6" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                  </span>
-                  <span>Permission-based downloads</span>
-                </label>
+                <fvdr-checkbox label="Enabled projects"            [checked]="item.features.enabledProjects" [disabled]="true" />
+                <fvdr-checkbox label="Available documents"         [checked]="item.features.availableDocuments" [disabled]="true" />
+                <fvdr-checkbox label="Permission-based downloads"  [checked]="item.features.permissionDownloads" [disabled]="true" />
               </div>
 
-              <!-- Allow button — storybook: Button component -->
-              <div class="card-footer">
-                <button
-                  class="btn-allow"
-                  [class.allowed]="item.allowed"
-                  (click)="toggleAllow(item)"
-                  [attr.data-track]="'allow-' + item.id"
-                >
-                  {{ item.allowed ? 'Allowed' : 'Allow' }}
-                </button>
-              </div>
-            </div>
+              <!-- DS: <fvdr-btn> -->
+              <fvdr-btn
+                [label]="item.allowed ? 'Allowed' : 'Allow'"
+                [variant]="item.allowed ? 'secondary' : 'primary'"
+                size="m"
+                style="width:100%"
+                [dataTrack]="'allow-' + item.id"
+                (clicked)="toggleAllow(item)"
+              />
+            </fvdr-card>
           </div>
 
         </div>
@@ -151,24 +138,8 @@ interface Integration {
     </div>
   `,
   styles: [`
-    /* ── Design tokens — FVDR Design System (Figma liyNDiFf1piO8SQmHNKoeU) ── */
     :host {
-      /* Colors/Primary */
-      --green-500: #2C9C74;   /* Button primary default */
-      --green-600: #1C8269;   /* Button primary hover */
-      --green-700: #12695C;   /* Button primary active */
-      --green-50:  #EBF8EF;   /* Tab selected bg */
-      /* Colors/Neutral */
-      --text-primary:   #1F2129;  /* Body/Title text */
-      --text-secondary: #5F616A;  /* Secondary/placeholder */
-      --text-disabled:  #BBBDC7;
-      --border-default: #DEE0EB;  /* Card & tab border */
-      --surface:        #F7F7F7;
-      --white:          #FFFFFF;
-      /* Typography */
-      --font-body:   14px;
-      --font-label:  16px;
-      font-family: 'Open Sans', sans-serif;
+      font-family: var(--font-family);
       display: block;
     }
 
@@ -176,210 +147,100 @@ interface Integration {
     .page-layout {
       display: flex;
       height: 100vh;
-      background: var(--white);
+      background: var(--color-stone-0);
       overflow: hidden;
     }
 
-    /* ── Sidebar ── */
+    /* ── Sidebar 72px ── */
     .sidebar {
-      width: 72px;
-      min-width: 72px;
-      background: var(--white);
-      border-right: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 16px 0;
-      gap: 8px;
+      width: 72px; min-width: 72px;
+      background: var(--color-stone-0);
+      border-right: 1px solid var(--color-divider);
+      display: flex; flex-direction: column; align-items: center;
+      padding: var(--space-4) 0;
+      gap: var(--space-2);
     }
-    .sidebar-logo { padding: 8px 0 16px; }
+    .sidebar-logo { padding: var(--space-2) 0 var(--space-4); }
     .logo-mark {
       width: 36px; height: 36px;
-      background: var(--green-500);
+      background: var(--color-primary-500);
       color: #fff;
-      border-radius: 8px;
+      border-radius: var(--radius-sm);
       display: flex; align-items: center; justify-content: center;
       font-size: 12px; font-weight: 700;
     }
-    .sidebar-nav { display: flex; flex-direction: column; gap: 4px; }
+    .sidebar-nav { display: flex; flex-direction: column; gap: var(--space-1); }
     .nav-item {
       width: 44px; height: 44px;
-      border-radius: 10px;
+      border-radius: var(--radius-md);
       border: none;
       background: transparent;
-      color: var(--text-secondary);
+      color: var(--color-text-secondary);
       cursor: pointer;
       display: flex; align-items: center; justify-content: center;
       transition: background 0.15s, color 0.15s;
     }
-    .nav-item.active, .nav-item:hover { background: var(--green-50); color: var(--green-500); }
+    .nav-item.active, .nav-item:hover {
+      background: var(--color-primary-50);
+      color: var(--color-primary-500);
+    }
 
     /* ── Main area ── */
     .main-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
 
-    /* ── Header ── */
+    /* ── Header 64px ── */
     .page-header {
       height: 64px; min-height: 64px;
-      padding: 0 32px;
+      padding: 0 var(--space-8);
       display: flex; align-items: center; justify-content: space-between;
-      border-bottom: 1px solid var(--border);
-      background: var(--white);
+      border-bottom: 1px solid var(--color-divider);
+      background: var(--color-stone-0);
     }
-    .breadcrumb { display: flex; align-items: center; gap: 6px; font-size: 13px; }
-    .breadcrumb-item.muted { color: var(--text-secondary); }
-    .breadcrumb-item.active { color: var(--text-primary); font-weight: 600; }
-    .breadcrumb-sep { color: var(--text-disabled); }
-    .avatar {
-      width: 32px; height: 32px;
-      border-radius: 50%;
-      background: var(--green-500);
-      color: #fff;
-      font-size: 11px; font-weight: 700;
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer;
-    }
+    .breadcrumb { display: flex; align-items: center; gap: var(--space-2); font-size: var(--text-base-s-size); }
+    .bc-item.muted { color: var(--color-text-secondary); }
+    .bc-item.active { color: var(--color-text-primary); font-weight: 600; }
+    .bc-sep { color: var(--color-text-disabled); }
 
     /* ── Content ── */
-    .content-area { flex: 1; overflow-y: auto; padding: 24px 32px; background: var(--white); }
+    .content-area { flex: 1; overflow-y: auto; padding: var(--space-6) var(--space-8); }
 
-    /* ── Tabs — DS: "Tabs - padding 24", h=48px ── */
-    .tabs-bar {
-      display: flex;
-      border-bottom: 2px solid var(--border-default);
-      margin-bottom: 20px;
-    }
-    .tab-item {
-      height: 48px;
-      padding: 0 24px;          /* DS: padding 24 */
-      border: none; background: transparent;
-      font-size: var(--font-label); /* 16px */
-      font-weight: 400;
-      color: var(--text-secondary); /* unselected: #5f616a */
-      cursor: pointer;
-      border-bottom: 2px solid transparent;
-      border-radius: 4px 4px 0 0; /* DS: radius top [4,4,0,0] */
-      margin-bottom: -2px;
-      transition: color 0.15s, background 0.15s, border-color 0.15s;
-    }
-    .tab-item.active {
-      background: var(--green-50);           /* #ebf8ef */
-      color: var(--text-primary);            /* #1f2129 */
-      border-bottom-color: var(--green-500); /* 2px #2c9c74 */
-    }
-    .tab-item:hover:not(.active) { color: var(--text-primary); background: var(--surface); }
+    /* ── Banners ── */
+    .banners { display: flex; flex-direction: column; gap: var(--space-2); margin: var(--space-5) 0 var(--space-6); }
 
-    /* ── Info banners — map to storybook Message ── */
-    .info-banners { display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px; }
-    .info-banner {
-      display: flex; align-items: flex-start; gap: 8px;
-      padding: 12px 16px;
-      background: var(--surface);
-      border-radius: 8px;
-      font-size: 13px;
-      color: var(--text-primary);
-      line-height: 1.5;
-    }
-    .info-icon { flex-shrink: 0; margin-top: 2px; }
-    .info-banner p { margin: 0; }
-    .link { color: var(--green-500); text-decoration: none; }
-    .link:hover { text-decoration: underline; }
-
-    /* ── Cards grid — DS: Card, border 1px #dee0eb → active 1px #2c9c74, radius 4px ── */
+    /* ── Cards grid ── */
     .cards-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-      gap: 16px;
+      gap: var(--space-4);
     }
-    .integration-card {
-      border: 1px solid var(--border-default); /* DS: #dee0eb */
-      border-radius: 4px;                       /* DS: radius=4 */
-      padding: 16px;                            /* DS: padding=16 */
-      background: var(--white);
-      display: flex; flex-direction: column; gap: 14px;
-      transition: border-color 0.15s, box-shadow 0.15s;
-    }
-    .integration-card:hover,
-    .integration-card.allowed { border-color: var(--green-500); } /* DS: State=hover-active / Selector=On */
 
-    /* Card header */
-    .card-header { display: flex; align-items: center; gap: 12px; }
+    /* ── Card internals ── */
+    .integration-header { display: flex; align-items: center; gap: var(--space-3); }
     .integration-logo {
       width: 40px; height: 40px;
-      border-radius: 4px;  /* DS: radius=4 */
+      border-radius: var(--radius-sm);
       display: flex; align-items: center; justify-content: center;
-      font-size: var(--font-label); font-weight: 600;  /* DS: Title 16px w600 */
+      font-size: var(--text-label-l-size); font-weight: 600;
       flex-shrink: 0;
     }
     .integration-meta { display: flex; flex-direction: column; gap: 2px; }
-    .integration-name { font-size: var(--font-label); font-weight: 600; color: var(--text-primary); }  /* DS: Title 16px w600 #1f2129 */
-    .integration-domain { font-size: 12px; color: var(--text-secondary); }  /* DS: Badge 12px #2c9c74 variant → secondary here */
+    .integration-name { font-size: var(--text-label-l-size); font-weight: 600; color: var(--color-text-primary); }
+    .integration-domain { font-size: var(--text-caption1-size); color: var(--color-text-secondary); }
 
-    /* Description */
-    .card-description {
-      font-size: 13px;
-      color: var(--text-secondary);
-      line-height: 1.55;
+    .integration-desc {
+      font-size: var(--text-base-s-size);
+      color: var(--color-text-secondary);
+      line-height: var(--text-base-s-lh);
       margin: 0;
     }
 
-    /* Features — DS: Checkbox 16×16px, radius 1px ── */
-    .feature-list { display: flex; flex-direction: column; gap: 8px; }
-    .feature-item {
-      display: flex; align-items: center; gap: 8px;
-      font-size: var(--font-body);  /* 14px */
-      color: var(--text-secondary);
-      cursor: default;
-    }
-    .feature-item.checked { color: var(--text-primary); }
-    .checkbox {
-      width: 16px; height: 16px;  /* DS: 16×16px */
-      border-radius: 1px;          /* DS: radius=1 */
-      border: 1.5px solid var(--border-default);  /* DS: unselected border #dee0eb */
-      background: var(--white);
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
-      transition: background 0.15s, border-color 0.15s;
-    }
-    .checkbox.checked {
-      background: var(--green-500);      /* DS: selected fill #2c9c74 */
-      border-color: var(--green-500);
-    }
-    .checkbox.checked:hover {
-      background: var(--green-600);      /* DS: hover+selected #1c8269 */
-      border-color: var(--green-600);
-    }
-
-    /* Card footer */
-    .card-footer { margin-top: auto; padding-top: 4px; }
-
-    /* Button — DS: Type=Primary Size=M, h=40px, radius=4, padding=16/12/16/12, text 14px w400 ── */
-    .btn-allow {
-      width: 100%;
-      height: 40px;               /* DS: Size=M h=40px */
-      padding: 0 12px;            /* DS: p=16/12/16/12 (top/right/bottom/left) */
-      border-radius: 4px;         /* DS: radius=4 */
-      border: none;
-      background: var(--green-500);  /* DS: Type=Primary fill #2c9c74 */
-      color: #fff;
-      font-size: var(--font-body);   /* DS: 14px */
-      font-weight: 400;              /* DS: w400 */
-      cursor: pointer;
-      font-family: inherit;
-      transition: background 0.15s;
-    }
-    .btn-allow:hover { background: var(--green-600); }  /* DS: hover #1c8269 */
-    .btn-allow:active { background: var(--green-700); } /* DS: active #12695c */
-    .btn-allow.allowed {
-      background: var(--green-50);   /* DS: secondary/ghost variant on green bg */
-      color: var(--green-500);
-    }
-    .btn-allow.allowed:hover { background: #d4f0e3; }
+    .feature-list { display: flex; flex-direction: column; gap: var(--space-2); }
   `],
 })
 export class CaSettingsIntegrationsComponent implements OnInit, OnDestroy {
-  private tracker = inject(TrackerService);
+  tracker = inject(TrackerService);
 
-  tabs = [
+  tabs: TabItem[] = [
     { id: 'security', label: 'Security' },
     { id: 'integrations', label: 'Integrations' },
     { id: 'contract', label: 'Contract #128182' },
@@ -435,11 +296,6 @@ export class CaSettingsIntegrationsComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.tracker.destroyListeners();
-  }
-
-  setTab(id: string): void {
-    this.activeTab = id;
-    this.tracker.trackTask('ca-settings-integrations', 'task_complete');
   }
 
   toggleAllow(item: Integration): void {
