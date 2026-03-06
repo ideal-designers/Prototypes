@@ -33,7 +33,18 @@ Angular 17 · Vercel · Supabase · Click Tracking / Heatmaps
    ```
 5. Enable **Preview Deployments** → each branch gets its own URL
 
-### 3. Local dev
+### 3. Figma MCP (for Claude Code)
+1. Get a Figma Personal Access Token: **Figma → Settings → Security → Personal access tokens**
+2. Add it to your environment:
+   ```bash
+   export FIGMA_API_KEY=figd_...
+   ```
+3. The MCP server config is already in `.claude/mcp.json` — Claude Code will auto-start `@figma/mcp` when you open this project.
+4. Verify it works: in a Claude Code session type `/mcp` — you should see `figma` listed as connected.
+
+> **No FIGMA_API_KEY?** Claude will skip design context fetching and generate the component from your written brief only.
+
+### 4. Local dev
 ```bash
 npm install
 cp src/environments/environment.ts src/environments/environment.local.ts
