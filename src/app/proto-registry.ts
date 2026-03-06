@@ -16,5 +16,12 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
     status: 'wip',
     description: 'Active deals overview with quick actions',
   },
+    {
+    slug: 'ca-settings-integrations',
+    title: 'CA Settings — Integrations',
+    figma: 'https://www.figma.com/design/PITzEfwRA26GWSG2MvzmDy/CA?node-id=42295-69802',
+    status: 'wip',
+    description: 'Corporate account settings integrations management',
+  },
   // REGISTRY_PLACEHOLDER
 ];

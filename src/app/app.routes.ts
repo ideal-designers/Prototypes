@@ -12,6 +12,11 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./prototypes/deal-room/deal-room.component').then(m => m.DealRoomComponent),
   },
+    {
+    path: 'ca-settings-integrations',
+    loadComponent: () =>
+      import('./prototypes/ca-settings-integrations/ca-settings-integrations.component').then(m => m.CaSettingsIntegrationsComponent),
+  },
   // PROTO_ROUTES_PLACEHOLDER
   {
     path: '**',
