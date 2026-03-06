@@ -26,3 +26,10 @@ src/environments/environment.prod.ts
 
 # SSH deploy keys (never commit private keys)
 .ssh/
+
+# Local environment secrets
+.env
+.env.local
+
+# Claude Code local config (may contain API keys)
+.claude/
