@@ -22,6 +22,14 @@
  *   })
  */
 
+import { ButtonComponent } from './components/button/button.component';
+import { TabsComponent } from './components/tabs/tabs.component';
+import { CardComponent } from './components/card/card.component';
+import { CheckboxComponent } from './components/checkbox/checkbox.component';
+import { BadgeComponent } from './components/badge/badge.component';
+import { AvatarComponent } from './components/avatar/avatar.component';
+import { InfoBannerComponent } from './components/info-banner/info-banner.component';
+
 export { ButtonComponent } from './components/button/button.component';
 export type { ButtonType, ButtonSize } from './components/button/button.component';
 
@@ -51,4 +59,4 @@ export const DS_COMPONENTS = [
   BadgeComponent,
   AvatarComponent,
   InfoBannerComponent,
-] as const;
+];
