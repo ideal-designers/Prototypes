@@ -160,89 +160,143 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
 
     <!-- ══════════════════════════════════════════
          MODAL — "Allow integration"
-         Figma: 512×433px, bg overlay #000000 60%
+         States: default / dropdown open / error / selected
     ══════════════════════════════════════════ -->
-    <div *ngIf="modalOpen" class="modal-overlay" (click)="closeModal()">
+    <div *ngIf="modalOpen" class="modal-overlay" (click)="onOverlayClick()">
       <div class="modal" (click)="$event.stopPropagation()" role="dialog" aria-modal="true">
 
-        <!-- Modal header -->
+        <!-- Header — Figma: h=72, pad 24, border-bottom #dee0eb -->
         <div class="modal-header">
           <span class="modal-title">Allow integration</span>
           <button class="modal-close" (click)="closeModal()" data-track="modal-close">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M5 5l10 10M15 5L5 15" stroke="#5F616A" stroke-width="1.5" stroke-linecap="round"/></svg>
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 1l12 12M13 1L1 13" stroke="#5F616A" stroke-width="1.5" stroke-linecap="round"/></svg>
           </button>
         </div>
 
-        <!-- Modal body -->
+        <!-- Body — Figma: Frame 576, pad right=24 bottom=8 left=24, gap=16 -->
         <div class="modal-body">
-          <!-- Info text -->
+
+          <!-- Info text — Figma: 16px fw=400 #1f2129 -->
           <p class="modal-info-text">
-            <strong>{{ modalIntegration?.name }}</strong> will be allowed to be used in the selected projects by authorized users
+            <strong>{{ modalIntegration?.name }}</strong> will be allowed to be used in the selected projects by authorized participants.
           </p>
 
-          <!-- Project selector -->
-          <div class="field">
-            <label class="field-label">Select projects</label>
-            <div class="project-selector" (click)="toggleProjectDropdown()">
-              <span class="selector-value" [class.placeholder]="selectedProjects.length === 0">
-                {{ selectedProjects.length > 0 ? selectedProjects.length + ' selected' : 'Select' }}
-              </span>
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" [class.rotated]="projectDropdownOpen">
-                <path d="M4 6l4 4 4-4" stroke="#5F616A" stroke-width="1.5" stroke-linecap="round"/>
-              </svg>
-            </div>
-            <span class="field-hint">Selected projects will have access to integration</span>
+          <!-- Dropdown "Projects" — Figma: 448px wide, label 15px fw=600 -->
+          <div class="field" #projectField>
+            <span class="field-label">Projects</span>
 
-            <!-- Dropdown -->
-            <div *ngIf="projectDropdownOpen" class="project-dropdown">
-              <div class="dropdown-search">
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="4.5" stroke="#9C9EA8" stroke-width="1.2"/><path d="M10.5 10.5l2.5 2.5" stroke="#9C9EA8" stroke-width="1.2" stroke-linecap="round"/></svg>
-                <input [(ngModel)]="projectSearch" placeholder="Search" class="dropdown-search-input" (click)="$event.stopPropagation()" />
+            <!-- Trigger field — Figma: h=40, border 1px #bbbdc8, r=4, pad 8/16, gap=8 -->
+            <div
+              class="dropdown-trigger"
+              [class.dropdown-trigger--error]="projectError"
+              [class.dropdown-trigger--open]="projectDropdownOpen"
+              (click)="toggleProjectDropdown()"
+              data-track="projects-dropdown"
+            >
+              <span *ngIf="selectedProjects.length === 0" class="trigger-placeholder">Select</span>
+              <span *ngIf="selectedProjects.length > 0" class="trigger-value">{{ selectedProjects.length }} selected</span>
+
+              <div class="trigger-icons">
+                <!-- Clear × — only when something selected (Figma: Actions 16×16 #5f616a) -->
+                <button
+                  *ngIf="selectedProjects.length > 0"
+                  class="trigger-clear"
+                  (click)="clearSelection($event)"
+                  data-track="clear-selection"
+                >
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M1 1l10 10M11 1L1 11" stroke="#5F616A" stroke-width="1.5" stroke-linecap="round"/></svg>
+                </button>
+                <!-- Chevron — Figma: chevron-down 10×5.6, #5f616a -->
+                <svg class="trigger-chevron" [class.rotated]="projectDropdownOpen" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path d="M4 6l4 4 4-4" stroke="#5F616A" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
               </div>
-              <div class="dropdown-option select-all" (click)="toggleAllProjects($event)">
-                <fvdr-checkbox [checked]="allProjectsSelected" [indeterminate]="someProjectsSelected" />
-                <span class="option-label">Select all</span>
+            </div>
+
+            <!-- Hint — normal or error -->
+            <span *ngIf="!projectError" class="field-hint">Selected projects will have access to integration</span>
+            <span *ngIf="projectError" class="field-hint field-hint--error">Fill in to continue</span>
+
+            <!-- Droplist — Figma: 447×232, bg #ffffff, border 1px #dee0eb -->
+            <div *ngIf="projectDropdownOpen" class="droplist" (click)="$event.stopPropagation()">
+
+              <!-- Search area — Figma: bg #fbfbfb, border-bottom 1px #dee0eb, pad 16, gap 16, h=72 -->
+              <div class="droplist-search">
+                <fvdr-checkbox
+                  [checked]="allProjectsSelected"
+                  [indeterminate]="someProjectsSelected"
+                  (checkedChange)="onSelectAllChange($event)"
+                />
+                <div class="search-field">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="4.5" stroke="#9C9EA8" stroke-width="1.2"/><path d="M10.5 10.5l2.5 2.5" stroke="#9C9EA8" stroke-width="1.2" stroke-linecap="round"/></svg>
+                  <input
+                    [(ngModel)]="projectSearch"
+                    placeholder="Search"
+                    class="search-input"
+                    (click)="$event.stopPropagation()"
+                    #searchInput
+                  />
+                </div>
               </div>
-              <div class="dropdown-group">
-                <span class="group-label">Label</span>
+
+              <!-- List — Figma: Tree items, pad 8/32, h=40 each -->
+              <div class="droplist-body">
+                <!-- Select all row — Figma: pad 8/16, border-bottom -->
+                <div class="tree-item tree-item--select-all" (click)="toggleAllProjects($event)">
+                  <fvdr-checkbox [checked]="allProjectsSelected" [indeterminate]="someProjectsSelected" />
+                  <span class="tree-label">Select all</span>
+                </div>
+                <!-- Project rows — pad 8/32, bg #ebf8ef when selected -->
                 <div
                   *ngFor="let project of filteredProjects"
-                  class="dropdown-option"
+                  class="tree-item tree-item--project"
+                  [class.tree-item--selected]="selectedProjects.includes(project)"
                   (click)="toggleProject(project, $event)"
                 >
                   <fvdr-checkbox [checked]="selectedProjects.includes(project)" />
-                  <span class="option-label">{{ project }}</span>
+                  <span class="tree-label">{{ project }}</span>
                 </div>
+                <div *ngIf="filteredProjects.length === 0" class="tree-empty">No results</div>
               </div>
+
             </div>
           </div>
 
-          <!-- Checkbox -->
+          <!-- Checkbox — Figma: pad 8/8/8/0, gap 12, HORIZONTAL -->
           <div class="modal-checkbox-row">
             <fvdr-checkbox
-              label="Apply to project template for newly created projects"
-              [(checked)]="applyToTemplate"
+              [(checked)]="includeNewProjects"
+              data-track="include-new-projects"
             />
+            <span class="modal-checkbox-label">Include newly created projects to allowed list</span>
           </div>
 
-          <!-- Note -->
-          <p class="modal-note">
-            Project administrators can later manage integrations in the project settings.
-            <a href="#" class="link" data-track="learn-more" (click)="$event.preventDefault()">Learn more</a>
-          </p>
+          <!-- Info banner — Figma: Inline, bg #f7f7f7, pad 8/12, r=4 -->
+          <div class="modal-banner">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="flex-shrink:0;margin-top:2px"><circle cx="8" cy="8" r="7" stroke="#5F616A" stroke-width="1.2"/><path d="M8 7v4M8 5.5v.5" stroke="#5F616A" stroke-width="1.2" stroke-linecap="round"/></svg>
+            <span>Project administrators can later manage integrations in the project settings. <a href="#" class="modal-link" (click)="$event.preventDefault()">Learn more</a></span>
+          </div>
+
         </div>
 
-        <!-- Modal footer -->
+        <!-- Footer — Figma: h=88, pad 24, border-top #dee0eb -->
+        <!-- Left: Forbid (trash + red text) | Right: Cancel + Confirm -->
         <div class="modal-footer">
-          <fvdr-btn label="Cancel" variant="ghost" size="m" (clicked)="closeModal()" data-track="modal-cancel" />
-          <fvdr-btn
-            label="Confirm"
-            variant="primary"
-            size="m"
-            [disabled]="selectedProjects.length === 0"
-            (clicked)="confirmAllow()"
-            data-track="modal-confirm"
-          />
+          <button *ngIf="modalIntegration?.allowed" class="btn-forbid" (click)="forbidIntegration()" data-track="modal-forbid">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M5 4V2h6v2M6 7v5M10 7v5M3 4l1 10h8l1-10" stroke="#ED7C6E" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span>Forbid integration</span>
+          </button>
+          <div class="modal-footer-right">
+            <!-- Cancel — Figma: bg #fff, border 1px #bbbdc8, pad 16, r=4, text "Cancel" #40424b 15px -->
+            <button class="btn-cancel" (click)="closeModal()" data-track="modal-cancel">Cancel</button>
+            <!-- Confirm — Figma: bg #2c9c74, pad 16, r=4, text "Confirm" #fff 15px -->
+            <button
+              class="btn-confirm"
+              [class.btn-confirm--disabled]="selectedProjects.length === 0"
+              (click)="confirmAllow()"
+              data-track="modal-confirm"
+            >Confirm</button>
+          </div>
         </div>
 
       </div>
@@ -412,7 +466,7 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
     }
 
     /* ══════════════════════════════════════════
-       MODAL — Figma: 512px wide, r=4
+       MODAL
     ══════════════════════════════════════════ */
     .modal-overlay {
       position: fixed; inset: 0;
@@ -423,110 +477,194 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
     }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
+    /* Figma: 512px wide, r=4 */
     .modal {
       width: 512px;
       background: #ffffff;
       border-radius: 4px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.16);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.2);
       display: flex; flex-direction: column;
-      animation: slideUp 0.2s ease;
+      animation: slideUp 0.18s ease;
       max-height: 90vh;
-      overflow: hidden;
+      overflow: visible; /* allow droplist to overflow */
     }
-    @keyframes slideUp { from { transform: translateY(8px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    @keyframes slideUp { from { transform: translateY(6px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-    /* Modal header — Figma: h=72, pad 0/24, border-bottom 1px #dee0eb */
+    /* Header — Figma: h=72, pad 24/24, border-bottom 1px #dee0eb */
     .modal-header {
       display: flex; align-items: center; justify-content: space-between;
       padding: 0 24px;
       height: 72px; min-height: 72px;
       border-bottom: 1px solid #dee0eb;
+      flex-shrink: 0;
     }
     .modal-title { font-size: 16px; font-weight: 600; color: #1f2129; }
     .modal-close {
-      width: 32px; height: 32px;
+      width: 24px; height: 24px;
       border: none; background: transparent; cursor: pointer; padding: 0;
       display: flex; align-items: center; justify-content: center;
-      border-radius: 4px;
-      color: #5f616a;
+      border-radius: 4px; color: #5f616a;
       transition: background 0.15s;
     }
     .modal-close:hover { background: #f7f7f7; }
 
-    /* Modal body — pad 24, gap 20 */
+    /* Body — Figma: Frame 576, pad right=24 bottom=8 left=24, gap=16 */
     .modal-body {
-      padding: 24px;
-      display: flex; flex-direction: column; gap: 20px;
-      overflow-y: auto;
+      padding: 16px 24px 8px 24px;
+      display: flex; flex-direction: column; gap: 16px;
+      overflow-y: visible;
+      flex-shrink: 0;
     }
+
+    /* Info text — Figma: 16px fw=400 #1f2129 */
     .modal-info-text { margin: 0; font-size: 16px; line-height: 24px; color: #1f2129; }
 
-    /* Field */
+    /* Field wrapper */
     .field { display: flex; flex-direction: column; gap: 4px; position: relative; }
-    .field-label { font-size: 15px; font-weight: 600; color: #1f2129; }
-    .field-hint { font-size: 12px; color: #5f616a; }
+    .field-label { font-size: 15px; font-weight: 600; color: #1f2129; line-height: 20px; }
+    .field-hint { font-size: 12px; color: #5f616a; line-height: 16px; }
+    .field-hint--error { color: #e54430; }
 
-    /* Project selector */
-    .project-selector {
-      height: 40px; padding: 0 12px;
-      border: 1px solid #dee0eb;
+    /* Dropdown trigger — Figma: h=40, border 1px #bbbdc8, r=4, pad 8/16, gap=8 */
+    .dropdown-trigger {
+      height: 40px; padding: 8px 16px;
+      border: 1px solid #bbbdc8;
       border-radius: 4px;
       background: #ffffff;
       display: flex; align-items: center; justify-content: space-between;
-      cursor: pointer; transition: border-color 0.15s;
+      cursor: pointer; gap: 8px;
+      transition: border-color 0.15s;
       font-size: 15px; font-family: var(--font-family);
     }
-    .project-selector:hover { border-color: #2c9c74; }
-    .selector-value { color: #1f2129; }
-    .selector-value.placeholder { color: #9c9ea8; }
-    .project-selector svg { flex-shrink: 0; transition: transform 0.2s; }
-    .project-selector svg.rotated { transform: rotate(180deg); }
+    .dropdown-trigger:hover:not(.dropdown-trigger--error) { border-color: #2c9c74; }
+    .dropdown-trigger--open { border-color: #2c9c74; }
+    .dropdown-trigger--error { border-color: #ed7c6e !important; }
+    .trigger-placeholder { color: #9c9ea8; flex: 1; }
+    .trigger-value { color: #1f2129; flex: 1; }
+    .trigger-icons { display: flex; align-items: center; gap: 8px; }
+    .trigger-clear {
+      width: 16px; height: 16px;
+      border: none; background: transparent; cursor: pointer; padding: 0;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 2px;
+      color: #5f616a;
+    }
+    .trigger-clear:hover { background: #f0f0f0; }
+    .trigger-chevron { flex-shrink: 0; transition: transform 0.2s; }
+    .trigger-chevron.rotated { transform: rotate(180deg); }
 
-    /* Dropdown */
-    .project-dropdown {
-      position: absolute; top: calc(100% + 2px); left: 0; right: 0;
+    /* Droplist — Figma: 447×232, position below trigger, border 1px #dee0eb */
+    .droplist {
+      position: absolute;
+      top: calc(100% + 2px);
+      left: 0;
+      width: 447px;
       background: #ffffff;
       border: 1px solid #dee0eb;
       border-radius: 4px;
       box-shadow: 0 4px 16px rgba(0,0,0,0.12);
-      z-index: 10; max-height: 240px; overflow-y: auto;
+      z-index: 100;
+      overflow: hidden;
     }
-    .dropdown-search {
-      display: flex; align-items: center; gap: 8px;
-      padding: 8px 12px;
+
+    /* Search area — Figma: bg #fbfbfb, border-bottom 1px #dee0eb, pad 16, gap 16, h=72 */
+    .droplist-search {
+      display: flex; align-items: center; gap: 16px;
+      padding: 16px;
+      background: #fbfbfb;
       border-bottom: 1px solid #dee0eb;
+      height: 72px;
     }
-    .dropdown-search-input {
-      flex: 1; border: none; outline: none; background: transparent;
-      font-size: 14px; color: #1f2129; font-family: var(--font-family);
-    }
-    .dropdown-option {
+    .search-field {
+      flex: 1;
       display: flex; align-items: center; gap: 8px;
-      padding: 8px 12px; cursor: pointer; font-size: 14px;
+      height: 40px; padding: 8px 16px;
+      border: 1px solid #bbbdc8;
+      border-radius: 4px;
+      background: #ffffff;
+    }
+    .search-input {
+      flex: 1; border: none; outline: none; background: transparent;
+      font-size: 15px; color: #1f2129; font-family: var(--font-family);
+    }
+    .search-input::placeholder { color: #9c9ea8; }
+
+    /* List items */
+    .droplist-body { max-height: 200px; overflow-y: auto; }
+
+    /* Select all row — Figma: pad 8/16, border-bottom 1px #dee0eb */
+    .tree-item {
+      display: flex; align-items: center; gap: 16px;
+      height: 40px; cursor: pointer;
       transition: background 0.1s;
     }
-    .dropdown-option:hover { background: #f7f7f7; }
-    .select-all { border-bottom: 1px solid #dee0eb; }
-    .dropdown-group { padding: 8px 0; }
-    .group-label {
-      padding: 4px 12px;
-      font-size: 12px; font-weight: 600; color: #5f616a;
-      text-transform: uppercase; letter-spacing: 0.5px; display: block;
+    .tree-item--select-all {
+      padding: 8px 16px;
+      border-bottom: 1px solid #dee0eb;
     }
-    .option-label { font-size: 14px; color: #1f2129; }
+    .tree-item--select-all:hover { background: #f7f7f7; }
 
-    .modal-checkbox-row { display: flex; align-items: flex-start; }
-    .modal-note { margin: 0; font-size: 14px; color: #5f616a; line-height: 20px; }
-    .link { color: #2c9c74; text-decoration: none; }
-    .link:hover { text-decoration: underline; }
+    /* Project rows — Figma: pad 8/32 (indented), bg #ebf8ef when selected */
+    .tree-item--project { padding: 8px 32px; }
+    .tree-item--project:hover { background: #f7f7f7; }
+    .tree-item--selected { background: #ebf8ef; }
+    .tree-item--selected:hover { background: #dff4e8; }
 
-    /* Modal footer — Figma: h=88, pad 20/24, border-top 1px #dee0eb */
+    .tree-label { font-size: 14px; color: #1f2129; }
+    .tree-empty { padding: 16px; font-size: 14px; color: #9c9ea8; text-align: center; }
+
+    /* Checkbox row inside modal body */
+    .modal-checkbox-row { display: flex; align-items: center; gap: 12px; padding: 8px 0 8px 0; }
+    .modal-checkbox-label { font-size: 15px; color: #1f2129; line-height: 24px; }
+
+    /* Info banner — Figma: bg #f7f7f7, pad 8/12, r=4, gap=8 */
+    .modal-banner {
+      display: flex; align-items: flex-start; gap: 8px;
+      background: #f7f7f7; border-radius: 4px;
+      padding: 8px 12px;
+      font-size: 15px; color: #1f2129; line-height: 24px;
+    }
+    .modal-link { color: #2c9c74; text-decoration: none; }
+    .modal-link:hover { text-decoration: underline; }
+
+    /* Footer — Figma: h=88, pad 24, border-top #dee0eb, HORIZONTAL space-between */
     .modal-footer {
-      display: flex; align-items: center; justify-content: flex-end; gap: 12px;
+      display: flex; align-items: center; justify-content: space-between;
       padding: 24px;
       border-top: 1px solid #dee0eb;
       min-height: 88px;
+      flex-shrink: 0;
     }
+    .modal-footer-right { display: flex; align-items: center; gap: 16px; margin-left: auto; }
+
+    /* Forbid button — Figma: trash icon #ed7c6e + text "Delete report" #e54430, 16px */
+    .btn-forbid {
+      display: flex; align-items: center; gap: 8px;
+      border: none; background: transparent; cursor: pointer; padding: 0;
+      font-size: 16px; color: #e54430; font-family: var(--font-family);
+    }
+    .btn-forbid:hover { opacity: 0.8; }
+
+    /* Cancel — Figma: bg #fff, border 1px #bbbdc8, pad 16, r=4, text "Cancel" #40424b 15px */
+    .btn-cancel {
+      height: 40px; padding: 0 16px;
+      border: 1px solid #bbbdc8; border-radius: 4px;
+      background: #ffffff; cursor: pointer;
+      font-size: 15px; color: #40424b; font-family: var(--font-family);
+      transition: border-color 0.15s;
+    }
+    .btn-cancel:hover { border-color: #5f616a; }
+
+    /* Confirm — Figma: bg #2c9c74, pad 16, r=4, text "Confirm" #fff 15px */
+    .btn-confirm {
+      height: 40px; padding: 0 16px;
+      border: none; border-radius: 4px;
+      background: #2c9c74; cursor: pointer;
+      font-size: 15px; color: #ffffff; font-family: var(--font-family);
+      transition: background 0.15s;
+    }
+    .btn-confirm:hover:not(.btn-confirm--disabled) { background: #268a65; }
+    .btn-confirm--disabled { background: #bbbdc8; cursor: not-allowed; }
 
     /* ── Toast — Figma: 400×56, bg #fbfbfb, left bar 4px #2c9c74 ── */
     .toast {
@@ -612,9 +750,10 @@ export class CaSettingsIntegrationsComponent implements OnInit, OnDestroy {
   modalOpen = false;
   modalIntegration: Integration | null = null;
   selectedProjects: string[] = [];
-  applyToTemplate = false;
+  includeNewProjects = false;
   projectDropdownOpen = false;
   projectSearch = '';
+  projectError = false;        // State 3: error border + "Fill in to continue"
   projects = MOCK_PROJECTS;
 
   // Toast state
@@ -631,9 +770,10 @@ export class CaSettingsIntegrationsComponent implements OnInit, OnDestroy {
   openModal(item: Integration): void {
     this.modalIntegration = item;
     this.selectedProjects = [...item.allowedProjects];
-    this.applyToTemplate = false;
+    this.includeNewProjects = false;
     this.projectDropdownOpen = false;
     this.projectSearch = '';
+    this.projectError = false;
     this.modalOpen = true;
     this.tracker.trackTask('ca-settings-integrations', 'task_complete');
   }
@@ -642,9 +782,35 @@ export class CaSettingsIntegrationsComponent implements OnInit, OnDestroy {
     this.modalOpen = false;
     this.modalIntegration = null;
     this.projectDropdownOpen = false;
+    this.projectError = false;
   }
 
-  toggleProjectDropdown(): void { this.projectDropdownOpen = !this.projectDropdownOpen; }
+  onOverlayClick(): void {
+    if (this.projectDropdownOpen) { this.projectDropdownOpen = false; return; }
+    this.closeModal();
+  }
+
+  toggleProjectDropdown(): void {
+    this.projectDropdownOpen = !this.projectDropdownOpen;
+    this.projectError = false;  // clear error when user interacts
+    if (this.projectDropdownOpen) {
+      // focus search on next tick
+      setTimeout(() => {
+        const el = document.querySelector('.search-input') as HTMLInputElement;
+        if (el) el.focus();
+      }, 50);
+    }
+  }
+
+  clearSelection(event: Event): void {
+    event.stopPropagation();
+    this.selectedProjects = [];
+    this.projectError = false;
+  }
+
+  onSelectAllChange(checked: boolean): void {
+    this.selectedProjects = checked ? [...this.projects] : [];
+  }
 
   toggleProject(project: string, event: Event): void {
     event.stopPropagation();
@@ -659,7 +825,13 @@ export class CaSettingsIntegrationsComponent implements OnInit, OnDestroy {
   }
 
   confirmAllow(): void {
-    if (!this.modalIntegration || this.selectedProjects.length === 0) return;
+    if (!this.modalIntegration) return;
+    // State 3: show error if no project selected
+    if (this.selectedProjects.length === 0) {
+      this.projectError = true;
+      this.projectDropdownOpen = false;
+      return;
+    }
     const item = this.integrations.find(i => i.id === this.modalIntegration!.id);
     if (item) {
       item.allowed = true;
@@ -668,6 +840,16 @@ export class CaSettingsIntegrationsComponent implements OnInit, OnDestroy {
     const name = this.modalIntegration.name;
     this.closeModal();
     this.showToast(`${name} integration allowed for ${this.selectedProjects.length} project${this.selectedProjects.length !== 1 ? 's' : ''}`);
+    this.tracker.trackTask('ca-settings-integrations', 'task_complete');
+  }
+
+  forbidIntegration(): void {
+    if (!this.modalIntegration) return;
+    const item = this.integrations.find(i => i.id === this.modalIntegration!.id);
+    if (item) { item.allowed = false; item.allowedProjects = []; }
+    const name = this.modalIntegration.name;
+    this.closeModal();
+    this.showToast(`${name} integration forbidden`);
     this.tracker.trackTask('ca-settings-integrations', 'task_complete');
   }
 
