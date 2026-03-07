@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ElementRef, HostListener, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TrackerService } from '../../services/tracker.service';
@@ -32,14 +32,14 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
   template: `
     <div class="page-layout">
 
-      <!-- ── Left sidebar 72px ── -->
+      <!-- ── Left sidebar 64px ── -->
       <nav class="sidebar">
         <div class="sidebar-top">
           <!-- Logo mark -->
           <div class="logo-mark" title="Corporate Account">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="2" y="2" width="9" height="9" rx="1" fill="#fff"/><rect x="13" y="2" width="9" height="9" rx="1" fill="#fff" opacity=".5"/><rect x="2" y="13" width="9" height="9" rx="1" fill="#fff" opacity=".5"/><rect x="13" y="13" width="9" height="9" rx="1" fill="#fff" opacity=".5"/></svg>
           </div>
-          <!-- Nav items — icon-only, 72px collapsed -->
+          <!-- Nav items — icon-only -->
           <div class="nav-list">
             <button *ngFor="let item of navItems" class="nav-item" [class.active]="item.active" [title]="item.label" data-track="nav">
               <span class="nav-icon" [innerHTML]="item.icon"></span>
@@ -174,7 +174,7 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
         </div>
 
         <!-- Body — Figma: Frame 576, pad right=24 bottom=8 left=24, gap=16 -->
-        <div class="modal-body">
+        <div class="modal-body" (click)="closeDropdownIfOpen()">
 
           <!-- Info text — Figma: 16px fw=400 #1f2129 -->
           <p class="modal-info-text">
@@ -182,7 +182,7 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
           </p>
 
           <!-- Dropdown "Projects" — Figma: 448px wide, label 15px fw=600 -->
-          <div class="field" #projectField>
+          <div class="field" #projectField (click)="$event.stopPropagation()">
             <span class="field-label">Projects</span>
 
             <!-- Trigger field — Figma: h=40, border 1px #bbbdc8, r=4, pad 8/16, gap=8 -->
@@ -317,18 +317,17 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
     /* ── Layout ── */
     .page-layout { display: flex; height: 100vh; background: #f7f7f7; overflow: hidden; }
 
-    /* ── Sidebar — Figma: 72px, bg #f7f7f7, border-right 1px #dee0eb ── */
+    /* ── Sidebar — FVDR Design System: 64px, dark bg ── */
     .sidebar {
-      width: 72px; min-width: 72px;
-      background: #f7f7f7;
-      border-right: 1px solid #dee0eb;
+      width: 64px; min-width: 64px;
+      background: #1f2129;
       display: flex; flex-direction: column;
       align-items: center;
       justify-content: space-between;
-      padding: 16px 0;
+      padding: 16px 0 20px;
     }
-    .sidebar-top { display: flex; flex-direction: column; align-items: center; gap: 16px; width: 100%; }
-    .sidebar-bottom { padding-bottom: 8px; }
+    .sidebar-top { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%; }
+    .sidebar-bottom { display: flex; flex-direction: column; align-items: center; gap: 0; }
 
     .logo-mark {
       width: 40px; height: 40px;
@@ -336,19 +335,38 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
       border-radius: 4px;
       display: flex; align-items: center; justify-content: center;
       cursor: pointer; flex-shrink: 0;
+      margin-bottom: 8px;
     }
-    .nav-list { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 100%; padding: 0 12px; }
+    .nav-divider {
+      width: 32px; height: 1px;
+      background: rgba(255,255,255,0.12);
+      margin: 4px 0;
+    }
+    .nav-list { display: flex; flex-direction: column; align-items: center; gap: 2px; width: 100%; padding: 0 8px; }
     .nav-item {
       width: 48px; height: 48px;
-      border-radius: 4px;
+      border-radius: 8px;
       border: none; background: transparent;
-      color: #5f616a;
+      color: rgba(255,255,255,0.45);
       cursor: pointer;
       display: flex; align-items: center; justify-content: center;
       transition: background 0.15s, color 0.15s;
+      position: relative;
     }
-    .nav-item.active { background: #ebf8ef; color: #2c9c74; }
-    .nav-item:hover:not(.active) { background: #eeeeee; color: #1f2129; }
+    .nav-item.active {
+      background: rgba(44,156,116,0.2);
+      color: #2c9c74;
+    }
+    .nav-item.active::before {
+      content: '';
+      position: absolute;
+      left: -8px;
+      top: 50%; transform: translateY(-50%);
+      width: 3px; height: 24px;
+      background: #2c9c74;
+      border-radius: 0 2px 2px 0;
+    }
+    .nav-item:hover:not(.active) { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.75); }
     .nav-icon { display: flex; align-items: center; justify-content: center; }
 
     /* ── Main ── */
@@ -553,12 +571,12 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
     .trigger-chevron { flex-shrink: 0; transition: transform 0.2s; }
     .trigger-chevron.rotated { transform: rotate(180deg); }
 
-    /* Droplist — Figma: 447×232, position below trigger, border 1px #dee0eb */
+    /* Droplist — same width as trigger, position below trigger, border 1px #dee0eb */
     .droplist {
       position: absolute;
       top: calc(100% + 2px);
       left: 0;
-      width: 447px;
+      width: 100%;
       background: #ffffff;
       border: 1px solid #dee0eb;
       border-radius: 4px;
@@ -690,6 +708,18 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
 })
 export class CaSettingsIntegrationsComponent implements OnInit, OnDestroy {
   tracker = inject(TrackerService);
+  private elRef = inject(ElementRef);
+
+  @ViewChild('projectField') projectFieldRef!: ElementRef;
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: Event): void {
+    if (!this.projectDropdownOpen) return;
+    const field = this.projectFieldRef?.nativeElement as HTMLElement | undefined;
+    if (field && !field.contains(event.target as Node)) {
+      this.projectDropdownOpen = false;
+    }
+  }
 
   tabs: TabItem[] = [
     { id: 'security', label: 'Security' },
@@ -788,6 +818,10 @@ export class CaSettingsIntegrationsComponent implements OnInit, OnDestroy {
   onOverlayClick(): void {
     if (this.projectDropdownOpen) { this.projectDropdownOpen = false; return; }
     this.closeModal();
+  }
+
+  closeDropdownIfOpen(): void {
+    if (this.projectDropdownOpen) this.projectDropdownOpen = false;
   }
 
   toggleProjectDropdown(): void {
