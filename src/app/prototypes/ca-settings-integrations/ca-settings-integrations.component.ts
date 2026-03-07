@@ -320,7 +320,7 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
     /* ── Sidebar — FVDR Design System: 64px, dark bg ── */
     .sidebar {
       width: 64px; min-width: 64px;
-      background: #1f2129;
+      background: #1a1c24;
       display: flex; flex-direction: column;
       align-items: center;
       justify-content: space-between;
@@ -332,39 +332,24 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
     .logo-mark {
       width: 40px; height: 40px;
       background: #2c9c74;
-      border-radius: 4px;
+      border-radius: 6px;
       display: flex; align-items: center; justify-content: center;
       cursor: pointer; flex-shrink: 0;
       margin-bottom: 8px;
-    }
-    .nav-divider {
-      width: 32px; height: 1px;
-      background: rgba(255,255,255,0.12);
-      margin: 4px 0;
     }
     .nav-list { display: flex; flex-direction: column; align-items: center; gap: 2px; width: 100%; padding: 0 8px; }
     .nav-item {
       width: 48px; height: 48px;
       border-radius: 8px;
       border: none; background: transparent;
-      color: rgba(255,255,255,0.45);
+      color: rgba(255,255,255,0.4);
       cursor: pointer;
       display: flex; align-items: center; justify-content: center;
       transition: background 0.15s, color 0.15s;
-      position: relative;
     }
     .nav-item.active {
-      background: rgba(44,156,116,0.2);
-      color: #2c9c74;
-    }
-    .nav-item.active::before {
-      content: '';
-      position: absolute;
-      left: -8px;
-      top: 50%; transform: translateY(-50%);
-      width: 3px; height: 24px;
-      background: #2c9c74;
-      border-radius: 0 2px 2px 0;
+      background: rgba(44,156,116,0.28);
+      color: #ffffff;
     }
     .nav-item:hover:not(.active) { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.75); }
     .nav-icon { display: flex; align-items: center; justify-content: center; }
