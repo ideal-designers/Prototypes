@@ -47,6 +47,15 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
           </div>
         </div>
         <div class="sidebar-bottom">
+          <!-- Product icon — FVDR brand mark -->
+          <div class="product-icon" title="FVDR">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <rect x="1" y="1" width="8" height="8" rx="1.5" fill="rgba(255,255,255,0.9)"/>
+              <rect x="11" y="1" width="8" height="8" rx="1.5" fill="rgba(255,255,255,0.9)"/>
+              <rect x="1" y="11" width="8" height="8" rx="1.5" fill="rgba(255,255,255,0.9)"/>
+              <rect x="11" y="11" width="8" height="8" rx="1.5" fill="rgba(255,255,255,0.9)"/>
+            </svg>
+          </div>
           <fvdr-avatar initials="TN" size="md" />
         </div>
       </nav>
@@ -348,11 +357,21 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
       transition: background 0.15s, color 0.15s;
     }
     .nav-item.active {
-      background: rgba(44,156,116,0.28);
-      color: #ffffff;
+      background: rgba(44,156,116,0.22);
+      color: #2c9c74;
     }
     .nav-item:hover:not(.active) { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.75); }
     .nav-icon { display: flex; align-items: center; justify-content: center; }
+
+    .product-icon {
+      width: 32px; height: 32px;
+      border-radius: 6px;
+      background: rgba(255,255,255,0.08);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; margin-bottom: 12px;
+      transition: background 0.15s;
+    }
+    .product-icon:hover { background: rgba(255,255,255,0.14); }
 
     /* ── Main ── */
     .main-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
