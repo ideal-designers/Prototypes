@@ -1,0 +1,31 @@
+/* FVDR Global Styles */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  background: #0B1410;
+  color: #e8f5f0;
+  font-family: 'Open Sans', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Design tokens as CSS custom properties */
+:root {
+  --color-primary-500: #2C9C74;
+  --color-primary-400: #3FB67D;
+  --color-orange-500:  #F4640C;
+  --color-red-500:     #EF5350;
+  --color-blue-500:    #4862D3;
+  --color-dodger-500:  #358CEB;
+  --color-bg:          #0B1410;
+  --color-surface:     #101A16;
+  --color-border:      #1e2e28;
+  --color-text:        #e8f5f0;
+  --color-muted:       #9bbfb0;
+}
+
+a { color: var(--color-dodger-500); }

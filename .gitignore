@@ -1,0 +1,35 @@
+# Dependencies
+/node_modules
+
+# Build output
+/dist
+
+# Angular cache
+.angular/
+
+# Environment overrides (contain secrets)
+src/environments/environment.local.ts
+src/environments/environment.prod.ts
+
+# OS / IDE
+.DS_Store
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Vercel
+.vercel
+
+# SSH deploy keys (never commit private keys)
+.ssh/
+
+# Local environment secrets
+.env
+.env.local
+
+# Claude Code local config (may contain API keys)
+.claude/
