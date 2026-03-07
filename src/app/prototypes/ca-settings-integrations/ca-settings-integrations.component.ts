@@ -35,22 +35,17 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
       <!-- ── Left sidebar 72px ── -->
       <nav class="sidebar">
         <div class="sidebar-top">
-          <!-- Logo -->
-          <div class="logo-mark" title="Corporate Account">CA</div>
-          <!-- Nav items -->
+          <!-- Logo mark -->
+          <div class="logo-mark" title="Corporate Account">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="2" y="2" width="9" height="9" rx="1" fill="#fff"/><rect x="13" y="2" width="9" height="9" rx="1" fill="#fff" opacity=".5"/><rect x="2" y="13" width="9" height="9" rx="1" fill="#fff" opacity=".5"/><rect x="13" y="13" width="9" height="9" rx="1" fill="#fff" opacity=".5"/></svg>
+          </div>
+          <!-- Nav items — icon-only, 72px collapsed -->
           <div class="nav-list">
-            <button
-              *ngFor="let item of navItems"
-              class="nav-item"
-              [class.active]="item.active"
-              [title]="item.label"
-              data-track="nav"
-            >
+            <button *ngFor="let item of navItems" class="nav-item" [class.active]="item.active" [title]="item.label" data-track="nav">
               <span class="nav-icon" [innerHTML]="item.icon"></span>
             </button>
           </div>
         </div>
-        <!-- User avatar bottom -->
         <div class="sidebar-bottom">
           <fvdr-avatar initials="TN" size="md" />
         </div>
@@ -59,87 +54,103 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
       <!-- ── Main ── -->
       <div class="main-area">
 
-        <!-- ── Header 64px ── -->
+        <!-- ── Header 64px — Figma: pad 12/24/12/24, border-bottom 1px #dee0eb ── -->
         <header class="page-header">
           <nav class="breadcrumb" aria-label="breadcrumb">
-            <span class="bc-root">Project Alpha</span>
-            <span class="bc-sep">
+            <button class="bc-item bc-item--link">
+              Settings
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="#BBBDC8" stroke-width="1.5" stroke-linecap="round"/></svg>
-            </span>
-            <span class="bc-current">Settings</span>
+            </button>
+            <button class="bc-item bc-item--current">
+              Integrations
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="#5F616A" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </button>
+            <span class="bc-item bc-item--sub">6.1 Patents and trademarks</span>
           </nav>
           <div class="header-right">
-            <fvdr-avatar initials="PA" size="md" data-track="header-avatar" />
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" stroke="#5F616A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <fvdr-avatar initials="TN" size="md" />
           </div>
         </header>
 
         <!-- ── Content ── -->
         <div class="content-area">
 
-          <!-- DS: fvdr-tabs -->
           <fvdr-tabs [tabs]="tabs" [(activeId)]="activeTab" />
 
-          <!-- Banners -->
+          <!-- Banners — Figma: bg #f7f7f7, pad 8/12, gap 8, r=4 -->
           <div class="banners">
-            <fvdr-info-banner
-              message="Only integrations allowed at the corporate account level can be enabled for individual projects."
-            />
-            <fvdr-info-banner
-              message="This applies to new projects only and doesn't affect the ones created before the settings update."
-            />
+            <div class="banner">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="#5F616A" stroke-width="1.2"/><path d="M8 7v4M8 5.5v.5" stroke="#5F616A" stroke-width="1.2" stroke-linecap="round"/></svg>
+              <span>This applies to new projects only and doesn't affect the ones created before the settings update.</span>
+            </div>
+            <div class="banner">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="#5F616A" stroke-width="1.2"/><path d="M8 7v4M8 5.5v.5" stroke="#5F616A" stroke-width="1.2" stroke-linecap="round"/></svg>
+              <span>Only integrations allowed at the corporate account level can be enabled for individual projects.</span>
+            </div>
           </div>
 
-          <!-- ── Integration cards 3-col grid ── -->
+          <!-- ── Integration cards grid — Figma: 3 cols, gap 24px ── -->
           <div class="cards-grid">
-            <div
-              *ngFor="let item of integrations"
-              class="int-card"
-              [class.int-card--allowed]="item.allowed"
-            >
-              <!-- Card header -->
-              <div class="int-card__header">
-                <div class="int-logo" [style.background]="item.logoColor + '18'" [style.color]="item.logoColor">
-                  {{ item.logoInitial }}
+            <div *ngFor="let item of integrations" class="int-card" [class.int-card--allowed]="item.allowed">
+
+              <!-- Card body — Figma: pad 0/24, gap 12 -->
+              <div class="int-card__body">
+
+                <!-- Header row — Figma: gap 12 HORIZONTAL -->
+                <div class="int-card__head-row">
+                  <!-- Logo — Figma: 40×40, border 1px #dee0eb, r=4, bg #ffffff -->
+                  <div class="int-logo">
+                    <span class="int-logo-initial" [style.color]="item.logoColor">{{ item.logoInitial }}</span>
+                  </div>
+                  <div class="int-meta">
+                    <span class="int-name">{{ item.name }}</span>
+                    <span class="int-domain">{{ item.domain }}</span>
+                  </div>
                 </div>
-                <div class="int-meta">
-                  <span class="int-name">{{ item.name }}</span>
-                  <span class="int-domain">{{ item.domain }}</span>
+
+                <!-- Description + features — Figma: gap 16 VERTICAL -->
+                <div class="int-card__desc-block">
+                  <p class="int-desc">{{ item.description }}</p>
+
+                  <!-- Feature badges — Figma: "Order" VERTICAL gap 8 -->
+                  <div class="feature-order">
+                    <!-- Row 1: Enabled projects + Available documents -->
+                    <div class="feature-row">
+                      <span class="feature-badge">
+                        Enabled projects
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="3" y="6" width="8" height="7" rx="1" stroke="#2C9C74" stroke-width="1.2"/><path d="M5 6V4.5a2 2 0 014 0V6" stroke="#2C9C74" stroke-width="1.2" stroke-linecap="round"/></svg>
+                      </span>
+                      <span class="feature-badge">
+                        Available documents
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="3" y="6" width="8" height="7" rx="1" stroke="#2C9C74" stroke-width="1.2"/><path d="M5 6V4.5a2 2 0 014 0V6" stroke="#2C9C74" stroke-width="1.2" stroke-linecap="round"/></svg>
+                      </span>
+                    </div>
+                    <!-- Row 2: Permission-based downloads -->
+                    <div class="feature-row">
+                      <span class="feature-badge">
+                        Permission-based downloads
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="3" y="6" width="8" height="7" rx="1" stroke="#2C9C74" stroke-width="1.2"/><path d="M5 6V4.5a2 2 0 014 0V6" stroke="#2C9C74" stroke-width="1.2" stroke-linecap="round"/></svg>
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <!-- Allowed badge -->
-                <fvdr-badge *ngIf="item.allowed" label="Allowed" variant="success" />
               </div>
 
-              <p class="int-desc">{{ item.description }}</p>
-
-              <!-- Features -->
-              <div class="feature-list">
-                <fvdr-checkbox label="Enabled projects"           [checked]="item.features.enabledProjects"      [disabled]="true" />
-                <fvdr-checkbox label="Available documents"        [checked]="item.features.availableDocuments"   [disabled]="true" />
-                <fvdr-checkbox label="Permission-based downloads" [checked]="item.features.permissionDownloads"  [disabled]="true" />
-              </div>
-
-              <!-- Actions -->
+              <!-- Footer — Figma: pad 0/24, gap 16 HORIZONTAL -->
               <div class="int-card__footer">
                 <ng-container *ngIf="!item.allowed">
-                  <fvdr-btn
-                    label="Allow"
-                    variant="primary"
-                    size="m"
-                    style="width:100%"
-                    [dataTrack]="'allow-' + item.id"
-                    (clicked)="openModal(item)"
-                  />
+                  <fvdr-btn label="Allow" variant="primary" size="m" [dataTrack]="'allow-' + item.id" (clicked)="openModal(item)" />
                 </ng-container>
                 <ng-container *ngIf="item.allowed">
-                  <div class="allowed-row">
-                    <div class="allowed-projects">
-                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7l3.5 3.5L12 3" stroke="#2C9C74" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                      <span>{{ item.allowedProjects.length }} project{{ item.allowedProjects.length !== 1 ? 's' : '' }}</span>
-                    </div>
-                    <fvdr-btn label="Manage" variant="ghost" size="s" [dataTrack]="'manage-' + item.id" (clicked)="openModal(item)" />
+                  <fvdr-btn label="Manage" variant="ghost" size="m" [dataTrack]="'manage-' + item.id" (clicked)="openModal(item)" />
+                  <div class="allowed-info">
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7l3.5 3.5L12 3" stroke="#2C9C74" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    <span>{{ item.allowedProjects.length }} project{{ item.allowedProjects.length !== 1 ? 's' : '' }}</span>
                   </div>
                 </ng-container>
               </div>
+
             </div>
           </div>
 
@@ -250,122 +261,158 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
     :host { font-family: var(--font-family); display: block; }
 
     /* ── Layout ── */
-    .page-layout { display: flex; height: 100vh; background: var(--color-stone-0); overflow: hidden; }
+    .page-layout { display: flex; height: 100vh; background: #f7f7f7; overflow: hidden; }
 
-    /* ── Sidebar ── */
+    /* ── Sidebar — Figma: 72px, bg #f7f7f7, border-right 1px #dee0eb ── */
     .sidebar {
       width: 72px; min-width: 72px;
-      background: var(--color-stone-200);
-      border-right: 1px solid var(--color-divider);
+      background: #f7f7f7;
+      border-right: 1px solid #dee0eb;
       display: flex; flex-direction: column;
       align-items: center;
       justify-content: space-between;
-      padding: var(--space-4) 0 var(--space-4);
+      padding: 16px 0;
     }
-    .sidebar-top { display: flex; flex-direction: column; align-items: center; gap: var(--space-4); width: 100%; }
-    .sidebar-bottom { padding-bottom: var(--space-2); }
+    .sidebar-top { display: flex; flex-direction: column; align-items: center; gap: 16px; width: 100%; }
+    .sidebar-bottom { padding-bottom: 8px; }
 
     .logo-mark {
       width: 40px; height: 40px;
-      background: var(--color-primary-500);
-      color: #fff;
-      border-radius: var(--radius-sm);
+      background: #2c9c74;
+      border-radius: 4px;
       display: flex; align-items: center; justify-content: center;
-      font-size: 13px; font-weight: 700;
-      cursor: pointer;
+      cursor: pointer; flex-shrink: 0;
     }
-    .nav-list { display: flex; flex-direction: column; align-items: center; gap: var(--space-1); width: 100%; padding: 0 var(--space-2); }
+    .nav-list { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 100%; padding: 0 12px; }
     .nav-item {
       width: 48px; height: 48px;
-      border-radius: var(--radius-md);
+      border-radius: 4px;
       border: none; background: transparent;
-      color: var(--color-stone-700);
+      color: #5f616a;
       cursor: pointer;
       display: flex; align-items: center; justify-content: center;
       transition: background 0.15s, color 0.15s;
     }
-    .nav-item.active { background: var(--color-primary-50); color: var(--color-primary-500); }
-    .nav-item:hover:not(.active) { background: var(--color-stone-300); color: var(--color-text-primary); }
+    .nav-item.active { background: #ebf8ef; color: #2c9c74; }
+    .nav-item:hover:not(.active) { background: #eeeeee; color: #1f2129; }
     .nav-icon { display: flex; align-items: center; justify-content: center; }
-    .nav-icon ::ng-deep svg { display: block; }
 
     /* ── Main ── */
     .main-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
 
-    /* ── Header ── */
+    /* ── Header — Figma: h=64, pad 12/24/12/24, border-bottom 1px #dee0eb ── */
     .page-header {
       height: 64px; min-height: 64px;
-      padding: 0 var(--space-8);
-      border-bottom: 1px solid var(--color-divider);
-      background: var(--color-stone-0);
+      padding: 12px 24px;
+      border-bottom: 1px solid #dee0eb;
+      background: #ffffff;
       display: flex; align-items: center; justify-content: space-between;
     }
-    .breadcrumb { display: flex; align-items: center; gap: var(--space-1); }
-    .bc-root { font-size: var(--text-base-m-size); font-weight: 600; color: var(--color-text-primary); cursor: pointer; }
-    .bc-root:hover { color: var(--color-primary-500); }
-    .bc-sep { display: flex; align-items: center; }
-    .bc-current { font-size: var(--text-base-m-size); color: var(--color-text-secondary); }
-    .header-right { display: flex; align-items: center; gap: var(--space-3); }
+    /* Breadcrumb — Figma: gap 0 between items, each item has internal pad 8/8 */
+    .breadcrumb { display: flex; align-items: center; gap: 0; }
+    .bc-item {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 8px 8px;
+      background: none; border: none; cursor: pointer;
+      font-family: var(--font-family);
+      font-size: 15px; line-height: 20px;
+    }
+    .bc-item--link { font-weight: 600; color: #5f616a; }
+    .bc-item--link:hover { color: #2c9c74; }
+    .bc-item--current { font-weight: 600; color: #1f2129; }
+    .bc-item--sub { font-size: 14px; font-weight: 400; color: #9c9ea8; cursor: default; }
+    .header-right { display: flex; align-items: center; gap: 24px; }
 
-    /* ── Content ── */
-    .content-area { flex: 1; overflow-y: auto; padding: var(--space-6) var(--space-8); }
+    /* ── Content area — Figma: Midgard pad 24/24/24/24 ── */
+    .content-area { flex: 1; overflow-y: auto; padding: 24px; background: #ffffff; }
 
-    /* ── Banners ── */
-    .banners { display: flex; flex-direction: column; gap: var(--space-2); margin: var(--space-5) 0 var(--space-6); }
+    /* ── Banners — Figma: Inline bg #f7f7f7, pad 8/12, gap 8, r=4 ── */
+    .banners { display: flex; flex-direction: column; gap: 8px; margin: 20px 0 24px; }
+    .banner {
+      display: flex; align-items: flex-start; gap: 8px;
+      background: #f7f7f7;
+      border-radius: 4px;
+      padding: 8px 12px;
+      font-size: 15px; color: #1f2129; line-height: 24px;
+    }
+    .banner svg { flex-shrink: 0; margin-top: 4px; }
 
-    /* ── Cards Grid — 3 cols ── */
+    /* ── Cards Grid — Figma: 3 cols, gap 24px ── */
     .cards-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: var(--space-4);
+      gap: 24px;
     }
     @media (max-width: 1100px) { .cards-grid { grid-template-columns: repeat(2, 1fr); } }
-    @media (max-width: 720px)  { .cards-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 740px)  { .cards-grid { grid-template-columns: 1fr; } }
 
-    /* ── Integration Card ── */
+    /* ── Integration Card — Figma: bg #fff, border 1px #dee0eb, r=4, pad 24/0, gap 24, VERTICAL ── */
     .int-card {
-      border: 1px solid var(--color-stone-400);
-      border-radius: var(--radius-sm);
-      padding: var(--space-4);
-      background: var(--color-stone-0);
-      display: flex; flex-direction: column; gap: var(--space-3);
-      transition: border-color 0.15s, box-shadow 0.15s;
+      border: 1px solid #dee0eb;
+      border-radius: 4px;
+      background: #ffffff;
+      display: flex; flex-direction: column;
+      gap: 24px;
+      padding: 24px 0;
+      transition: border-color 0.15s;
     }
-    .int-card:hover { border-color: var(--color-primary-500); box-shadow: var(--shadow-card-hover); }
-    .int-card--allowed { border-color: var(--color-primary-500); }
+    .int-card:hover { border-color: #2c9c74; }
+    .int-card--allowed { border-color: #2c9c74; }
 
-    .int-card__header { display: flex; align-items: flex-start; gap: var(--space-3); }
+    /* Card body — Figma: Frame 1000006716, pad 0/24, gap 12 VERTICAL */
+    .int-card__body { padding: 0 24px; display: flex; flex-direction: column; gap: 12px; }
+
+    /* Head row — Figma: gap 12 HORIZONTAL */
+    .int-card__head-row { display: flex; align-items: flex-start; gap: 12px; }
+
+    /* Logo — Figma: 40×40, border 1px #dee0eb, r=4, bg #ffffff */
     .int-logo {
-      width: 40px; height: 40px;
-      border-radius: var(--radius-sm);
+      width: 40px; height: 40px; min-width: 40px;
+      border: 1px solid #dee0eb;
+      border-radius: 4px;
+      background: #ffffff;
       display: flex; align-items: center; justify-content: center;
-      font-size: 16px; font-weight: 700; flex-shrink: 0;
     }
-    .int-meta { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
-    .int-name { font-size: var(--text-label-l-size); font-weight: 600; color: var(--color-text-primary); line-height: 1.3; }
-    .int-domain { font-size: var(--text-caption1-size); color: var(--color-text-secondary); }
+    .int-logo-initial { font-size: 16px; font-weight: 700; line-height: 1; }
 
-    .int-desc {
-      font-size: var(--text-base-s-size);
-      line-height: var(--text-base-s-lh);
-      color: var(--color-text-secondary);
-      margin: 0;
-      flex: 1;
-    }
-    .feature-list { display: flex; flex-direction: column; gap: var(--space-2); }
+    /* Meta */
+    .int-meta { display: flex; flex-direction: column; gap: 0; }
+    .int-name { font-size: 16px; font-weight: 600; color: #1f2129; line-height: 24px; }
+    .int-domain { font-size: 12px; font-weight: 400; color: #5f616a; line-height: 16px; }
 
-    .int-card__footer { margin-top: auto; }
-    .allowed-row {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: var(--space-2) 0;
+    /* Desc block — Figma: Frame 1000006709, gap 16 VERTICAL */
+    .int-card__desc-block { display: flex; flex-direction: column; gap: 16px; }
+    .int-desc { font-size: 14px; font-weight: 400; color: #1f2129; line-height: 20px; margin: 0; }
+
+    /* Feature order — Figma: "Order", VERTICAL gap 8 */
+    .feature-order { display: flex; flex-direction: column; gap: 8px; }
+    /* Feature row — HORIZONTAL gap 8 */
+    .feature-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+    /* Badge — Figma: "Badge Locked", bg #ebf4fd, pad 0/8, r=4, h=20, fs=12 #1f2129, icon 14×14 #2c9c74 */
+    .feature-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: #ebf4fd;
+      border-radius: 4px;
+      padding: 0 8px;
+      height: 20px;
+      font-size: 12px; font-weight: 400; color: #1f2129;
+      white-space: nowrap;
     }
-    .allowed-projects {
-      display: flex; align-items: center; gap: var(--space-1);
-      font-size: var(--text-caption2-size); color: var(--color-primary-500); font-weight: 600;
+    .feature-badge svg { flex-shrink: 0; }
+
+    /* Card footer — Figma: Frame 37573, pad 0/24, gap 16 HORIZONTAL */
+    .int-card__footer {
+      padding: 0 24px;
+      display: flex; align-items: center; gap: 16px;
+    }
+    .allowed-info {
+      display: flex; align-items: center; gap: 4px;
+      font-size: 12px; font-weight: 400; color: #2c9c74;
     }
 
     /* ══════════════════════════════════════════
-       MODAL
+       MODAL — Figma: 512px wide, r=4
     ══════════════════════════════════════════ */
     .modal-overlay {
       position: fixed; inset: 0;
@@ -376,12 +423,11 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
     }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-    /* Figma: Share default 512×433px */
     .modal {
       width: 512px;
-      background: var(--color-stone-0);
-      border-radius: var(--radius-md);
-      box-shadow: var(--shadow-popover);
+      background: #ffffff;
+      border-radius: 4px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.16);
       display: flex; flex-direction: column;
       animation: slideUp 0.2s ease;
       max-height: 90vh;
@@ -389,141 +435,118 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
     }
     @keyframes slideUp { from { transform: translateY(8px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-    /* Modal header — Figma: 512×72px */
+    /* Modal header — Figma: h=72, pad 0/24, border-bottom 1px #dee0eb */
     .modal-header {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 0 var(--space-6);
+      padding: 0 24px;
       height: 72px; min-height: 72px;
-      border-bottom: 1px solid var(--color-divider);
+      border-bottom: 1px solid #dee0eb;
     }
-    .modal-title { font-size: var(--text-label-l-size); font-weight: 600; color: var(--color-text-primary); }
+    .modal-title { font-size: 16px; font-weight: 600; color: #1f2129; }
     .modal-close {
       width: 32px; height: 32px;
       border: none; background: transparent; cursor: pointer; padding: 0;
       display: flex; align-items: center; justify-content: center;
-      border-radius: var(--radius-sm);
-      color: var(--color-text-secondary);
+      border-radius: 4px;
+      color: #5f616a;
       transition: background 0.15s;
     }
-    .modal-close:hover { background: var(--color-hover-bg); }
+    .modal-close:hover { background: #f7f7f7; }
 
-    /* Modal body */
+    /* Modal body — pad 24, gap 20 */
     .modal-body {
-      padding: var(--space-6);
-      display: flex; flex-direction: column; gap: var(--space-5);
+      padding: 24px;
+      display: flex; flex-direction: column; gap: 20px;
       overflow-y: auto;
     }
-    .modal-info-text {
-      margin: 0;
-      font-size: var(--text-body1-size);
-      line-height: var(--text-body1-lh);
-      color: var(--color-text-primary);
-    }
+    .modal-info-text { margin: 0; font-size: 16px; line-height: 24px; color: #1f2129; }
 
     /* Field */
-    .field { display: flex; flex-direction: column; gap: var(--space-1); position: relative; }
-    .field-label { font-size: var(--text-base-m-sb-weight); font-weight: 600; color: var(--color-text-primary); font-size: var(--text-label-m-size); }
-    .field-hint { font-size: var(--text-caption1-size); color: var(--color-text-secondary); }
+    .field { display: flex; flex-direction: column; gap: 4px; position: relative; }
+    .field-label { font-size: 15px; font-weight: 600; color: #1f2129; }
+    .field-hint { font-size: 12px; color: #5f616a; }
 
-    /* Project selector — dropdown trigger */
+    /* Project selector */
     .project-selector {
-      height: 40px;
-      padding: 0 var(--space-3);
-      border: 1px solid var(--color-stone-400);
-      border-radius: var(--radius-sm);
-      background: var(--color-stone-0);
+      height: 40px; padding: 0 12px;
+      border: 1px solid #dee0eb;
+      border-radius: 4px;
+      background: #ffffff;
       display: flex; align-items: center; justify-content: space-between;
-      cursor: pointer;
-      transition: border-color 0.15s;
-      font-size: var(--text-base-m-size);
+      cursor: pointer; transition: border-color 0.15s;
+      font-size: 15px; font-family: var(--font-family);
     }
-    .project-selector:hover { border-color: var(--color-primary-500); }
-    .selector-value { color: var(--color-text-primary); }
-    .selector-value.placeholder { color: var(--color-text-placeholder); }
+    .project-selector:hover { border-color: #2c9c74; }
+    .selector-value { color: #1f2129; }
+    .selector-value.placeholder { color: #9c9ea8; }
     .project-selector svg { flex-shrink: 0; transition: transform 0.2s; }
     .project-selector svg.rotated { transform: rotate(180deg); }
 
     /* Dropdown */
     .project-dropdown {
-      position: absolute;
-      top: calc(100% - 4px);
-      left: 0; right: 0;
-      background: var(--color-stone-0);
-      border: 1px solid var(--color-stone-400);
-      border-radius: var(--radius-sm);
-      box-shadow: var(--shadow-popover);
-      z-index: 10;
-      max-height: 240px;
-      overflow-y: auto;
+      position: absolute; top: calc(100% + 2px); left: 0; right: 0;
+      background: #ffffff;
+      border: 1px solid #dee0eb;
+      border-radius: 4px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+      z-index: 10; max-height: 240px; overflow-y: auto;
     }
     .dropdown-search {
-      display: flex; align-items: center; gap: var(--space-2);
-      padding: var(--space-2) var(--space-3);
-      border-bottom: 1px solid var(--color-stone-400);
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 12px;
+      border-bottom: 1px solid #dee0eb;
     }
     .dropdown-search-input {
       flex: 1; border: none; outline: none; background: transparent;
-      font-size: var(--text-base-s-size); color: var(--color-text-primary);
-      font-family: var(--font-family);
+      font-size: 14px; color: #1f2129; font-family: var(--font-family);
     }
     .dropdown-option {
-      display: flex; align-items: center; gap: var(--space-2);
-      padding: var(--space-2) var(--space-3);
-      cursor: pointer; font-size: var(--text-base-s-size);
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 12px; cursor: pointer; font-size: 14px;
       transition: background 0.1s;
     }
-    .dropdown-option:hover { background: var(--color-hover-bg); }
-    .select-all { border-bottom: 1px solid var(--color-stone-300); }
-    .dropdown-group { padding: var(--space-2) 0; }
+    .dropdown-option:hover { background: #f7f7f7; }
+    .select-all { border-bottom: 1px solid #dee0eb; }
+    .dropdown-group { padding: 8px 0; }
     .group-label {
-      padding: var(--space-1) var(--space-3);
-      font-size: var(--text-caption2-size);
-      font-weight: 600; color: var(--color-text-secondary);
-      text-transform: uppercase; letter-spacing: 0.5px;
+      padding: 4px 12px;
+      font-size: 12px; font-weight: 600; color: #5f616a;
+      text-transform: uppercase; letter-spacing: 0.5px; display: block;
     }
-    .option-label { font-size: var(--text-base-s-size); color: var(--color-text-primary); }
+    .option-label { font-size: 14px; color: #1f2129; }
 
-    /* Checkbox row */
-    .modal-checkbox-row { display: flex; align-items: flex-start; gap: var(--space-2); }
-
-    /* Note */
-    .modal-note { margin: 0; font-size: var(--text-base-s-size); color: var(--color-text-secondary); line-height: var(--text-base-s-lh); }
-    .link { color: var(--color-primary-500); text-decoration: none; }
+    .modal-checkbox-row { display: flex; align-items: flex-start; }
+    .modal-note { margin: 0; font-size: 14px; color: #5f616a; line-height: 20px; }
+    .link { color: #2c9c74; text-decoration: none; }
     .link:hover { text-decoration: underline; }
 
-    /* Modal footer — Figma: 512×88px */
+    /* Modal footer — Figma: h=88, pad 20/24, border-top 1px #dee0eb */
     .modal-footer {
-      display: flex; align-items: center; justify-content: flex-end; gap: var(--space-3);
-      padding: var(--space-5) var(--space-6);
-      border-top: 1px solid var(--color-divider);
-      height: 88px; min-height: 88px;
+      display: flex; align-items: center; justify-content: flex-end; gap: 12px;
+      padding: 24px;
+      border-top: 1px solid #dee0eb;
+      min-height: 88px;
     }
 
-    /* ══════════════════════════════════════════
-       TOAST — Figma: 400×56px, left accent 4px #2C9C74
-    ══════════════════════════════════════════ */
+    /* ── Toast — Figma: 400×56, bg #fbfbfb, left bar 4px #2c9c74 ── */
     .toast {
-      position: fixed;
-      bottom: var(--space-6);
+      position: fixed; bottom: 24px;
       left: 50%; transform: translateX(-50%) translateY(80px);
-      width: 400px;
-      height: 56px;
-      background: #FBFBFB;
-      border-radius: var(--radius-sm);
-      box-shadow: var(--shadow-toast);
+      width: 400px; height: 56px;
+      background: #fbfbfb;
+      border-radius: 4px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.12);
       display: flex; align-items: center;
       overflow: hidden;
       transition: transform 0.3s cubic-bezier(.34,1.56,.64,1), opacity 0.3s;
-      opacity: 0;
-      z-index: 2000;
-      pointer-events: none;
+      opacity: 0; z-index: 2000; pointer-events: none;
     }
     .toast--visible { transform: translateX(-50%) translateY(0); opacity: 1; }
-    .toast-bar { width: 4px; height: 100%; background: var(--color-primary-500); flex-shrink: 0; }
+    .toast-bar { width: 4px; height: 100%; background: #2c9c74; flex-shrink: 0; }
     .toast-content {
-      display: flex; align-items: center; gap: var(--space-3);
-      padding: 0 var(--space-4);
-      font-size: var(--text-base-s-size); color: var(--color-text-primary);
+      display: flex; align-items: center; gap: 12px;
+      padding: 0 16px;
+      font-size: 14px; color: #1f2129;
     }
   `],
 })
