@@ -50,10 +50,10 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
           <!-- Product icon — FVDR brand mark -->
           <div class="product-icon" title="FVDR">
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <rect x="1" y="1" width="8" height="8" rx="1.5" fill="rgba(255,255,255,0.9)"/>
-              <rect x="11" y="1" width="8" height="8" rx="1.5" fill="rgba(255,255,255,0.9)"/>
-              <rect x="1" y="11" width="8" height="8" rx="1.5" fill="rgba(255,255,255,0.9)"/>
-              <rect x="11" y="11" width="8" height="8" rx="1.5" fill="rgba(255,255,255,0.9)"/>
+              <rect x="1" y="1" width="8" height="8" rx="1.5" fill="#9c9ea8"/>
+              <rect x="11" y="1" width="8" height="8" rx="1.5" fill="#9c9ea8"/>
+              <rect x="1" y="11" width="8" height="8" rx="1.5" fill="#9c9ea8"/>
+              <rect x="11" y="11" width="8" height="8" rx="1.5" fill="#9c9ea8"/>
             </svg>
           </div>
           <fvdr-avatar initials="TN" size="md" />
@@ -326,17 +326,18 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
     /* ── Layout ── */
     .page-layout { display: flex; height: 100vh; background: #f7f7f7; overflow: hidden; }
 
-    /* ── Sidebar — FVDR Design System: 64px, dark bg ── */
+    /* ── Sidebar — FVDR Design System: 64px, light bg ── */
     .sidebar {
       width: 64px; min-width: 64px;
-      background: #1a1c24;
+      background: #ffffff;
+      border-right: 1px solid #dee0eb;
       display: flex; flex-direction: column;
       align-items: center;
       justify-content: space-between;
       padding: 16px 0 20px;
     }
     .sidebar-top { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%; }
-    .sidebar-bottom { display: flex; flex-direction: column; align-items: center; gap: 0; }
+    .sidebar-bottom { display: flex; flex-direction: column; align-items: center; gap: 12px; }
 
     .logo-mark {
       width: 40px; height: 40px;
@@ -351,27 +352,28 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
       width: 48px; height: 48px;
       border-radius: 8px;
       border: none; background: transparent;
-      color: rgba(255,255,255,0.4);
+      color: #9c9ea8;
       cursor: pointer;
       display: flex; align-items: center; justify-content: center;
       transition: background 0.15s, color 0.15s;
     }
     .nav-item.active {
-      background: rgba(44,156,116,0.22);
+      background: #ebf8ef;
       color: #2c9c74;
     }
-    .nav-item:hover:not(.active) { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.75); }
+    .nav-item:hover:not(.active) { background: #f5f5f7; color: #5f616a; }
     .nav-icon { display: flex; align-items: center; justify-content: center; }
 
     .product-icon {
       width: 32px; height: 32px;
       border-radius: 6px;
-      background: rgba(255,255,255,0.08);
+      background: #f5f5f7;
       display: flex; align-items: center; justify-content: center;
-      cursor: pointer; margin-bottom: 12px;
+      cursor: pointer;
       transition: background 0.15s;
     }
-    .product-icon:hover { background: rgba(255,255,255,0.14); }
+    .product-icon svg rect { fill: #9c9ea8; }
+    .product-icon:hover { background: #eaeaed; }
 
     /* ── Main ── */
     .main-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
