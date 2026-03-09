@@ -427,9 +427,11 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
       white-space: nowrap;
       overflow: hidden;
     }
-    .nav-item:hover { background: #f7f7f7; }
+    .nav-item:hover { background: #ebebeb; }
+    .nav-item:hover .nav-icon { color: #40424b; }
     .nav-item--active, .nav-item--open { color: #1f2129; font-weight: 600; }
     .nav-item--active { background: #f0faf5; }
+    .nav-item--active:hover { background: #e4f5ed; }
 
     /* Icon zone — always 72px wide */
     .nav-icon-zone {
@@ -456,7 +458,7 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
       white-space: nowrap;
       transition: background 0.12s;
     }
-    .nav-subitem:hover { background: #f7f7f7; }
+    .nav-subitem:hover { background: #ebebeb; }
     .nav-subitem--active { font-weight: 600; color: #2c9c74; background: #ebf8ef; }
     .nav-subitem--active:hover { background: #dff4e8; }
 
