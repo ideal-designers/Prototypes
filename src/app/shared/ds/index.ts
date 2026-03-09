@@ -29,6 +29,7 @@ import { CheckboxComponent } from './components/checkbox/checkbox.component';
 import { BadgeComponent } from './components/badge/badge.component';
 import { AvatarComponent } from './components/avatar/avatar.component';
 import { InfoBannerComponent } from './components/info-banner/info-banner.component';
+import { SafeHtmlPipe } from './pipes/safe-html.pipe';
 
 export { ButtonComponent } from './components/button/button.component';
 export type { ButtonType, ButtonSize } from './components/button/button.component';
@@ -50,6 +51,8 @@ export type { AvatarSize } from './components/avatar/avatar.component';
 export { InfoBannerComponent } from './components/info-banner/info-banner.component';
 export type { BannerVariant } from './components/info-banner/info-banner.component';
 
+export { SafeHtmlPipe } from './pipes/safe-html.pipe';
+
 /** Convenience array — spread into component imports[] */
 export const DS_COMPONENTS = [
   ButtonComponent,
@@ -59,4 +62,5 @@ export const DS_COMPONENTS = [
   BadgeComponent,
   AvatarComponent,
   InfoBannerComponent,
+  SafeHtmlPipe,
 ];

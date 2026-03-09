@@ -64,7 +64,7 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
               data-track="nav"
             >
               <span class="nav-icon-zone">
-                <span class="nav-icon" [innerHTML]="item.icon"></span>
+                <span class="nav-icon" [innerHTML]="item.icon | safeHtml"></span>
               </span>
               <span class="nav-label" *ngIf="!sidebarCollapsed">{{ item.label }}</span>
               <svg *ngIf="!sidebarCollapsed && item.children" class="nav-chevron" [class.nav-chevron--up]="item.open" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="#5F616A" stroke-width="1.5" stroke-linecap="round"/></svg>
