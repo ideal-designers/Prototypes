@@ -22,7 +22,7 @@ interface NavItem {
   active?: boolean;
   open?: boolean;
   icon: string;
-  children?: { id: string; label: string; active?: boolean; flagged?: boolean }[];
+  children?: { id: string; label: string; active?: boolean }[];
 }
 
 const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', 'Delta M&A', 'Epsilon Fund'];
@@ -76,7 +76,6 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
                 *ngFor="let child of item.children"
                 class="nav-subitem"
                 [class.nav-subitem--active]="child.active"
-                [class.nav-subitem--flagged]="child.flagged"
                 data-track="nav-sub"
               >{{ child.label }}</button>
             </div>
@@ -472,7 +471,6 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
     .nav-subitem:hover { background: #f7f7f7; }
     .nav-subitem--active { font-weight: 600; color: #2c9c74; background: #ebf8ef; }
     .nav-subitem--active:hover { background: #dff4e8; }
-    .nav-subitem--flagged { text-decoration: underline; text-decoration-color: #E54430; text-decoration-thickness: 1.5px; }
 
     /* Bottom logo + collapse — Figma: 72px h, pad L=24 R=16 */
     .sidebar-bottom {
@@ -838,7 +836,6 @@ export class CaSettingsIntegrationsComponent implements OnInit, OnDestroy {
   tabs: TabItem[] = [
     { id: 'security', label: 'Security' },
     { id: 'integrations', label: 'Integrations' },
-    { id: 'contract', label: 'Contract #128182' },
   ];
   activeTab = 'integrations';
 
@@ -860,7 +857,6 @@ export class CaSettingsIntegrationsComponent implements OnInit, OnDestroy {
       children: [
         { id: 'security', label: 'Security' },
         { id: 'integrations', label: 'Integrations', active: true },
-        { id: 'contract', label: 'Contract #128182', flagged: true },
       ],
     },
     { id: 'apikeys', label: 'API keys', icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M19.287 9.50875C19.0941 10.3272 18.6557 11.0671 18.0305 11.6294C17.4053 12.1917 16.6232 12.5495 15.7889 12.6548V19.5933C15.7887 20.1813 15.6001 20.7538 15.2507 21.2267C14.9012 21.6997 14.8082 22.0481 13.8474 22.221L10.8223 22.9072C10.5096 23.0036 10.1786 23.0253 9.85596 22.9704C9.53334 22.9156 9.2281 22.7857 8.96484 22.5914C8.70157 22.397 8.48762 22.1435 8.34022 21.8513C8.19282 21.5592 8.11609 21.2365 8.1162 20.9092V12.6562C7.28161 12.5507 6.49924 12.1925 5.874 11.6296C5.24876 11.0668 4.81054 10.3263 4.61809 9.50738L3.80957 6.06978C3.66713 5.4643 3.66346 4.83446 3.79883 4.22736C3.93419 3.62027 4.2051 3.05165 4.59127 2.56404C4.97744 2.07643 5.46888 1.68247 6.02881 1.41162C6.58875 1.14077 7.20269 1.00006 7.82469 1H16.0804C17.1012 1.00006 17.3164 1.14077 17.8763 1.41162C18.4362 1.68247 18.9277 2.07643 19.3139 2.56404C19.7 3.05165 19.9709 3.62027 20.1063 4.22736C20.2417 4.83446 20.238 5.4643 20.0956 6.06978L19.287 9.50875Z" fill="currentColor"/><path d="M9.2028 6.12512C9.2028 5.57284 9.65052 5.12512 10.2028 5.12512H13.703C14.2552 5.12512 14.703 5.57284 14.703 6.12512V6.18768C14.703 6.73997 14.2552 7.18768 13.703 7.18768H10.2028C9.65052 7.18768 9.2028 6.73997 9.2028 6.18768V6.12512Z" fill="currentColor"/></svg>` },
