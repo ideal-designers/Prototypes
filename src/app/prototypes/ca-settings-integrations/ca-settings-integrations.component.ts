@@ -20,7 +20,9 @@ interface NavItem {
   id: string;
   label: string;
   active?: boolean;
+  open?: boolean;
   icon: string;
+  children?: { id: string; label: string; active?: boolean }[];
 }
 
 const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', 'Delta M&A', 'Epsilon Fund'];
@@ -32,22 +34,65 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
   template: `
     <div class="page-layout">
 
-      <!-- ── Left sidebar 72px ── -->
-      <nav class="sidebar">
-        <div class="sidebar-top">
-          <!-- Logo mark -->
-          <div class="logo-mark" title="Corporate Account">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="2" y="2" width="9" height="9" rx="1" fill="#fff"/><rect x="13" y="2" width="9" height="9" rx="1" fill="#fff" opacity=".5"/><rect x="2" y="13" width="9" height="9" rx="1" fill="#fff" opacity=".5"/><rect x="13" y="13" width="9" height="9" rx="1" fill="#fff" opacity=".5"/></svg>
-          </div>
-          <!-- Nav items — icon-only, 72px collapsed -->
-          <div class="nav-list">
-            <button *ngFor="let item of navItems" class="nav-item" [class.active]="item.active" [title]="item.label" data-track="nav">
-              <span class="nav-icon" [innerHTML]="item.icon"></span>
-            </button>
-          </div>
+      <!-- ── Left sidebar ── -->
+      <nav class="sidebar" [class.sidebar--collapsed]="sidebarCollapsed">
+
+        <!-- Account switcher -->
+        <div class="account-switcher">
+          <div class="account-logo">PA</div>
+          <span class="account-name" *ngIf="!sidebarCollapsed">ACME</span>
+          <svg *ngIf="!sidebarCollapsed" class="account-chevron" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="#5F616A" stroke-width="1.5" stroke-linecap="round"/></svg>
         </div>
+
+        <!-- Nav list -->
+        <div class="nav-list">
+          <ng-container *ngFor="let item of navItems">
+            <button
+              class="nav-item"
+              [class.nav-item--active]="item.active"
+              [class.nav-item--open]="item.open"
+              [title]="sidebarCollapsed ? item.label : ''"
+              (click)="toggleNavItem(item)"
+              data-track="nav"
+            >
+              <span class="nav-icon-zone">
+                <span class="nav-icon" [innerHTML]="item.icon"></span>
+              </span>
+              <span class="nav-label" *ngIf="!sidebarCollapsed">{{ item.label }}</span>
+              <svg *ngIf="!sidebarCollapsed && item.children" class="nav-chevron" [class.nav-chevron--up]="item.open" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="#5F616A" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </button>
+
+            <!-- Sub-items -->
+            <div *ngIf="!sidebarCollapsed && item.open && item.children" class="nav-subitems">
+              <button
+                *ngFor="let child of item.children"
+                class="nav-subitem"
+                [class.nav-subitem--active]="child.active"
+                data-track="nav-sub"
+              >{{ child.label }}</button>
+            </div>
+          </ng-container>
+        </div>
+
+        <!-- Bottom: logo + collapse -->
         <div class="sidebar-bottom">
-          <fvdr-avatar initials="TN" size="md" />
+          <div class="sidebar-logo" *ngIf="!sidebarCollapsed">
+            <!-- FVDR wordmark placeholder -->
+            <svg width="80" height="18" viewBox="0 0 80 18" fill="none">
+              <text x="0" y="14" font-family="sans-serif" font-size="13" font-weight="700" fill="#343a40">FVDR</text>
+              <circle cx="52" cy="9" r="4" fill="#2c9c74"/>
+            </svg>
+          </div>
+          <button class="collapse-btn" (click)="sidebarCollapsed = !sidebarCollapsed" [title]="sidebarCollapsed ? 'Expand' : 'Collapse'">
+            <svg *ngIf="!sidebarCollapsed" width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M10 3L6 8l4 5" stroke="#5F616A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M14 3l-4 5 4 5" stroke="#5F616A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <svg *ngIf="sidebarCollapsed" width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M6 3l4 5-4 5" stroke="#5F616A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M2 3l4 5-4 5" stroke="#5F616A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
         </div>
       </nav>
 
@@ -317,39 +362,112 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
     /* ── Layout ── */
     .page-layout { display: flex; height: 100vh; background: #f7f7f7; overflow: hidden; }
 
-    /* ── Sidebar — Figma: 72px, bg #f7f7f7, border-right 1px #dee0eb ── */
+    /* ── Sidebar ── */
     .sidebar {
-      width: 72px; min-width: 72px;
+      width: 280px; min-width: 280px;
       background: #f7f7f7;
       border-right: 1px solid #dee0eb;
       display: flex; flex-direction: column;
-      align-items: center;
-      justify-content: space-between;
-      padding: 16px 0;
+      overflow: hidden;
+      transition: width 0.22s ease, min-width 0.22s ease;
+      flex-shrink: 0;
     }
-    .sidebar-top { display: flex; flex-direction: column; align-items: center; gap: 16px; width: 100%; }
-    .sidebar-bottom { padding-bottom: 8px; }
+    .sidebar--collapsed { width: 72px; min-width: 72px; }
 
-    .logo-mark {
-      width: 40px; height: 40px;
-      background: #2c9c74;
-      border-radius: 4px;
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer; flex-shrink: 0;
-    }
-    .nav-list { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 100%; padding: 0 12px; }
-    .nav-item {
-      width: 48px; height: 48px;
-      border-radius: 4px;
-      border: none; background: transparent;
-      color: #5f616a;
+    /* Account switcher — Figma: 64px h, bg #f7f7f7, border-bottom 1px #dee0eb */
+    .account-switcher {
+      height: 64px; min-height: 64px;
+      background: #f7f7f7;
+      border-bottom: 1px solid #dee0eb;
+      display: flex; align-items: center;
+      padding: 0 16px;
+      gap: 12px;
       cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      transition: background 0.15s, color 0.15s;
+      overflow: hidden;
     }
-    .nav-item.active { background: #ebf8ef; color: #2c9c74; }
-    .nav-item:hover:not(.active) { background: #eeeeee; color: #1f2129; }
-    .nav-icon { display: flex; align-items: center; justify-content: center; }
+    .account-switcher:hover { background: #efefef; }
+    .account-logo {
+      width: 40px; height: 40px; min-width: 40px;
+      background: #084d4b;
+      border-radius: 4px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 600; color: #ffffff;
+      font-family: var(--font-family);
+    }
+    .account-name { font-size: 16px; font-weight: 600; color: #1f2129; flex: 1; white-space: nowrap; overflow: hidden; }
+    .account-chevron { flex-shrink: 0; }
+
+    /* Nav list */
+    .nav-list { display: flex; flex-direction: column; flex: 1; background: #ffffff; overflow-y: auto; padding: 4px 0; }
+
+    /* Nav item — Figma: 280×32 (or 72×32 collapsed) */
+    .nav-item {
+      width: 100%;
+      height: 32px; min-height: 32px;
+      border: none; background: transparent;
+      color: #40424b;
+      cursor: pointer;
+      display: flex; align-items: center;
+      font-size: 16px; font-weight: 400;
+      font-family: var(--font-family);
+      text-align: left;
+      transition: background 0.12s;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+    .nav-item:hover { background: #f7f7f7; }
+    .nav-item--active, .nav-item--open { color: #1f2129; font-weight: 600; }
+    .nav-item--active { background: #f0faf5; }
+
+    /* Icon zone — always 72px wide */
+    .nav-icon-zone {
+      width: 72px; min-width: 72px; height: 32px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .nav-icon { display: flex; align-items: center; justify-content: center; color: #5f616a; }
+    .nav-item--active .nav-icon, .nav-item--open .nav-icon { color: #2c9c74; }
+
+    .nav-label { flex: 1; }
+    .nav-chevron { flex-shrink: 0; margin-right: 16px; transition: transform 0.2s; }
+    .nav-chevron--up { transform: rotate(180deg); }
+
+    /* Sub-items */
+    .nav-subitems { display: flex; flex-direction: column; background: #ffffff; }
+    .nav-subitem {
+      height: 32px;
+      padding: 0 16px 0 72px;
+      border: none; background: transparent; cursor: pointer;
+      font-size: 14px; font-weight: 400; color: #1f2129;
+      font-family: var(--font-family);
+      text-align: left;
+      white-space: nowrap;
+      transition: background 0.12s;
+    }
+    .nav-subitem:hover { background: #f7f7f7; }
+    .nav-subitem--active { font-weight: 600; color: #2c9c74; background: #ebf8ef; }
+    .nav-subitem--active:hover { background: #dff4e8; }
+
+    /* Bottom logo + collapse */
+    .sidebar-bottom {
+      height: 72px; min-height: 72px;
+      background: #f7f7f7;
+      border-top: 1px solid #dee0eb;
+      display: flex; align-items: center;
+      padding: 0 16px;
+      justify-content: space-between;
+      overflow: hidden;
+    }
+    .sidebar-logo { display: flex; align-items: center; overflow: hidden; }
+    .collapse-btn {
+      width: 32px; height: 32px; min-width: 32px;
+      border: none; background: transparent; cursor: pointer;
+      border-radius: 4px;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.12s;
+      margin-left: auto;
+    }
+    .collapse-btn:hover { background: #e8e8e8; }
 
     /* ── Main ── */
     .main-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
@@ -698,14 +816,35 @@ export class CaSettingsIntegrationsComponent implements OnInit, OnDestroy {
   ];
   activeTab = 'integrations';
 
+  sidebarCollapsed = false;
+
   navItems: NavItem[] = [
     { id: 'overview', label: 'Overview', icon: `<svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="2" y="2" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="11" y="2" width="7" height="7" rx="1.5" fill="currentColor" opacity=".35"/><rect x="2" y="11" width="7" height="7" rx="1.5" fill="currentColor" opacity=".35"/><rect x="11" y="11" width="7" height="7" rx="1.5" fill="currentColor" opacity=".35"/></svg>` },
-    { id: 'projects', label: 'Projects', icon: `<svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 6a2 2 0 012-2h10a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V6z" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M7 10h6M7 13h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>` },
+    {
+      id: 'projects', label: 'Projects',
+      icon: `<svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 6a2 2 0 012-2h10a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V6z" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M7 10h6M7 13h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>`,
+      children: [{ id: 'list', label: 'List' }, { id: 'template', label: 'Template' }, { id: 'attributes', label: 'Attributes' }],
+    },
     { id: 'participants', label: 'Participants', icon: `<svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="8" cy="7" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M2 17c0-3.314 2.686-5 6-5s6 1.686 6 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="14" cy="7" r="2" stroke="currentColor" stroke-width="1.3"/><path d="M16 13c1.5.5 2.5 1.5 2.5 3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>` },
-    { id: 'storage', label: 'Data storage', icon: `<svg width="20" height="20" viewBox="0 0 20 20" fill="none"><ellipse cx="10" cy="5" rx="7" ry="2.5" stroke="currentColor" stroke-width="1.5"/><path d="M3 5v4c0 1.38 3.134 2.5 7 2.5S17 10.38 17 9V5" stroke="currentColor" stroke-width="1.5"/><path d="M3 9v4c0 1.38 3.134 2.5 7 2.5S17 14.38 17 13V9" stroke="currentColor" stroke-width="1.5"/></svg>` },
-    { id: 'billing', label: 'Billing', icon: `<svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="2" y="5" width="16" height="11" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M2 9h16" stroke="currentColor" stroke-width="1.5"/></svg>` },
-    { id: 'settings', label: 'Settings', active: true, icon: `<svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="2.5" stroke="currentColor" stroke-width="1.5"/><path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.22 4.22l1.42 1.42M14.36 14.36l1.42 1.42M4.22 15.78l1.42-1.42M14.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>` },
+    { id: 'storage', label: 'Usage trends', icon: `<svg width="20" height="20" viewBox="0 0 20 20" fill="none"><ellipse cx="10" cy="5" rx="7" ry="2.5" stroke="currentColor" stroke-width="1.5"/><path d="M3 5v4c0 1.38 3.134 2.5 7 2.5S17 10.38 17 9V5" stroke="currentColor" stroke-width="1.5"/><path d="M3 9v4c0 1.38 3.134 2.5 7 2.5S17 14.38 17 13V9" stroke="currentColor" stroke-width="1.5"/></svg>` },
+    { id: 'billing', label: 'Subscription', icon: `<svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="2" y="5" width="16" height="11" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M2 9h16" stroke="currentColor" stroke-width="1.5"/></svg>` },
+    {
+      id: 'settings', label: 'Settings', active: true, open: true,
+      icon: `<svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="2.5" stroke="currentColor" stroke-width="1.5"/><path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.22 4.22l1.42 1.42M14.36 14.36l1.42 1.42M4.22 15.78l1.42-1.42M14.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>`,
+      children: [
+        { id: 'security', label: 'Security' },
+        { id: 'integrations', label: 'Integrations', active: true },
+        { id: 'contract', label: 'Contract #128182' },
+      ],
+    },
+    { id: 'apikeys', label: 'API keys', icon: `<svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="7" cy="11" r="4" stroke="currentColor" stroke-width="1.5"/><path d="M10.5 7.5l7 7M15 8l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>` },
   ];
+
+  toggleNavItem(item: NavItem): void {
+    if (item.children) {
+      item.open = !item.open;
+    }
+  }
 
   integrations: Integration[] = [
     {
