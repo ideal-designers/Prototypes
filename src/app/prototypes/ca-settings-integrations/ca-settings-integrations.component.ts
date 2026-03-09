@@ -40,13 +40,13 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
         <!-- Account switcher -->
         <div class="account-switcher">
           <div class="account-logo">
-            <svg class="account-logo-bg" width="40" height="40" viewBox="0 0 40 40" fill="none">
+            <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+              <rect width="40" height="40" rx="4" fill="#084D4B"/>
               <g clip-path="url(#ca-clip)">
                 <path fill-rule="evenodd" clip-rule="evenodd" d="M10 20.0001C10 25.5229 14.4772 30 20 30C25.5228 30 30 25.5228 30 20C30 14.4772 25.5228 10 20 10C14.4772 10 10 14.4772 10 20.0001ZM28 20C28 24.4183 24.4183 28 20 28C19.6615 28 19.3279 27.979 19.0005 27.9382C22.9466 27.4459 26 24.0796 26 20.0001C26 15.9203 22.9461 12.5538 18.9995 12.062C19.3273 12.0211 19.6612 12 20 12C24.4183 12 28 15.5817 28 20ZM12 20.0001C11.9999 18.3433 13.3431 17 15 17C16.6569 17 18 18.3431 18 20C18 21.6569 16.6569 23 15 23C13.3432 23 12.0001 21.6569 12 20.0001ZM18 26.0001C16.7661 26.0001 15.6191 25.6276 14.6655 24.989C14.7761 24.9963 14.8876 25 15 25C17.7614 25 20 22.7614 20 20C20 17.2386 17.7614 15 15 15C14.8877 15 14.7763 15.0037 14.6659 15.011C15.6195 14.3725 16.7663 14.0001 18 14.0001C21.3137 14.0001 24 16.6864 24 20.0001C24 23.3138 21.3137 26.0001 18 26.0001Z" fill="#8CEAA7"/>
               </g>
               <defs><clipPath id="ca-clip"><rect width="20" height="20" fill="white" transform="translate(10 10)"/></clipPath></defs>
             </svg>
-            <span class="account-logo-initials">PA</span>
           </div>
           <span class="account-name" *ngIf="!sidebarCollapsed">ACME</span>
           <svg *ngIf="!sidebarCollapsed" class="account-chevron" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="#5F616A" stroke-width="1.5" stroke-linecap="round"/></svg>
@@ -402,27 +402,15 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
     .account-switcher:hover { background: #efefef; }
     .account-logo {
       width: 40px; height: 40px; min-width: 40px;
-      background: #084d4b;
       border-radius: 4px;
-      position: relative;
-      overflow: hidden;
       flex-shrink: 0;
-    }
-    .account-logo-bg {
-      position: absolute; top: 0; left: 0;
-    }
-    .account-logo-initials {
-      position: absolute; inset: 0;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 13px; font-weight: 600; color: #ffffff;
-      font-family: var(--font-family);
-      letter-spacing: 0.5px;
+      display: flex;
     }
     .account-name { font-size: 16px; font-weight: 600; color: #1f2129; flex: 1; white-space: nowrap; overflow: hidden; }
     .account-chevron { flex-shrink: 0; }
 
     /* Nav list */
-    .nav-list { display: flex; flex-direction: column; flex: 1; background: #ffffff; overflow-y: auto; padding: 4px 0; }
+    .nav-list { display: flex; flex-direction: column; flex: 1; background: #f7f7f7; overflow-y: auto; padding: 24px 0 8px; gap: 24px; }
 
     /* Nav item — Figma: 280×32 (or 72×32 collapsed) */
     .nav-item {
@@ -457,7 +445,7 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
     .nav-chevron--up { transform: rotate(180deg); }
 
     /* Sub-items */
-    .nav-subitems { display: flex; flex-direction: column; background: #ffffff; }
+    .nav-subitems { display: flex; flex-direction: column; background: #f7f7f7; }
     .nav-subitem {
       height: 32px;
       padding: 0 16px 0 72px;
@@ -844,20 +832,16 @@ export class CaSettingsIntegrationsComponent implements OnInit, OnDestroy {
   navItems: NavItem[] = [
     { id: 'overview', label: 'Overview', icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M19 5V7H15V5H19ZM9 5V11H5V5H9ZM19 13V19H15V13H19ZM9 17V19H5V17H9ZM21 3H13V9H21V3ZM11 3H3V13H11V3ZM21 11H13V21H21V11ZM11 15H3V21H11V15Z" fill="currentColor"/></svg>` },
     {
-      id: 'projects', label: 'Projects',
-      icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M17 3H21V23H3V3H7V1H17V3ZM5 5V21H19V5H17V7H7V5H5ZM9 5H15V3H9V5Z" fill="currentColor"/><path fill-rule="evenodd" clip-rule="evenodd" d="M9 9V19H7V9H9ZM17 11V19H15V11H17ZM13 13V19H11V13H13Z" fill="currentColor"/></svg>`,
-      children: [{ id: 'list', label: 'List' }, { id: 'template', label: 'Template' }, { id: 'attributes', label: 'Attributes' }],
+      id: 'projects', label: 'Projects', open: true,
+      icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M6 3H14.4281L16.0281 5.16667H22V16H6V3ZM8 5V14H20V7H15.1719L13.5719 5H8Z" fill="currentColor"/><path fill-rule="evenodd" clip-rule="evenodd" d="M4 7H2V18V20H4L19 20V18L4 18V7Z" fill="currentColor" opacity="0.4"/></svg>`,
+      children: [{ id: 'list', label: 'List' }, { id: 'template', label: 'Template' }, { id: 'attributes', label: 'Attributes', active: true }],
     },
     { id: 'participants', label: 'Participants', icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M18 16C20.2091 16 22 17.7909 22 20V23H20V20C20 18.8954 19.1046 18 18 18H16C14.8954 18 14 18.8954 14 20V23H12V20C12 17.7909 13.7909 16 16 16H18ZM8 10C10.2091 10 12 11.7909 12 14V17H10V14C10 12.8954 9.10457 12 8 12H6C4.89543 12 4 12.8954 4 14V17H2V14C2 11.7909 3.79086 10 6 10H8ZM17 7C19.2091 7 21 8.79086 21 11C21 13.2091 19.2091 15 17 15C14.7909 15 13 13.2091 13 11C13 8.79086 14.7909 7 17 7ZM17 9C15.8954 9 15 9.89543 15 11C15 12.1046 15.8954 13 17 13C18.1046 13 19 12.1046 19 11C19 9.89543 18.1046 9 17 9ZM7 1C9.20914 1 11 2.79086 11 5C11 7.20914 9.20914 9 7 9C4.79086 9 3 7.20914 3 5C3 2.79086 4.79086 1 7 1ZM7 3C5.89543 3 5 3.89543 5 5C5 6.10457 5.89543 7 7 7C8.10457 7 9 6.10457 9 5C9 3.89543 8.10457 3 7 3Z" fill="currentColor"/></svg>` },
-    { id: 'storage', label: 'Usage trends', icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M5 17H7V19H5V22H3V19H1V17H3V2H5V17ZM13 5H15V7H13V22H11V7H9V5H11V2H13V5ZM21 10H23V12H21V22H19V12H17V10H19V2H21V10Z" fill="currentColor"/></svg>` },
+    { id: 'storage', label: 'Usage trends', icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M17 3H21V23H3V3H7V1H17V3ZM5 5V21H19V5H17V7H7V5H5ZM9 5H15V3H9V5Z" fill="currentColor"/><path fill-rule="evenodd" clip-rule="evenodd" d="M9 9V19H7V9H9ZM17 11V19H15V11H17ZM13 13V19H11V13H13Z" fill="currentColor"/></svg>` },
     { id: 'billing', label: 'Subscription', icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M21.5 20H2.5V22H21.5V20ZM12 4.26L17.21 7H6.79L12 4.26ZM12 2L2.5 7V9H21.5V7L12 2Z" fill="currentColor"/><path d="M5 11H7V18H5V11Z" fill="currentColor"/><path d="M11 11H13V18H11V11Z" fill="currentColor"/><path d="M17 11H19V18H17V11Z" fill="currentColor"/></svg>` },
     {
-      id: 'settings', label: 'Settings', active: true, open: true,
-      icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M6 3H14.4281L16.0281 5.16667H22V16H6V3ZM8 5V14H20V7H15.1719L13.5719 5H8Z" fill="currentColor"/><path fill-rule="evenodd" clip-rule="evenodd" d="M4 7H2V18V20H4L19 20V18L4 18V7Z" fill="currentColor" opacity="0.4"/></svg>`,
-      children: [
-        { id: 'security', label: 'Security' },
-        { id: 'integrations', label: 'Integrations', active: true },
-      ],
+      id: 'settings', label: 'Settings',
+      icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M5 17H7V19H5V22H3V19H1V17H3V2H5V17ZM13 5H15V7H13V22H11V7H9V5H11V2H13V5ZM21 10H23V12H21V22H19V12H17V10H19V2H21V10Z" fill="currentColor"/></svg>`,
     },
     { id: 'apikeys', label: 'API keys', icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M19.287 9.50875C19.0941 10.3272 18.6557 11.0671 18.0305 11.6294C17.4053 12.1917 16.6232 12.5495 15.7889 12.6548V19.5933C15.7887 20.1813 15.6001 20.7538 15.2507 21.2267C14.9012 21.6997 14.8082 22.0481 13.8474 22.221L10.8223 22.9072C10.5096 23.0036 10.1786 23.0253 9.85596 22.9704C9.53334 22.9156 9.2281 22.7857 8.96484 22.5914C8.70157 22.397 8.48762 22.1435 8.34022 21.8513C8.19282 21.5592 8.11609 21.2365 8.1162 20.9092V12.6562C7.28161 12.5507 6.49924 12.1925 5.874 11.6296C5.24876 11.0668 4.81054 10.3263 4.61809 9.50738L3.80957 6.06978C3.66713 5.4643 3.66346 4.83446 3.79883 4.22736C3.93419 3.62027 4.2051 3.05165 4.59127 2.56404C4.97744 2.07643 5.46888 1.68247 6.02881 1.41162C6.58875 1.14077 7.20269 1.00006 7.82469 1H16.0804C17.1012 1.00006 17.3164 1.14077 17.8763 1.41162C18.4362 1.68247 18.9277 2.07643 19.3139 2.56404C19.7 3.05165 19.9709 3.62027 20.1063 4.22736C20.2417 4.83446 20.238 5.4643 20.0956 6.06978L19.287 9.50875Z" fill="currentColor"/><path d="M9.2028 6.12512C9.2028 5.57284 9.65052 5.12512 10.2028 5.12512H13.703C14.2552 5.12512 14.703 5.57284 14.703 6.12512V6.18768C14.703 6.73997 14.2552 7.18768 13.703 7.18768H10.2028C9.65052 7.18768 9.2028 6.73997 9.2028 6.18768V6.12512Z" fill="currentColor"/></svg>` },
   ];
