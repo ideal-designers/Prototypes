@@ -66,7 +66,8 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
             >
               <span class="nav-icon-zone">
                 <span class="nav-icon">
-                  <fvdr-icon [name]="(item.active || item.open) ? item.iconActive : item.icon"></fvdr-icon>
+                  <fvdr-icon class="icon-default" [name]="item.icon"></fvdr-icon>
+                  <fvdr-icon class="icon-active"  [name]="item.iconActive"></fvdr-icon>
                 </span>
               </span>
               <span class="nav-label" *ngIf="!sidebarCollapsed">{{ item.label }}</span>
@@ -461,11 +462,17 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
       white-space: nowrap;
       overflow: hidden;
     }
+    .icon-active { display: none; }
     .nav-item:hover { background: #ebebeb; }
-    .nav-item:hover .nav-icon { color: #40424b; }
+    .nav-item:hover .icon-default { display: none; }
+    .nav-item:hover .icon-active  { display: inline-flex; }
     .nav-item--active, .nav-item--open { color: #1f2129; font-weight: 600; }
     .nav-item--active { background: #f0faf5; }
     .nav-item--active:hover { background: #e4f5ed; }
+    .nav-item--active .icon-default,
+    .nav-item--open   .icon-default { display: none; }
+    .nav-item--active .icon-active,
+    .nav-item--open   .icon-active  { display: inline-flex; }
 
     /* Icon zone — always 72px wide */
     .nav-icon-zone {
