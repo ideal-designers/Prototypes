@@ -202,11 +202,16 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
                   <fvdr-btn label="Allow" variant="primary" size="m" [dataTrack]="'allow-' + item.id" (clicked)="openModal(item)" />
                 </ng-container>
                 <ng-container *ngIf="item.allowed">
-                  <fvdr-btn label="Manage" variant="ghost" size="m" [dataTrack]="'manage-' + item.id" (clicked)="openModal(item)" />
-                  <div class="allowed-info">
-                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7l3.5 3.5L12 3" stroke="#2C9C74" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                    <span>{{ item.allowedProjects.length }} project{{ item.allowedProjects.length !== 1 ? 's' : '' }}</span>
-                  </div>
+                  <!-- Forbid — red outline button -->
+                  <button class="btn-card-forbid" (click)="openForbidModal(item)" [attr.data-track]="'forbid-card-' + item.id">
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M5 4V2h6v2M6 7v5M10 7v5M3 4l1 10h8l1-10" stroke="#ED7C6E" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    Forbid
+                  </button>
+                  <!-- Edit projects — ghost/outlined button -->
+                  <button class="btn-card-edit" (click)="openEditModal(item)" [attr.data-track]="'edit-' + item.id">
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M11 2l3 3-8 8H3v-3l8-8z" stroke="#40424B" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    Edit projects
+                  </button>
                 </ng-container>
               </div>
 
@@ -226,7 +231,7 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
 
         <!-- Header — Figma: h=72, pad 24, border-bottom #dee0eb -->
         <div class="modal-header">
-          <span class="modal-title">Allow integration</span>
+          <span class="modal-title">{{ modalMode === 'edit' ? 'Edit projects' : 'Allow integration' }}</span>
           <button class="modal-close" (click)="closeModal()" data-track="modal-close">
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 1l12 12M13 1L1 13" stroke="#5F616A" stroke-width="1.5" stroke-linecap="round"/></svg>
           </button>
@@ -341,7 +346,7 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
         <!-- Footer — Figma: h=88, pad 24, border-top #dee0eb -->
         <!-- Left: Forbid (trash + red text) | Right: Cancel + Confirm -->
         <div class="modal-footer">
-          <button *ngIf="modalIntegration?.allowed" class="btn-forbid" (click)="forbidIntegration()" data-track="modal-forbid">
+          <button *ngIf="modalMode === 'edit'" class="btn-forbid" (click)="openForbidModal(modalIntegration)" data-track="modal-forbid">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M5 4V2h6v2M6 7v5M10 7v5M3 4l1 10h8l1-10" stroke="#ED7C6E" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
             <span>Forbid integration</span>
           </button>
@@ -361,11 +366,48 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
       </div>
     </div>
 
+    <!-- ══════════════════════════════════════════
+         FORBID CONFIRMATION MODAL
+    ══════════════════════════════════════════ -->
+    <div *ngIf="forbidModalOpen" class="modal-overlay" (click)="forbidModalOpen = false">
+      <div class="modal modal--forbid" (click)="$event.stopPropagation()" role="dialog" aria-modal="true">
+
+        <!-- Header -->
+        <div class="modal-header">
+          <span class="modal-title">Forbid integration</span>
+          <button class="modal-close" (click)="forbidModalOpen = false" data-track="forbid-modal-close">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 1l12 12M13 1L1 13" stroke="#5F616A" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </button>
+        </div>
+
+        <!-- Body -->
+        <div class="modal-body forbid-body">
+          <p class="forbid-title">Forbid <strong>{{ forbidTarget?.name }}</strong> for the entire corporate account?</p>
+          <p class="forbid-text">This will prevent the integration from being used in any project within this corporate account.</p>
+          <p class="forbid-text">Integration will be disabled in all projects, and all active user connections will be terminated.</p>
+          <div class="modal-banner">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="flex-shrink:0;margin-top:2px"><circle cx="8" cy="8" r="7" stroke="#5F616A" stroke-width="1.2"/><path d="M8 7v4M8 5.5v.5" stroke="#5F616A" stroke-width="1.2" stroke-linecap="round"/></svg>
+            <span>The invoice for online archiving will be issued to the billing contact person.</span>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="modal-footer">
+          <div class="modal-footer-right">
+            <button class="btn-cancel" (click)="forbidModalOpen = false" data-track="forbid-cancel">Cancel</button>
+            <button class="btn-forbid-confirm" (click)="confirmForbid()" data-track="forbid-confirm">Forbid</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
     <!-- ── Toast notification ── -->
-    <div class="toast" [class.toast--visible]="toastVisible">
+    <div class="toast" [class.toast--visible]="toastVisible" [class.toast--error]="toastVariant === 'error'">
       <div class="toast-bar"></div>
       <div class="toast-content">
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" stroke="#2C9C74" stroke-width="1.5"/><path d="M6 10l3 3 5-6" stroke="#2C9C74" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <svg *ngIf="toastVariant === 'success'" width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" stroke="#2C9C74" stroke-width="1.5"/><path d="M6 10l3 3 5-6" stroke="#2C9C74" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <svg *ngIf="toastVariant === 'error'" width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" stroke="#E54430" stroke-width="1.5"/><path d="M10 6v5M10 13.5v.5" stroke="#E54430" stroke-width="1.5" stroke-linecap="round"/></svg>
         <span>{{ toastMessage }}</span>
       </div>
     </div>
@@ -592,10 +634,30 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
       padding: 0 24px;
       display: flex; align-items: center; gap: 16px;
     }
-    .allowed-info {
-      display: flex; align-items: center; gap: 4px;
-      font-size: 12px; font-weight: 400; color: #2c9c74;
+
+    /* Forbid card button — red outline */
+    .btn-card-forbid {
+      display: inline-flex; align-items: center; gap: 6px;
+      height: 36px; padding: 0 14px;
+      border: 1px solid #ed7c6e; border-radius: 4px;
+      background: #ffffff; cursor: pointer;
+      font-size: 14px; color: #e54430; font-family: var(--font-family);
+      transition: background 0.15s, border-color 0.15s;
+      white-space: nowrap;
     }
+    .btn-card-forbid:hover { background: #fff5f4; border-color: #e54430; }
+
+    /* Edit projects card button — gray outline */
+    .btn-card-edit {
+      display: inline-flex; align-items: center; gap: 6px;
+      height: 36px; padding: 0 14px;
+      border: 1px solid #bbbdc8; border-radius: 4px;
+      background: #ffffff; cursor: pointer;
+      font-size: 14px; color: #40424b; font-family: var(--font-family);
+      transition: background 0.15s, border-color 0.15s;
+      white-space: nowrap;
+    }
+    .btn-card-edit:hover { background: #f7f7f7; border-color: #5f616a; }
 
     /* ══════════════════════════════════════════
        MODAL
@@ -798,26 +860,43 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
     .btn-confirm:hover:not(.btn-confirm--disabled) { background: #268a65; }
     .btn-confirm--disabled { background: #bbbdc8; cursor: not-allowed; }
 
-    /* ── Toast — Figma: 400×56, bg #fbfbfb, left bar 4px #2c9c74 ── */
+    /* ── Toast — top-right, slide in from right ── */
     .toast {
-      position: fixed; bottom: 24px;
-      left: 50%; transform: translateX(-50%) translateY(80px);
-      width: 400px; height: 56px;
+      position: fixed; top: 24px; right: 24px;
+      transform: translateX(120%);
+      width: 360px; min-height: 56px;
       background: #fbfbfb;
       border-radius: 4px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.12);
-      display: flex; align-items: center;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.14);
+      display: flex; align-items: stretch;
       overflow: hidden;
       transition: transform 0.3s cubic-bezier(.34,1.56,.64,1), opacity 0.3s;
       opacity: 0; z-index: 2000; pointer-events: none;
     }
-    .toast--visible { transform: translateX(-50%) translateY(0); opacity: 1; }
-    .toast-bar { width: 4px; height: 100%; background: #2c9c74; flex-shrink: 0; }
+    .toast--visible { transform: translateX(0); opacity: 1; pointer-events: auto; }
+    .toast-bar { width: 4px; flex-shrink: 0; background: #2c9c74; }
+    .toast--error .toast-bar { background: #e54430; }
     .toast-content {
       display: flex; align-items: center; gap: 12px;
-      padding: 0 16px;
-      font-size: 14px; color: #1f2129;
+      padding: 12px 16px;
+      font-size: 14px; color: #1f2129; flex: 1;
     }
+
+    /* ── Forbid confirmation modal ── */
+    .modal--forbid { width: 480px; }
+    .forbid-body { display: flex; flex-direction: column; gap: 12px; }
+    .forbid-title { margin: 0; font-size: 16px; font-weight: 400; color: #1f2129; line-height: 24px; }
+    .forbid-text { margin: 0; font-size: 15px; font-weight: 400; color: #1f2129; line-height: 22px; }
+
+    /* Forbid confirm button — red solid */
+    .btn-forbid-confirm {
+      height: 40px; padding: 0 16px;
+      border: none; border-radius: 4px;
+      background: #e54430; cursor: pointer;
+      font-size: 15px; color: #ffffff; font-family: var(--font-family);
+      transition: background 0.15s;
+    }
+    .btn-forbid-confirm:hover { background: #cc3926; }
   `],
 })
 export class CaSettingsIntegrationsComponent implements OnInit, OnDestroy {
@@ -895,8 +974,13 @@ export class CaSettingsIntegrationsComponent implements OnInit, OnDestroy {
 
   // Modal state
   modalOpen = false;
+  modalMode: 'allow' | 'edit' = 'allow';
   modalIntegration: Integration | null = null;
   selectedProjects: string[] = [];
+
+  // Forbid confirmation modal
+  forbidModalOpen = false;
+  forbidTarget: Integration | null = null;
   includeNewProjects = false;
   projectDropdownOpen = false;
   projectSearch = '';
@@ -906,6 +990,7 @@ export class CaSettingsIntegrationsComponent implements OnInit, OnDestroy {
   // Toast state
   toastVisible = false;
   toastMessage = '';
+  toastVariant: 'success' | 'error' = 'success';
   private toastTimer: ReturnType<typeof setTimeout> | null = null;
 
   get filteredProjects(): string[] {
@@ -915,6 +1000,7 @@ export class CaSettingsIntegrationsComponent implements OnInit, OnDestroy {
   get someProjectsSelected(): boolean { return this.selectedProjects.length > 0 && this.selectedProjects.length < this.projects.length; }
 
   openModal(item: Integration): void {
+    this.modalMode = 'allow';
     this.modalIntegration = item;
     this.selectedProjects = [...item.allowedProjects];
     this.includeNewProjects = false;
@@ -923,6 +1009,24 @@ export class CaSettingsIntegrationsComponent implements OnInit, OnDestroy {
     this.projectError = false;
     this.modalOpen = true;
     this.tracker.trackTask('ca-settings-integrations', 'task_complete');
+  }
+
+  openEditModal(item: Integration): void {
+    this.modalMode = 'edit';
+    this.modalIntegration = item;
+    this.selectedProjects = [...item.allowedProjects];
+    this.includeNewProjects = false;
+    this.projectDropdownOpen = false;
+    this.projectSearch = '';
+    this.projectError = false;
+    this.modalOpen = true;
+  }
+
+  openForbidModal(item: Integration | null): void {
+    if (!item) return;
+    this.forbidTarget = item;
+    this.forbidModalOpen = true;
+    this.modalOpen = false;
   }
 
   closeModal(): void {
@@ -986,22 +1090,24 @@ export class CaSettingsIntegrationsComponent implements OnInit, OnDestroy {
     }
     const name = this.modalIntegration.name;
     this.closeModal();
-    this.showToast(`${name} integration allowed for ${this.selectedProjects.length} project${this.selectedProjects.length !== 1 ? 's' : ''}`);
+    this.showToast(`${name} integration allowed for ${this.selectedProjects.length} project${this.selectedProjects.length !== 1 ? 's' : ''}`, 'success');
     this.tracker.trackTask('ca-settings-integrations', 'task_complete');
   }
 
-  forbidIntegration(): void {
-    if (!this.modalIntegration) return;
-    const item = this.integrations.find(i => i.id === this.modalIntegration!.id);
+  confirmForbid(): void {
+    if (!this.forbidTarget) return;
+    const item = this.integrations.find(i => i.id === this.forbidTarget!.id);
     if (item) { item.allowed = false; item.allowedProjects = []; }
-    const name = this.modalIntegration.name;
-    this.closeModal();
-    this.showToast(`${name} integration forbidden`);
+    const name = this.forbidTarget.name;
+    this.forbidModalOpen = false;
+    this.forbidTarget = null;
+    this.showToast(`${name} integration forbidden`, 'error');
     this.tracker.trackTask('ca-settings-integrations', 'task_complete');
   }
 
-  showToast(message: string): void {
+  showToast(message: string, variant: 'success' | 'error' = 'success'): void {
     this.toastMessage = message;
+    this.toastVariant = variant;
     this.toastVisible = true;
     if (this.toastTimer) clearTimeout(this.toastTimer);
     this.toastTimer = setTimeout(() => { this.toastVisible = false; }, 3500);
