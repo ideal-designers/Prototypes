@@ -12,6 +12,7 @@
  *   <fvdr-badge>        → Badge/Tag (success/error/warning/info/neutral/primary)
  *   <fvdr-avatar>       → Avatar (initials or image, sm/md/lg/xl)
  *   <fvdr-info-banner>  → Info/Warning/Error/Success message banner
+ *   <fvdr-icon>         → Icon from Figma DS (name: FvdrIconName). Color via CSS `color`.
  *
  * Usage in prototype:
  *   import { DS_COMPONENTS } from '../../shared/ds';
@@ -30,6 +31,7 @@ import { BadgeComponent } from './components/badge/badge.component';
 import { AvatarComponent } from './components/avatar/avatar.component';
 import { InfoBannerComponent } from './components/info-banner/info-banner.component';
 import { SafeHtmlPipe } from './pipes/safe-html.pipe';
+import { FvdrIconComponent } from './icons/icon.component';
 
 export { ButtonComponent } from './components/button/button.component';
 export type { ButtonType, ButtonSize } from './components/button/button.component';
@@ -53,6 +55,9 @@ export type { BannerVariant } from './components/info-banner/info-banner.compone
 
 export { SafeHtmlPipe } from './pipes/safe-html.pipe';
 
+export { FvdrIconComponent } from './icons/icon.component';
+export type { FvdrIconName } from './icons/icons';
+
 /** Convenience array — spread into component imports[] */
 export const DS_COMPONENTS = [
   ButtonComponent,
@@ -63,4 +68,5 @@ export const DS_COMPONENTS = [
   AvatarComponent,
   InfoBannerComponent,
   SafeHtmlPipe,
+  FvdrIconComponent,
 ];

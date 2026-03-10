@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TrackerService } from '../../services/tracker.service';
-import { DS_COMPONENTS, TabItem } from '../../shared/ds';
+import { DS_COMPONENTS, TabItem, FvdrIconName } from '../../shared/ds';
 
 interface Integration {
   id: string;
@@ -21,7 +21,7 @@ interface NavItem {
   label: string;
   active?: boolean;
   open?: boolean;
-  icon: string;
+  icon: FvdrIconName;
   children?: { id: string; label: string; active?: boolean }[];
 }
 
@@ -49,7 +49,7 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
             </svg>
           </div>
           <span class="account-name" *ngIf="!sidebarCollapsed">ACME</span>
-          <svg *ngIf="!sidebarCollapsed" class="account-chevron" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="#5F616A" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <fvdr-icon *ngIf="!sidebarCollapsed" name="chevron-down" class="account-chevron"></fvdr-icon>
         </div>
 
         <!-- Nav list -->
@@ -64,10 +64,10 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
               data-track="nav"
             >
               <span class="nav-icon-zone">
-                <span class="nav-icon" [innerHTML]="item.icon | safeHtml"></span>
+                <span class="nav-icon"><fvdr-icon [name]="item.icon"></fvdr-icon></span>
               </span>
               <span class="nav-label" *ngIf="!sidebarCollapsed">{{ item.label }}</span>
-              <svg *ngIf="!sidebarCollapsed && item.children" class="nav-chevron" [class.nav-chevron--up]="item.open" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="#5F616A" stroke-width="1.5" stroke-linecap="round"/></svg>
+              <fvdr-icon *ngIf="!sidebarCollapsed && item.children" name="chevron-down" class="nav-chevron" [class.nav-chevron--up]="item.open"></fvdr-icon>
             </button>
 
             <!-- Sub-items -->
@@ -97,15 +97,8 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
             </svg>
           </div>
           <button class="collapse-btn" (click)="sidebarCollapsed = !sidebarCollapsed" [title]="sidebarCollapsed ? 'Expand' : 'Collapse'">
-            <!-- angle-double-left (Figma) for collapse; mirrored for expand -->
-            <svg *ngIf="!sidebarCollapsed" width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path d="M7.032 11.999a1 1 0 01-.507-.163L3.21 8.444A.931.931 0 013 7.938c0-.19.075-.372.21-.507L6.525 4.115a.78.78 0 011.03.08.78.78 0 01.068 1.036L4.672 7.938l2.951 2.867a.781.781 0 01-.591 1.194z" fill="#5F616A"/>
-              <path d="M12.288 12a.78.78 0 01-.478-.24L8.466 8.416A.931.931 0 018.256 7.91c0-.19.075-.372.21-.507L11.81 4.116a.78.78 0 011.072.14.78.78 0 01-.074 1.07L9.899 7.938l2.867 2.867a.781.781 0 01-.478 1.195z" fill="#5F616A"/>
-            </svg>
-            <svg *ngIf="sidebarCollapsed" width="16" height="16" viewBox="0 0 16 16" fill="none" style="transform:scaleX(-1)">
-              <path d="M7.032 11.999a1 1 0 01-.507-.163L3.21 8.444A.931.931 0 013 7.938c0-.19.075-.372.21-.507L6.525 4.115a.78.78 0 011.03.08.78.78 0 01.068 1.036L4.672 7.938l2.951 2.867a.781.781 0 01-.591 1.194z" fill="#5F616A"/>
-              <path d="M12.288 12a.78.78 0 01-.478-.24L8.466 8.416A.931.931 0 018.256 7.91c0-.19.075-.372.21-.507L11.81 4.116a.78.78 0 011.072.14.78.78 0 01-.074 1.07L9.899 7.938l2.867 2.867a.781.781 0 01-.478 1.195z" fill="#5F616A"/>
-            </svg>
+            <fvdr-icon *ngIf="!sidebarCollapsed" name="angle-double-left"></fvdr-icon>
+            <fvdr-icon *ngIf="sidebarCollapsed"  name="angle-double-right"></fvdr-icon>
           </button>
         </div>
       </nav>
@@ -118,16 +111,16 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
           <nav class="breadcrumb" aria-label="breadcrumb">
             <button class="bc-item bc-item--link">
               Settings
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="#BBBDC8" stroke-width="1.5" stroke-linecap="round"/></svg>
+              <fvdr-icon name="chevron-right" class="bc-chevron bc-chevron--dim"></fvdr-icon>
             </button>
             <button class="bc-item bc-item--current">
               Integrations
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="#5F616A" stroke-width="1.5" stroke-linecap="round"/></svg>
+              <fvdr-icon name="chevron-down" class="bc-chevron"></fvdr-icon>
             </button>
             <span class="bc-item bc-item--sub">6.1 Patents and trademarks</span>
           </nav>
           <div class="header-right">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" stroke="#5F616A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <fvdr-icon name="bell" class="header-icon"></fvdr-icon>
             <fvdr-avatar initials="TN" size="md" />
           </div>
         </header>
@@ -140,11 +133,11 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
           <!-- Banners — Figma: bg #f7f7f7, pad 8/12, gap 8, r=4 -->
           <div class="banners">
             <div class="banner">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="#5F616A" stroke-width="1.2"/><path d="M8 7v4M8 5.5v.5" stroke="#5F616A" stroke-width="1.2" stroke-linecap="round"/></svg>
+              <fvdr-icon name="info" class="banner-icon"></fvdr-icon>
               <span>This applies to new projects only and doesn't affect the ones created before the settings update.</span>
             </div>
             <div class="banner">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="#5F616A" stroke-width="1.2"/><path d="M8 7v4M8 5.5v.5" stroke="#5F616A" stroke-width="1.2" stroke-linecap="round"/></svg>
+              <fvdr-icon name="info" class="banner-icon"></fvdr-icon>
               <span>Only integrations allowed at the corporate account level can be enabled for individual projects.</span>
             </div>
           </div>
@@ -178,18 +171,18 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
                     <div class="feature-row">
                       <span class="feature-badge">
                         Enabled projects
-                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="3" y="6" width="8" height="7" rx="1" stroke="#2C9C74" stroke-width="1.2"/><path d="M5 6V4.5a2 2 0 014 0V6" stroke="#2C9C74" stroke-width="1.2" stroke-linecap="round"/></svg>
+                        <fvdr-icon name="lock-close" class="badge-icon"></fvdr-icon>
                       </span>
                       <span class="feature-badge">
                         Available documents
-                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="3" y="6" width="8" height="7" rx="1" stroke="#2C9C74" stroke-width="1.2"/><path d="M5 6V4.5a2 2 0 014 0V6" stroke="#2C9C74" stroke-width="1.2" stroke-linecap="round"/></svg>
+                        <fvdr-icon name="lock-close" class="badge-icon"></fvdr-icon>
                       </span>
                     </div>
                     <!-- Row 2: Permission-based downloads -->
                     <div class="feature-row">
                       <span class="feature-badge">
                         Permission-based downloads
-                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="3" y="6" width="8" height="7" rx="1" stroke="#2C9C74" stroke-width="1.2"/><path d="M5 6V4.5a2 2 0 014 0V6" stroke="#2C9C74" stroke-width="1.2" stroke-linecap="round"/></svg>
+                        <fvdr-icon name="lock-close" class="badge-icon"></fvdr-icon>
                       </span>
                     </div>
                   </div>
@@ -204,12 +197,11 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
                 <ng-container *ngIf="item.allowed">
                   <!-- Forbid — red outline button -->
                   <button class="btn-card-forbid" (click)="openForbidModal(item)" [attr.data-track]="'forbid-card-' + item.id">
-                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M5 4V2h6v2M6 7v5M10 7v5M3 4l1 10h8l1-10" stroke="#ED7C6E" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    <fvdr-icon name="trash" class="btn-icon"></fvdr-icon>
                     Forbid
                   </button>
-                  <!-- Edit projects — ghost/outlined button -->
                   <button class="btn-card-edit" (click)="openEditModal(item)" [attr.data-track]="'edit-' + item.id">
-                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M11 2l3 3-8 8H3v-3l8-8z" stroke="#40424B" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    <fvdr-icon name="edit" class="btn-icon"></fvdr-icon>
                     Edit projects
                   </button>
                 </ng-container>
@@ -233,7 +225,7 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
         <div class="modal-header">
           <span class="modal-title">{{ modalMode === 'edit' ? 'Edit projects' : 'Allow integration' }}</span>
           <button class="modal-close" (click)="closeModal()" data-track="modal-close">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 1l12 12M13 1L1 13" stroke="#5F616A" stroke-width="1.5" stroke-linecap="round"/></svg>
+            <fvdr-icon name="cancel"></fvdr-icon>
           </button>
         </div>
 
@@ -268,12 +260,9 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
                   (click)="clearSelection($event)"
                   data-track="clear-selection"
                 >
-                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M1 1l10 10M11 1L1 11" stroke="#5F616A" stroke-width="1.5" stroke-linecap="round"/></svg>
+                  <fvdr-icon name="cancel"></fvdr-icon>
                 </button>
-                <!-- Chevron — Figma: chevron-down 10×5.6, #5f616a -->
-                <svg class="trigger-chevron" [class.rotated]="projectDropdownOpen" width="16" height="16" viewBox="0 0 16 16" fill="none">
-                  <path d="M4 6l4 4 4-4" stroke="#5F616A" stroke-width="1.5" stroke-linecap="round"/>
-                </svg>
+                <fvdr-icon name="chevron-down" class="trigger-chevron" [class.rotated]="projectDropdownOpen"></fvdr-icon>
               </div>
             </div>
 
@@ -292,7 +281,7 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
                   (checkedChange)="onSelectAllChange($event)"
                 />
                 <div class="search-field">
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="4.5" stroke="#9C9EA8" stroke-width="1.2"/><path d="M10.5 10.5l2.5 2.5" stroke="#9C9EA8" stroke-width="1.2" stroke-linecap="round"/></svg>
+                  <fvdr-icon name="search" class="search-icon"></fvdr-icon>
                   <input
                     [(ngModel)]="projectSearch"
                     placeholder="Search"
@@ -337,7 +326,7 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
 
           <!-- Info banner — Figma: Inline, bg #f7f7f7, pad 8/12, r=4 -->
           <div class="modal-banner">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="flex-shrink:0;margin-top:2px"><circle cx="8" cy="8" r="7" stroke="#5F616A" stroke-width="1.2"/><path d="M8 7v4M8 5.5v.5" stroke="#5F616A" stroke-width="1.2" stroke-linecap="round"/></svg>
+            <fvdr-icon name="info" class="banner-icon"></fvdr-icon>
             <span>Project administrators can later manage integrations in the project settings. <a href="#" class="modal-link" (click)="$event.preventDefault()">Learn more</a></span>
           </div>
 
@@ -347,7 +336,7 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
         <!-- Left: Forbid (trash + red text) | Right: Cancel + Confirm -->
         <div class="modal-footer">
           <button *ngIf="modalMode === 'edit'" class="btn-forbid" (click)="openForbidModal(modalIntegration)" data-track="modal-forbid">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M5 4V2h6v2M6 7v5M10 7v5M3 4l1 10h8l1-10" stroke="#ED7C6E" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <fvdr-icon name="trash" class="btn-icon"></fvdr-icon>
             <span>Forbid integration</span>
           </button>
           <div class="modal-footer-right">
@@ -376,7 +365,7 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
         <div class="modal-header">
           <span class="modal-title">Forbid integration</span>
           <button class="modal-close" (click)="forbidModalOpen = false" data-track="forbid-modal-close">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 1l12 12M13 1L1 13" stroke="#5F616A" stroke-width="1.5" stroke-linecap="round"/></svg>
+            <fvdr-icon name="cancel"></fvdr-icon>
           </button>
         </div>
 
@@ -386,7 +375,7 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
           <p class="forbid-text">This will prevent the integration from being used in any project within this corporate account.</p>
           <p class="forbid-text">Integration will be disabled in all projects, and all active user connections will be terminated.</p>
           <div class="modal-banner">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="flex-shrink:0;margin-top:2px"><circle cx="8" cy="8" r="7" stroke="#5F616A" stroke-width="1.2"/><path d="M8 7v4M8 5.5v.5" stroke="#5F616A" stroke-width="1.2" stroke-linecap="round"/></svg>
+            <fvdr-icon name="info" class="banner-icon"></fvdr-icon>
             <span>The invoice for online archiving will be issued to the billing contact person.</span>
           </div>
         </div>
@@ -406,8 +395,8 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
     <div class="toast" [class.toast--visible]="toastVisible" [class.toast--error]="toastVariant === 'error'">
       <div class="toast-bar"></div>
       <div class="toast-content">
-        <svg *ngIf="toastVariant === 'success'" width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" stroke="#2C9C74" stroke-width="1.5"/><path d="M6 10l3 3 5-6" stroke="#2C9C74" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        <svg *ngIf="toastVariant === 'error'" width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" stroke="#E54430" stroke-width="1.5"/><path d="M10 6v5M10 13.5v.5" stroke="#E54430" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <fvdr-icon *ngIf="toastVariant === 'success'" name="finished" class="toast-icon toast-icon--success"></fvdr-icon>
+        <fvdr-icon *ngIf="toastVariant === 'error'"   name="error"    class="toast-icon toast-icon--error"></fvdr-icon>
         <span>{{ toastMessage }}</span>
       </div>
     </div>
@@ -449,7 +438,7 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
       display: flex;
     }
     .account-name { font-size: 16px; font-weight: 600; color: #1f2129; flex: 1; white-space: nowrap; overflow: hidden; }
-    .account-chevron { flex-shrink: 0; }
+    .account-chevron { flex-shrink: 0; font-size: 16px; color: #5f616a; }
 
     /* Nav list */
     .nav-list { display: flex; flex-direction: column; flex: 1; background: #f7f7f7; overflow-y: auto; padding: 24px 0 8px; gap: 24px; }
@@ -481,11 +470,11 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
       display: flex; align-items: center; justify-content: center;
       flex-shrink: 0;
     }
-    .nav-icon { display: flex; align-items: center; justify-content: center; color: #5f616a; }
+    .nav-icon { display: flex; align-items: center; justify-content: center; color: #5f616a; font-size: 24px; }
     .nav-item--active .nav-icon, .nav-item--open .nav-icon { color: #2c9c74; }
 
     .nav-label { flex: 1; }
-    .nav-chevron { flex-shrink: 0; margin-right: 16px; transition: transform 0.2s; }
+    .nav-chevron { flex-shrink: 0; margin-right: 16px; transition: transform 0.2s; font-size: 16px; color: #5f616a; }
     .nav-chevron--up { transform: rotate(180deg); }
 
     /* Sub-items */
@@ -522,6 +511,7 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
       display: flex; align-items: center; justify-content: center;
       transition: background 0.12s;
       margin-left: auto;
+      font-size: 16px; color: #5f616a;
     }
     .collapse-btn:hover { background: #e8e8e8; }
 
@@ -550,6 +540,7 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
     .bc-item--current { font-weight: 600; color: #1f2129; }
     .bc-item--sub { font-size: 14px; font-weight: 400; color: #9c9ea8; cursor: default; }
     .header-right { display: flex; align-items: center; gap: 24px; }
+    .header-icon { font-size: 24px; color: #5f616a; }
 
     /* ── Content area — Figma: Midgard pad 24/24/24/24 ── */
     .content-area { flex: 1; overflow-y: auto; padding: 24px; background: #ffffff; }
@@ -563,7 +554,9 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
       padding: 8px 12px;
       font-size: 15px; color: #1f2129; line-height: 24px;
     }
-    .banner svg { flex-shrink: 0; margin-top: 4px; }
+    .banner-icon { font-size: 16px; flex-shrink: 0; margin-top: 3px; }
+    .bc-chevron { font-size: 16px; }
+    .bc-chevron--dim { color: #bbbdc8; }
 
     /* ── Cards Grid — Figma: 3 cols, gap 24px ── */
     .cards-grid {
@@ -627,13 +620,15 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
       font-size: 12px; font-weight: 400; color: #1f2129;
       white-space: nowrap;
     }
-    .feature-badge svg { flex-shrink: 0; }
+    .badge-icon { font-size: 14px; flex-shrink: 0; color: #2c9c74; }
 
     /* Card footer — Figma: Frame 37573, pad 0/24, gap 16 HORIZONTAL */
     .int-card__footer {
       padding: 0 24px;
       display: flex; align-items: center; gap: 16px;
     }
+
+    .btn-icon { font-size: 14px; flex-shrink: 0; }
 
     /* Forbid card button — red outline */
     .btn-card-forbid {
@@ -697,7 +692,7 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
       width: 24px; height: 24px;
       border: none; background: transparent; cursor: pointer; padding: 0;
       display: flex; align-items: center; justify-content: center;
-      border-radius: 4px; color: #5f616a;
+      border-radius: 4px; color: #5f616a; font-size: 14px;
       transition: background 0.15s;
     }
     .modal-close:hover { background: #f7f7f7; }
@@ -744,8 +739,9 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
       color: #5f616a;
     }
     .trigger-clear:hover { background: #f0f0f0; }
-    .trigger-chevron { flex-shrink: 0; transition: transform 0.2s; }
+    .trigger-chevron { flex-shrink: 0; transition: transform 0.2s; font-size: 16px; color: #5f616a; }
     .trigger-chevron.rotated { transform: rotate(180deg); }
+    .search-icon { font-size: 16px; color: #9c9ea8; flex-shrink: 0; }
 
     /* Droplist — Figma: 447×232, position below trigger, border 1px #dee0eb */
     .droplist {
@@ -881,6 +877,9 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
       padding: 12px 16px;
       font-size: 14px; color: #1f2129; flex: 1;
     }
+    .toast-icon { font-size: 20px; flex-shrink: 0; }
+    .toast-icon--success { color: #2c9c74; }
+    .toast-icon--error   { color: #e54430; }
 
     /* ── Forbid confirmation modal ── */
     .modal--forbid { width: 480px; }
@@ -911,20 +910,14 @@ export class CaSettingsIntegrationsComponent implements OnInit, OnDestroy {
   sidebarCollapsed = false;
 
   navItems: NavItem[] = [
-    { id: 'overview', label: 'Overview', icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M19 5V7H15V5H19ZM9 5V11H5V5H9ZM19 13V19H15V13H19ZM9 17V19H5V17H9ZM21 3H13V9H21V3ZM11 3H3V13H11V3ZM21 11H13V21H21V11ZM11 15H3V21H11V15Z" fill="currentColor"/></svg>` },
-    {
-      id: 'projects', label: 'Projects', open: true,
-      icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M6 3H14.4281L16.0281 5.16667H22V16H6V3ZM8 5V14H20V7H15.1719L13.5719 5H8Z" fill="currentColor"/><path fill-rule="evenodd" clip-rule="evenodd" d="M4 7H2V18V20H4L19 20V18L4 18V7Z" fill="currentColor" opacity="0.4"/></svg>`,
-      children: [{ id: 'list', label: 'List' }, { id: 'template', label: 'Template' }, { id: 'attributes', label: 'Attributes', active: true }],
-    },
-    { id: 'participants', label: 'Participants', icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M18 16C20.2091 16 22 17.7909 22 20V23H20V20C20 18.8954 19.1046 18 18 18H16C14.8954 18 14 18.8954 14 20V23H12V20C12 17.7909 13.7909 16 16 16H18ZM8 10C10.2091 10 12 11.7909 12 14V17H10V14C10 12.8954 9.10457 12 8 12H6C4.89543 12 4 12.8954 4 14V17H2V14C2 11.7909 3.79086 10 6 10H8ZM17 7C19.2091 7 21 8.79086 21 11C21 13.2091 19.2091 15 17 15C14.7909 15 13 13.2091 13 11C13 8.79086 14.7909 7 17 7ZM17 9C15.8954 9 15 9.89543 15 11C15 12.1046 15.8954 13 17 13C18.1046 13 19 12.1046 19 11C19 9.89543 18.1046 9 17 9ZM7 1C9.20914 1 11 2.79086 11 5C11 7.20914 9.20914 9 7 9C4.79086 9 3 7.20914 3 5C3 2.79086 4.79086 1 7 1ZM7 3C5.89543 3 5 3.89543 5 5C5 6.10457 5.89543 7 7 7C8.10457 7 9 6.10457 9 5C9 3.89543 8.10457 3 7 3Z" fill="currentColor"/></svg>` },
-    { id: 'storage', label: 'Usage trends', icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M17 3H21V23H3V3H7V1H17V3ZM5 5V21H19V5H17V7H7V5H5ZM9 5H15V3H9V5Z" fill="currentColor"/><path fill-rule="evenodd" clip-rule="evenodd" d="M9 9V19H7V9H9ZM17 11V19H15V11H17ZM13 13V19H11V13H13Z" fill="currentColor"/></svg>` },
-    { id: 'billing', label: 'Subscription', icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M21.5 20H2.5V22H21.5V20ZM12 4.26L17.21 7H6.79L12 4.26ZM12 2L2.5 7V9H21.5V7L12 2Z" fill="currentColor"/><path d="M5 11H7V18H5V11Z" fill="currentColor"/><path d="M11 11H13V18H11V11Z" fill="currentColor"/><path d="M17 11H19V18H17V11Z" fill="currentColor"/></svg>` },
-    {
-      id: 'settings', label: 'Settings',
-      icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M5 17H7V19H5V22H3V19H1V17H3V2H5V17ZM13 5H15V7H13V22H11V7H9V5H11V2H13V5ZM21 10H23V12H21V22H19V12H17V10H19V2H21V10Z" fill="currentColor"/></svg>`,
-    },
-    { id: 'apikeys', label: 'API keys', icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M19.287 9.50875C19.0941 10.3272 18.6557 11.0671 18.0305 11.6294C17.4053 12.1917 16.6232 12.5495 15.7889 12.6548V19.5933C15.7887 20.1813 15.6001 20.7538 15.2507 21.2267C14.9012 21.6997 14.8082 22.0481 13.8474 22.221L10.8223 22.9072C10.5096 23.0036 10.1786 23.0253 9.85596 22.9704C9.53334 22.9156 9.2281 22.7857 8.96484 22.5914C8.70157 22.397 8.48762 22.1435 8.34022 21.8513C8.19282 21.5592 8.11609 21.2365 8.1162 20.9092V12.6562C7.28161 12.5507 6.49924 12.1925 5.874 11.6296C5.24876 11.0668 4.81054 10.3263 4.61809 9.50738L3.80957 6.06978C3.66713 5.4643 3.66346 4.83446 3.79883 4.22736C3.93419 3.62027 4.2051 3.05165 4.59127 2.56404C4.97744 2.07643 5.46888 1.68247 6.02881 1.41162C6.58875 1.14077 7.20269 1.00006 7.82469 1H16.0804C17.1012 1.00006 17.3164 1.14077 17.8763 1.41162C18.4362 1.68247 18.9277 2.07643 19.3139 2.56404C19.7 3.05165 19.9709 3.62027 20.1063 4.22736C20.2417 4.83446 20.238 5.4643 20.0956 6.06978L19.287 9.50875Z" fill="currentColor"/><path d="M9.2028 6.12512C9.2028 5.57284 9.65052 5.12512 10.2028 5.12512H13.703C14.2552 5.12512 14.703 5.57284 14.703 6.12512V6.18768C14.703 6.73997 14.2552 7.18768 13.703 7.18768H10.2028C9.65052 7.18768 9.2028 6.73997 9.2028 6.18768V6.12512Z" fill="currentColor"/></svg>` },
+    { id: 'overview',     label: 'Overview',     icon: 'overview' },
+    { id: 'projects',     label: 'Projects',     icon: 'folder',   open: true,
+      children: [{ id: 'list', label: 'List' }, { id: 'template', label: 'Template' }, { id: 'attributes', label: 'Attributes', active: true }] },
+    { id: 'participants', label: 'Participants',  icon: 'participants' },
+    { id: 'storage',      label: 'Usage trends', icon: 'storage' },
+    { id: 'billing',      label: 'Subscription', icon: 'billing' },
+    { id: 'settings',     label: 'Settings',     icon: 'settings' },
+    { id: 'apikeys',      label: 'API keys',     icon: 'api' },
   ];
 
   toggleNavItem(item: NavItem): void {
