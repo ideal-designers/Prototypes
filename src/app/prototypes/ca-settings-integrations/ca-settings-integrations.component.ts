@@ -22,6 +22,7 @@ interface NavItem {
   active?: boolean;
   open?: boolean;
   icon: FvdrIconName;
+  iconActive: FvdrIconName;
   children?: { id: string; label: string; active?: boolean }[];
 }
 
@@ -64,7 +65,9 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
               data-track="nav"
             >
               <span class="nav-icon-zone">
-                <span class="nav-icon"><fvdr-icon [name]="item.icon"></fvdr-icon></span>
+                <span class="nav-icon">
+                  <fvdr-icon [name]="(item.active || item.open) ? item.iconActive : item.icon"></fvdr-icon>
+                </span>
               </span>
               <span class="nav-label" *ngIf="!sidebarCollapsed">{{ item.label }}</span>
               <fvdr-icon *ngIf="!sidebarCollapsed && item.children" name="chevron-down" class="nav-chevron" [class.nav-chevron--up]="item.open"></fvdr-icon>
@@ -470,8 +473,8 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
       display: flex; align-items: center; justify-content: center;
       flex-shrink: 0;
     }
+    /* nav-icon: default state uses currentColor (#5f616a), active icon has hardcoded 2-tone colors */
     .nav-icon { display: flex; align-items: center; justify-content: center; color: #5f616a; font-size: 24px; }
-    .nav-item--active .nav-icon, .nav-item--open .nav-icon { color: #2c9c74; }
 
     .nav-label { flex: 1; }
     .nav-chevron { flex-shrink: 0; margin-right: 16px; transition: transform 0.2s; font-size: 16px; color: #5f616a; }
@@ -910,14 +913,14 @@ export class CaSettingsIntegrationsComponent implements OnInit, OnDestroy {
   sidebarCollapsed = false;
 
   navItems: NavItem[] = [
-    { id: 'overview',     label: 'Overview',     icon: 'overview' },
-    { id: 'projects',     label: 'Projects',     icon: 'folder',   open: true,
+    { id: 'overview',     label: 'Overview',     icon: 'nav-overview',     iconActive: 'nav-overview-active' },
+    { id: 'projects',     label: 'Projects',     icon: 'nav-projects',     iconActive: 'nav-projects-active',     open: true,
       children: [{ id: 'list', label: 'List' }, { id: 'template', label: 'Template' }, { id: 'attributes', label: 'Attributes', active: true }] },
-    { id: 'participants', label: 'Participants',  icon: 'participants' },
-    { id: 'storage',      label: 'Usage trends', icon: 'storage' },
-    { id: 'billing',      label: 'Subscription', icon: 'billing' },
-    { id: 'settings',     label: 'Settings',     icon: 'settings' },
-    { id: 'apikeys',      label: 'API keys',     icon: 'api' },
+    { id: 'participants', label: 'Participants', icon: 'nav-participants', iconActive: 'nav-participants-active' },
+    { id: 'storage',      label: 'Usage trends', icon: 'nav-reports',      iconActive: 'nav-reports-active' },
+    { id: 'billing',      label: 'Subscription', icon: 'nav-billing',      iconActive: 'nav-billing-active' },
+    { id: 'settings',     label: 'Settings',     icon: 'nav-settings',     iconActive: 'nav-settings-active' },
+    { id: 'apikeys',      label: 'API keys',     icon: 'nav-api',          iconActive: 'nav-api-active' },
   ];
 
   toggleNavItem(item: NavItem): void {
