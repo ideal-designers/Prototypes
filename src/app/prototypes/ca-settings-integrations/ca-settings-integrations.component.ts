@@ -124,7 +124,7 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
           </nav>
           <div class="header-right">
             <fvdr-icon name="help" class="header-icon"></fvdr-icon>
-            <fvdr-avatar initials="TN" size="md" color="#9c9ea8" />
+            <fvdr-avatar initials="TN" size="md" color="#eceef9" />
           </div>
         </header>
 
