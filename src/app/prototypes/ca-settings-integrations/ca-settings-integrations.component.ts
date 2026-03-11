@@ -172,18 +172,15 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
                     <div class="feature-row">
                       <span class="feature-badge">
                         Enabled projects
-                        <fvdr-icon name="lock-close" class="badge-icon"></fvdr-icon>
                       </span>
                       <span class="feature-badge">
                         Available documents
-                        <fvdr-icon name="lock-close" class="badge-icon"></fvdr-icon>
                       </span>
                     </div>
                     <!-- Row 2: Permission-based downloads -->
                     <div class="feature-row">
                       <span class="feature-badge">
                         Permission-based downloads
-                        <fvdr-icon name="lock-close" class="badge-icon"></fvdr-icon>
                       </span>
                     </div>
                   </div>
