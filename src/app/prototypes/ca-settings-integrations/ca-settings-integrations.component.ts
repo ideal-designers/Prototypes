@@ -378,10 +378,6 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
           <p class="forbid-title">Forbid <strong>{{ forbidTarget?.name }}</strong> for the entire corporate account?</p>
           <p class="forbid-text">This will prevent the integration from being used in any project within this corporate account.</p>
           <p class="forbid-text">Integration will be disabled in all projects, and all active user connections will be terminated.</p>
-          <div class="modal-banner">
-            <fvdr-icon name="info" class="banner-icon"></fvdr-icon>
-            <span>The invoice for online archiving will be issued to the billing contact person.</span>
-          </div>
         </div>
 
         <!-- Footer -->
