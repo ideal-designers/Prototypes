@@ -136,10 +136,7 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
 
           <!-- Banners — Figma: bg #f7f7f7, pad 8/12, gap 8, r=4 -->
           <div class="banners">
-            <div class="banner">
-              <fvdr-icon name="info" class="banner-icon"></fvdr-icon>
-              <span>This applies to new projects only and doesn't affect the ones created before the settings update.</span>
-            </div>
+
             <div class="banner">
               <fvdr-icon name="info" class="banner-icon"></fvdr-icon>
               <span>Only integrations allowed at the corporate account level can be enabled for individual projects.</span>
