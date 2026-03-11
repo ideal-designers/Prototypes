@@ -201,7 +201,7 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
                 <ng-container *ngIf="item.allowed">
                   <!-- Forbid — red outline button -->
                   <button class="btn-card-forbid" (click)="openForbidModal(item)" [attr.data-track]="'forbid-card-' + item.id">
-                    <fvdr-icon name="trash" class="btn-icon"></fvdr-icon>
+                    <fvdr-icon name="cancel" class="btn-icon"></fvdr-icon>
                     Forbid
                   </button>
                   <button class="btn-card-edit" (click)="openEditModal(item)" [attr.data-track]="'edit-' + item.id">
