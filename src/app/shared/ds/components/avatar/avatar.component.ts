@@ -31,7 +31,7 @@ export type AvatarSize = 'sm' | 'md' | 'lg' | 'xl';
       [title]="title || initials"
     >
       <img *ngIf="imgSrc" [src]="imgSrc" [alt]="initials || title" class="avatar__img" />
-      <span *ngIf="!imgSrc" class="avatar__initials">{{ initials | slice:0:2 }}</span>
+      <span *ngIf="!imgSrc" class="avatar__initials" [style.color]="textColor || null">{{ initials | slice:0:2 }}</span>
     </div>
   `,
   styles: [`
@@ -62,7 +62,7 @@ export type AvatarSize = 'sm' | 'md' | 'lg' | 'xl';
     }
     .avatar--sm .avatar__initials { font-size: 9px; }
     .avatar--md .avatar__initials { font-size: 11px; }
-    .avatar--lg .avatar__initials { font-size: 13px; }
+    .avatar--lg .avatar__initials { font-size: 16px; font-weight: 400; line-height: 24px; }
     .avatar--xl .avatar__initials { font-size: 15px; }
   `],
 })
@@ -70,6 +70,7 @@ export class AvatarComponent {
   @Input() initials = '';
   @Input() size: AvatarSize = 'md';
   @Input() color?: string;
+  @Input() textColor?: string;
   @Input() imgSrc?: string;
   @Input() title?: string;
 }
