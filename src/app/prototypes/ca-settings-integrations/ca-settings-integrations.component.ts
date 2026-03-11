@@ -138,7 +138,7 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
 
             <div class="banner">
               <fvdr-icon name="info" class="banner-icon"></fvdr-icon>
-              <span>Only integrations allowed at the corporate account level can be enabled for individual projects.</span>
+              <span>Only integrations allowed at the corporate account level can be enabled for individual projects. <a href="#" class="info-link">Learn more</a></span>
             </div>
           </div>
 
@@ -554,6 +554,8 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
       font-size: 15px; color: #1f2129; line-height: 24px;
     }
     .banner-icon { font-size: 16px; flex-shrink: 0; margin-top: 3px; }
+    .info-link { color: #2c9c74; text-decoration: none; }
+    .info-link:hover { text-decoration: underline; }
     .bc-chevron { font-size: 16px; }
     .bc-chevron--dim { color: #bbbdc8; }
 
