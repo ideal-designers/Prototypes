@@ -123,8 +123,8 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
             </button>
           </nav>
           <div class="header-right">
-            <fvdr-icon name="bell" class="header-icon"></fvdr-icon>
-            <fvdr-avatar initials="TN" size="md" />
+            <fvdr-icon name="attention" class="header-icon"></fvdr-icon>
+            <fvdr-avatar initials="TN" size="md" color="#2c9c74" />
           </div>
         </header>
 
