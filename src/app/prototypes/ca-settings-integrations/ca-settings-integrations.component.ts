@@ -121,7 +121,6 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
               Integrations
               <fvdr-icon name="chevron-down" class="bc-chevron"></fvdr-icon>
             </button>
-            <span class="bc-item bc-item--sub">6.1 Patents and trademarks</span>
           </nav>
           <div class="header-right">
             <fvdr-icon name="bell" class="header-icon"></fvdr-icon>
