@@ -57,6 +57,7 @@ export type FvdrIconName =
   | 'nav-reports-active'
   | 'nav-settings'
   | 'nav-settings-active'
+  | 'help'
 ;
 
 export const FVDR_ICONS: Record<FvdrIconName, string> = {
@@ -114,4 +115,5 @@ export const FVDR_ICONS: Record<FvdrIconName, string> = {
   'nav-reports-active': `<svg viewBox="0 0 24 24" fill="none"> <path fill-rule="evenodd" clip-rule="evenodd" d="M17 1H7V3H3V23H21V3H17V1ZM15 5V3H9V5H15ZM7 5V7H17V5H19V21H5V5H7Z" fill="#5F616A"/> <path fill-rule="evenodd" clip-rule="evenodd" d="M9 9V19H7V9H9ZM17 11V19H15V11H17ZM13 13V19H11V13H13Z" fill="#2C9C74"/> </svg>`,
   'nav-settings': `<svg viewBox="0 0 24 24" fill="none"> <path fill-rule="evenodd" clip-rule="evenodd" d="M5 3V2H3V3V17H2H1V19H2H3V21V22H5V21V19H6H7V17H6H5V3ZM13 3V2H11V3V5H10H9V7H10H11V21V22H13V21V7H14H15V5H14H13V3ZM21 2V3V10H22H23V12H22H21V21V22H19V21V12H18H17V10H18H19V3V2H21Z" fill="currentColor"/> </svg>`,
   'nav-settings-active': `<svg viewBox="0 0 24 24" fill="none"> <path fill-rule="evenodd" clip-rule="evenodd" d="M5 2V3V21V22H3V21V3V2H5ZM13 2V3V21V22H11V21V3V2H13ZM21 3V2H19V3V21V22H21V21V3Z" fill="#5F616A"/> <path fill-rule="evenodd" clip-rule="evenodd" d="M1 17H7V19H1V17Z" fill="#2C9C74"/> <path fill-rule="evenodd" clip-rule="evenodd" d="M17 10H23V12H17V10Z" fill="#2C9C74"/> <path fill-rule="evenodd" clip-rule="evenodd" d="M9 5H15V7H9V5Z" fill="#2C9C74"/> </svg>`,
+  'help': `<svg viewBox="0 0 24 24" fill="none"> <path d="M11 18H13V16H11V18ZM12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 20C7.59 20 4 16.41 4 12C4 7.59 7.59 4 12 4C16.41 4 20 7.59 20 12C20 16.41 16.41 20 12 20ZM12 6C9.79 6 8 7.79 8 10H10C10 8.9 10.9 8 12 8C13.1 8 14 8.9 14 10C14 12 11 11.75 11 15H13C13 12.75 16 12.5 16 10C16 7.79 14.21 6 12 6Z" fill="currentColor"/> </svg>`,
 };
