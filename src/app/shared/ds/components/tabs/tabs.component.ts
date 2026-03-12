@@ -89,7 +89,7 @@ export interface TabItem {
     }
     .tab-item:hover:not(.active):not(:disabled) {
       color: var(--color-text-primary);
-      background: var(--color-stone-200);
+      background: var(--color-hover-bg);  /* #eceef9 per Figma */
     }
 
     .tab-counter {

@@ -210,6 +210,9 @@
   --color-stone-900:  #B5BBBF;
   --color-stone-1000: #FFFFFF;
 
+  /* Primary tints in dark — for selected states (tabs, nav, etc.) */
+  --color-primary-50:  #1A2E24;  /* light: #EBF8EF → dark green tint */
+
   /* Semantic */
   --color-text-primary:     #FFFFFF;
   --color-text-secondary:   #A2A9AF;
