@@ -493,8 +493,8 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
       transition: background 0.12s;
     }
     .nav-subitem:hover { background: transparent; font-weight: 600; }
-    .nav-subitem--active { font-weight: 600; color: #2c9c74; background: #ebf8ef; }
-    .nav-subitem--active:hover { background: #dff4e8; }
+    .nav-subitem--active { font-weight: 600; color: #2c9c74; background: transparent; }
+    .nav-subitem--active:hover { background: transparent; }
 
     /* Bottom logo + collapse — Figma: 72px h, pad L=24 R=16 */
     .sidebar-bottom {
@@ -950,8 +950,8 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
     .dark-theme .nav-subitems { background: #212426; }
     .dark-theme .nav-subitem { color: #b5bbbf; }
     .dark-theme .nav-subitem:hover { background: transparent; }
-    .dark-theme .nav-subitem--active { color: #2c9c74; background: #1a2e24; }
-    .dark-theme .nav-subitem--active:hover { background: #1a2e24; }
+    .dark-theme .nav-subitem--active { color: #2c9c74; background: transparent; }
+    .dark-theme .nav-subitem--active:hover { background: transparent; }
 
     .dark-theme .sidebar-bottom { background: #212426; border-top-color: #33383b; }
     .dark-theme .collapse-btn { color: #8b949a; }
