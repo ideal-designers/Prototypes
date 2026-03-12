@@ -456,12 +456,12 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
       overflow: hidden;
     }
     .icon-active { display: none; }
-    .nav-item:hover { background: #ebebeb; }
+    .nav-item:hover { background: transparent; font-weight: 600; }
     .nav-item:hover .icon-default { display: none; }
     .nav-item:hover .icon-active  { display: inline-flex; }
     .nav-item--active, .nav-item--open { color: #1f2129; font-weight: 600; }
     .nav-item--active { background: #f0faf5; }
-    .nav-item--active:hover { background: #e4f5ed; }
+    .nav-item--active:hover { background: #f0faf5; }
     .nav-item--active .icon-default,
     .nav-item--open   .icon-default { display: none; }
     .nav-item--active .icon-active,
@@ -492,7 +492,7 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
       white-space: nowrap;
       transition: background 0.12s;
     }
-    .nav-subitem:hover { background: #ebebeb; }
+    .nav-subitem:hover { background: transparent; font-weight: 600; }
     .nav-subitem--active { font-weight: 600; color: #2c9c74; background: #ebf8ef; }
     .nav-subitem--active:hover { background: #dff4e8; }
 
@@ -940,18 +940,18 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
 
     .dark-theme .nav-list { background: #212426; }
     .dark-theme .nav-item { color: #b5bbbf; }
-    .dark-theme .nav-item:hover { background: #2d3235; }
+    .dark-theme .nav-item:hover { background: transparent; }
     .dark-theme .nav-item--active,
     .dark-theme .nav-item--open { color: #ffffff; }
     .dark-theme .nav-item--active { background: #1e3028; }
-    .dark-theme .nav-item--active:hover { background: #243b30; }
+    .dark-theme .nav-item--active:hover { background: #1e3028; }
     .dark-theme .nav-icon { color: #8b949a; }
     .dark-theme .nav-chevron { color: #8b949a; }
     .dark-theme .nav-subitems { background: #212426; }
     .dark-theme .nav-subitem { color: #b5bbbf; }
-    .dark-theme .nav-subitem:hover { background: #2d3235; }
+    .dark-theme .nav-subitem:hover { background: transparent; }
     .dark-theme .nav-subitem--active { color: #2c9c74; background: #1a2e24; }
-    .dark-theme .nav-subitem--active:hover { background: #1e3628; }
+    .dark-theme .nav-subitem--active:hover { background: #1a2e24; }
 
     .dark-theme .sidebar-bottom { background: #212426; border-top-color: #33383b; }
     .dark-theme .collapse-btn { color: #8b949a; }
