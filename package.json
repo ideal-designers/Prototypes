@@ -4,6 +4,7 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
+    "start:local": "ng serve --configuration=local",
     "build": "ng build",
     "build:proto": "node scripts/set-env.js && ng build --configuration production",
     "watch": "ng build --watch --configuration development",
