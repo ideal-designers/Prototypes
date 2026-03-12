@@ -33,7 +33,7 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
   standalone: true,
   imports: [CommonModule, FormsModule, ...DS_COMPONENTS],
   template: `
-    <div class="page-layout">
+    <div class="page-layout" [class.dark-theme]="isDark">
 
       <!-- ── Left sidebar ── -->
       <nav class="sidebar" [class.sidebar--collapsed]="sidebarCollapsed">
@@ -123,6 +123,10 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
             </button>
           </nav>
           <div class="header-right">
+            <button class="theme-toggle" (click)="toggleTheme()">
+              <fvdr-icon [name]="isDark ? 'theme-light' : 'theme-dark'" class="theme-toggle__icon"></fvdr-icon>
+              <span class="theme-toggle__label">{{ isDark ? 'Dark mode' : 'Light mode' }}</span>
+            </button>
             <fvdr-icon name="help" class="header-icon"></fvdr-icon>
             <fvdr-avatar initials="TN" size="lg" color="#eceef9" textColor="#1f2129" />
           </div>
@@ -541,6 +545,31 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
     .header-right { display: flex; align-items: center; gap: 24px; }
     .header-icon { font-size: 24px; color: #5f616a; }
 
+    /* Theme toggle */
+    .theme-toggle {
+      position: relative;
+      display: flex; flex-direction: column; align-items: center;
+      gap: 2px;
+      border: none; background: transparent; cursor: pointer; padding: 0;
+    }
+    .theme-toggle__icon { font-size: 24px; color: #5f616a; }
+    .theme-toggle__label {
+      position: absolute;
+      top: calc(100% + 6px);
+      left: 50%; transform: translateX(-50%);
+      background: #ffffff;
+      border: 1px solid #dee0eb;
+      border-radius: 4px;
+      padding: 4px 10px;
+      font-size: 12px; font-weight: 400; color: #1f2129;
+      white-space: nowrap;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.15s;
+      z-index: 10;
+    }
+    .theme-toggle:hover .theme-toggle__label { opacity: 1; }
+
     /* ── Content area — Figma: Midgard pad 24/24/24/24 ── */
     .content-area { flex: 1; overflow-y: auto; padding: 24px; background: #ffffff; }
 
@@ -897,6 +926,74 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
       transition: background 0.15s;
     }
     .btn-forbid-confirm:hover { background: #cc3926; }
+
+    /* ══════════════════════════════════════════
+       DARK THEME OVERRIDES
+    ══════════════════════════════════════════ */
+    .dark-theme.page-layout { background: #1f2129; }
+
+    .dark-theme .sidebar { background: #212426; border-right-color: #33383b; }
+    .dark-theme .account-switcher { background: #212426; border-bottom-color: #33383b; }
+    .dark-theme .account-switcher:hover { background: #2d3235; }
+    .dark-theme .account-name { color: #ffffff; }
+    .dark-theme .account-chevron { color: #8b949a; }
+
+    .dark-theme .nav-list { background: #212426; }
+    .dark-theme .nav-item { color: #b5bbbf; }
+    .dark-theme .nav-item:hover { background: #2d3235; }
+    .dark-theme .nav-item--active,
+    .dark-theme .nav-item--open { color: #ffffff; }
+    .dark-theme .nav-item--active { background: #1e3028; }
+    .dark-theme .nav-item--active:hover { background: #243b30; }
+    .dark-theme .nav-icon { color: #8b949a; }
+    .dark-theme .nav-chevron { color: #8b949a; }
+    .dark-theme .nav-subitems { background: #212426; }
+    .dark-theme .nav-subitem { color: #b5bbbf; }
+    .dark-theme .nav-subitem:hover { background: #2d3235; }
+    .dark-theme .nav-subitem--active { color: #2c9c74; background: #1a2e24; }
+    .dark-theme .nav-subitem--active:hover { background: #1e3628; }
+
+    .dark-theme .sidebar-bottom { background: #212426; border-top-color: #33383b; }
+    .dark-theme .collapse-btn { color: #8b949a; }
+    .dark-theme .collapse-btn:hover { background: #33383b; }
+
+    .dark-theme .page-header { background: #212426; border-bottom-color: #33383b; }
+    .dark-theme .bc-item--link { color: #8b949a; }
+    .dark-theme .bc-item--current { color: #ffffff; }
+    .dark-theme .bc-chevron--dim { color: #50575c; }
+    .dark-theme .header-icon { color: #8b949a; }
+    .dark-theme .theme-toggle__icon { color: #8b949a; }
+    .dark-theme .theme-toggle__label { background: #292d2f; border-color: #33383b; color: #ffffff; }
+
+    .dark-theme .content-area { background: #1f2129; }
+    .dark-theme .banner { background: #292d2f; color: #b5bbbf; }
+
+    .dark-theme .int-card { background: #292d2f; border-color: #33383b; }
+    .dark-theme .int-card:hover { border-color: #2c9c74; }
+    .dark-theme .int-logo { background: #33383b; border-color: #40464a; }
+    .dark-theme .int-name { color: #ffffff; }
+    .dark-theme .int-domain { color: #8b949a; }
+    .dark-theme .int-desc { color: #b5bbbf; }
+    .dark-theme .feature-badge { background: #1e2d3f; color: #b5bbbf; }
+
+    .dark-theme .btn-card-forbid { background: #292d2f; }
+    .dark-theme .btn-card-forbid:hover { background: #3a2220; }
+    .dark-theme .btn-card-edit { background: #292d2f; border-color: #50575c; color: #b5bbbf; }
+    .dark-theme .btn-card-edit:hover { background: #33383b; border-color: #8b949a; }
+
+    .dark-theme .modal { background: #292d2f; }
+    .dark-theme .modal-header { border-bottom-color: #33383b; }
+    .dark-theme .modal-title { color: #ffffff; }
+    .dark-theme .modal-close { color: #8b949a; }
+    .dark-theme .modal-close:hover { background: #33383b; }
+    .dark-theme .modal-info-text { color: #b5bbbf; }
+    .dark-theme .field-label { color: #ffffff; }
+    .dark-theme .field-hint { color: #8b949a; }
+    .dark-theme .dropdown-trigger { background: #33383b; border-color: #50575c; color: #b5bbbf; }
+    .dark-theme .trigger-placeholder { color: #6f7980; }
+    .dark-theme .trigger-value { color: #ffffff; }
+    .dark-theme .trigger-chevron { color: #8b949a; }
+    .dark-theme .droplist { background: #292d2f; border-color: #33383b; }
   `],
 })
 export class CaSettingsIntegrationsComponent implements OnInit, OnDestroy {
@@ -909,6 +1006,9 @@ export class CaSettingsIntegrationsComponent implements OnInit, OnDestroy {
   activeTab = 'integrations';
 
   sidebarCollapsed = false;
+  isDark = false;
+
+  toggleTheme(): void { this.isDark = !this.isDark; }
 
   navItems: NavItem[] = [
     { id: 'overview',     label: 'Overview',     icon: 'nav-overview',     iconActive: 'nav-overview-active' },

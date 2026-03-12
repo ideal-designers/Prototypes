@@ -79,6 +79,8 @@
   --color-divider:    #DEE0EB;  /* UI/$divider-color */
   --color-hover-bg:   #ECEEF9;  /* UI/$hover-bg */
 
+  --color-stone-1000: #1F2129; /* alias used in some components */
+
   --color-success-bg:     #E8F5EE;
   --color-success-border: #A5D6B9;
   --color-success-icon:   #2C9C74;
@@ -179,8 +181,45 @@
   --checkbox-size: 16px;
   --checkbox-radius: 1px;
 
+  color-scheme: light;
+
   --avatar-sm: 24px;
   --avatar-md: 32px;
   --avatar-lg: 40px;
   --avatar-xl: 48px;
+}
+
+/* ─────────────────────────────────────────
+   DARK THEME
+   Source: Figma "FVDR - Design System" node 20880:*
+   "Dark theme/If Dark stone-*" palette
+───────────────────────────────────────── */
+.dark-theme {
+  color-scheme: dark;
+
+  /* Stone scale — inverted for dark */
+  --color-stone-0:    #1F2129;
+  --color-stone-100:  #212426;
+  --color-stone-200:  #292D2F;
+  --color-stone-300:  #33383B;
+  --color-stone-400:  #40464A;
+  --color-stone-500:  #50575C;
+  --color-stone-600:  #6F7980;
+  --color-stone-700:  #8B949A;
+  --color-stone-800:  #A2A9AF;
+  --color-stone-900:  #B5BBBF;
+  --color-stone-1000: #FFFFFF;
+
+  /* Semantic */
+  --color-text-primary:     #FFFFFF;
+  --color-text-secondary:   #A2A9AF;
+  --color-text-placeholder: #6F7980;
+  --color-text-disabled:    #50575C;
+
+  --color-divider:    #33383B;
+  --color-hover-bg:   #33383B;
+
+  --shadow-card:       0 1px 4px rgba(0, 0, 0, 0.32);
+  --shadow-card-hover: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-popover:    0 4px 16px rgba(0, 0, 0, 0.4);
 }
