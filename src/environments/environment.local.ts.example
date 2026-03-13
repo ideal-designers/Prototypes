@@ -13,4 +13,5 @@ export const environment = {
   production: false,
   supabaseUrl: 'https://xxxxxxxxxxxxxxxxxxxx.supabase.co',
   supabaseAnonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+  password: 'your-secret-password', // leave empty string to disable protection
 };
