@@ -892,17 +892,17 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
     /* ── Toast — top-right, slide in from right ── */
     .toast {
       position: fixed; top: 24px; right: 24px;
-      transform: translateX(120%);
+      transform: translateY(-120%);
       width: 360px; min-height: 56px;
       background: #fbfbfb;
       border-radius: 4px;
       box-shadow: 0 4px 16px rgba(0,0,0,0.14);
       display: flex; align-items: stretch;
       overflow: hidden;
-      transition: transform 0.3s cubic-bezier(.34,1.56,.64,1), opacity 0.3s;
+      transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
       opacity: 0; z-index: 2000; pointer-events: none;
     }
-    .toast--visible { transform: translateX(0); opacity: 1; pointer-events: auto; }
+    .toast--visible { transform: translateY(0); opacity: 1; pointer-events: auto; }
     .toast-bar { width: 4px; flex-shrink: 0; background: #2c9c74; }
     .toast--error .toast-bar { background: #e54430; }
     .toast-content {
@@ -1207,7 +1207,7 @@ export class CaSettingsIntegrationsComponent implements OnInit, OnDestroy {
     this.toastVariant = variant;
     this.toastVisible = true;
     if (this.toastTimer) clearTimeout(this.toastTimer);
-    this.toastTimer = setTimeout(() => { this.toastVisible = false; }, 3500);
+    this.toastTimer = setTimeout(() => { this.toastVisible = false; }, 1000);
   }
 
   ngOnInit(): void { this.tracker.trackPageView('ca-settings-integrations'); }
