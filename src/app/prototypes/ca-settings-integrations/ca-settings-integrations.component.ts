@@ -220,7 +220,7 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
          States: default / dropdown open / error / selected
     ══════════════════════════════════════════ -->
     <div *ngIf="modalOpen" class="modal-overlay" (click)="onOverlayClick()">
-      <div class="modal" (click)="$event.stopPropagation()" role="dialog" aria-modal="true">
+      <div class="modal" (click)="$event.stopPropagation(); projectDropdownOpen = false" role="dialog" aria-modal="true">
 
         <!-- Header — Figma: h=72, pad 24, border-bottom #dee0eb -->
         <div class="modal-header">
@@ -243,11 +243,12 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
             <span class="field-label">Projects</span>
 
             <!-- Trigger field — Figma: h=40, border 1px #bbbdc8, r=4, pad 8/16, gap=8 -->
+            <div class="trigger-wrapper">
             <div
               class="dropdown-trigger"
               [class.dropdown-trigger--error]="projectError"
               [class.dropdown-trigger--open]="projectDropdownOpen"
-              (click)="toggleProjectDropdown()"
+              (click)="toggleProjectDropdown(); $event.stopPropagation()"
               data-track="projects-dropdown"
             >
               <span *ngIf="selectedProjects.length === 0" class="trigger-placeholder">Select</span>
@@ -266,10 +267,6 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
                 <fvdr-icon name="chevron-down" class="trigger-chevron" [class.rotated]="projectDropdownOpen"></fvdr-icon>
               </div>
             </div>
-
-            <!-- Hint — normal or error -->
-            <span *ngIf="!projectError" class="field-hint">Selected projects will have access to integration</span>
-            <span *ngIf="projectError" class="field-hint field-hint--error">Fill in to continue</span>
 
             <!-- Droplist — Figma: 447×232, bg #ffffff, border 1px #dee0eb -->
             <div *ngIf="projectDropdownOpen" class="droplist" (click)="$event.stopPropagation()">
@@ -314,6 +311,11 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
               </div>
 
             </div>
+            </div>
+
+            <!-- Hint — normal or error -->
+            <span *ngIf="!projectError" class="field-hint">Selected projects will have access to integration</span>
+            <span *ngIf="projectError" class="field-hint field-hint--error">Fill in to continue</span>
           </div>
 
           <!-- Checkbox — Figma: pad 8/8/8/0, gap 12, HORIZONTAL -->
@@ -739,7 +741,8 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
     .modal-info-text { margin: 0; font-size: 16px; line-height: 24px; color: #1f2129; }
 
     /* Field wrapper */
-    .field { display: flex; flex-direction: column; gap: 4px; position: relative; }
+    .field { display: flex; flex-direction: column; gap: 4px; }
+    .trigger-wrapper { position: relative; }
     .field-label { font-size: 15px; font-weight: 600; color: #1f2129; line-height: 20px; }
     .field-hint { font-size: 12px; color: #5f616a; line-height: 16px; }
     .field-hint--error { color: #e54430; }
@@ -773,12 +776,12 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
     .trigger-chevron.rotated { transform: rotate(180deg); }
     .search-icon { font-size: 16px; color: #9c9ea8; flex-shrink: 0; }
 
-    /* Droplist — Figma: 447×232, position below trigger, border 1px #dee0eb */
+    /* Droplist — Figma: position below trigger, border 1px #dee0eb */
     .droplist {
       position: absolute;
       top: calc(100% + 2px);
       left: 0;
-      width: 447px;
+      width: 100%;
       background: #ffffff;
       border: 1px solid #dee0eb;
       border-radius: 4px;
