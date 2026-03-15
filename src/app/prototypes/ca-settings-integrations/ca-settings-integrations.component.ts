@@ -1207,7 +1207,7 @@ export class CaSettingsIntegrationsComponent implements OnInit, OnDestroy {
     this.toastVariant = variant;
     this.toastVisible = true;
     if (this.toastTimer) clearTimeout(this.toastTimer);
-    this.toastTimer = setTimeout(() => { this.toastVisible = false; }, 1000);
+    this.toastTimer = setTimeout(() => { this.toastVisible = false; }, 3000);
   }
 
   ngOnInit(): void { this.tracker.trackPageView('ca-settings-integrations'); }
