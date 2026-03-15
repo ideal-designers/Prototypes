@@ -611,7 +611,7 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
     .int-card--allowed { border-color: #2c9c74; }
 
     /* Card body — Figma: Frame 1000006716, pad 0/24, gap 12 VERTICAL */
-    .int-card__body { padding: 0 24px; display: flex; flex-direction: column; gap: 12px; }
+    .int-card__body { padding: 0 24px; display: flex; flex-direction: column; gap: 12px; flex: 1; }
 
     /* Head row — Figma: gap 12 HORIZONTAL */
     .int-card__head-row { display: flex; align-items: flex-start; gap: 12px; }
