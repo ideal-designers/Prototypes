@@ -394,18 +394,18 @@ import type {
         <section class="section" id="avatar">
           <h2 class="section__title">Avatar</h2>
           <div class="row wrap">
-            <fvdr-avatar name="John Doe" size="sm" />
-            <fvdr-avatar name="Alice Brown" size="md" />
-            <fvdr-avatar name="Bob Smith" size="lg" />
-            <fvdr-avatar name="Charlie X" size="xl" />
-            <fvdr-avatar name="Anna K" size="md" color="#358CEB" />
+            <fvdr-avatar initials="JD" size="sm" />
+            <fvdr-avatar initials="AB" size="md" />
+            <fvdr-avatar initials="BS" size="lg" />
+            <fvdr-avatar initials="CX" size="xl" />
+            <fvdr-avatar initials="AK" size="md" color="#358CEB" />
           </div>
         </section>
 
         <!-- ── TABS ── -->
         <section class="section" id="tabs">
           <h2 class="section__title">Tabs</h2>
-          <fvdr-tabs [tabs]="tabItems" [activeTab]="activeTab" (tabChange)="activeTab = $event" />
+          <fvdr-tabs [tabs]="tabItems" [activeId]="activeTab" (tabChange)="activeTab = $event" />
         </section>
 
         <!-- ── CARDS ── -->
@@ -683,7 +683,7 @@ export class DsShowcaseComponent {
   // Tabs
   tabItems: TabItem[] = [
     { id: 'overview', label: 'Overview' },
-    { id: 'members',  label: 'Members', count: 12 },
+    { id: 'members',  label: 'Members', counter: 12 },
     { id: 'settings', label: 'Settings' },
     { id: 'disabled', label: 'Archived', disabled: true },
   ];
@@ -703,7 +703,7 @@ export class DsShowcaseComponent {
     { name: 'Dan Brown',     role: 'Editor',  status: 'Active',   date: '2026-03-12' },
     { name: 'Eva Green',     role: 'Admin',   status: 'Active',   date: '2026-03-14' },
   ];
-  tableSort = { key: 'name', direction: 'asc' as const };
+  tableSort: import('../../shared/ds').SortState = { key: 'name', direction: 'asc' };
 
   // Tree
   treeNodes: TreeNode[] = [
@@ -766,7 +766,7 @@ export class DsShowcaseComponent {
     this.toastSvc.show({ variant: 'success', title: 'Files received', message: `${files.length} file(s) ready to upload.` });
   }
 
-  iconNames: string[] = [
+  iconNames: import('../../shared/ds').FvdrIconName[] = [
     'angle-double-left','angle-double-right','api','attention','bell','billing',
     'cancel','check','chevron-down','chevron-left','chevron-right','chevron-up',
     'close','download','drag','edit','error','filter','finished','folder',

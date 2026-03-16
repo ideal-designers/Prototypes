@@ -1,6 +1,6 @@
 import { Component, Input, Output, EventEmitter, forwardRef, HostListener, ElementRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormsModule } from '@angular/forms';
 import { FvdrIconComponent } from '../../icons/icon.component';
 
 export interface DropdownOption {
@@ -30,7 +30,7 @@ export type DropdownSize = 's' | 'm' | 'l';
 @Component({
   selector: 'fvdr-dropdown',
   standalone: true,
-  imports: [CommonModule, FvdrIconComponent],
+  imports: [CommonModule, FvdrIconComponent, FormsModule],
   providers: [
     { provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => DropdownComponent), multi: true },
   ],
@@ -57,7 +57,7 @@ export type DropdownSize = 's' | 'm' | 'l';
               [disabled]="opt.disabled"
               (click)="select(opt)"
             >
-              <fvdr-icon *ngIf="opt.icon" [name]="opt.icon" class="dropdown__opt-icon" />
+              <fvdr-icon *ngIf="opt.icon" [name]="$any(opt.icon)" class="dropdown__opt-icon" />
               <span>{{ opt.label }}</span>
               <fvdr-icon *ngIf="isSelected(opt.value)" name="check" class="dropdown__check" />
             </button>
@@ -190,8 +190,8 @@ export class DropdownComponent implements ControlValueAccessor {
   searchQuery = '';
   filteredOptions: DropdownOption[] = [];
 
-  ngOnChanges(): void { this.filteredOptions = [...this.options]; }
-  ngOnInit(): void { this.filteredOptions = [...this.options]; }
+  ngOnChanges(): void { this.filteredOptions = [...(this.options ?? [])]; }
+  ngOnInit(): void { this.filteredOptions = [...(this.options ?? [])]; }
 
   get selectedLabel(): string {
     if (Array.isArray(this.value)) {

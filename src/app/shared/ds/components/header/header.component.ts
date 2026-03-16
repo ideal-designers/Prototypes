@@ -75,7 +75,7 @@ export interface HeaderAction {
           <fvdr-icon [name]="action.icon" />
           <span *ngIf="action.badge" class="header__action-badge">{{ action.badge > 99 ? '99+' : action.badge }}</span>
         </button>
-        <fvdr-avatar *ngIf="userName" [name]="userName" [src]="userAvatar" size="sm" class="header__avatar" (click)="avatarClick.emit()" />
+        <fvdr-avatar *ngIf="userName" [initials]="toInitials(userName)" [imgSrc]="userAvatar" size="sm" class="header__avatar" (click)="avatarClick.emit()" />
       </div>
     </header>
   `,
@@ -206,6 +206,7 @@ export class HeaderComponent {
   @Output() avatarClick = new EventEmitter<void>();
 
   onNavClick(item: HeaderNavItem): void { this.navClick.emit(item.id); }
+  toInitials(name: string): string { return name.split(' ').map(p => p[0]).slice(0, 2).join('').toUpperCase(); }
 }
 
 // ─── Mobile Header ────────────────────────────────────────────────────────────
@@ -231,7 +232,7 @@ export class HeaderComponent {
           <fvdr-icon [name]="action.icon" />
           <span *ngIf="action.badge" class="mob-header__badge">{{ action.badge > 9 ? '9+' : action.badge }}</span>
         </button>
-        <fvdr-avatar *ngIf="userName" [name]="userName" size="sm" (click)="avatarClick.emit()" />
+        <fvdr-avatar *ngIf="userName" [initials]="toInitials(userName)" size="sm" (click)="avatarClick.emit()" />
       </div>
     </header>
   `,
@@ -297,4 +298,5 @@ export class MobileHeaderComponent {
   @Output() menuClick = new EventEmitter<void>();
   @Output() actionClick = new EventEmitter<string>();
   @Output() avatarClick = new EventEmitter<void>();
+  toInitials(name: string): string { return name.split(' ').map(p => p[0]).slice(0, 2).join('').toUpperCase(); }
 }

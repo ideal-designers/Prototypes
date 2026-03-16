@@ -2,11 +2,12 @@ import { Component, Input, Output, EventEmitter, ViewChild, ElementRef, forwardR
 import { CommonModule } from '@angular/common';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { FvdrIconComponent } from '../../icons/icon.component';
+import { FvdrIconName } from '../../icons/icons';
 
 interface EditorAction {
   cmd: string;
   arg?: string;
-  icon: string;
+  icon: FvdrIconName;
   title: string;
   group?: string;
 }

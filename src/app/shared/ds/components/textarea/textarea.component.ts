@@ -34,7 +34,7 @@ export type TextareaState = 'default' | 'error' | 'disabled';
         [placeholder]="placeholder"
         [disabled]="state === 'disabled'"
         [rows]="rows"
-        [maxlength]="maxlength || null"
+        [attr.maxlength]="maxlength || null"
         (input)="onInput($event)"
         (focus)="focused = true"
         (blur)="focused = false; onTouched()"
