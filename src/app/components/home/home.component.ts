@@ -26,6 +26,21 @@ import { PrototypeService, PrototypeDef } from '../../services/prototype.service
       <!-- ── Grid ── -->
       <div class="home__grid">
 
+        <!-- DS Card — pinned -->
+        <a routerLink="/ds" class="proto-card proto-card--ds">
+          <div class="proto-card__top">
+            <span class="proto-card__status proto-card__status--ds">Design System</span>
+            <span class="ds-card__icon">◈</span>
+          </div>
+          <h2 class="proto-card__title">Component Library</h2>
+          <p class="proto-card__desc">All 35 DS components with live examples, tokens and usage.</p>
+          <div class="ds-card__meta">
+            <span class="ds-card__pill">35 components</span>
+            <span class="ds-card__pill">51 icons</span>
+          </div>
+          <div class="proto-card__slug">/ds</div>
+        </a>
+
         <ng-container *ngFor="let proto of protos">
           <!-- Clickable card (component exists) -->
           <a
@@ -254,6 +269,50 @@ import { PrototypeService, PrototypeDef } from '../../services/prototype.service
     .proto-card__title { font-size: 1.1rem; font-weight: 600; margin: 0 0 6px; }
     .proto-card__desc { font-size: 0.875rem; color: #9bbfb0; margin: 0 0 12px; }
     .proto-card__slug { font-size: 0.75rem; color: #358CEB; font-family: monospace; }
+
+    /* ── DS card ── */
+    .proto-card--ds {
+      border-color: rgba(44, 156, 116, 0.35);
+      background: linear-gradient(135deg, #0f201a 0%, #101A16 60%);
+      position: relative;
+      overflow: hidden;
+    }
+    .proto-card--ds::before {
+      content: '';
+      position: absolute;
+      top: -40px; right: -40px;
+      width: 120px; height: 120px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(44,156,116,0.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .proto-card--ds:hover { border-color: #2C9C74; }
+    .proto-card__status--ds {
+      background: rgba(44,156,116,.18);
+      color: #2C9C74;
+      font-size: 0.7rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      padding: 2px 8px; border-radius: 20px;
+    }
+    .ds-card__icon {
+      font-size: 1.1rem;
+      color: #2C9C74;
+      opacity: 0.7;
+    }
+    .ds-card__meta {
+      display: flex;
+      gap: 6px;
+      margin: 8px 0 10px;
+      flex-wrap: wrap;
+    }
+    .ds-card__pill {
+      font-size: 0.72rem;
+      background: rgba(44,156,116,.12);
+      color: #2C9C74;
+      padding: 2px 8px;
+      border-radius: 20px;
+      border: 1px solid rgba(44,156,116,.2);
+    }
 
     .btn-scaffold {
       margin-top: 12px;
