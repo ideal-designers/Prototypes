@@ -26,6 +26,12 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./prototypes/ca-settings-integrations/ca-settings-integrations.component').then(m => m.CaSettingsIntegrationsComponent),
   },
+  {
+    path: 'ds',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./prototypes/ds-showcase/ds-showcase.component').then(m => m.DsShowcaseComponent),
+  },
   // PROTO_ROUTES_PLACEHOLDER
   {
     path: '**',
