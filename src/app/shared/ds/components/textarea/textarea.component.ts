@@ -61,7 +61,7 @@ export type TextareaState = 'default' | 'error' | 'disabled';
       font-size: var(--text-base-s-size);
       line-height: var(--text-base-s-lh);
       color: var(--color-text-primary);
-      background: var(--color-stone-200);
+      background: var(--color-stone-0);
       border: 1.5px solid var(--color-stone-400);
       border-radius: var(--radius-sm);
       padding: var(--space-2) var(--space-3);

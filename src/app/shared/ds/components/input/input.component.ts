@@ -70,7 +70,7 @@ export type InputState = 'default' | 'error' | 'success' | 'disabled';
       position: relative;
       display: flex;
       align-items: center;
-      background: var(--color-stone-200);
+      background: var(--color-stone-0);
       border: 1.5px solid var(--color-stone-400);
       border-radius: var(--radius-sm);
       transition: border-color 0.15s, background 0.15s;

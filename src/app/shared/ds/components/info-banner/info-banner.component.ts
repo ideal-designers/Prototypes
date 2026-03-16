@@ -53,7 +53,7 @@ export type BannerVariant = 'info' | 'success' | 'warning' | 'error';
     }
 
     .banner--info {
-      background: var(--color-stone-200);
+      background: var(--color-stone-0);
       border-color: var(--color-stone-400);
     }
     .banner--info .banner__icon { color: var(--color-info-500); }

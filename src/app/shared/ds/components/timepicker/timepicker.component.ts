@@ -75,7 +75,7 @@ export interface TimeValue { hours: number; minutes: number; }
       align-items: center;
       height: 40px;
       padding: 0 var(--space-3);
-      background: var(--color-stone-200);
+      background: var(--color-stone-0);
       border: 1.5px solid var(--color-stone-400);
       border-radius: var(--radius-sm);
       gap: var(--space-1);

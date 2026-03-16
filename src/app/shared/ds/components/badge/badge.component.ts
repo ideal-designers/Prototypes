@@ -57,7 +57,7 @@ export type BadgeVariant = 'success' | 'error' | 'warning' | 'info' | 'neutral' 
       color: var(--color-info-500);
     }
     .badge--neutral {
-      background: var(--color-stone-200);
+      background: var(--color-stone-0);
       color: var(--color-text-secondary);
     }
   `],

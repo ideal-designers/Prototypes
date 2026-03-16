@@ -92,7 +92,7 @@ const DEFAULT_COUNTRIES: PhoneCountry[] = [
       display: flex;
       align-items: center;
       height: 40px;
-      background: var(--color-stone-200);
+      background: var(--color-stone-0);
       border: 1.5px solid var(--color-stone-400);
       border-radius: var(--radius-sm);
       transition: border-color 0.15s, background 0.15s;

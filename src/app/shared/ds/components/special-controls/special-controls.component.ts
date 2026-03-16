@@ -57,7 +57,7 @@ import { FvdrIconComponent } from '../../icons/icon.component';
       border: 1.5px solid var(--color-stone-400);
       border-radius: var(--radius-sm);
       overflow: hidden;
-      background: var(--color-stone-200);
+      background: var(--color-stone-0);
       height: 40px;
     }
     .stepper__btn {

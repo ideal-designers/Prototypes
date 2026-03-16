@@ -79,7 +79,7 @@ interface EditorAction {
     .editor__wrapper {
       border: 1.5px solid var(--color-stone-400);
       border-radius: var(--radius-sm);
-      background: var(--color-stone-200);
+      background: var(--color-stone-0);
       overflow: hidden;
       transition: border-color 0.15s;
     }

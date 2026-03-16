@@ -82,7 +82,7 @@ export type DropdownSize = 's' | 'm' | 'l';
       align-items: center;
       justify-content: space-between;
       width: 100%;
-      background: var(--color-stone-200);
+      background: var(--color-stone-0);
       border: 1.5px solid var(--color-stone-400);
       border-radius: var(--radius-sm);
       padding: 0 var(--space-3);
@@ -130,7 +130,7 @@ export type DropdownSize = 's' | 'm' | 'l';
       padding: 4px var(--space-2);
       font-family: var(--font-family);
       font-size: var(--text-base-s-size);
-      background: var(--color-stone-200);
+      background: var(--color-stone-0);
       outline: none;
       box-sizing: border-box;
     }
