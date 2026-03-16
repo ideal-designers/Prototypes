@@ -97,7 +97,6 @@ export interface ModalConfig {
       align-items: center;
       justify-content: space-between;
       padding: var(--space-4) var(--space-6);
-      border-bottom: 1px solid var(--color-divider);
       flex-shrink: 0;
     }
 
@@ -144,7 +143,6 @@ export interface ModalConfig {
       justify-content: flex-end;
       gap: var(--space-2);
       padding: var(--space-4) var(--space-6);
-      border-top: 1px solid var(--color-divider);
       flex-shrink: 0;
     }
   `],
