@@ -31,7 +31,7 @@ import { CalendarComponent } from '../calendar/calendar.component';
         <span class="dp__value" [class.dp__value--placeholder]="!displayValue">
           {{ displayValue || placeholder }}
         </span>
-        <fvdr-icon name="folder" class="dp__icon" />
+        <fvdr-icon name="calendar" class="dp__icon" />
       </button>
       <div *ngIf="open" class="dp__panel">
         <fvdr-calendar

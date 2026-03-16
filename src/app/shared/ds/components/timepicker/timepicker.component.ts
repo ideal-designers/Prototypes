@@ -55,7 +55,7 @@ export interface TimeValue { hours: number; minutes: number; }
           />
           <button class="tp__step" (click)="step('m', -1)"><fvdr-icon name="chevron-down" /></button>
         </div>
-        <fvdr-icon name="settings" class="tp__icon" />
+        <fvdr-icon name="clock" class="tp__icon" />
       </div>
     </div>
   `,
