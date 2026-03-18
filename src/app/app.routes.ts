@@ -32,6 +32,11 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./prototypes/ds-showcase/ds-showcase.component').then(m => m.DsShowcaseComponent),
   },
+    {
+    path: 'project-archive-creation-flow-testing',
+    loadComponent: () =>
+      import('./prototypes/project-archive-creation-flow-testing/project-archive-creation-flow-testing.component').then(m => m.ProjectArchiveCreationFlowTestingComponent),
+  },
   // PROTO_ROUTES_PLACEHOLDER
   {
     path: '**',
