@@ -1,5 +1,7 @@
 # Claude Code — Workflow Notes
 
+> **База знань DS, токени, шаблони організмів, патерни:** → [`SKILL.md`](./SKILL.md)
+
 ## Icons
 
 - Завжди використовуй `<fvdr-icon name="...">` з DS замість inline SVG.
