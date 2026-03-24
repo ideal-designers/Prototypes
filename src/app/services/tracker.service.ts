@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { environment } from '../../environments/environment';
+import posthog from 'posthog-js';
 
 export interface ProtoEvent {
   session_id: string;
@@ -34,6 +35,7 @@ export class TrackerService {
   }
 
   async trackPageView(slug: string): Promise<void> {
+    posthog.capture('$pageview', { proto_slug: slug, session_id: this.sessionId });
     await this.send({
       session_id: this.sessionId,
       proto_slug: slug,
@@ -43,6 +45,7 @@ export class TrackerService {
   }
 
   async trackTask(slug: string, result: 'task_complete' | 'task_fail', label?: string): Promise<void> {
+    posthog.capture(result, { proto_slug: slug, session_id: this.sessionId, label });
     await this.send({
       session_id: this.sessionId,
       proto_slug: slug,

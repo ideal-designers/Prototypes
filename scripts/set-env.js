@@ -4,12 +4,14 @@ const path = require('path');
 const supabaseUrl = process.env['SUPABASE_URL'] || '';
 const supabaseAnonKey = process.env['SUPABASE_ANON_KEY'] || '';
 const password = process.env['PROTO_PASSWORD'] || '';
+const posthogKey = process.env['POSTHOG_KEY'] || '';
 
 const content = `export const environment = {
   production: true,
   supabaseUrl: '${supabaseUrl}',
   supabaseAnonKey: '${supabaseAnonKey}',
   password: '${password}',
+  posthogKey: '${posthogKey}',
 };
 `;
 
@@ -18,4 +20,4 @@ fs.writeFileSync(
   content
 );
 
-console.log(`environment.prod.ts generated (SUPABASE_URL set: ${!!supabaseUrl}, SUPABASE_ANON_KEY set: ${!!supabaseAnonKey})`);
+console.log(`environment.prod.ts generated (SUPABASE_URL set: ${!!supabaseUrl}, SUPABASE_ANON_KEY set: ${!!supabaseAnonKey}, POSTHOG_KEY set: ${!!posthogKey})`);
