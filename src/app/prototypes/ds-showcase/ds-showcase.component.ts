@@ -1,7 +1,8 @@
-import { Component, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DS_COMPONENTS, ToastService } from '../../shared/ds';
+import { TrackerService } from '../../services/tracker.service';
 import type {
   TabItem, DroplistItem, DropdownOption, RadioOption,
   SearchFilter, SegmentItem, TableColumn, TreeNode,
@@ -584,8 +585,12 @@ import type {
     .icon-item:hover { background: var(--color-hover-bg); }
   `],
 })
-export class DsShowcaseComponent {
+export class DsShowcaseComponent implements OnInit, OnDestroy {
   private toastSvc = inject(ToastService);
+  private tracker = inject(TrackerService);
+
+  ngOnInit(): void { this.tracker.trackPageView('ds-showcase'); }
+  ngOnDestroy(): void { this.tracker.destroyListeners(); }
 
   sections = [
     { id: 'buttons', label: 'Buttons' },

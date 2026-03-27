@@ -1,11 +1,13 @@
 import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { DS_COMPONENTS } from '../../shared/ds';
 import { TrackerService } from '../../services/tracker.service';
 
 @Component({
   selector: 'fvdr-deal-room',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule, ...DS_COMPONENTS],
   template: `
     <div class="proto">
       <h1>Deal Room Dashboard</h1>
