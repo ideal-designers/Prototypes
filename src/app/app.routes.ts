@@ -32,6 +32,12 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./prototypes/ds-showcase/ds-showcase.component').then(m => m.DsShowcaseComponent),
   },
+  {
+    path: 'docs',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./components/docs/docs.component').then(m => m.DocsComponent),
+  },
     {
     path: 'project-archive-creation-flow-testing',
     loadComponent: () =>

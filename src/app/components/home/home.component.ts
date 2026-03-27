@@ -41,6 +41,21 @@ import { PrototypeService, PrototypeDef } from '../../services/prototype.service
           <div class="proto-card__slug">/ds</div>
         </a>
 
+        <!-- Docs Card — pinned -->
+        <a routerLink="/docs" class="proto-card proto-card--docs">
+          <div class="proto-card__top">
+            <span class="proto-card__status proto-card__status--docs">Docs</span>
+            <span class="ds-card__icon">📋</span>
+          </div>
+          <h2 class="proto-card__title">Session Guide</h2>
+          <p class="proto-card__desc">Як починати сесію, DS токени, патерни, ключові файли.</p>
+          <div class="ds-card__meta">
+            <span class="docs-card__pill">SKILL.md</span>
+            <span class="docs-card__pill">CLAUDE.md</span>
+          </div>
+          <div class="proto-card__slug">/docs</div>
+        </a>
+
         <ng-container *ngFor="let proto of protos">
           <!-- Clickable card (component exists) -->
           <a
@@ -287,6 +302,28 @@ import { PrototypeService, PrototypeDef } from '../../services/prototype.service
       pointer-events: none;
     }
     .proto-card--ds:hover { border-color: #2C9C74; }
+
+    /* ── Docs card ── */
+    .proto-card--docs {
+      border-color: rgba(53, 140, 235, 0.25);
+      background: linear-gradient(135deg, #0d1820 0%, #101A16 60%);
+    }
+    .proto-card--docs:hover { border-color: #358CEB; }
+    .proto-card__status--docs {
+      background: rgba(53, 140, 235, 0.12);
+      color: #358CEB;
+      font-size: 0.7rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      padding: 2px 8px; border-radius: 20px;
+    }
+    .docs-card__pill {
+      font-size: 0.72rem;
+      background: rgba(53, 140, 235, 0.1);
+      color: #358CEB;
+      padding: 2px 8px;
+      border-radius: 20px;
+      border: 1px solid rgba(53, 140, 235, 0.2);
+    }
     .proto-card__status--ds {
       background: rgba(44,156,116,.18);
       color: #2C9C74;
