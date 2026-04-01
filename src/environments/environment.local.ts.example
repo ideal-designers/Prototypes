@@ -1,0 +1,17 @@
+// Copy this file to environment.local.ts and fill in your Supabase credentials.
+// environment.local.ts is gitignored — never commit real keys.
+//
+// Where to get the values:
+//   1. Go to https://supabase.com → your project
+//   2. Settings → API
+//   3. Copy "Project URL" → supabaseUrl
+//   4. Copy "anon public" key → supabaseAnonKey
+//
+// Then run:  npm run start:local
+
+export const environment = {
+  production: false,
+  supabaseUrl: 'https://xxxxxxxxxxxxxxxxxxxx.supabase.co',
+  supabaseAnonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+  password: 'your-secret-password', // leave empty string to disable protection
+};

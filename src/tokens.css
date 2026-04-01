@@ -1,0 +1,262 @@
+/**
+ * FVDR Design Tokens — Three-Layer System
+ * Source: Figma "FVDR - Design System" (liyNDiFf1piO8SQmHNKoeU)
+ * Generated: 2026-03-26
+ *
+ * Layer 1: Primitives (raw values)
+ * Layer 2: Aliases (semantic tokens)
+ *
+ * Import in index.html <head> or styles.css @import.
+ */
+
+/* ═══════════════════════════════════════════════
+   LAYER 1 — PRIMITIVES
+   ═══════════════════════════════════════════════ */
+:root {
+
+  /* ── Neutral / Stone ── */
+  --primitive-neutral-0:    #ffffff;
+  --primitive-neutral-25:   #fbfbfb;
+  --primitive-neutral-50:   #f7f7f7;
+  --primitive-neutral-75:   #efefef;
+  --primitive-neutral-100:  #eef0f8;
+  --primitive-neutral-200:  #dee0eb;
+  --primitive-neutral-300:  #bbbdc8;
+  --primitive-neutral-350:  #b0b3c0;
+  --primitive-neutral-400:  #9b9da6;
+  --primitive-neutral-450:  #9c9ea8;
+  --primitive-neutral-500:  #5f616a;
+  --primitive-neutral-600:  #73757f;
+  --primitive-neutral-700:  #40424b;
+  --primitive-neutral-800:  #1f2129;
+
+  /* ── Green / Primary ── */
+  --primitive-green-50:    #ebf8ef;
+  --primitive-green-100:   #e8f5ee;
+  --primitive-green-200:   #dff4e8;
+  --primitive-green-300:   #ebf4fd; /* alias for feature-badge bg */
+  --primitive-green-400:   #f0faf5;
+  --primitive-green-500:   #2c9c74;
+  --primitive-green-600:   #24845f;
+  --primitive-green-700:   #268a65;
+  --primitive-green-800:   #1c8269;
+
+  /* ── Red / Danger ── */
+  --primitive-red-50:    #fff5f4;
+  --primitive-red-100:   #fdf0ee;
+  --primitive-red-200:   #f5c4bc;
+  --primitive-red-300:   #ed7c6e;
+  --primitive-red-400:   #e54430;
+  --primitive-red-500:   #e54430;
+  --primitive-red-600:   #c62c19;
+  --primitive-red-700:   #cc3926;
+
+  /* ── Blue / Info ── */
+  --primitive-blue-50:    #eceef9;
+  --primitive-blue-100:   #ebf4fd;
+  --primitive-blue-200:   #1e2d3f;
+  --primitive-blue-400:   #4862d3;
+  --primitive-blue-500:   #358ceb;
+
+  /* ── Orange / Brand ── */
+  --primitive-orange-500:  #f4640c;
+  --primitive-orange-600:  #ff4a00;
+
+  /* ── Yellow / Warning ── */
+  --primitive-yellow-50:   #fffae0;
+  --primitive-yellow-500:  #ffe448;
+  --primitive-yellow-600:  #ffda07;
+  --primitive-yellow-700:  #d1b200;
+
+  /* ── Spacing Scale (4px grid) ── */
+  --primitive-space-1:   4px;
+  --primitive-space-2:   8px;
+  --primitive-space-3:   12px;
+  --primitive-space-4:   16px;
+  --primitive-space-5:   20px;
+  --primitive-space-6:   24px;
+  --primitive-space-8:   32px;
+  --primitive-space-10:  40px;
+  --primitive-space-12:  48px;
+  --primitive-space-16:  64px;
+  --primitive-space-18:  72px;
+
+  /* ── Font Sizes ── */
+  --primitive-font-size-xs:   12px;
+  --primitive-font-size-sm:   13px;
+  --primitive-font-size-base: 14px;
+  --primitive-font-size-md:   15px;
+  --primitive-font-size-lg:   16px;
+  --primitive-font-size-xl:   18px;
+  --primitive-font-size-2xl:  20px;
+
+  /* ── Font Weights ── */
+  --primitive-font-weight-regular: 400;
+  --primitive-font-weight-semi:    600;
+  --primitive-font-weight-bold:    700;
+
+  /* ── Line Heights ── */
+  --primitive-line-height-xs:   14px;
+  --primitive-line-height-sm:   16px;
+  --primitive-line-height-base: 20px;
+  --primitive-line-height-lg:   24px;
+
+  /* ── Border Radii ── */
+  --primitive-radius-1:    2px;
+  --primitive-radius-2:    4px;
+  --primitive-radius-3:    6px;
+  --primitive-radius-4:    8px;
+  --primitive-radius-5:    12px;
+  --primitive-radius-full: 9999px;
+
+  /* ── Shadows ── */
+  --primitive-shadow-none:  none;
+  --primitive-shadow-card:  0 1px 4px rgba(0, 0, 0, 0.08);
+  --primitive-shadow-hover: 0 4px 12px rgba(44, 156, 116, 0.12);
+  --primitive-shadow-modal: 0 8px 32px rgba(0, 0, 0, 0.2);
+  --primitive-shadow-toast: 0 4px 16px rgba(0, 0, 0, 0.14);
+  --primitive-shadow-popup: 0 4px 16px rgba(0, 0, 0, 0.12);
+
+  /* ── Z-Index Scale ── */
+  --primitive-z-10:   10;
+  --primitive-z-20:   20;
+  --primitive-z-50:   50;
+  --primitive-z-100:  100;
+  --primitive-z-1000: 1000;
+  --primitive-z-2000: 2000;
+
+  /* ── Transition Durations ── */
+  --primitive-duration-fast:  120ms;
+  --primitive-duration-base:  150ms;
+  --primitive-duration-slow:  200ms;
+  --primitive-duration-xslow: 220ms;
+
+  /* ── Easings ── */
+  --primitive-ease:         ease;
+  --primitive-ease-in-out:  ease-in-out;
+}
+
+/* ═══════════════════════════════════════════════
+   LAYER 2 — ALIASES (semantic tokens)
+   ═══════════════════════════════════════════════ */
+:root {
+
+  /* ── Text ── */
+  --color-text-primary:      var(--primitive-neutral-800, #1f2129);
+  --color-text-secondary:    var(--primitive-neutral-500, #5f616a);
+  --color-text-muted:        var(--primitive-neutral-600, #73757f);
+  --color-text-placeholder:  var(--primitive-neutral-350, #b0b3c0);
+  --color-text-disabled:     var(--primitive-neutral-400, #9b9da6);
+  --color-text-subtle:       var(--primitive-neutral-450, #9c9ea8);
+  --color-text-inverse:      var(--primitive-neutral-0, #ffffff);
+
+  /* ── Backgrounds ── */
+  --color-bg-page:     var(--primitive-neutral-0, #ffffff);
+  --color-bg-surface:  var(--primitive-neutral-50, #f7f7f7);
+  --color-bg-subtle:   var(--primitive-neutral-25, #fbfbfb);
+  --color-hover-bg:    var(--primitive-neutral-100, #eef0f8);
+  --color-hover-light: var(--primitive-neutral-75, #efefef);
+
+  /* ── Borders ── */
+  --color-border:           var(--primitive-neutral-200, #dee0eb); /* stone-400 — card/layout borders */
+  --color-border-subtle:    var(--primitive-neutral-50, #f7f7f7);  /* stone-200 — divider lines */
+  --color-border-input:     var(--primitive-neutral-300, #bbbdc8);
+  --color-border-muted:     var(--primitive-neutral-200, #dee0eb);
+
+  /* ── Interactive / Primary ── */
+  --color-interactive-primary:   var(--primitive-green-500, #2c9c74);
+  --color-interactive-hover:     var(--primitive-green-700, #268a65);
+  --color-interactive-secondary: var(--primitive-neutral-700, #40424b);
+  --color-nav-active:            var(--primitive-green-500, #2c9c74);
+  --color-selection-bg:          var(--primitive-blue-50, #eceef9);
+  --color-selected-row:          var(--primitive-green-50, #ebf8ef);
+  --color-selected-row-hover:    var(--primitive-green-200, #dff4e8);
+  --color-active-nav-bg:         var(--primitive-green-400, #f0faf5);
+
+  /* ── Danger ── */
+  --color-danger:          var(--primitive-red-500, #e54430);
+  --color-danger-hover:    var(--primitive-red-700, #cc3926);
+  --color-danger-border:   var(--primitive-red-300, #ed7c6e);
+  --color-danger-surface:  var(--primitive-red-50, #fff5f4);
+
+  /* ── Icon ── */
+  --color-icon:         var(--primitive-neutral-500, #5f616a);
+  --color-icon-muted:   var(--primitive-neutral-600, #73757f);
+
+  /* ── Brand ── */
+  --color-brand-orange: var(--primitive-orange-500, #f4640c);
+
+  /* ── Info / Blue ── */
+  --color-info-primary: var(--primitive-blue-500, #358ceb);
+  --color-feature-bg:   var(--primitive-blue-100, #ebf4fd);
+
+  /* ── Overlay ── */
+  --color-overlay-light: rgba(0, 0, 0, 0.45);
+  --color-overlay-dark:  rgba(0, 0, 0, 0.6);
+
+  /* ── Spacing aliases ── */
+  --space-1:   var(--primitive-space-1,  4px);
+  --space-2:   var(--primitive-space-2,  8px);
+  --space-3:   var(--primitive-space-3,  12px);
+  --space-4:   var(--primitive-space-4,  16px);
+  --space-5:   var(--primitive-space-5,  20px);
+  --space-6:   var(--primitive-space-6,  24px);
+  --space-8:   var(--primitive-space-8,  32px);
+  --space-10:  var(--primitive-space-10, 40px);
+  --space-12:  var(--primitive-space-12, 48px);
+  --space-16:  var(--primitive-space-16, 64px);
+  --space-18:  var(--primitive-space-18, 72px);
+
+  /* ── Font-size aliases ── */
+  --font-size-xs:   var(--primitive-font-size-xs,   12px);
+  --font-size-sm:   var(--primitive-font-size-sm,   13px);
+  --font-size-base: var(--primitive-font-size-base, 14px);
+  --font-size-md:   var(--primitive-font-size-md,   15px);
+  --font-size-lg:   var(--primitive-font-size-lg,   16px);
+  --font-size-xl:   var(--primitive-font-size-xl,   18px);
+  --font-size-2xl:  var(--primitive-font-size-2xl,  20px);
+
+  /* ── Font-weight aliases ── */
+  --font-weight-regular: var(--primitive-font-weight-regular, 400);
+  --font-weight-semi:    var(--primitive-font-weight-semi, 600);
+  --font-weight-bold:    var(--primitive-font-weight-bold, 700);
+
+  /* ── Line-height aliases ── */
+  --line-height-xs:   var(--primitive-line-height-xs,   14px);
+  --line-height-sm:   var(--primitive-line-height-sm,   16px);
+  --line-height-base: var(--primitive-line-height-base, 20px);
+  --line-height-lg:   var(--primitive-line-height-lg,   24px);
+
+  /* ── Border-radius aliases ── */
+  --radius-xs:   var(--primitive-radius-1, 2px);
+  --radius-sm:   var(--primitive-radius-2, 4px);
+  --radius-md:   var(--primitive-radius-4, 8px);
+  --radius-lg:   var(--primitive-radius-5, 12px);
+  --radius-full: var(--primitive-radius-full, 9999px);
+
+  /* ── Shadow aliases ── */
+  --shadow-none:  var(--primitive-shadow-none, none);
+  --shadow-card:  var(--primitive-shadow-card, 0 1px 4px rgba(0, 0, 0, 0.08));
+  --shadow-hover: var(--primitive-shadow-hover, 0 4px 12px rgba(44, 156, 116, 0.12));
+  --shadow-modal: var(--primitive-shadow-modal, 0 8px 32px rgba(0, 0, 0, 0.2));
+  --shadow-toast: var(--primitive-shadow-toast, 0 4px 16px rgba(0, 0, 0, 0.14));
+  --shadow-popup: var(--primitive-shadow-popup, 0 4px 16px rgba(0, 0, 0, 0.12));
+
+  /* ── Z-index aliases ── */
+  --z-tooltip:  var(--primitive-z-10,   10);
+  --z-sticky:   var(--primitive-z-20,   20);
+  --z-dropdown: var(--primitive-z-100,  100);
+  --z-modal:    var(--primitive-z-1000, 1000);
+  --z-toast:    var(--primitive-z-2000, 2000);
+
+  /* ── Transition aliases ── */
+  --duration-fast:  var(--primitive-duration-fast,  120ms);
+  --duration-base:  var(--primitive-duration-base,  150ms);
+  --duration-slow:  var(--primitive-duration-slow,  200ms);
+  --duration-xslow: var(--primitive-duration-xslow, 220ms);
+  --ease:           var(--primitive-ease, ease);
+  --ease-in-out:    var(--primitive-ease-in-out, ease-in-out);
+
+  /* ── Font family ── */
+  --font-family: 'Open Sans', sans-serif;
+}

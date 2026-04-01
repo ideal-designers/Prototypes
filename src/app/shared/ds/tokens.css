@@ -1,0 +1,228 @@
+/**
+ * FVDR Design System Tokens
+ * Source: Figma "FVDR - Design System" (liyNDiFf1piO8SQmHNKoeU)
+ * Auto-extracted: 2026-03-06
+ *
+ * Usage: import this file in angular.json styles[] or in component styleUrls
+ */
+
+:root {
+  /* ─────────────────────────────────────────
+     PRIMARY (Emerald/Teal — interactive green)
+     Figma: Emerald green / $primary-*
+     Interactive states from Button component analysis
+  ───────────────────────────────────────── */
+  --color-primary-50:   #EBF8EF;  /* Tab selected bg, light tint */
+  --color-primary-100:  #AAE2BA;
+  --color-primary-200:  #95DBA9;
+  --color-primary-300:  #7BD293;
+  --color-primary-400:  #5AC778;
+  --color-primary-500:  #2C9C74;  /* CTA, accent — Button default */
+  --color-primary-600:  #1C8269;  /* Button hover */
+  --color-primary-700:  #12695C;  /* Button active/pressed */
+  --color-primary-800:  #1E592F;
+  --color-primary-900:  #184725;
+
+  /* ─────────────────────────────────────────
+     STONE GREY (Neutral scale)
+     Figma: Stone grey / $stone-*
+  ───────────────────────────────────────── */
+  --color-stone-0:    #FFFFFF;  /* Pure white */
+  --color-stone-100:  #FAFAFA;  /* Subtle bg */
+  --color-stone-200:  #F7F7F7;  /* Surface, input bg */
+  --color-stone-300:  #ECEEF9;  /* UI hover bg */
+  --color-stone-400:  #DEE0EB;  /* Dividers, borders, card border */
+  --color-stone-500:  #BBBDC8;  /* Disabled text, placeholders */
+  --color-stone-600:  #9C9EA8;  /* Secondary icons */
+  --color-stone-700:  #73757F;  /* Secondary text */
+  --color-stone-800:  #5F616A;  /* Secondary text (active) */
+  --color-stone-900:  #40424B;  /* Dark text */
+
+  /* ─────────────────────────────────────────
+     ERROR (Red)
+     Figma: Red / $error-*
+  ───────────────────────────────────────── */
+  --color-error-50:   #F9D4CF;
+  --color-error-100:  #F8C9C4;
+  --color-error-200:  #F5A8A0;
+  --color-error-300:  #F08070;
+  --color-error-500:  #ED7C6E;
+  --color-error-600:  #E54430;  /* Error default */
+  --color-error-700:  #C62C19;  /* Error hover */
+
+  /* ─────────────────────────────────────────
+     WARNING (Yellow)
+     Figma: Yellow / $warning-*
+  ───────────────────────────────────────── */
+  --color-warning-50:  #FFFCE0;
+  --color-warning-500: #FFE448;
+  --color-warning-600: #FFDA07;
+  --color-warning-700: #D1B200;
+
+  /* ─────────────────────────────────────────
+     INFO (Dodger Blue)
+     Figma: Theme/Dodger Blue
+  ───────────────────────────────────────── */
+  --color-info-50:  #BDD9F8;
+  --color-info-500: #358CEB;
+  --color-info-800: #0D4786;
+
+  /* ─────────────────────────────────────────
+     SEMANTIC (Text, UI, Severity)
+     Figma: Text/*, UI/*, Severities/*
+  ───────────────────────────────────────── */
+  --color-text-primary:     #1F2129;  /* Text/$primary-text-color */
+  --color-text-secondary:   #5F616A;  /* Text/$secondary-text-color */
+  --color-text-placeholder: #9C9EA8;  /* Text/$placeholder-color */
+  --color-text-disabled:    #BBBDC8;
+
+  --color-divider:    #DEE0EB;  /* UI/$divider-color */
+  --color-hover-bg:   #ECEEF9;  /* UI/$hover-bg */
+
+  --color-stone-1000: #1F2129; /* alias used in some components */
+
+  --color-success-bg:     #E8F5EE;
+  --color-success-border: #A5D6B9;
+  --color-success-icon:   #2C9C74;
+  --color-success-text:   #1F2129;
+
+  --color-error-bg:     #FDF0EE;
+  --color-error-border: #F5C4BC;
+  --color-error-icon:   #E54430;
+  --color-error-text:   #1F2129;
+
+  --color-warning-bg:     #FFFAE0;
+  --color-warning-border: #FFE480;
+  --color-warning-icon:   #D1B200;
+  --color-warning-text:   #1F2129;
+
+  /* ─────────────────────────────────────────
+     ELEVATION (Shadows)
+     Figma: Pop-over / Toasters shadow
+  ───────────────────────────────────────── */
+  --shadow-popover: 0 4px 16px rgba(0, 0, 0, 0.12);
+  --shadow-toast:   0 8px 24px rgba(0, 0, 0, 0.16);
+  --shadow-card:    0 1px 4px rgba(0, 0, 0, 0.08);
+  --shadow-card-hover: 0 4px 12px rgba(44, 156, 116, 0.12);
+
+  /* ─────────────────────────────────────────
+     BORDER RADIUS (from component analysis)
+  ───────────────────────────────────────── */
+  --radius-xs:  2px;
+  --radius-sm:  4px;   /* Card, Button, Checkbox */
+  --radius-md:  8px;   /* Info banners, Chips */
+  --radius-lg:  12px;
+  --radius-xl:  16px;
+  --radius-full: 9999px; /* Pills, Avatars */
+
+  /* ─────────────────────────────────────────
+     SPACING (4px grid system)
+     Figma: FVDR 4px grid module
+  ───────────────────────────────────────── */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-10: 40px;
+  --space-12: 48px;
+
+  /* ─────────────────────────────────────────
+     TYPOGRAPHY
+     Figma: Text styles — Open Sans
+  ───────────────────────────────────────── */
+  --font-family: 'Open Sans', sans-serif;
+
+  /* Headings */
+  --text-h1-size: 32px;  --text-h1-weight: 700;  --text-h1-lh: 40px;
+  --text-h2-size: 28px;  --text-h2-weight: 700;  --text-h2-lh: 36px;
+  --text-h3-size: 24px;  --text-h3-weight: 700;  --text-h3-lh: 32px;
+  --text-sub1-size: 20px; --text-sub1-weight: 600; --text-sub1-lh: 28px;
+  --text-sub2-size: 18px; --text-sub2-weight: 600; --text-sub2-lh: 24px;
+
+  /* Body */
+  --text-body1-size: 16px;  --text-body1-weight: 400;  --text-body1-lh: 24px;
+  --text-body2-size: 15px;  --text-body2-weight: 400;  --text-body2-lh: 24px;
+  --text-body3-size: 14px;  --text-body3-weight: 400;  --text-body3-lh: 20px;
+
+  /* UI Base Components */
+  --text-base-l-size: 16px;  --text-base-l-weight: 400;  --text-base-l-lh: 24px;
+  --text-base-l-sb-weight: 600;
+  --text-base-m-size: 15px;  --text-base-m-weight: 400;  --text-base-m-lh: 24px;
+  --text-base-m-sb-weight: 600;
+  --text-base-s-size: 14px;  --text-base-s-weight: 400;  --text-base-s-lh: 20px;
+  --text-base-s-sb-weight: 600;
+
+  /* Labels */
+  --text-label-l-size: 16px;  --text-label-l-weight: 600;  --text-label-l-lh: 24px;
+  --text-label-m-size: 15px;  --text-label-m-weight: 600;  --text-label-m-lh: 20px;
+  --text-label-s-size: 14px;  --text-label-s-weight: 600;  --text-label-s-lh: 20px;
+
+  /* Buttons */
+  --text-btn-l-size: 16px;  --text-btn-l-weight: 400;  --text-btn-l-lh: 16px;
+  --text-btn-m-size: 15px;  --text-btn-m-weight: 400;  --text-btn-m-lh: 16px;
+  --text-btn-s-size: 14px;  --text-btn-s-weight: 400;  --text-btn-s-lh: 14px;
+
+  /* Captions */
+  --text-caption1-size: 12px;  --text-caption1-weight: 400;  --text-caption1-lh: 16px;
+  --text-caption2-size: 12px;  --text-caption2-weight: 600;  --text-caption2-lh: 16px;
+
+  /* ─────────────────────────────────────────
+     COMPONENT SIZES
+  ───────────────────────────────────────── */
+  --btn-height-s: 32px;
+  --btn-height-m: 40px;
+  --btn-height-l: 48px;
+
+  --tab-height: 48px;
+
+  --checkbox-size: 16px;
+  --checkbox-radius: 1px;
+
+  color-scheme: light;
+
+  --avatar-sm: 24px;
+  --avatar-md: 32px;
+  --avatar-lg: 40px;
+  --avatar-xl: 48px;
+}
+
+/* ─────────────────────────────────────────
+   DARK THEME
+   Source: Figma "FVDR - Design System" node 20880:*
+   "Dark theme/If Dark stone-*" palette
+───────────────────────────────────────── */
+.dark-theme {
+  color-scheme: dark;
+
+  /* Stone scale — inverted for dark */
+  --color-stone-0:    #1F2129;
+  --color-stone-100:  #212426;
+  --color-stone-200:  #292D2F;
+  --color-stone-300:  #33383B;
+  --color-stone-400:  #40464A;
+  --color-stone-500:  #50575C;
+  --color-stone-600:  #6F7980;
+  --color-stone-700:  #8B949A;
+  --color-stone-800:  #A2A9AF;
+  --color-stone-900:  #B5BBBF;
+  --color-stone-1000: #FFFFFF;
+
+  /* Primary tints in dark — for selected states (tabs, nav, etc.) */
+  --color-primary-50:  #1A2E24;  /* light: #EBF8EF → dark green tint */
+
+  /* Semantic */
+  --color-text-primary:     #FFFFFF;
+  --color-text-secondary:   #A2A9AF;
+  --color-text-placeholder: #6F7980;
+  --color-text-disabled:    #50575C;
+
+  --color-divider:    #33383B;
+  --color-hover-bg:   #33383B;
+
+  --shadow-card:       0 1px 4px rgba(0, 0, 0, 0.32);
+  --shadow-card-hover: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-popover:    0 4px 16px rgba(0, 0, 0, 0.4);
+}
