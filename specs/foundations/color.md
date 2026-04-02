@@ -92,3 +92,55 @@ Figma: "FVDR - Design System" (liyNDiFf1piO8SQmHNKoeU)
 | Feature bg | `--color-feature-bg` | `#ebf4fd` | Feature badge background |
 | Overlay light | `--color-overlay-light` | `rgba(0,0,0,0.45)` | Archive modal overlay |
 | Overlay dark | `--color-overlay-dark` | `rgba(0,0,0,0.6)` | CA modal overlay |
+
+---
+
+## Dark Theme — Stone Inversion System
+
+> Source: Figma DS node `15790-10036` (file `liyNDiFf1piO8SQmHNKoeU`)
+
+The dark theme **inverts the stone scale** — stone-0 becomes the darkest surface, stone-1000 becomes white text. Every prototype uses explicit hex values in `.dark-theme` CSS blocks (global `styles.css` overrides `var()` references).
+
+Activate by adding `.dark-theme` class to the root `.page-layout` element.
+
+### Dark Stone Scale
+
+| Figma Token | Light Value | Dark Value | Role in Dark Theme |
+|-------------|-------------|------------|-------------------|
+| `stone-0` | `#FFFFFF` | `#1F2129` | Page background, content area |
+| `stone-100` | `#FBFBFB` | `#212426` | Sidebar, header, sidebar-bottom |
+| `stone-200` | `#F7F7F7` | `#292D2F` | Cards, modals, dropdowns |
+| `stone-300` | `#ECEEF9` | `#33383B` | Borders, dividers, separators |
+| `stone-400` | `#DEE0EB` | `#40464A` | Subtle borders |
+| `stone-500` | `#BBBDC8` | `#50575C` | Input borders |
+| `stone-600` | `#9C9EA8` | `#6F7980` | Secondary icons |
+| `stone-700` | `#73757F` | `#8B949A` | Muted text, icon muted |
+| `stone-800` | `#5F616A` | `#A2A9AF` | Secondary text |
+| `stone-900` | `#40424B` | `#B5BBBF` | Body text secondary |
+| `stone-1000` | `#1F2129` | `#FFFFFF` | Primary text |
+
+### Dark Theme CSS Pattern (per-component)
+
+```css
+/* RULE: always use explicit hex in .dark-theme blocks */
+/* styles.css overrides --color-border globally — never rely on var() in dark mode */
+
+:host {
+  --color-border: #DEE0EB;   /* restore light-mode divider */
+  --color-divider: #DEE0EB;
+}
+
+.dark-theme.page-layout   { background: #1F2129; }   /* stone-0 dark */
+.dark-theme .content-area { background: #1F2129; }
+.dark-theme .sidebar      { background: #212426; border-right-color: #33383B; }
+.dark-theme .page-header  { background: #212426; border-bottom-color: #33383B; }
+.dark-theme .sidebar-bottom { background: #212426; border-top-color: #33383B; }
+.dark-theme .card         { background: #292D2F; border-color: #33383B; }
+.dark-theme .modal        { background: #292D2F; }
+.dark-theme .modal-header { border-bottom-color: #33383B; }
+.dark-theme .title        { color: #FFFFFF; }         /* stone-1000 dark */
+.dark-theme .secondary    { color: #A2A9AF; }         /* stone-800 dark */
+.dark-theme .muted        { color: #8B949A; }         /* stone-700 dark */
+.dark-theme .divider      { border-color: #33383B; }  /* stone-300 dark */
+.dark-theme .input        { background: #33383B; border-color: #50575C; color: #B5BBBF; }
+```

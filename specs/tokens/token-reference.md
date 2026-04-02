@@ -137,6 +137,36 @@ All tokens defined in `src/tokens.css`. Import via `<link rel="stylesheet" href=
 | `--color-overlay-light` | `rgba(0,0,0,0.45)` | Light modal overlay |
 | `--color-overlay-dark` | `rgba(0,0,0,0.6)` | Dark modal overlay |
 
+---
+
+## Layer 3: Dark Theme Explicit Values
+
+> **Source:** Figma DS `liyNDiFf1piO8SQmHNKoeU`, node `15790-10036`
+> **Rule:** Use explicit hex — never `var()` — in `.dark-theme` CSS blocks.
+> `styles.css` sets `--color-border: #1e2e28` globally, which breaks `var()` in prototypes.
+
+### Dark Stone Scale (inverted from light)
+
+| Figma name | Light | Dark | CSS class target |
+|------------|-------|------|-----------------|
+| `stone-0` | `#FFFFFF` | `#1F2129` | `.page-layout`, `.content-area` |
+| `stone-100` | `#FBFBFB` | `#212426` | `.sidebar`, `.page-header`, `.sidebar-bottom` |
+| `stone-200` | `#F7F7F7` | `#292D2F` | `.card`, `.modal`, `.droplist` |
+| `stone-300` | `#ECEEF9` | `#33383B` | borders, dividers, `border-*-color` |
+| `stone-400` | `#DEE0EB` | `#40464A` | subtle borders |
+| `stone-500` | `#BBBDC8` | `#50575C` | input borders |
+| `stone-600` | `#9C9EA8` | `#6F7980` | secondary icons |
+| `stone-700` | `#73757F` | `#8B949A` | `.muted`, icon-muted |
+| `stone-800` | `#5F616A` | `#A2A9AF` | `.secondary` text |
+| `stone-900` | `#40424B` | `#B5BBBF` | body secondary text |
+| `stone-1000` | `#1F2129` | `#FFFFFF` | primary text, titles |
+
+### Dark Theme — Primary Text & Secondary Text
+| Role | Light | Dark |
+|------|-------|------|
+| Primary text | `#1F2129` | `#FFFFFF` |
+| Secondary text | `#5F616A` | `#A2A9AF` |
+
 ### Spacing Aliases
 | Token | Resolves To | Typical Usage |
 |-------|-------------|---------------|
