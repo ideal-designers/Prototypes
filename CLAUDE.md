@@ -101,15 +101,26 @@ Figma: "FVDR - Design System" → Icons (file `liyNDiFf1piO8SQmHNKoeU`, node `15
 
 ## Design Tokens & Specs
 
-Before writing or modifying any UI code, read the relevant spec file in `specs/`.
-Use only tokens from `src/tokens.css`. Run the token audit before committing:
+Before writing or modifying any UI code, read the relevant spec file in `specs/`:
+
+```
+specs/foundations/   → color (incl. dark theme), typography, spacing, radius, elevation, motion
+specs/tokens/        → token-reference.md (master map, dark theme values)
+specs/components/    → shell-layout, modal, table, droplist, confirm-modal, …
+specs/patterns/      → shell-layout, dark-theme (full CSS template)
+```
+
+Use only tokens from `src/tokens.css`. Run both scripts before committing:
 
 ```bash
-node scripts/token-audit.js
+node scripts/token-audit.js    # zero errors required
+node scripts/drift-detect.js   # specs must match tokens.css
 ```
 
 Zero errors required (warnings allowed). Never write raw hex colors, px spacing,
 or font-size values directly in CSS — always use a `var(--token)`.
+
+**CI:** `.github/workflows/token-audit.yml` runs `token-audit.js` on every push to `main` / `proto/*` / `claude/*`.
 
 ### Quick token reference
 | Category | Example token | Value |
