@@ -129,10 +129,13 @@ import type {
         <!-- ── TIMEPICKER ── -->
         <section class="section" id="timepicker">
           <h2 class="section__title">Input / Time picker</h2>
-          <div class="section__desc">Figma: node 15032-12265</div>
-          <div class="row wrap" style="gap: 24px;">
-            <fvdr-timepicker label="Start time" style="width: 180px;" />
-            <fvdr-timepicker label="End time" style="width: 180px;" />
+          <div class="section__desc">Figma: node 5590-26501 · node 18797-17939</div>
+          <div class="row wrap" style="gap: 24px; align-items: flex-start;">
+            <fvdr-timepicker label="Size S — 24h" size="s" style="width: 180px;" />
+            <fvdr-timepicker label="Size M — 24h (default)" size="m" style="width: 200px;" />
+            <fvdr-timepicker label="Size L — 12h + UTC" size="l" format="12h" [utc]="true" hint="UTC timezone" style="width: 220px;" />
+            <fvdr-timepicker label="Error state" state="error" errorMessage="Select an upcoming time" style="width: 200px;" />
+            <fvdr-timepicker label="Disabled" [disabled]="true" style="width: 180px;" />
           </div>
         </section>
 
