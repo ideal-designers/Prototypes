@@ -239,16 +239,26 @@ import type {
         <!-- ── STATUSES ── -->
         <section class="section" id="statuses">
           <h2 class="section__title">Statuses</h2>
-          <div class="section__desc">Figma: node 30725-10146</div>
-          <div class="row wrap">
-            <fvdr-status variant="active" />
-            <fvdr-status variant="inactive" />
+          <div class="section__desc">Figma: node 30267-13707 · 30267-13749</div>
+
+          <p class="section__subtitle">CA Dashboard chips</p>
+          <div class="row wrap" style="gap: 8px;">
             <fvdr-status variant="pending" />
-            <fvdr-status variant="in-progress" />
-            <fvdr-status variant="done" />
-            <fvdr-status variant="error" />
-            <fvdr-status variant="cancelled" />
-            <fvdr-status variant="new" />
+            <fvdr-status variant="preparation" />
+            <fvdr-status variant="live" />
+            <fvdr-status variant="locked" />
+            <fvdr-status variant="closed" />
+            <fvdr-status variant="archived" />
+            <fvdr-status variant="on-hold" />
+            <fvdr-status variant="frozen" />
+          </div>
+
+          <p class="section__subtitle" style="margin-top: 24px;">Project / External status buttons</p>
+          <div class="row wrap" style="gap: 8px;">
+            <fvdr-status-btn variant="preparation" />
+            <fvdr-status-btn variant="live" />
+            <fvdr-status-btn variant="locked" />
+            <fvdr-status-btn variant="archived" />
           </div>
         </section>
 

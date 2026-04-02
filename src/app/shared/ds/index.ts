@@ -75,7 +75,7 @@ import { SegmentComponent } from './components/segment/segment.component';
 import { ChipComponent } from './components/chip/chip.component';
 import { DropdownComponent } from './components/dropdown/dropdown.component';
 import { DroplistComponent } from './components/droplist/droplist.component';
-import { StatusComponent } from './components/status/status.component';
+import { StatusComponent, StatusButtonComponent } from './components/status/status.component';
 import { CounterComponent } from './components/counter/counter.component';
 import { InlineMessageComponent } from './components/inline-message/inline-message.component';
 import { ToastComponent, ToastHostComponent, ToastService } from './components/toast/toast.component';
@@ -147,8 +147,8 @@ export type { DropdownOption, DropdownSize } from './components/dropdown/dropdow
 export { DroplistComponent } from './components/droplist/droplist.component';
 export type { DroplistItem } from './components/droplist/droplist.component';
 
-export { StatusComponent } from './components/status/status.component';
-export type { StatusVariant } from './components/status/status.component';
+export { StatusComponent, StatusButtonComponent } from './components/status/status.component';
+export type { StatusVariant, StatusBtnVariant } from './components/status/status.component';
 
 export { CounterComponent } from './components/counter/counter.component';
 export type { CounterVariant, CounterSize } from './components/counter/counter.component';
@@ -203,6 +203,7 @@ export const DS_COMPONENTS = [
   DropdownComponent,
   DroplistComponent,
   StatusComponent,
+  StatusButtonComponent,
   CounterComponent,
   InlineMessageComponent,
   ToastComponent,
