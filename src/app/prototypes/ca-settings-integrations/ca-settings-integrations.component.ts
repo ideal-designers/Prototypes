@@ -401,7 +401,12 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
     </div>
   `,
   styles: [`
-    :host { font-family: var(--font-family); display: block; }
+    :host {
+      font-family: var(--font-family);
+      display: block;
+      --color-border: #DEE0EB;
+      --color-divider: #DEE0EB;
+    }
 
     /* ── Layout ── */
     .page-layout { display: flex; height: 100vh; background: var(--color-bg-surface); overflow: hidden; }
