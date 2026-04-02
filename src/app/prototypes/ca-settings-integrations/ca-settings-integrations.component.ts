@@ -938,7 +938,7 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
     /* ══════════════════════════════════════════
        DARK THEME OVERRIDES
     ══════════════════════════════════════════ */
-    .dark-theme.page-layout { background: #1a1f22; }
+    .dark-theme.page-layout { background: #1F2129; }
 
     .dark-theme .sidebar { background: #212426; border-right-color: #33383b; }
     .dark-theme .account-switcher { background: #212426; border-bottom-color: #33383b; }
@@ -973,7 +973,7 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
     .dark-theme .theme-toggle__icon { color: #8b949a; }
     .dark-theme .theme-toggle__label { background: #292d2f; border-color: #33383b; color: var(--color-bg-page); }
 
-    .dark-theme .content-area { background: #1a1f22; }
+    .dark-theme .content-area { background: #1F2129; }
     .dark-theme .banner { background: #292d2f; color: #b5bbbf; }
 
     .dark-theme .int-card { background: #292d2f; border-color: #33383b; }
