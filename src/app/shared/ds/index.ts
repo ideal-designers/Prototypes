@@ -123,7 +123,6 @@ export type { SearchFilter } from './components/search/search.component';
 
 export { DatepickerComponent } from './components/datepicker/datepicker.component';
 export { TimepickerComponent } from './components/timepicker/timepicker.component';
-export type { TimeValue } from './components/timepicker/timepicker.component';
 
 export { PhoneInputComponent } from './components/phone-input/phone-input.component';
 export type { PhoneCountry } from './components/phone-input/phone-input.component';
