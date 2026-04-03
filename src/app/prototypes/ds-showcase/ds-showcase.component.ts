@@ -30,7 +30,7 @@ import type {
         </div>
         <ng-container *ngFor="let cat of navCategories">
           <div class="nav-group__label">{{ cat.label }}</div>
-          <a *ngFor="let link of cat.links" class="showcase__nav-link" [href]="'#' + link.id">{{ link.label }}</a>
+          <a *ngFor="let link of cat.links" class="showcase__nav-link" href="javascript:void(0)" (click)="scrollTo(link.id)">{{ link.label }}</a>
         </ng-container>
       </nav>
 
@@ -752,6 +752,10 @@ export class DsShowcaseComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void { this.tracker.trackPageView('ds-showcase'); }
   ngOnDestroy(): void { this.tracker.destroyListeners(); }
+
+  scrollTo(id: string): void {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
 
   navCategories = [
     {
