@@ -571,6 +571,14 @@ import type {
       color: var(--color-text-secondary);
       margin-top: -12px;
     }
+    .section__subtitle {
+      font-size: var(--text-caption1-size);
+      font-weight: 600;
+      color: var(--color-text-secondary);
+      margin: 0 0 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
 
     /* ── Layout helpers ── */
     .row { display: flex; align-items: center; gap: var(--space-3); }
