@@ -42,7 +42,7 @@ import type {
           <h1 class="showcase__h1">FVDR Design System</h1>
           <p class="showcase__subtitle">A practical guide to FVDR components — what they are, when to use them, and AI prompts to generate them. · <a href="https://www.figma.com/design/liyNDiFf1piO8SQmHNKoeU" target="_blank">Open in Figma ↗</a></p>
           <div class="showcase__stats">
-            <span class="showcase__stat"><b>35</b> components</span>
+            <span class="showcase__stat"><b>36</b> components</span>
             <span class="showcase__stat"><b>51</b> icons</span>
             <span class="showcase__stat"><b>3</b> token layers</span>
           </div>
@@ -276,6 +276,36 @@ import type {
               <fvdr-dropdown label="Single select" [options]="dropOpts" placeholder="Select option..." />
               <fvdr-dropdown label="Searchable" [options]="dropOpts" [searchable]="true" placeholder="Search & select..." />
               <fvdr-dropdown label="Multi select" [options]="dropOpts" [multi]="true" placeholder="Select multiple..." />
+            </div>
+          </ds-doc-block>
+
+          <ds-doc-block
+            id="multiselect"
+            name="Multiselect"
+            description="A dropdown panel with checkboxes for selecting multiple values simultaneously. Includes search filtering and a select-all toggle."
+            figmaNode="15032-13916"
+            [whenToUse]="['Selecting multiple items from a long list', 'Filtering content by multiple categories or tags', 'When users need to pick several options before applying the selection', 'Assigning multiple roles, labels, or attributes to an entity']"
+            [whenNotToUse]="['Only one value can be selected — use Dropdown or Radio', 'Few options (≤ 4) — use Checkboxes directly', 'Instant filtering without an apply step — use Chip filters', 'On mobile with many options — consider a bottom sheet instead']"
+            aiPrompt="Generate an Angular fvdr-multiselect ControlValueAccessor with options array {value, label, disabled?}, label, placeholder, searchPlaceholder, maxHeight, showChips, maxChips, required, disabled, state, errorText, and helperText inputs. Panel header has a select-all checkbox with indeterminate state and a search field. Each item is 40px with a custom CSS checkbox. Active items highlighted in primary-50. Close on outside click via @HostListener. Emit valuesChange and selectionChange with string[].">
+            <div class="col" style="max-width: 320px; gap: 16px; width: 100%;">
+              <fvdr-multiselect
+                label="Countries"
+                [options]="multiselectOpts"
+                placeholder="Select countries…"
+                [(values)]="multiselectSelected"
+              />
+              <fvdr-multiselect
+                label="Pre-selected"
+                [options]="multiselectOpts"
+                placeholder="Select countries…"
+                [values]="['ua', 'de']"
+              />
+              <fvdr-multiselect
+                label="Disabled"
+                [options]="multiselectOpts"
+                placeholder="Not available"
+                [disabled]="true"
+              />
             </div>
           </ds-doc-block>
 
@@ -779,7 +809,8 @@ export class DsShowcaseComponent implements OnInit, OnDestroy {
         { id: 'radio',      label: 'Radio Button' },
         { id: 'toggles',    label: 'Toggle' },
         { id: 'checkboxes', label: 'Checkbox' },
-        { id: 'dropdown',   label: 'Dropdown' },
+        { id: 'dropdown',     label: 'Dropdown' },
+        { id: 'multiselect',  label: 'Multiselect' },
       ],
     },
     {
@@ -871,6 +902,18 @@ export class DsShowcaseComponent implements OnInit, OnDestroy {
     { value: 'de', label: 'Germany' },
     { value: 'fr', label: 'France' },
   ];
+
+  // Multiselect
+  multiselectOpts = [
+    { value: 'ua', label: 'Ukraine' },
+    { value: 'us', label: 'United States' },
+    { value: 'gb', label: 'United Kingdom' },
+    { value: 'de', label: 'Germany' },
+    { value: 'fr', label: 'France' },
+    { value: 'pl', label: 'Poland' },
+    { value: 'nl', label: 'Netherlands' },
+  ];
+  multiselectSelected: string[] = [];
 
   // Droplist
   droplistItems: DroplistItem[] = [

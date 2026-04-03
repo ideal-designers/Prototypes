@@ -85,6 +85,7 @@ import { TreeComponent } from './components/tree/tree.component';
 import { DropAreaComponent } from './components/drop-area/drop-area.component';
 import { HeaderComponent, MobileHeaderComponent } from './components/header/header.component';
 import { NumberStepperComponent, ProgressComponent, RangeComponent } from './components/special-controls/special-controls.component';
+import { MultiselectComponent } from './components/multiselect/multiselect.component';
 
 // ─── Re-exports ───────────────────────────────────────────────────────────────
 
@@ -175,6 +176,9 @@ export type { HeaderNavItem, HeaderAction } from './components/header/header.com
 
 export { NumberStepperComponent, ProgressComponent, RangeComponent } from './components/special-controls/special-controls.component';
 
+export { MultiselectComponent } from './components/multiselect/multiselect.component';
+export type { MultiselectOption } from './components/multiselect/multiselect.component';
+
 /** Convenience array — spread into component imports[] */
 export const DS_COMPONENTS = [
   // Original
@@ -218,4 +222,5 @@ export const DS_COMPONENTS = [
   NumberStepperComponent,
   ProgressComponent,
   RangeComponent,
+  MultiselectComponent,
 ];
