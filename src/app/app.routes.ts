@@ -43,6 +43,11 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./prototypes/project-archive-creation-flow-testing/project-archive-creation-flow-testing.component').then(m => m.ProjectArchiveCreationFlowTestingComponent),
   },
+    {
+    path: 'my-prototype-delete-account',
+    loadComponent: () =>
+      import('./prototypes/my-prototype-delete-account/my-prototype-delete-account.component').then(m => m.MyPrototypeDeleteAccountComponent),
+  },
   // PROTO_ROUTES_PLACEHOLDER
   {
     path: '**',
