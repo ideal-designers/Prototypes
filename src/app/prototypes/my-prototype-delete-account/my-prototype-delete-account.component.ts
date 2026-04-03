@@ -582,7 +582,7 @@ export class MyPrototypeDeleteAccountComponent implements OnInit, OnDestroy {
 
   openDeleteModal(): void {
     this.showDeleteModal = true;
-    this.tracker.trackTask('my-prototype-delete-account', 'delete_modal_open');
+    // trackTask only supports 'task_complete' | 'task_fail' — opening modal is not a task result
   }
 
   closeDeleteModal(): void {
