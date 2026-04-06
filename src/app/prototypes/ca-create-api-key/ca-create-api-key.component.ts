@@ -9,10 +9,9 @@ import { TrackerService } from '../../services/tracker.service';
 interface ApiKey {
   id: string;
   name: string;
-  access: 'full' | 'read-write' | 'read-only';
   createdAt: string;
+  createdBy: string;
   expiresAt: string | null;
-  lastUsed: string | null;
   status: 'active' | 'expiring' | 'expired';
   prefix: string;
 }
@@ -27,12 +26,10 @@ interface NavItem {
   children?: { id: string; label: string; active?: boolean }[];
 }
 
-type ModalStep = 'name' | 'access' | 'expiration' | 'review' | 'success';
+type ModalStep = 'create' | 'success';
 
 interface CreateKeyForm {
   name: string;
-  description: string;
-  accessLevel: 'full' | 'read-write' | 'read-only';
   expiration: '30d' | '90d' | '1y' | 'never' | 'custom';
   customDate: string;
 }
@@ -155,57 +152,32 @@ interface CreateKeyForm {
             />
           </div>
 
-          <!-- Stats row -->
-          <div class="stats-row">
-            <div class="stat-card">
-              <span class="stat-value">{{ apiKeys.length }}</span>
-              <span class="stat-label">Total keys</span>
-            </div>
-            <div class="stat-card stat-card--success">
-              <span class="stat-value">{{ activeCount }}</span>
-              <span class="stat-label">Active</span>
-            </div>
-            <div class="stat-card stat-card--warning">
-              <span class="stat-value">{{ expiringCount }}</span>
-              <span class="stat-label">Expiring soon</span>
-            </div>
-          </div>
-
           <!-- API Keys table -->
           <div class="table-container">
-            <div class="table-header">
-              <fvdr-search placeholder="Search keys..." [(ngModel)]="searchQuery" />
-            </div>
-
             <table class="keys-table">
               <thead>
                 <tr>
-                  <th>Key name</th>
-                  <th>Access level</th>
-                  <th>Created</th>
-                  <th>Expires</th>
-                  <th>Last used</th>
+                  <th>Name</th>
+                  <th>Secret key</th>
                   <th>Status</th>
+                  <th>Created by</th>
+                  <th>Created on</th>
+                  <th>Expires on</th>
                   <th></th>
                 </tr>
               </thead>
               <tbody>
-                <tr *ngFor="let key of filteredKeys" class="keys-table__row">
+                <tr *ngFor="let key of apiKeys" class="keys-table__row">
+                  <td class="td--name">{{ key.name }}</td>
                   <td>
-                    <div class="key-name-cell">
-                      <span class="key-name">{{ key.name }}</span>
-                      <span class="key-prefix">{{ key.prefix }}</span>
-                    </div>
+                    <span class="key-prefix">{{ key.prefix }}</span>
                   </td>
-                  <td>
-                    <fvdr-badge [label]="accessLabel(key.access)" [variant]="accessVariant(key.access)" />
-                  </td>
-                  <td class="td--muted">{{ key.createdAt }}</td>
-                  <td class="td--muted">{{ key.expiresAt ?? 'Never' }}</td>
-                  <td class="td--muted">{{ key.lastUsed ?? '—' }}</td>
                   <td>
                     <fvdr-status [label]="statusLabel(key.status)" [variant]="statusVariant(key.status)" />
                   </td>
+                  <td class="td--muted">{{ key.createdBy }}</td>
+                  <td class="td--muted">{{ key.createdAt }}</td>
+                  <td class="td--muted">{{ key.expiresAt ?? 'Never' }}</td>
                   <td>
                     <div class="row-actions">
                       <button class="icon-btn" title="Copy key" (click)="copyKeyPrefix(key)" data-track="copy-key">
@@ -218,11 +190,11 @@ interface CreateKeyForm {
                   </td>
                 </tr>
 
-                <tr *ngIf="filteredKeys.length === 0" class="empty-row">
+                <tr *ngIf="apiKeys.length === 0" class="empty-row">
                   <td colspan="7">
                     <div class="empty-state">
                       <fvdr-icon name="api" class="empty-icon"></fvdr-icon>
-                      <p class="empty-text">No API keys found</p>
+                      <p class="empty-text">No API keys yet</p>
                       <fvdr-btn label="Create API key" variant="primary" size="s" (clicked)="openModal()" />
                     </div>
                   </td>
@@ -236,7 +208,7 @@ interface CreateKeyForm {
     </div>
 
     <!-- ═══════════════════════════════════════════
-         MODAL — Create API key (4 steps + success)
+         MODAL — Create API key
     ════════════════════════════════════════════ -->
     <div *ngIf="modalOpen" class="modal-overlay" (click)="onOverlayClick()">
       <div class="modal" (click)="$event.stopPropagation()" role="dialog" aria-modal="true">
@@ -251,137 +223,30 @@ interface CreateKeyForm {
           </button>
         </div>
 
-        <!-- Step indicator (hidden on success) -->
-        <div class="step-indicator" *ngIf="currentStep !== 'success'">
-          <ng-container *ngFor="let s of steps; let i = index">
-            <div class="step-dot-wrap">
-              <div
-                class="step-dot"
-                [class.step-dot--done]="stepIndex > i"
-                [class.step-dot--active]="stepIndex === i"
-              >
-                <fvdr-icon *ngIf="stepIndex > i" name="check" class="step-check"></fvdr-icon>
-                <span *ngIf="stepIndex <= i">{{ i + 1 }}</span>
-              </div>
-              <span class="step-label">{{ stepLabels[i] }}</span>
-            </div>
-            <div class="step-line" *ngIf="i < steps.length - 1" [class.step-line--done]="stepIndex > i"></div>
-          </ng-container>
-        </div>
-
-        <!-- ── Step 1: Key name ── -->
-        <div class="modal-body" *ngIf="currentStep === 'name'">
-          <p class="step-description">Give your API key a name that helps you identify its purpose.</p>
-
+        <!-- ── Create form ── -->
+        <div class="modal-body" *ngIf="currentStep === 'create'">
           <div class="field">
             <fvdr-input
-              label="Key name"
+              label="Name"
               placeholder="e.g. Production backend, CI/CD pipeline"
               [(ngModel)]="form.name"
               [state]="nameError ? 'error' : 'default'"
             />
-            <fvdr-inline-message *ngIf="nameError" variant="error" message="Key name is required" />
+            <fvdr-inline-message *ngIf="nameError" variant="error" message="Name is required" />
           </div>
 
           <div class="field">
-            <fvdr-textarea
-              label="Description (optional)"
-              placeholder="What is this key used for?"
-              [(ngModel)]="form.description"
+            <label class="field-label">Expires on</label>
+            <fvdr-dropdown
+              [options]="expirationDropdownOptions"
+              [value]="form.expiration"
+              (valueChange)="setExpiration($event)"
             />
           </div>
-        </div>
 
-        <!-- ── Step 2: Access level ── -->
-        <div class="modal-body" *ngIf="currentStep === 'access'">
-          <p class="step-description">Choose what this API key is allowed to do.</p>
-
-          <div class="access-options">
-            <label
-              *ngFor="let opt of accessOptions"
-              class="access-option"
-              [class.access-option--selected]="form.accessLevel === opt.value"
-              (click)="form.accessLevel = opt.value"
-            >
-              <div class="access-option__radio">
-                <div class="radio-outer" [class.radio-outer--selected]="form.accessLevel === opt.value">
-                  <div class="radio-inner" *ngIf="form.accessLevel === opt.value"></div>
-                </div>
-              </div>
-              <div class="access-option__content">
-                <div class="access-option__header">
-                  <span class="access-option__title">{{ opt.label }}</span>
-                  <fvdr-badge [label]="opt.badge" [variant]="opt.badgeVariant" />
-                </div>
-                <p class="access-option__desc">{{ opt.description }}</p>
-                <div class="access-option__perms">
-                  <span class="perm-tag" *ngFor="let p of opt.perms">{{ p }}</span>
-                </div>
-              </div>
-            </label>
+          <div class="field" *ngIf="form.expiration === 'custom'">
+            <fvdr-datepicker label="Custom expiration date" [(ngModel)]="form.customDate" />
           </div>
-        </div>
-
-        <!-- ── Step 3: Expiration ── -->
-        <div class="modal-body" *ngIf="currentStep === 'expiration'">
-          <p class="step-description">Set when this key should expire. Keys with expiration dates are more secure.</p>
-
-          <div class="expiration-options">
-            <label
-              *ngFor="let opt of expirationOptions"
-              class="exp-option"
-              [class.exp-option--selected]="form.expiration === opt.value"
-              (click)="form.expiration = opt.value"
-            >
-              <div class="radio-outer" [class.radio-outer--selected]="form.expiration === opt.value">
-                <div class="radio-inner" *ngIf="form.expiration === opt.value"></div>
-              </div>
-              <div class="exp-option__content">
-                <span class="exp-option__label">{{ opt.label }}</span>
-                <span class="exp-option__hint" *ngIf="opt.hint">{{ opt.hint }}</span>
-              </div>
-              <fvdr-badge *ngIf="opt.recommended" label="Recommended" variant="success" />
-            </label>
-
-            <!-- Custom date row -->
-            <div class="exp-custom" *ngIf="form.expiration === 'custom'">
-              <fvdr-datepicker label="Custom expiration date" [(ngModel)]="form.customDate" />
-            </div>
-          </div>
-
-          <fvdr-info-banner
-            variant="info"
-            message="We'll notify you 7 days before the key expires so you can rotate it in time."
-          />
-        </div>
-
-        <!-- ── Step 4: Review ── -->
-        <div class="modal-body" *ngIf="currentStep === 'review'">
-          <p class="step-description">Review your settings before creating the key.</p>
-
-          <div class="review-card">
-            <div class="review-row">
-              <span class="review-label">Key name</span>
-              <span class="review-value">{{ form.name }}</span>
-            </div>
-            <div class="review-row" *ngIf="form.description">
-              <span class="review-label">Description</span>
-              <span class="review-value review-value--muted">{{ form.description }}</span>
-            </div>
-            <div class="review-row">
-              <span class="review-label">Access level</span>
-              <fvdr-badge [label]="accessLabelForValue(form.accessLevel)" [variant]="accessVariant(form.accessLevel)" />
-            </div>
-            <div class="review-row">
-              <span class="review-label">Expires</span>
-              <span class="review-value">{{ expirationLabel }}</span>
-            </div>
-          </div>
-
-          <fvdr-info-banner
-            variant="warning"
-            message="Make sure to copy the key after creation. You won't be able to see it again."
-          />
         </div>
 
         <!-- ── Success ── -->
@@ -410,10 +275,6 @@ interface CreateKeyForm {
 
           <div class="success-meta">
             <div class="success-meta__row">
-              <fvdr-icon name="settings" class="meta-icon"></fvdr-icon>
-              <span>Access: <strong>{{ accessLabelForValue(form.accessLevel) }}</strong></span>
-            </div>
-            <div class="success-meta__row">
               <fvdr-icon name="calendar" class="meta-icon"></fvdr-icon>
               <span>Expires: <strong>{{ expirationLabel }}</strong></span>
             </div>
@@ -422,24 +283,10 @@ interface CreateKeyForm {
 
         <!-- Modal footer -->
         <div class="modal-footer">
-          <ng-container *ngIf="currentStep !== 'success'">
-            <fvdr-btn
-              *ngIf="currentStep !== 'name'"
-              label="Back"
-              variant="ghost"
-              size="m"
-              (clicked)="prevStep()"
-              data-track="modal-back"
-            />
+          <ng-container *ngIf="currentStep === 'create'">
             <div class="footer-right">
               <fvdr-btn label="Cancel" variant="secondary" size="m" (clicked)="closeModal()" data-track="modal-cancel" />
-              <fvdr-btn
-                [label]="currentStep === 'review' ? 'Create key' : 'Continue'"
-                variant="primary"
-                size="m"
-                (clicked)="nextStep()"
-                data-track="modal-next"
-              />
+              <fvdr-btn label="Create key" variant="primary" size="m" (clicked)="nextStep()" data-track="modal-create" />
             </div>
           </ng-container>
           <ng-container *ngIf="currentStep === 'success'">
@@ -684,26 +531,6 @@ interface CreateKeyForm {
       margin: 0;
     }
 
-    /* ── Stats row ───────────────────────────────────────────────── */
-    .stats-row {
-      display: flex;
-      gap: var(--space-4);
-    }
-    .stat-card {
-      background: var(--color-stone-0);
-      border: 1px solid var(--color-divider);
-      border-radius: var(--radius-md);
-      padding: var(--space-4) var(--space-5);
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-1);
-      min-width: 120px;
-    }
-    .stat-card--success { border-left: 3px solid var(--color-primary-500); }
-    .stat-card--warning { border-left: 3px solid var(--color-warning-600); }
-    .stat-value { font-size: 24px; font-weight: 700; color: var(--color-text-primary); }
-    .stat-label { font-size: 12px; color: var(--color-text-secondary); }
-
     /* ── Table ───────────────────────────────────────────────────── */
     .table-container {
       background: var(--color-stone-0);
@@ -711,9 +538,10 @@ interface CreateKeyForm {
       border-radius: var(--radius-md);
       overflow: hidden;
     }
-    .table-header {
-      padding: var(--space-4) var(--space-5);
-      border-bottom: 1px solid var(--color-divider);
+    .field-label {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--color-text-primary);
     }
     .keys-table {
       width: 100%;
@@ -738,9 +566,8 @@ interface CreateKeyForm {
     .keys-table__row:last-child td { border-bottom: none; }
     .keys-table__row:hover td { background: var(--color-stone-100); }
 
-    .key-name-cell { display: flex; flex-direction: column; gap: 2px; }
-    .key-name { font-weight: 500; color: var(--color-text-primary); font-size: 13px; }
-    .key-prefix { font-size: 11px; color: var(--color-text-secondary); font-family: monospace; }
+    .td--name { font-weight: 500; color: var(--color-text-primary); }
+    .key-prefix { font-size: 12px; color: var(--color-text-secondary); font-family: monospace; }
     .td--muted { color: var(--color-text-secondary); }
 
     .row-actions { display: flex; gap: var(--space-1); }
@@ -806,50 +633,6 @@ interface CreateKeyForm {
       font-size: 16px;
     }
     .modal-close:hover { background: var(--color-hover-bg); color: var(--color-text-primary); }
-
-    /* ── Step indicator ──────────────────────────────────────────── */
-    .step-indicator {
-      display: flex;
-      align-items: center;
-      padding: var(--space-4) var(--space-6);
-      border-bottom: 1px solid var(--color-divider);
-      background: var(--color-stone-100);
-      flex-shrink: 0;
-    }
-    .step-dot-wrap {
-      display: flex; flex-direction: column; align-items: center; gap: var(--space-1);
-    }
-    .step-dot {
-      width: 28px; height: 28px;
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 12px; font-weight: 600;
-      border: 2px solid var(--color-stone-400);
-      color: var(--color-stone-600);
-      background: var(--color-stone-0);
-      transition: all 0.2s;
-    }
-    .step-dot--active {
-      border-color: var(--color-primary-500);
-      color: var(--color-primary-500);
-      background: var(--color-primary-50);
-    }
-    .step-dot--done {
-      border-color: var(--color-primary-500);
-      background: var(--color-primary-500);
-      color: #fff;
-    }
-    .step-check { font-size: 14px; }
-    .step-label { font-size: 11px; color: var(--color-text-secondary); white-space: nowrap; }
-    .step-line {
-      flex: 1;
-      height: 2px;
-      background: var(--color-stone-400);
-      margin: 0 var(--space-2);
-      margin-bottom: 16px;
-      transition: background 0.2s;
-    }
-    .step-line--done { background: var(--color-primary-500); }
 
     /* ── Modal body ──────────────────────────────────────────────── */
     .modal-body {
@@ -1038,30 +821,18 @@ interface CreateKeyForm {
     .dark-theme .page-header  { background: #212426; border-bottom-color: #33383b; }
     .dark-theme .content-area { background: #1f2129; }
     .dark-theme .page-title   { color: #f0f0f0; }
-    .dark-theme .stat-card    { background: #292d2f; border-color: #33383b; }
-    .dark-theme .stat-value   { color: #f0f0f0; }
     .dark-theme .table-container { background: #292d2f; border-color: #33383b; }
     .dark-theme .keys-table th { background: #212426; border-bottom-color: #33383b; }
     .dark-theme .keys-table td { border-bottom-color: #33383b; }
     .dark-theme .keys-table__row:hover td { background: #33383b; }
     .dark-theme .sidebar-bottom { border-top-color: #33383b; }
-    .dark-theme .step-indicator { background: #212426; border-bottom-color: #33383b; }
     .dark-theme .modal         { background: #292d2f; }
     .dark-theme .modal-header  { border-bottom-color: #33383b; }
     .dark-theme .modal-footer  { border-top-color: #33383b; }
-    .dark-theme .access-option { border-color: #40464a; }
-    .dark-theme .access-option:hover { background: #33383b; }
-    .dark-theme .access-option--selected { background: rgba(44,156,116,0.12); }
-    .dark-theme .exp-option { border-color: #40464a; }
-    .dark-theme .exp-option--selected { background: rgba(44,156,116,0.12); }
-    .dark-theme .review-card  { background: #212426; border-color: #33383b; }
-    .dark-theme .review-row   { border-bottom-color: #33383b; }
     .dark-theme .key-display  { background: #212426; border-color: #33383b; }
     .dark-theme .key-display__value { background: #292d2f; border-color: #33383b; color: #b5bbbf; }
     .dark-theme .copy-btn     { background: #292d2f; border-color: #40464a; color: #b5bbbf; }
     .dark-theme .success-meta { background: #212426; border-color: #33383b; }
-    .dark-theme .table-header { border-bottom-color: #33383b; }
-    .dark-theme .perm-tag     { background: #33383b; color: #8b949a; }
   `],
 })
 export class CaCreateApiKeyComponent implements OnInit, OnDestroy {
@@ -1099,45 +870,27 @@ export class CaCreateApiKeyComponent implements OnInit, OnDestroy {
   // ── API Keys data ────────────────────────────────────────────────────────
   apiKeys: ApiKey[] = [
     {
-      id: '1', name: 'Production backend', access: 'full',
-      createdAt: 'Jan 12, 2025', expiresAt: 'Dec 31, 2025', lastUsed: '2 hours ago',
+      id: '1', name: 'Production backend',
+      createdAt: 'Jan 12, 2025', createdBy: 'Tom Nilsson', expiresAt: 'Dec 31, 2025',
       status: 'active', prefix: 'sk_live_xK3m...R7pQ',
     },
     {
-      id: '2', name: 'CI/CD pipeline', access: 'read-write',
-      createdAt: 'Feb 3, 2025', expiresAt: 'Apr 10, 2025', lastUsed: '5 min ago',
+      id: '2', name: 'CI/CD pipeline',
+      createdAt: 'Feb 3, 2025', createdBy: 'Tom Nilsson', expiresAt: 'Apr 10, 2025',
       status: 'expiring', prefix: 'sk_live_9Bns...T1vW',
     },
     {
-      id: '3', name: 'Analytics service', access: 'read-only',
-      createdAt: 'Nov 20, 2024', expiresAt: null, lastUsed: 'Yesterday',
+      id: '3', name: 'Analytics service',
+      createdAt: 'Nov 20, 2024', createdBy: 'Maria Santos', expiresAt: null,
       status: 'active', prefix: 'sk_live_Lp2x...K0dM',
     },
     {
-      id: '4', name: 'Legacy integration', access: 'read-only',
-      createdAt: 'Aug 1, 2024', expiresAt: 'Jan 1, 2025', lastUsed: '45 days ago',
+      id: '4', name: 'Legacy integration',
+      createdAt: 'Aug 1, 2024', createdBy: 'Maria Santos', expiresAt: 'Jan 1, 2025',
       status: 'expired', prefix: 'sk_live_m8Hq...A5jY',
     },
   ];
 
-  searchQuery = '';
-  get filteredKeys(): ApiKey[] {
-    if (!this.searchQuery) return this.apiKeys;
-    const q = this.searchQuery.toLowerCase();
-    return this.apiKeys.filter(k => k.name.toLowerCase().includes(q) || k.prefix.toLowerCase().includes(q));
-  }
-
-  get activeCount()   { return this.apiKeys.filter(k => k.status === 'active').length; }
-  get expiringCount() { return this.apiKeys.filter(k => k.status === 'expiring').length; }
-
-  onSearch(q: string) { this.searchQuery = q; }
-
-  accessLabel(access: ApiKey['access']): string {
-    return { 'full': 'Full access', 'read-write': 'Read & Write', 'read-only': 'Read only' }[access] ?? access;
-  }
-  accessVariant(access: string): 'primary' | 'info' | 'neutral' {
-    return { 'full': 'primary', 'read-write': 'info', 'read-only': 'neutral' }[access] as any ?? 'neutral';
-  }
   statusLabel(status: ApiKey['status']): string {
     return { 'active': 'Active', 'expiring': 'Expiring soon', 'expired': 'Expired' }[status] ?? status;
   }
@@ -1169,67 +922,30 @@ export class CaCreateApiKeyComponent implements OnInit, OnDestroy {
 
   // ── Create modal flow ────────────────────────────────────────────────────
   modalOpen = false;
-  currentStep: ModalStep = 'name';
+  currentStep: ModalStep = 'create';
   nameError = false;
   keyCopied = false;
   generatedKey = '';
 
-  form: CreateKeyForm = {
-    name: '',
-    description: '',
-    accessLevel: 'read-only',
-    expiration: '90d',
-    customDate: '',
-  };
+  form: CreateKeyForm = { name: '', expiration: '90d', customDate: '' };
 
-  steps: ModalStep[] = ['name', 'access', 'expiration', 'review'];
-  stepLabels = ['Name', 'Access', 'Expiration', 'Review'];
-
-  get stepIndex(): number {
-    return this.steps.indexOf(this.currentStep as any);
-  }
-
-  accessOptions = [
-    {
-      value: 'read-only' as const,
-      label: 'Read only',
-      badge: 'Safe',
-      badgeVariant: 'success' as const,
-      description: 'Can read data but cannot make any changes.',
-      perms: ['GET /projects', 'GET /participants', 'GET /reports'],
-    },
-    {
-      value: 'read-write' as const,
-      label: 'Read & Write',
-      badge: 'Standard',
-      badgeVariant: 'info' as const,
-      description: 'Can read and modify data, but cannot delete resources or manage settings.',
-      perms: ['GET /projects', 'POST /projects', 'PUT /projects', 'GET /participants'],
-    },
-    {
-      value: 'full' as const,
-      label: 'Full access',
-      badge: 'Admin',
-      badgeVariant: 'primary' as const,
-      description: 'Full control over all resources. Use only for trusted internal services.',
-      perms: ['GET/*', 'POST/*', 'PUT/*', 'DELETE/*'],
-    },
+  expirationDropdownOptions = [
+    { label: '30 days',        value: '30d' },
+    { label: '90 days',        value: '90d' },
+    { label: '1 year',         value: '1y' },
+    { label: 'No expiration',  value: 'never' },
+    { label: 'Custom date…',   value: 'custom' },
   ];
 
-  expirationOptions = [
-    { value: '30d' as const,    label: '30 days',  hint: 'Expires ' + this.dateAfterDays(30) },
-    { value: '90d' as const,    label: '90 days',  hint: 'Expires ' + this.dateAfterDays(90), recommended: true },
-    { value: '1y'  as const,    label: '1 year',   hint: 'Expires ' + this.dateAfterDays(365) },
-    { value: 'never' as const,  label: 'No expiration', hint: 'Key will never expire automatically' },
-    { value: 'custom' as const, label: 'Custom date', hint: 'Choose a specific expiration date' },
-  ];
+  asString(v: string | string[]): string { return Array.isArray(v) ? v[0] : v; }
+  setExpiration(v: string | string[]) { this.form.expiration = this.asString(v) as CreateKeyForm['expiration']; }
 
   get expirationLabel(): string {
     const map: Record<string, string> = {
-      '30d':   '30 days (' + this.dateAfterDays(30) + ')',
-      '90d':   '90 days (' + this.dateAfterDays(90) + ')',
-      '1y':    '1 year (' + this.dateAfterDays(365) + ')',
-      'never': 'Never',
+      '30d':    '30 days (' + this.dateAfterDays(30) + ')',
+      '90d':    '90 days (' + this.dateAfterDays(90) + ')',
+      '1y':     '1 year (' + this.dateAfterDays(365) + ')',
+      'never':  'Never',
       'custom': this.form.customDate || 'Not set',
     };
     return map[this.form.expiration] ?? this.form.expiration;
@@ -1241,13 +957,9 @@ export class CaCreateApiKeyComponent implements OnInit, OnDestroy {
     return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   }
 
-  accessLabelForValue(v: string): string {
-    return this.accessLabel(v as any);
-  }
-
   openModal() {
-    this.form = { name: '', description: '', accessLevel: 'read-only', expiration: '90d', customDate: '' };
-    this.currentStep = 'name';
+    this.form = { name: '', expiration: '90d', customDate: '' };
+    this.currentStep = 'create';
     this.nameError = false;
     this.keyCopied = false;
     this.generatedKey = '';
@@ -1255,34 +967,16 @@ export class CaCreateApiKeyComponent implements OnInit, OnDestroy {
     this.tracker.trackTask('ca-create-api-key', 'task_complete');
   }
 
-  closeModal() {
-    this.modalOpen = false;
-  }
+  closeModal() { this.modalOpen = false; }
 
   onOverlayClick() {
-    if (this.currentStep !== 'success') {
-      this.closeModal();
-    }
+    if (this.currentStep !== 'success') this.closeModal();
   }
 
   nextStep() {
-    if (this.currentStep === 'name') {
-      if (!this.form.name.trim()) { this.nameError = true; return; }
-      this.nameError = false;
-      this.currentStep = 'access';
-    } else if (this.currentStep === 'access') {
-      this.currentStep = 'expiration';
-    } else if (this.currentStep === 'expiration') {
-      this.currentStep = 'review';
-    } else if (this.currentStep === 'review') {
-      this.createKey();
-    }
-  }
-
-  prevStep() {
-    if (this.currentStep === 'access')     this.currentStep = 'name';
-    else if (this.currentStep === 'expiration') this.currentStep = 'access';
-    else if (this.currentStep === 'review')     this.currentStep = 'expiration';
+    if (!this.form.name.trim()) { this.nameError = true; return; }
+    this.nameError = false;
+    this.createKey();
   }
 
   createKey() {
@@ -1294,10 +988,9 @@ export class CaCreateApiKeyComponent implements OnInit, OnDestroy {
     const newKey: ApiKey = {
       id: Date.now().toString(),
       name: this.form.name,
-      access: this.form.accessLevel,
       createdAt: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-      expiresAt: this.form.expiration === 'never' ? null : this.expirationLabel,
-      lastUsed: null,
+      createdBy: 'Tom Nilsson',
+      expiresAt: this.form.expiration === 'never' ? null : this.dateAfterDays(this.form.expiration === '30d' ? 30 : this.form.expiration === '90d' ? 90 : 365),
       status: 'active',
       prefix: this.generatedKey.slice(0, 18) + '...' + this.generatedKey.slice(-4),
     };
