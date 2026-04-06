@@ -139,10 +139,7 @@ interface CreateKeyForm {
 
           <!-- Page heading -->
           <div class="page-heading">
-            <div class="page-heading__left">
-              <h1 class="page-title">API Keys</h1>
-              <p class="page-subtitle">Manage API keys for programmatic access to your account</p>
-            </div>
+            <h1 class="page-title">API Keys</h1>
             <fvdr-btn
               label="Create API key"
               variant="primary"
@@ -163,7 +160,6 @@ interface CreateKeyForm {
                   <th>Created by</th>
                   <th>Created on</th>
                   <th>Expires on</th>
-                  <th></th>
                 </tr>
               </thead>
               <tbody>
@@ -178,20 +174,10 @@ interface CreateKeyForm {
                   <td class="td--muted">{{ key.createdBy }}</td>
                   <td class="td--muted">{{ key.createdAt }}</td>
                   <td class="td--muted">{{ key.expiresAt ?? 'Never' }}</td>
-                  <td>
-                    <div class="row-actions">
-                      <button class="icon-btn" title="Copy key" (click)="copyKeyPrefix(key)" data-track="copy-key">
-                        <fvdr-icon name="link"></fvdr-icon>
-                      </button>
-                      <button class="icon-btn icon-btn--danger" title="Delete key" (click)="openDeleteConfirm(key)" data-track="delete-key">
-                        <fvdr-icon name="trash"></fvdr-icon>
-                      </button>
-                    </div>
-                  </td>
                 </tr>
 
                 <tr *ngIf="apiKeys.length === 0" class="empty-row">
-                  <td colspan="7">
+                  <td colspan="6">
                     <div class="empty-state">
                       <fvdr-icon name="api" class="empty-icon"></fvdr-icon>
                       <p class="empty-text">No API keys yet</p>
@@ -515,27 +501,19 @@ interface CreateKeyForm {
 
     .page-heading {
       display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
+      align-items: center;
       gap: var(--space-4);
     }
     .page-title {
       font-size: 20px;
       font-weight: 700;
       color: var(--color-text-primary);
-      margin: 0 0 var(--space-1);
-    }
-    .page-subtitle {
-      font-size: 13px;
-      color: var(--color-text-secondary);
       margin: 0;
     }
 
     /* ── Table ───────────────────────────────────────────────────── */
     .table-container {
       background: var(--color-stone-0);
-      border: 1px solid var(--color-divider);
-      border-radius: var(--radius-md);
       overflow: hidden;
     }
     .field-label {
@@ -821,7 +799,7 @@ interface CreateKeyForm {
     .dark-theme .page-header  { background: #212426; border-bottom-color: #33383b; }
     .dark-theme .content-area { background: #1f2129; }
     .dark-theme .page-title   { color: #f0f0f0; }
-    .dark-theme .table-container { background: #292d2f; border-color: #33383b; }
+    .dark-theme .table-container { background: #292d2f; }
     .dark-theme .keys-table th { background: #212426; border-bottom-color: #33383b; }
     .dark-theme .keys-table td { border-bottom-color: #33383b; }
     .dark-theme .keys-table__row:hover td { background: #33383b; }
