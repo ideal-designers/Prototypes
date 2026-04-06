@@ -139,7 +139,6 @@ interface CreateKeyForm {
 
           <!-- Page heading -->
           <div class="page-heading">
-            <h1 class="page-title">API Keys</h1>
             <fvdr-btn
               label="Create API key"
               variant="primary"
@@ -494,6 +493,7 @@ interface CreateKeyForm {
       flex: 1;
       overflow-y: auto;
       padding: var(--space-6);
+      background: var(--color-stone-0);
       display: flex;
       flex-direction: column;
       gap: var(--space-5);
@@ -542,7 +542,8 @@ interface CreateKeyForm {
       vertical-align: middle;
     }
     .keys-table__row:last-child td { border-bottom: none; }
-    .keys-table__row:hover td { background: var(--color-stone-100); }
+    .keys-table__row:nth-child(even) td { background: var(--color-stone-100); }
+    .keys-table__row:nth-child(odd) td { background: var(--color-stone-0); }
 
     .td--name { font-weight: 500; color: var(--color-text-primary); }
     .key-prefix { font-size: 12px; color: var(--color-text-secondary); font-family: monospace; }
@@ -797,12 +798,12 @@ interface CreateKeyForm {
     .dark-theme .account-switcher { border-bottom-color: #33383b; }
     .dark-theme .account-name { color: #f0f0f0; }
     .dark-theme .page-header  { background: #212426; border-bottom-color: #33383b; }
-    .dark-theme .content-area { background: #1f2129; }
-    .dark-theme .page-title   { color: #f0f0f0; }
+    .dark-theme .content-area { background: #292d2f; }
     .dark-theme .table-container { background: #292d2f; }
     .dark-theme .keys-table th { background: #212426; border-bottom-color: #33383b; }
     .dark-theme .keys-table td { border-bottom-color: #33383b; }
-    .dark-theme .keys-table__row:hover td { background: #33383b; }
+    .dark-theme .keys-table__row:nth-child(even) td { background: #212426; }
+    .dark-theme .keys-table__row:nth-child(odd) td { background: #292d2f; }
     .dark-theme .sidebar-bottom { border-top-color: #33383b; }
     .dark-theme .modal         { background: #292d2f; }
     .dark-theme .modal-header  { border-bottom-color: #33383b; }
