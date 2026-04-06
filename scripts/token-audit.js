@@ -155,6 +155,7 @@ const KNOWN_INTENTIONAL = new Set([
   '#1e2d3f', '#3a2220', // dark theme specific bg colors
   '#c62c19', // danger darker variant
   '#3a5a50', '#2a3d36', '#0f201a', // home/login screen dark bg variants
+  '#1f2129', '#1F2129', // dark mode stone-0 page background (intentional in .dark-theme blocks)
   '#fff', '#FFF', // shorthand white used in non-prototype DS components
 ]);
 

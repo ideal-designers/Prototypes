@@ -174,7 +174,7 @@ interface CreateKeyForm {
           <!-- API Keys table -->
           <div class="table-container">
             <div class="table-header">
-              <fvdr-search placeholder="Search keys..." (search)="onSearch($event)" />
+              <fvdr-search placeholder="Search keys..." [(ngModel)]="searchQuery" />
             </div>
 
             <table class="keys-table">
@@ -288,7 +288,6 @@ interface CreateKeyForm {
               label="Description (optional)"
               placeholder="What is this key used for?"
               [(ngModel)]="form.description"
-              [maxLength]="200"
             />
           </div>
         </div>
@@ -477,7 +476,7 @@ interface CreateKeyForm {
       font-family: var(--font-family);
       color: var(--color-text-primary);
       --color-border: var(--color-divider);
-      --color-divider: #DEE0EB;
+      --color-divider: var(--color-stone-400);
     }
 
     /* ── Shell ──────────────────────────────────────────────────── */
@@ -1032,37 +1031,37 @@ interface CreateKeyForm {
     .delete-confirm-text { font-size: 14px; color: var(--color-text-primary); margin: 0; line-height: 1.6; }
 
     /* ── Dark theme ──────────────────────────────────────────────── */
-    .dark-theme.page-layout   { background: #1F2129; }
-    .dark-theme .sidebar      { background: #212426; border-right-color: #33383B; }
-    .dark-theme .account-switcher { border-bottom-color: #33383B; }
-    .dark-theme .account-name { color: #FFFFFF; }
-    .dark-theme .page-header  { background: #212426; border-bottom-color: #33383B; }
-    .dark-theme .content-area { background: #1F2129; }
-    .dark-theme .page-title   { color: #FFFFFF; }
-    .dark-theme .stat-card    { background: #292D2F; border-color: #33383B; }
-    .dark-theme .stat-value   { color: #FFFFFF; }
-    .dark-theme .table-container { background: #292D2F; border-color: #33383B; }
-    .dark-theme .keys-table th { background: #212426; border-bottom-color: #33383B; }
-    .dark-theme .keys-table td { border-bottom-color: #33383B; }
-    .dark-theme .keys-table__row:hover td { background: #33383B; }
-    .dark-theme .sidebar-bottom { border-top-color: #33383B; }
-    .dark-theme .step-indicator { background: #212426; border-bottom-color: #33383B; }
-    .dark-theme .modal         { background: #292D2F; }
-    .dark-theme .modal-header  { border-bottom-color: #33383B; }
-    .dark-theme .modal-footer  { border-top-color: #33383B; }
-    .dark-theme .access-option { border-color: #40464A; }
-    .dark-theme .access-option:hover { background: #33383B; }
+    .dark-theme.page-layout   { background: #1f2129; }
+    .dark-theme .sidebar      { background: #212426; border-right-color: #33383b; }
+    .dark-theme .account-switcher { border-bottom-color: #33383b; }
+    .dark-theme .account-name { color: #f0f0f0; }
+    .dark-theme .page-header  { background: #212426; border-bottom-color: #33383b; }
+    .dark-theme .content-area { background: #1f2129; }
+    .dark-theme .page-title   { color: #f0f0f0; }
+    .dark-theme .stat-card    { background: #292d2f; border-color: #33383b; }
+    .dark-theme .stat-value   { color: #f0f0f0; }
+    .dark-theme .table-container { background: #292d2f; border-color: #33383b; }
+    .dark-theme .keys-table th { background: #212426; border-bottom-color: #33383b; }
+    .dark-theme .keys-table td { border-bottom-color: #33383b; }
+    .dark-theme .keys-table__row:hover td { background: #33383b; }
+    .dark-theme .sidebar-bottom { border-top-color: #33383b; }
+    .dark-theme .step-indicator { background: #212426; border-bottom-color: #33383b; }
+    .dark-theme .modal         { background: #292d2f; }
+    .dark-theme .modal-header  { border-bottom-color: #33383b; }
+    .dark-theme .modal-footer  { border-top-color: #33383b; }
+    .dark-theme .access-option { border-color: #40464a; }
+    .dark-theme .access-option:hover { background: #33383b; }
     .dark-theme .access-option--selected { background: rgba(44,156,116,0.12); }
-    .dark-theme .exp-option { border-color: #40464A; }
+    .dark-theme .exp-option { border-color: #40464a; }
     .dark-theme .exp-option--selected { background: rgba(44,156,116,0.12); }
-    .dark-theme .review-card  { background: #212426; border-color: #33383B; }
-    .dark-theme .review-row   { border-bottom-color: #33383B; }
-    .dark-theme .key-display  { background: #212426; border-color: #33383B; }
-    .dark-theme .key-display__value { background: #292D2F; border-color: #33383B; color: #B5BBBF; }
-    .dark-theme .copy-btn     { background: #292D2F; border-color: #40464A; color: #B5BBBF; }
-    .dark-theme .success-meta { background: #212426; border-color: #33383B; }
-    .dark-theme .table-header { border-bottom-color: #33383B; }
-    .dark-theme .perm-tag     { background: #33383B; color: #8B949A; }
+    .dark-theme .review-card  { background: #212426; border-color: #33383b; }
+    .dark-theme .review-row   { border-bottom-color: #33383b; }
+    .dark-theme .key-display  { background: #212426; border-color: #33383b; }
+    .dark-theme .key-display__value { background: #292d2f; border-color: #33383b; color: #b5bbbf; }
+    .dark-theme .copy-btn     { background: #292d2f; border-color: #40464a; color: #b5bbbf; }
+    .dark-theme .success-meta { background: #212426; border-color: #33383b; }
+    .dark-theme .table-header { border-bottom-color: #33383b; }
+    .dark-theme .perm-tag     { background: #33383b; color: #8b949a; }
   `],
 })
 export class CaCreateApiKeyComponent implements OnInit, OnDestroy {

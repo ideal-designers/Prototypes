@@ -139,7 +139,11 @@ export class HeatmapComponent implements OnInit, OnDestroy {
 
   constructor() {
     if (environment.supabaseUrl && environment.supabaseAnonKey) {
-      this.supabase = createClient(environment.supabaseUrl, environment.supabaseAnonKey);
+      try {
+        this.supabase = createClient(environment.supabaseUrl, environment.supabaseAnonKey);
+      } catch {
+        // invalid credentials — heatmap disabled
+      }
     }
   }
 
