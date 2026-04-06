@@ -48,6 +48,11 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./prototypes/my-prototype-delete-account/my-prototype-delete-account.component').then(m => m.MyPrototypeDeleteAccountComponent),
   },
+  {
+    path: 'ca-create-api-key',
+    loadComponent: () =>
+      import('./prototypes/ca-create-api-key/ca-create-api-key.component').then(m => m.CaCreateApiKeyComponent),
+  },
   // PROTO_ROUTES_PLACEHOLDER
   {
     path: '**',
