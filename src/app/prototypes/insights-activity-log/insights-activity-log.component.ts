@@ -41,6 +41,8 @@ interface NavItem {
   iconActive: string;
   label: string;
   active: boolean;
+  open?: boolean;
+  children?: { label: string; active?: boolean }[];
 }
 
 @Component({
@@ -49,31 +51,63 @@ interface NavItem {
   imports: [CommonModule, FormsModule, ...DS_COMPONENTS],
   template: `
     <div class="page-layout" [class.dark-theme]="isDark">
-      <!-- ── Sidebar (72px collapsed) ───────────────────────── -->
-      <nav class="sidebar">
+      <!-- ── Sidebar ──────────────────────────────────────────── -->
+      <nav class="sidebar" [class.sidebar--collapsed]="sidebarCollapsed">
         <div class="account-switcher">
-          <div class="brand-mark">RN</div>
+          <div class="account-switcher-left">
+            <div class="account-logo">PA</div>
+            <span class="account-name" *ngIf="!sidebarCollapsed">Project Alpha</span>
+          </div>
+          <fvdr-icon *ngIf="!sidebarCollapsed" name="chevron-down" class="account-chevron"></fvdr-icon>
         </div>
 
         <div class="nav-list">
-          <button
-            *ngFor="let item of navItems"
-            class="nav-item"
-            [class.nav-item--active]="item.active"
-            [title]="item.label"
-          >
-            <span class="nav-icon-zone">
-              <span class="nav-icon">
-                <fvdr-icon class="icon-default" [name]="item.icon"></fvdr-icon>
-                <fvdr-icon class="icon-active" [name]="item.iconActive"></fvdr-icon>
+          <div class="nav-group" *ngFor="let item of navItems">
+            <button
+              class="nav-item"
+              [class.nav-item--active]="item.active"
+              [class.nav-item--open]="item.open"
+              [class.nav-item--has-chevron]="item.children && !sidebarCollapsed"
+              [title]="sidebarCollapsed ? item.label : ''"
+              (click)="toggleNavItem(item)"
+            >
+              <span class="nav-icon-zone">
+                <span class="nav-icon">
+                  <fvdr-icon class="icon-default" [name]="$any(item.icon)"></fvdr-icon>
+                  <fvdr-icon class="icon-active" [name]="$any(item.iconActive)"></fvdr-icon>
+                </span>
               </span>
-            </span>
-          </button>
+              <span class="nav-label" *ngIf="!sidebarCollapsed">{{ item.label }}</span>
+              <fvdr-icon
+                *ngIf="!sidebarCollapsed && item.children"
+                name="chevron-down"
+                class="nav-chevron"
+                [class.nav-chevron--up]="item.open"
+              ></fvdr-icon>
+            </button>
+            <div *ngIf="!sidebarCollapsed && item.open && item.children" class="nav-subitems">
+              <button
+                *ngFor="let child of item.children"
+                class="nav-subitem"
+                [class.nav-subitem--active]="child.active"
+              >{{ child.label }}</button>
+            </div>
+          </div>
         </div>
 
         <div class="sidebar-bottom">
-          <button class="collapse-btn" title="Expand sidebar">
-            <fvdr-icon name="angle-double-right"></fvdr-icon>
+          <div class="sidebar-logo" *ngIf="!sidebarCollapsed">
+            <svg width="56" height="16" viewBox="0 0 56 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M2.4 0H0V16H2.4V0Z" fill="currentColor"/>
+              <path d="M9.6 4.8H7.2V16H9.6V4.8Z" fill="currentColor"/>
+              <path d="M9.6 0H7.2V2.4H9.6V0Z" fill="currentColor"/>
+              <path d="M16.8 16H14.4V0H16.8L24 10.4V0H26.4V16H24L16.8 5.6V16Z" fill="currentColor"/>
+              <path d="M31.2 16V0H40.8V2.4H33.6V6.4H39.6V8.8H33.6V13.6H40.8V16H31.2Z" fill="currentColor"/>
+              <path d="M48 16H43.2V0H48C52.4 0 55.2 3.2 55.2 8C55.2 12.8 52.4 16 48 16ZM45.6 13.6H48C50.8 13.6 52.8 11.4 52.8 8C52.8 4.6 50.8 2.4 48 2.4H45.6V13.6Z" fill="currentColor"/>
+            </svg>
+          </div>
+          <button class="collapse-btn" (click)="sidebarCollapsed = !sidebarCollapsed">
+            <fvdr-icon [name]="sidebarCollapsed ? 'angle-double-right' : 'angle-double-left'"></fvdr-icon>
           </button>
         </div>
       </nav>
@@ -420,14 +454,20 @@ interface NavItem {
 
     /* ── Sidebar ─────────────────────────────────────── */
     .sidebar {
-      width: 72px;
-      min-width: 72px;
+      width: 280px;
+      min-width: 280px;
       background: var(--color-stone-100, #FAFAFA);
       border-right: 1px solid var(--color-border);
       display: flex;
       flex-direction: column;
       overflow: hidden;
       flex-shrink: 0;
+      transition: width 0.22s ease, min-width 0.22s ease;
+    }
+
+    .sidebar--collapsed {
+      width: 72px;
+      min-width: 72px;
     }
 
     .account-switcher {
@@ -435,31 +475,67 @@ interface NavItem {
       min-height: 64px;
       display: flex;
       align-items: center;
-      justify-content: center;
+      justify-content: space-between;
+      padding: 0 16px 0 16px;
       border-bottom: 1px solid var(--color-border);
+      gap: 8px;
+      overflow: hidden;
     }
 
-    .brand-mark {
-      width: 32px;
-      height: 32px;
-      background: #1A1A1A;
-      color: #ffffff;
+    .sidebar--collapsed .account-switcher {
+      justify-content: center;
+      padding: 0;
+    }
+
+    .account-switcher-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      overflow: hidden;
+    }
+
+    .account-logo {
+      width: 40px;
+      height: 40px;
+      min-width: 40px;
       border-radius: var(--radius-sm, 4px);
+      background: var(--color-brand-orange, #F97316);
+      color: #fff;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 11px;
+      font-size: 13px;
       font-weight: 700;
-      letter-spacing: 0.02em;
+    }
+
+    .account-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--color-text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .account-chevron {
+      font-size: 16px;
+      color: var(--color-stone-600, #9C9EA8);
+      flex-shrink: 0;
     }
 
     .nav-list {
       flex: 1;
       display: flex;
       flex-direction: column;
-      padding: var(--space-2, 8px) 0;
+      padding: 24px 0 8px;
+      gap: 2px;
       overflow-y: auto;
       overflow-x: hidden;
+    }
+
+    .nav-group {
+      display: flex;
+      flex-direction: column;
     }
 
     .nav-item {
@@ -472,22 +548,32 @@ interface NavItem {
       display: flex;
       align-items: center;
       color: var(--color-stone-700, #73757F);
-      transition: color 0.12s;
+      font-size: var(--font-size-lg, 15px);
+      font-weight: 400;
+      text-align: left;
+      white-space: nowrap;
+      overflow: hidden;
+      transition: color 0.12s, font-weight 0.12s;
     }
 
     .nav-item:hover {
       color: var(--color-text-primary);
+      font-weight: 600;
     }
 
     .nav-item:hover .icon-default { display: none; }
     .nav-item:hover .icon-active { display: inline-flex; }
 
-    .nav-item--active {
+    .nav-item--active,
+    .nav-item--open {
       color: var(--color-text-primary);
+      font-weight: 600;
     }
 
-    .nav-item--active .icon-default { display: none; }
-    .nav-item--active .icon-active { display: inline-flex; }
+    .nav-item--active .icon-default,
+    .nav-item--open .icon-default { display: none; }
+    .nav-item--active .icon-active,
+    .nav-item--open .icon-active { display: inline-flex; }
 
     .nav-icon-zone {
       width: 72px;
@@ -508,13 +594,73 @@ interface NavItem {
 
     .icon-active { display: none; }
 
+    .nav-label {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .nav-chevron {
+      font-size: 16px;
+      margin-right: 16px;
+      flex-shrink: 0;
+      color: var(--color-stone-600, #9C9EA8);
+      transition: transform 0.2s ease;
+    }
+
+    .nav-chevron--up {
+      transform: rotate(180deg);
+    }
+
+    .nav-subitems {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .nav-subitem {
+      height: 32px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      padding: 0 16px 0 72px;
+      font-size: 14px;
+      font-weight: 400;
+      color: var(--color-stone-700, #73757F);
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    .nav-subitem:hover {
+      color: var(--color-text-primary);
+      font-weight: 600;
+    }
+
+    .nav-subitem--active {
+      font-weight: 600;
+      color: var(--color-interactive-primary, #2C9C74);
+    }
+
     .sidebar-bottom {
       height: 72px;
       min-height: 72px;
       border-top: 1px solid var(--color-border);
       display: flex;
       align-items: center;
+      justify-content: space-between;
+      padding: 0 16px 0 24px;
+    }
+
+    .sidebar--collapsed .sidebar-bottom {
       justify-content: center;
+      padding: 0;
+    }
+
+    .sidebar-logo {
+      color: var(--color-stone-700, #73757F);
+      display: flex;
+      align-items: center;
     }
 
     .collapse-btn {
@@ -529,6 +675,7 @@ interface NavItem {
       justify-content: center;
       font-size: 16px;
       color: var(--color-stone-600, #9C9EA8);
+      flex-shrink: 0;
     }
 
     .collapse-btn:hover {
@@ -1166,6 +1313,36 @@ interface NavItem {
       border-bottom-color: #33383B;
     }
 
+    .dark-theme .account-name {
+      color: #FFFFFF;
+    }
+
+    .dark-theme .nav-item {
+      color: #8A9199;
+    }
+
+    .dark-theme .nav-item:hover,
+    .dark-theme .nav-item--active,
+    .dark-theme .nav-item--open {
+      color: #FFFFFF;
+    }
+
+    .dark-theme .nav-subitem {
+      color: #8A9199;
+    }
+
+    .dark-theme .nav-subitem:hover {
+      color: #FFFFFF;
+    }
+
+    .dark-theme .nav-subitem--active {
+      color: #4EC99A;
+    }
+
+    .dark-theme .sidebar-logo {
+      color: #8A9199;
+    }
+
     .dark-theme .sidebar-bottom {
       border-top-color: #33383B;
     }
@@ -1325,15 +1502,28 @@ export class InsightsActivityLogComponent implements OnInit, OnDestroy {
   private tracker = inject(TrackerService);
 
   isDark = false;
+  sidebarCollapsed = false;
 
   navItems: NavItem[] = [
-    { id: 'overview',     icon: 'nav-overview',     iconActive: 'nav-overview-active',     label: 'Overview',     active: false },
-    { id: 'projects',     icon: 'nav-projects',     iconActive: 'nav-projects-active',     label: 'Projects',     active: false },
-    { id: 'participants', icon: 'nav-participants', iconActive: 'nav-participants-active', label: 'Participants', active: false },
-    { id: 'reports',      icon: 'nav-reports',      iconActive: 'nav-reports-active',      label: 'Reports',      active: true  },
-    { id: 'settings',     icon: 'nav-settings',     iconActive: 'nav-settings-active',     label: 'Settings',     active: false },
-    { id: 'billing',      icon: 'nav-billing',      iconActive: 'nav-billing-active',      label: 'Billing',      active: false },
-    { id: 'api',          icon: 'nav-api',          iconActive: 'nav-api-active',          label: 'API',          active: false },
+    { id: 'dashboard',    icon: 'nav-overview',      iconActive: 'nav-overview-active',      label: 'Dashboard',          active: false },
+    { id: 'documents',    icon: 'nav-projects',      iconActive: 'nav-projects-active',      label: 'Documents',          active: false },
+    { id: 'participants', icon: 'nav-participants',  iconActive: 'nav-participants-active',  label: 'Participants',       active: false },
+    { id: 'permissions',  icon: 'nav-settings',      iconActive: 'nav-settings-active',      label: 'Permissions',        active: false },
+    { id: 'qa',           icon: 'nav-overview',      iconActive: 'nav-overview-active',      label: 'Q&A',                active: false },
+    { id: 'reports',      icon: 'nav-reports',       iconActive: 'nav-reports-active',       label: 'Reports',            active: true,  open: true,
+      children: [
+        { label: 'Activity log',        active: true  },
+        { label: 'Documents overview',  active: false },
+      ],
+    },
+    { id: 'settings',     icon: 'nav-settings',      iconActive: 'nav-settings-active',      label: 'Settings',           active: false,
+      children: [
+        { label: 'General'      },
+        { label: 'Integrations' },
+      ],
+    },
+    { id: 'archiving',    icon: 'nav-overview',      iconActive: 'nav-overview-active',      label: 'Project archiving',  active: false },
+    { id: 'recycle',      icon: 'trash',             iconActive: 'trash',                    label: 'Recycle bin',        active: false },
   ];
 
   fileTree: FileTreeNode[] = [
@@ -1518,7 +1708,7 @@ export class InsightsActivityLogComponent implements OnInit, OnDestroy {
     } else {
       this.selectedRow = row;
       this.detailsPanelOpen = true;
-      this.tracker.trackTask('insights-activity-log', 'row_select');
+      this.tracker.trackTask('insights-activity-log', 'task_complete');
     }
   }
 
@@ -1550,6 +1740,15 @@ export class InsightsActivityLogComponent implements OnInit, OnDestroy {
     const noneChecked = root.children.every(c => !c.checked);
     root.checked = allChecked;
     root.indeterminate = !allChecked && !noneChecked;
+  }
+
+  toggleNavItem(item: NavItem): void {
+    if (item.children) {
+      item.open = !item.open;
+      return;
+    }
+    this.navItems.forEach(n => { n.active = false; });
+    item.active = true;
   }
 
   toggleTheme(): void {
