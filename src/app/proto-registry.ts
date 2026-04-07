@@ -37,5 +37,12 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
     status: 'wip',
     description: 'Multi-step flow for creating a new API key in Corporate Account',
   },
+  {
+    slug: 'insights-activity-log',
+    title: 'Activity Log',
+    figma: 'https://www.figma.com/design/fChBFcd7WAfqxq73sduKrn/%E2%9C%A8-Insights?node-id=33310-85229',
+    status: 'wip',
+    description: 'Activity report prototype — browsing user events with filters, file tree, and detail panel',
+  },
   // REGISTRY_PLACEHOLDER
 ];

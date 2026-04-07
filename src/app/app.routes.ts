@@ -49,6 +49,11 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./prototypes/ca-create-api-key/ca-create-api-key.component').then(m => m.CaCreateApiKeyComponent),
   },
+  {
+    path: 'insights-activity-log',
+    loadComponent: () =>
+      import('./prototypes/insights-activity-log/insights-activity-log.component').then(m => m.InsightsActivityLogComponent),
+  },
   // PROTO_ROUTES_PLACEHOLDER
   {
     path: '**',
