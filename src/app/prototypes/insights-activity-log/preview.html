@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Activity Log — FVDR Prototype</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --color-primary-50:  #EBF8EF;
+    --color-primary-500: #2C9C74;
+    --color-primary-600: #1C8269;
+    --color-stone-0:     #FFFFFF;
+    --color-stone-100:   #FAFAFA;
+    --color-stone-200:   #F7F7F7;
+    --color-stone-300:   #ECEEF9;
+    --color-stone-400:   #DEE0EB;
+    --color-stone-500:   #BBBDC8;
+    --color-stone-600:   #9C9EA8;
+    --color-stone-700:   #73757F;
+    --color-text-primary:    #1F2129;
+    --color-text-secondary:  #5F616A;
+    --color-text-placeholder:#9C9EA8;
+    --color-divider:     #DEE0EB;
+    --color-hover-bg:    #ECEEF9;
+    --color-error-600:   #E54430;
+    --radius-sm: 4px;
+    --radius-md: 8px;
+  }
+
+  body {
+    font-family: 'Inter', 'Open Sans', -apple-system, sans-serif;
+    font-size: 14px;
+    color: var(--color-text-primary);
+    background: var(--color-stone-0);
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* ── Icons (SVG inline) ─────────────── */
+  .icon { display:inline-flex; align-items:center; justify-content:center; width:1em; height:1em; }
+  .icon svg { width:100%; height:100%; }
+
+  /* ── Layout ─────────────────────────── */
+  .page-layout {
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+    transition: background 0.25s;
+  }
+
+  /* ── Sidebar ─────────────────────────── */
+  .sidebar {
+    width: 280px;
+    min-width: 280px;
+    background: var(--color-stone-100);
+    border-right: 1px solid var(--color-divider);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    overflow: hidden;
+    transition: width 0.22s ease, min-width 0.22s ease, background 0.25s, border-color 0.25s;
+  }
+
+  .sidebar.collapsed {
+    width: 72px;
+    min-width: 72px;
+  }
+
+  .account-switcher {
+    height: 64px; min-height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    gap: 8px;
+    border-bottom: 1px solid var(--color-divider);
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .sidebar.collapsed .account-switcher {
+    justify-content: center;
+    padding: 0;
+  }
+
+  .account-switcher-left {
+    display: flex; align-items: center; gap: 12px; overflow: hidden;
+  }
+
+  .account-logo {
+    width: 40px; height: 40px; min-width: 40px;
+    border-radius: 4px;
+    background: #F97316;
+    color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700;
+  }
+
+  .account-name {
+    font-size: 14px; font-weight: 600;
+    color: var(--color-text-primary);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    transition: opacity 0.15s;
+  }
+
+  .sidebar.collapsed .account-name,
+  .sidebar.collapsed .account-chevron,
+  .sidebar.collapsed .nav-label,
+  .sidebar.collapsed .nav-chevron,
+  .sidebar.collapsed .nav-subitems,
+  .sidebar.collapsed .sidebar-logo { display: none; }
+
+  .account-chevron {
+    color: var(--color-stone-600); font-size: 16px; flex-shrink: 0;
+  }
+
+  .nav-list {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 24px 0 8px;
+    gap: 2px;
+    overflow-y: auto; overflow-x: hidden;
+  }
+
+  .nav-group { display: flex; flex-direction: column; }
+
+  .nav-item {
+    width: 100%; height: 32px; min-height: 32px;
+    border: none; background: transparent;
+    cursor: pointer;
+    display: flex; align-items: center;
+    color: var(--color-stone-700);
+    font-size: 15px; font-weight: 400;
+    text-align: left; white-space: nowrap; overflow: hidden;
+    transition: color 0.12s;
+  }
+
+  .nav-item:hover { color: var(--color-text-primary); font-weight: 600; }
+  .nav-item.active, .nav-item.open { color: var(--color-text-primary); font-weight: 600; }
+
+  .nav-icon-zone {
+    width: 72px; min-width: 72px; height: 32px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .nav-icon { display: flex; align-items: center; justify-content: center; font-size: 22px; }
+
+  .nav-label { flex: 1; overflow: hidden; text-overflow: ellipsis; }
+
+  .nav-chevron {
+    font-size: 16px; margin-right: 16px; flex-shrink: 0;
+    color: var(--color-stone-600);
+    transition: transform 0.2s ease;
+    display: flex; align-items: center;
+  }
+
+  .nav-chevron.up { transform: rotate(180deg); }
+
+  .nav-subitems { display: flex; flex-direction: column; }
+
+  .nav-subitem {
+    height: 32px;
+    border: none; background: transparent; cursor: pointer;
+    display: flex; align-items: center;
+    padding: 0 16px 0 72px;
+    font-size: 14px; font-weight: 400;
+    color: var(--color-stone-700);
+    text-align: left; white-space: nowrap;
+    transition: color 0.12s;
+  }
+
+  .nav-subitem:hover { color: var(--color-text-primary); font-weight: 600; }
+  .nav-subitem.active { font-weight: 600; color: #2C9C74; }
+
+  .sidebar-bottom {
+    height: 72px; min-height: 72px;
+    border-top: 1px solid var(--color-divider);
+    display: flex; align-items: center;
+    justify-content: space-between;
+    padding: 0 16px 0 24px;
+  }
+
+  .sidebar.collapsed .sidebar-bottom {
+    justify-content: center;
+    padding: 0;
+  }
+
+  .sidebar-logo { color: var(--color-stone-700); display: flex; align-items: center; }
+
+  /* ── Main Area ───────────────────────── */
+  .main-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-width: 0;
+  }
+
+  /* ── Header ──────────────────────────── */
+  .page-header {
+    height: 64px; min-height: 64px;
+    padding: 0 24px;
+    border-bottom: 1px solid var(--color-divider);
+    background: var(--color-stone-0);
+    display: flex; align-items: center; justify-content: space-between;
+    flex-shrink: 0;
+    transition: background 0.25s, border-color 0.25s;
+  }
+
+  .breadcrumb {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 15px;
+  }
+  .bc-parent { color: var(--color-text-secondary); }
+  .bc-sep { color: var(--color-stone-500); }
+  .bc-current { color: var(--color-text-primary); font-weight: 600; }
+
+  .header-actions { display: flex; align-items: center; gap: 8px; }
+
+  .icon-btn {
+    width: 32px; height: 32px;
+    border: none; background: transparent;
+    cursor: pointer; border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--color-stone-600); font-size: 16px;
+    transition: background 0.12s, color 0.12s;
+  }
+  .icon-btn:hover { background: var(--color-hover-bg); color: var(--color-text-primary); }
+
+  .avatar {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 600; color: #fff;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  /* ── Content ─────────────────────────── */
+  .content {
+    flex: 1;
+    display: flex; flex-direction: column;
+    overflow: hidden;
+    padding: 20px 24px 0;
+    gap: 10px;
+  }
+
+  /* ── Target Filter ───────────────────── */
+  .target-filter-row {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 14px; flex-shrink: 0;
+  }
+  .target-label { color: var(--color-text-secondary); }
+  .target-chip {
+    display: flex; align-items: center; gap: 4px;
+    background: transparent; border: none; cursor: pointer;
+    color: var(--color-primary-500);
+    font-size: 14px; font-weight: 600; padding: 0;
+    font-family: inherit;
+  }
+  .target-chip:hover { color: var(--color-primary-600); }
+
+  /* ── Filter Bar ──────────────────────── */
+  .filter-bar {
+    display: flex; align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0; gap: 16px;
+  }
+  .filter-left { display: flex; align-items: center; gap: 8px; }
+  .filter-right { display: flex; align-items: center; gap: 8px; }
+
+  .period-btn {
+    height: 40px; width: 280px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 12px;
+    border: 1px solid var(--color-divider);
+    border-radius: var(--radius-sm); background: var(--color-stone-0);
+    cursor: pointer; font-family: inherit; font-size: 14px;
+    color: var(--color-text-placeholder);
+    transition: border-color 0.12s;
+  }
+  .period-btn:hover { border-color: var(--color-stone-500); }
+
+  .filter-select {
+    height: 40px; width: 140px;
+    padding: 0 10px; border: 1px solid var(--color-divider);
+    border-radius: var(--radius-sm); background: var(--color-stone-0);
+    font-family: inherit; font-size: 14px;
+    color: var(--color-text-secondary); cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M4 6l4 4 4-4' stroke='%239C9EA8' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    padding-right: 28px;
+    transition: border-color 0.12s;
+  }
+  .filter-select:hover { border-color: var(--color-stone-500); }
+
+  .action-btn {
+    height: 40px;
+    display: flex; align-items: center; gap: 6px;
+    padding: 0 14px;
+    border: 1px solid var(--color-divider);
+    border-radius: var(--radius-sm); background: var(--color-stone-0);
+    cursor: pointer; font-family: inherit; font-size: 14px;
+    color: var(--color-text-primary); font-weight: 500;
+    transition: background 0.12s;
+  }
+  .action-btn:hover { background: var(--color-hover-bg); }
+
+  /* ── Body Area ───────────────────────── */
+  .body-area {
+    flex: 1; display: flex;
+    overflow: hidden;
+    border: 1px solid var(--color-divider);
+    border-radius: var(--radius-sm);
+    margin-bottom: 20px;
+    min-height: 0;
+  }
+
+  /* ── Files Panel ─────────────────────── */
+  .files-panel {
+    width: 280px; min-width: 280px;
+    border-right: 1px solid var(--color-divider);
+    display: flex; flex-direction: column;
+    overflow: hidden; flex-shrink: 0;
+    background: var(--color-stone-0);
+    transition: background 0.25s, border-color 0.25s;
+  }
+
+  .files-header {
+    height: 48px; min-height: 48px;
+    display: flex; align-items: center;
+    padding: 0 16px;
+    border-bottom: 1px solid var(--color-divider);
+    font-size: 13px; font-weight: 600;
+  }
+
+  .files-tree {
+    flex: 1; overflow-y: auto;
+    padding: 6px 0;
+  }
+
+  .tree-item {
+    height: 40px;
+    display: flex; align-items: center;
+    padding: 0 8px 0 0;
+    cursor: pointer; gap: 2px;
+    transition: background 0.1s;
+  }
+  .tree-item:hover { background: var(--color-hover-bg); }
+  .tree-item.child { padding-left: 16px; }
+
+  .tree-expand-btn {
+    width: 24px; height: 24px;
+    border: none; background: transparent;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    font-size: 12px; color: var(--color-stone-500);
+    flex-shrink: 0; border-radius: 2px;
+    transition: color 0.12s;
+  }
+  .tree-expand-btn:hover { color: var(--color-text-primary); }
+  .tree-expand-placeholder { width: 24px; flex-shrink: 0; }
+
+  /* Custom checkbox */
+  .tree-cb {
+    width: 16px; height: 16px;
+    border: 1.5px solid var(--color-stone-500);
+    border-radius: 2px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; flex-shrink: 0;
+    background: var(--color-stone-0);
+    transition: background 0.12s, border-color 0.12s;
+    font-size: 10px; color: #fff;
+    user-select: none;
+  }
+  .tree-cb.checked, .tree-cb.indeterminate {
+    background: var(--color-primary-500);
+    border-color: var(--color-primary-500);
+  }
+
+  .tree-brand {
+    width: 20px; height: 20px;
+    background: #1A1A1A; color: #fff;
+    border-radius: 2px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 8px; font-weight: 700;
+    flex-shrink: 0; margin: 0 4px;
+  }
+
+  .tree-folder-icon { font-size: 16px; flex-shrink: 0; color: var(--color-primary-500); }
+  .tree-file-icon { font-size: 14px; flex-shrink: 0; color: var(--color-error-600); }
+  .tree-label { font-size: 13px; color: var(--color-text-primary); margin-left: 4px; white-space: nowrap; }
+
+  /* ── Table Wrapper ───────────────────── */
+  .table-wrapper {
+    flex: 1; display: flex;
+    overflow: hidden; min-width: 0;
+    position: relative;
+  }
+
+  /* ── Table Area ──────────────────────── */
+  .table-area {
+    flex: 1; overflow-y: auto;
+    min-width: 0;
+    background: var(--color-stone-0);
+    transition: background 0.25s;
+  }
+
+  .table-header-row {
+    display: flex; align-items: center;
+    height: 48px; min-height: 48px;
+    border-bottom: 1px solid var(--color-divider);
+    background: var(--color-stone-100);
+    position: sticky; top: 0; z-index: 2;
+    transition: background 0.25s, border-color 0.25s;
+  }
+
+  .th {
+    font-size: 12px; font-weight: 600;
+    color: var(--color-text-secondary);
+    padding: 0 16px; white-space: nowrap;
+  }
+
+  .col-time { width: 128px; min-width: 128px; flex-shrink: 0; }
+  .col-user { width: 220px; min-width: 220px; flex-shrink: 0; }
+  .col-action { width: 160px; min-width: 160px; flex-shrink: 0; }
+  .col-desc { flex: 1; min-width: 0; }
+  .col-desc.hidden { display: none !important; }
+
+  .group-label {
+    padding: 10px 16px 8px;
+    font-size: 12px; font-weight: 600;
+    color: var(--color-text-secondary);
+    border-bottom: 1px solid var(--color-divider);
+  }
+
+  .table-row {
+    display: flex; align-items: center;
+    min-height: 68px;
+    border-bottom: 1px solid var(--color-divider);
+    cursor: pointer;
+    transition: background 0.1s;
+  }
+  .table-row:hover { background: var(--color-primary-50); }
+  .table-row.selected { background: var(--color-primary-50); }
+
+  .td { padding: 12px 16px; }
+
+  .time-text { font-size: 13px; color: var(--color-text-secondary); white-space: nowrap; }
+
+  .user-cell { display: flex; align-items: center; gap: 8px; }
+  .user-info { display: flex; flex-direction: column; min-width: 0; }
+  .user-name { font-size: 14px; font-weight: 600; color: var(--color-text-primary); white-space: nowrap; }
+  .user-email { font-size: 12px; color: var(--color-text-secondary); white-space: nowrap; }
+
+  .action-cell { display: flex; flex-direction: column; gap: 2px; }
+  .action-text { font-size: 14px; color: var(--color-text-primary); }
+  .action-sub { font-size: 12px; color: var(--color-text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: none; }
+  .action-sub.visible { display: block; }
+
+  .desc-text {
+    font-size: 13px; color: var(--color-text-secondary);
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+
+  /* ── Details Panel ───────────────────── */
+  .details-panel {
+    width: 0; flex-shrink: 0;
+    overflow: hidden;
+    transition: width 0.25s ease;
+    background: var(--color-stone-0);
+  }
+  .details-panel.open { width: 300px; }
+
+  .dp-inner {
+    width: 300px; height: 100%;
+    border-left: 1px solid var(--color-divider);
+    display: flex; flex-direction: column;
+    overflow-y: auto;
+    background: var(--color-stone-0);
+    transition: background 0.25s, border-color 0.25s;
+  }
+
+  .dp-header {
+    height: 48px; min-height: 48px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 16px;
+    border-bottom: 1px solid var(--color-divider);
+    flex-shrink: 0;
+  }
+  .dp-title { font-size: 15px; font-weight: 600; color: var(--color-text-primary); }
+
+  .dp-section {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--color-divider);
+  }
+
+  .dp-label {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.04em;
+    color: var(--color-text-secondary); text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .dp-target-row { display: flex; align-items: flex-start; gap: 8px; }
+  .dp-target-icon { color: var(--color-stone-500); font-size: 16px; margin-top: 1px; flex-shrink: 0; }
+  .dp-target-name { font-size: 13px; color: var(--color-text-primary); line-height: 1.4; }
+
+  .dp-author-row { display: flex; align-items: flex-start; gap: 10px; }
+  .dp-author-info { display: flex; flex-direction: column; gap: 3px; }
+  .dp-author-name { font-size: 14px; font-weight: 600; color: var(--color-text-primary); }
+  .dp-author-email { font-size: 12px; color: var(--color-text-secondary); }
+  .dp-badge {
+    display: inline-flex; align-items: center;
+    padding: 2px 8px;
+    border-radius: 100px;
+    background: var(--color-stone-200); color: var(--color-text-secondary);
+    font-size: 11px; font-weight: 500;
+    border: 1px solid var(--color-divider);
+  }
+
+  .dp-actions {
+    display: flex; align-items: center; gap: 4px;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--color-divider);
+  }
+  .dp-act-btn {
+    width: 32px; height: 32px;
+    border: none; background: transparent; cursor: pointer;
+    border-radius: 4px; display: flex; align-items: center; justify-content: center;
+    font-size: 16px; color: var(--color-stone-600);
+    transition: background 0.12s, color 0.12s;
+  }
+  .dp-act-btn:hover { background: var(--color-hover-bg); color: var(--color-text-primary); }
+
+  .dp-field {
+    display: flex; flex-direction: column; gap: 3px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--color-divider);
+  }
+  .dp-field-label { font-size: 12px; font-weight: 600; color: var(--color-text-secondary); }
+  .dp-field-value { font-size: 13px; color: var(--color-text-primary); line-height: 1.4; }
+
+  /* ── Dark Theme ──────────────────────── */
+  .dark {
+    --color-stone-0:    #1F2129;
+    --color-stone-100:  #212426;
+    --color-stone-200:  #292D2F;
+    --color-stone-300:  #33383B;
+    --color-stone-400:  #40464A;
+    --color-stone-500:  #50575C;
+    --color-stone-600:  #6F7980;
+    --color-stone-700:  #8B949A;
+    --color-text-primary:   #FFFFFF;
+    --color-text-secondary: #A2A9AF;
+    --color-text-placeholder:#6F7980;
+    --color-divider:    #33383B;
+    --color-hover-bg:   rgba(255,255,255,0.05);
+    --color-primary-50: rgba(44,156,116,0.12);
+  }
+
+  .dark .brand-mark { background: #2C9C74; }
+  .dark .filter-select { background: #292D2F; }
+  .dark .period-btn { background: #292D2F; }
+  .dark .action-btn { background: #292D2F; }
+
+  /* ── Scrollbar ───────────────────────── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--color-stone-400); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--color-stone-500); }
+</style>
+</head>
+<body>
+
+<div class="page-layout" id="layout">
+
+  <!-- Sidebar -->
+  <nav class="sidebar" id="sidebar">
+    <div class="account-switcher">
+      <div class="account-switcher-left">
+        <div class="account-logo">PA</div>
+        <span class="account-name">Project Alpha</span>
+      </div>
+      <span class="account-chevron">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </span>
+    </div>
+
+    <div class="nav-list">
+
+      <!-- Dashboard -->
+      <div class="nav-group">
+        <button class="nav-item" onclick="navClick(this)" title="Dashboard">
+          <span class="nav-icon-zone"><span class="nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span></span>
+          <span class="nav-label">Dashboard</span>
+        </button>
+      </div>
+
+      <!-- Documents -->
+      <div class="nav-group">
+        <button class="nav-item" onclick="navClick(this)" title="Documents">
+          <span class="nav-icon-zone"><span class="nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/></svg></span></span>
+          <span class="nav-label">Documents</span>
+        </button>
+      </div>
+
+      <!-- Participants -->
+      <div class="nav-group">
+        <button class="nav-item" onclick="navClick(this)" title="Participants">
+          <span class="nav-icon-zone"><span class="nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/><path d="M16 3.13a4 4 0 010 7.75M21 21v-2a4 4 0 00-3-3.87"/></svg></span></span>
+          <span class="nav-label">Participants</span>
+        </button>
+      </div>
+
+      <!-- Permissions -->
+      <div class="nav-group">
+        <button class="nav-item" onclick="navClick(this)" title="Permissions">
+          <span class="nav-icon-zone"><span class="nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></span></span>
+          <span class="nav-label">Permissions</span>
+        </button>
+      </div>
+
+      <!-- Q&A -->
+      <div class="nav-group">
+        <button class="nav-item" onclick="navClick(this)" title="Q&amp;A">
+          <span class="nav-icon-zone"><span class="nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></span></span>
+          <span class="nav-label">Q&amp;A</span>
+        </button>
+      </div>
+
+      <!-- Reports (open + active) -->
+      <div class="nav-group" id="reportsGroup">
+        <button class="nav-item active open" onclick="toggleSubnav('reportsGroup', this)" title="Reports">
+          <span class="nav-icon-zone"><span class="nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span></span>
+          <span class="nav-label">Reports</span>
+          <span class="nav-chevron up" id="reportsChevron"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
+        </button>
+        <div class="nav-subitems" id="reportsSubnav">
+          <button class="nav-subitem active">Activity log</button>
+          <button class="nav-subitem">Documents overview</button>
+        </div>
+      </div>
+
+      <!-- Settings -->
+      <div class="nav-group" id="settingsGroup">
+        <button class="nav-item" onclick="toggleSubnav('settingsGroup', this)" title="Settings">
+          <span class="nav-icon-zone"><span class="nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></span></span>
+          <span class="nav-label">Settings</span>
+          <span class="nav-chevron" id="settingsChevron"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
+        </button>
+        <div class="nav-subitems" id="settingsSubnav" style="display:none">
+          <button class="nav-subitem">General</button>
+          <button class="nav-subitem">Integrations</button>
+        </div>
+      </div>
+
+      <!-- Project archiving -->
+      <div class="nav-group">
+        <button class="nav-item" onclick="navClick(this)" title="Project archiving">
+          <span class="nav-icon-zone"><span class="nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5" rx="1"/><line x1="10" y1="12" x2="14" y2="12"/></svg></span></span>
+          <span class="nav-label">Project archiving</span>
+        </button>
+      </div>
+
+      <!-- Recycle bin -->
+      <div class="nav-group">
+        <button class="nav-item" onclick="navClick(this)" title="Recycle bin">
+          <span class="nav-icon-zone"><span class="nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg></span></span>
+          <span class="nav-label">Recycle bin</span>
+        </button>
+      </div>
+
+    </div>
+
+    <div class="sidebar-bottom">
+      <div class="sidebar-logo">
+        <svg width="56" height="16" viewBox="0 0 56 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M2.4 0H0V16H2.4V0Z" fill="currentColor"/>
+          <path d="M9.6 4.8H7.2V16H9.6V4.8Z" fill="currentColor"/>
+          <path d="M9.6 0H7.2V2.4H9.6V0Z" fill="currentColor"/>
+          <path d="M16.8 16H14.4V0H16.8L24 10.4V0H26.4V16H24L16.8 5.6V16Z" fill="currentColor"/>
+          <path d="M31.2 16V0H40.8V2.4H33.6V6.4H39.6V8.8H33.6V13.6H40.8V16H31.2Z" fill="currentColor"/>
+          <path d="M48 16H43.2V0H48C52.4 0 55.2 3.2 55.2 8C55.2 12.8 52.4 16 48 16ZM45.6 13.6H48C50.8 13.6 52.8 11.4 52.8 8C52.8 4.6 50.8 2.4 48 2.4H45.6V13.6Z" fill="currentColor"/>
+        </svg>
+      </div>
+      <button class="icon-btn" id="collapseBtn" onclick="toggleSidebar()" title="Collapse sidebar">
+        <svg id="collapseIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="11 17 6 12 11 7"/><polyline points="18 17 13 12 18 7"/></svg>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Main -->
+  <div class="main-area">
+    <!-- Header -->
+    <header class="page-header">
+      <nav class="breadcrumb">
+        <span class="bc-parent">Reports</span>
+        <span class="bc-sep">›</span>
+        <span class="bc-current">Activity log</span>
+      </nav>
+      <div class="header-actions">
+        <button class="icon-btn" id="themeBtn" title="Toggle dark mode" onclick="toggleTheme()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+        </button>
+        <button class="icon-btn" title="Help">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </button>
+        <div class="avatar" style="background:#2C9C74" title="Irina R.">IR</div>
+      </div>
+    </header>
+
+    <!-- Content -->
+    <div class="content">
+
+      <!-- Target filter -->
+      <div class="target-filter-row">
+        <span class="target-label">Report on</span>
+        <button class="target-chip">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/></svg>
+          Files and folders
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+      </div>
+
+      <!-- Filter bar -->
+      <div class="filter-bar">
+        <div class="filter-left">
+          <button class="period-btn">
+            <span>Period</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          </button>
+          <select class="filter-select" onchange="filterRows()">
+            <option value="">Action</option>
+            <option value="File viewing">File viewing</option>
+            <option value="Login">Login</option>
+            <option value="User invitation">User invitation</option>
+          </select>
+          <select class="filter-select" onchange="filterRows()">
+            <option value="">Author</option>
+            <option value="Olivia Rhye">Olivia Rhye</option>
+            <option value="Avery Park">Avery Park</option>
+          </select>
+        </div>
+        <div class="filter-right">
+          <button class="action-btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export
+          </button>
+          <button class="action-btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+            Subscribe
+          </button>
+        </div>
+      </div>
+
+      <!-- Body -->
+      <div class="body-area">
+
+        <!-- Files panel -->
+        <div class="files-panel">
+          <div class="files-header">Files and folders</div>
+          <div class="files-tree" id="fileTree"></div>
+        </div>
+
+        <!-- Table wrapper -->
+        <div class="table-wrapper">
+          <div class="table-area">
+            <div class="table-header-row">
+              <div class="th col-time">Date and time</div>
+              <div class="th col-user">Author</div>
+              <div class="th col-action">Action</div>
+              <div class="th col-desc" id="descHeader">Description</div>
+            </div>
+            <div id="tableBody"></div>
+          </div>
+
+          <!-- Details panel -->
+          <div class="details-panel" id="detailsPanel">
+            <div class="dp-inner" id="dpInner"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Data ────────────────────────────────────────────────────────────
+const rows = {
+  today: [
+    {
+      id:'1', time:'4:35:25 PM',
+      initials:'OR', name:'Olivia Rhye', email:'olivia@gmail.com', color:'#2C9C74', role:'Administrators',
+      action:'File viewing',
+      desc:'Total viewing time: 1 min 10 sec · File path: /56 [folder name]/56...',
+      sub:'56.2.1.5 [file name long version exam...',
+      target:'1.9 Contracts - Contract - Standard Accts Pay.doc',
+      targetPath:'/1 Team Structure/1.9 Contracts - Contract - Standard Accts Pay.doc',
+      viewingTime:'10 s', viewerType:'Ideals Spreadsheet Viewer', viewerMode:'Normal', version:2,
+    },
+    {
+      id:'2', time:'4:35:25 PM',
+      initials:'OR', name:'Olivia Rhye', email:'olivia@gmail.com', color:'#2C9C74', role:'Administrators',
+      action:'Login',
+      desc:'Application type: Web application', sub:'Web application', appType:'Web application',
+    },
+    {
+      id:'3', time:'4:35:25 PM',
+      initials:'AP', name:'Avery Park', email:'avery@gmail.com', color:'#9747FF', role:'Viewers',
+      action:'Login',
+      desc:'Application type: Web application', sub:'Web application', appType:'Web application',
+    },
+  ],
+  yesterday: [
+    {
+      id:'4', time:'4:35:25 PM',
+      initials:'OR', name:'Olivia Rhye', email:'olivia@gmail.com', color:'#2C9C74', role:'Administrators',
+      action:'Login',
+      desc:'Application type: Web application', sub:'Web application', appType:'Web application',
+    },
+    {
+      id:'5', time:'4:35:25 PM',
+      initials:'AP', name:'Avery Park', email:'avery@gmail.com', color:'#9747FF', role:'Viewers',
+      action:'File viewing',
+      desc:'Total viewing time: 1 min 10 sec · File path: /56 [folder name]/56...',
+      sub:'56.2.1.5 [file name long version exam...',
+      target:'56.2.1.5 Financial Report Q4 2024.xlsx',
+      targetPath:'/1 Team Structure/56.2.1.5 Financial Report Q4 2024.xlsx',
+      viewingTime:'1 min 10 s', viewerType:'Ideals Spreadsheet Viewer', viewerMode:'Normal', version:1,
+    },
+    {
+      id:'6', time:'4:35:25 PM',
+      initials:'OR', name:'Olivia Rhye', email:'olivia@gmail.com', color:'#2C9C74', role:'Administrators',
+      action:'File viewing',
+      desc:'Total viewing time: 1 min 10 sec · File path: /56 [folder name]/56...',
+      sub:'56.2.1.5 [file name long version exam...',
+      target:'56.2.1.5 Financial Report Q4 2024.xlsx',
+      targetPath:'/1 Team Structure/56.2.1.5 Financial Report Q4 2024.xlsx',
+      viewingTime:'1 min 10 s', viewerType:'Ideals Spreadsheet Viewer', viewerMode:'Normal', version:1,
+    },
+    {
+      id:'7', time:'4:35:25 PM',
+      initials:'OR', name:'Olivia Rhye', email:'olivia@gmail.com', color:'#2C9C74', role:'Administrators',
+      action:'User invitation',
+      desc:'Invited: leslie.alexander@gmail.com', sub:'leslie.alexander@gmail.com',
+      invitee:'leslie.alexander@gmail.com',
+    },
+    {
+      id:'8', time:'4:35:25 PM',
+      initials:'OR', name:'Olivia Rhye', email:'olivia@gmail.com', color:'#2C9C74', role:'Administrators',
+      action:'File viewing',
+      desc:'Total viewing time: 1 min 10 sec · File path: /56 [folder name]/56...',
+      sub:'56.2.1.5 [file name long version exam...',
+      target:'56.2.1.5 Financial Report Q4 2024.xlsx',
+      targetPath:'/1 Team Structure/56.2.1.5 Financial Report Q4 2024.xlsx',
+      viewingTime:'1 min 10 s', viewerType:'Ideals Spreadsheet Viewer', viewerMode:'Normal', version:1,
+    },
+  ],
+};
+
+const tree = {
+  id:'root', name:'Room name', checked:false, indeterminate:true, expanded:true,
+  children:[
+    {id:'f1', name:'1  Company A', type:'folder', checked:true, expanded:false},
+    {id:'f2', name:'2  Company B', type:'folder', checked:true, expanded:false},
+    {id:'f3', name:'3  Company C', type:'folder', checked:true, expanded:false},
+    {id:'f4', name:'4  Company D', type:'folder', checked:true, expanded:false},
+    {id:'r1', name:'5  Report 2025', type:'file',  checked:true},
+  ],
+};
+
+// ── State ────────────────────────────────────────────────────────────
+let selectedId = null;
+let panelOpen = false;
+let isDark = false;
+
+// ── Render tree ──────────────────────────────────────────────────────
+function renderTree() {
+  const el = document.getElementById('fileTree');
+  let html = '';
+
+  // Root
+  const cbClass = tree.indeterminate ? 'indeterminate' : (tree.checked ? 'checked' : '');
+  const cbContent = tree.indeterminate
+    ? '<svg width="10" height="10" viewBox="0 0 10 10"><line x1="2" y1="5" x2="8" y2="5" stroke="white" stroke-width="1.8" stroke-linecap="round"/></svg>'
+    : (tree.checked ? '<svg width="10" height="10" viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5" stroke="white" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>' : '');
+  const expandIcon = tree.expanded
+    ? '<svg width="10" height="10" viewBox="0 0 10 10"><polyline points="2,3.5 5,6.5 8,3.5" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>'
+    : '<svg width="10" height="10" viewBox="0 0 10 10"><polyline points="3.5,2 6.5,5 3.5,8" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>';
+
+  html += `
+    <div class="tree-item" onclick="toggleRoot()">
+      <button class="tree-expand-btn" onclick="event.stopPropagation();toggleRoot()">${expandIcon}</button>
+      <span class="tree-cb ${cbClass}" onclick="event.stopPropagation();toggleRootCb()">${cbContent}</span>
+      <span class="tree-brand">RN</span>
+      <span class="tree-label">${tree.name}</span>
+    </div>`;
+
+  if (tree.expanded) {
+    tree.children.forEach(node => {
+      const nCb = node.checked ? 'checked' : '';
+      const nCbContent = node.checked
+        ? '<svg width="10" height="10" viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5" stroke="white" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+        : '';
+      const folderSvg = `<svg class="tree-folder-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/></svg>`;
+      const fileSvg = `<svg class="tree-file-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>`;
+      const expandBtn = node.type === 'folder'
+        ? `<button class="tree-expand-btn" onclick="event.stopPropagation()"><svg width="10" height="10" viewBox="0 0 10 10"><polyline points="3.5,2 6.5,5 3.5,8" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></button>`
+        : `<span class="tree-expand-placeholder"></span>`;
+
+      html += `
+        <div class="tree-item child" onclick="toggleCb('${node.id}')">
+          ${expandBtn}
+          <span class="tree-cb ${nCb}" onclick="event.stopPropagation();toggleCb('${node.id}')">${nCbContent}</span>
+          ${node.type === 'folder' ? folderSvg : fileSvg}
+          <span class="tree-label">${node.name}</span>
+        </div>`;
+    });
+  }
+
+  el.innerHTML = html;
+}
+
+function toggleRoot() { tree.expanded = !tree.expanded; renderTree(); }
+
+function toggleRootCb() {
+  if (tree.indeterminate) { tree.checked = true; tree.indeterminate = false; }
+  else { tree.checked = !tree.checked; }
+  tree.children.forEach(c => c.checked = tree.checked);
+  renderTree();
+}
+
+function toggleCb(id) {
+  const node = tree.children.find(c => c.id === id);
+  if (node) {
+    node.checked = !node.checked;
+    const all = tree.children.every(c => c.checked);
+    const none = tree.children.every(c => !c.checked);
+    tree.checked = all; tree.indeterminate = !all && !none;
+    renderTree();
+  }
+}
+
+// ── Render table ─────────────────────────────────────────────────────
+function avatarSvg(initials, color) {
+  return `<div class="avatar" style="background:${color};width:32px;height:32px;font-size:12px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;flex-shrink:0">${initials}</div>`;
+}
+
+function renderRow(row) {
+  const isSelected = row.id === selectedId;
+  const subVisible = panelOpen ? 'visible' : '';
+  return `
+    <div class="table-row ${isSelected ? 'selected' : ''}" onclick="selectRow('${row.id}')">
+      <div class="td col-time"><span class="time-text">${row.time}</span></div>
+      <div class="td col-user">
+        <div class="user-cell">
+          ${avatarSvg(row.initials, row.color)}
+          <div class="user-info">
+            <span class="user-name">${row.name}</span>
+            <span class="user-email">${row.email}</span>
+          </div>
+        </div>
+      </div>
+      <div class="td col-action">
+        <div class="action-cell">
+          <span class="action-text">${row.action}</span>
+          <span class="action-sub ${subVisible}">${row.sub || ''}</span>
+        </div>
+      </div>
+      <div class="td col-desc" id="desc-${row.id}">
+        <span class="desc-text">${row.desc}</span>
+      </div>
+    </div>`;
+}
+
+function renderTable() {
+  const el = document.getElementById('tableBody');
+  let html = `<div class="group-label">Today</div>`;
+  rows.today.forEach(r => html += renderRow(r));
+  html += `<div class="group-label">Yesterday</div>`;
+  rows.yesterday.forEach(r => html += renderRow(r));
+  el.innerHTML = html;
+
+  // Update desc column visibility
+  const descHeader = document.getElementById('descHeader');
+  document.querySelectorAll('.col-desc').forEach(el => {
+    if (panelOpen) el.classList.add('hidden'); else el.classList.remove('hidden');
+  });
+}
+
+// ── Select row / details panel ───────────────────────────────────────
+function selectRow(id) {
+  if (selectedId === id) { closePanel(); return; }
+  selectedId = id;
+  panelOpen = true;
+
+  const all = [...rows.today, ...rows.yesterday];
+  const row = all.find(r => r.id === id);
+
+  document.getElementById('detailsPanel').classList.add('open');
+  renderDetails(row);
+  renderTable();
+}
+
+function closePanel() {
+  selectedId = null; panelOpen = false;
+  document.getElementById('detailsPanel').classList.remove('open');
+  renderTable();
+}
+
+function renderDetails(row) {
+  const iconSvg = (path) => `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${path}</svg>`;
+  const icons = {
+    folder: iconSvg('<path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/>'),
+    filter: iconSvg('<polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>'),
+    download: iconSvg('<path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>'),
+    bell: iconSvg('<path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/>'),
+    share: iconSvg('<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>'),
+    more: iconSvg('<circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>'),
+    close: iconSvg('<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>'),
+    file: iconSvg('<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>'),
+  };
+
+  let detailFields = '';
+  if (row.action === 'File viewing') {
+    detailFields = `
+      <div class="dp-field"><span class="dp-field-label">Total viewing time</span><span class="dp-field-value">${row.viewingTime}</span></div>
+      <div class="dp-field"><span class="dp-field-label">File path</span><span class="dp-field-value">${row.targetPath}</span></div>
+      <div class="dp-field"><span class="dp-field-label">Viewer type</span><span class="dp-field-value">${row.viewerType}</span></div>
+      <div class="dp-field"><span class="dp-field-label">Viewer mode</span><span class="dp-field-value">${row.viewerMode}</span></div>
+      <div class="dp-field"><span class="dp-field-label">Version</span><span class="dp-field-value">${row.version}</span></div>`;
+  } else if (row.action === 'Login') {
+    detailFields = `<div class="dp-field"><span class="dp-field-label">Application type</span><span class="dp-field-value">${row.appType}</span></div>`;
+  } else if (row.action === 'User invitation') {
+    detailFields = `<div class="dp-field"><span class="dp-field-label">Invited user</span><span class="dp-field-value">${row.invitee}</span></div>`;
+  }
+
+  const targetSection = row.target ? `
+    <div class="dp-section">
+      <div class="dp-label">Target</div>
+      <div class="dp-target-row">
+        <span class="dp-target-icon">${icons.file}</span>
+        <span class="dp-target-name">${row.target}</span>
+      </div>
+    </div>` : '';
+
+  document.getElementById('dpInner').innerHTML = `
+    <div class="dp-header">
+      <span class="dp-title">${row.action}</span>
+      <button class="icon-btn" onclick="closePanel()">${icons.close}</button>
+    </div>
+    ${targetSection}
+    <div class="dp-section">
+      <div class="dp-label">Author</div>
+      <div class="dp-author-row">
+        ${avatarSvg(row.initials, row.color)}
+        <div class="dp-author-info">
+          <span class="dp-author-name">${row.name}</span>
+          <span class="dp-author-email">${row.email}</span>
+          <span class="dp-badge">${row.role}</span>
+        </div>
+      </div>
+    </div>
+    <div class="dp-actions">
+      <button class="dp-act-btn" title="Filter">${icons.filter}</button>
+      <button class="dp-act-btn" title="Download">${icons.download}</button>
+      <button class="dp-act-btn" title="Subscribe">${icons.bell}</button>
+      <button class="dp-act-btn" title="Share">${icons.share}</button>
+      <button class="dp-act-btn" title="More">${icons.more}</button>
+    </div>
+    ${detailFields}
+  `;
+}
+
+// ── Sidebar ───────────────────────────────────────────────────────────
+function toggleSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const icon = document.getElementById('collapseIcon');
+  sidebar.classList.toggle('collapsed');
+  const isCollapsed = sidebar.classList.contains('collapsed');
+  // swap icon: double-left ↔ double-right
+  icon.innerHTML = isCollapsed
+    ? '<polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/>'
+    : '<polyline points="11 17 6 12 11 7"/><polyline points="18 17 13 12 18 7"/>';
+  document.getElementById('collapseBtn').title = isCollapsed ? 'Expand sidebar' : 'Collapse sidebar';
+}
+
+function toggleSubnav(groupId, btn) {
+  const subnav = document.getElementById(groupId).querySelector('.nav-subitems');
+  const chevron = btn.querySelector('.nav-chevron');
+  const isOpen = subnav.style.display !== 'none' && subnav.style.display !== '';
+  if (isOpen) {
+    subnav.style.display = 'none';
+    chevron && chevron.classList.remove('up');
+    btn.classList.remove('open');
+  } else {
+    subnav.style.display = 'flex';
+    chevron && chevron.classList.add('up');
+    btn.classList.add('open');
+  }
+}
+
+function navClick(btn) {
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// ── Theme toggle ─────────────────────────────────────────────────────
+function toggleTheme() {
+  isDark = !isDark;
+  document.getElementById('layout').classList.toggle('dark', isDark);
+  const btn = document.getElementById('themeBtn');
+  btn.innerHTML = isDark
+    ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>'
+    : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>';
+}
+
+// ── Filter ───────────────────────────────────────────────────────────
+function filterRows() { renderTable(); }
+
+// ── Init ─────────────────────────────────────────────────────────────
+renderTree();
+renderTable();
+</script>
+</body>
+</html>
