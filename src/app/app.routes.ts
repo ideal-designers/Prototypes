@@ -44,6 +44,12 @@ export const routes: Routes = [
       import('./prototypes/project-archive-creation-flow-testing/project-archive-creation-flow-testing.component').then(m => m.ProjectArchiveCreationFlowTestingComponent),
   },
   {
+    path: 'insights-activity-log',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./prototypes/insights-activity-log/insights-activity-log.component').then(m => m.InsightsActivityLogComponent),
+  },
+  {
     path: 'ca-create-api-key',
     canActivate: [authGuard],
     loadComponent: () =>

@@ -31,6 +31,13 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
     description: 'Project archiving flow - side by side UI',
   },
   {
+    slug: 'insights-activity-log',
+    title: 'Activity Log',
+    figma: 'https://www.figma.com/design/fChBFcd7WAfqxq73sduKrn/%E2%9C%A8-Insights?node-id=33310-85229',
+    status: 'wip',
+    description: 'Activity report prototype — browsing user events with filters, file tree, and detail panel',
+  },
+  {
     slug: 'ca-create-api-key',
     title: 'CA — Create API Key',
     figma: 'https://www.figma.com/design/PITzEfwRA26GWSG2MvzmDy/CA?node-id=33212-45471',
