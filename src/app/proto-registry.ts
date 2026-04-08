@@ -31,6 +31,13 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
     description: 'Project archiving flow - side by side UI',
   },
   {
+    slug: 'my-prototype-delete-account',
+    title: 'Delete Account',
+    figma: 'https://www.figma.com/design/AqRFFFTOA4hCIvyhr4Ri54/User-account?node-id=28336-4315',
+    status: 'wip',
+    description: 'Self-service account deletion flow to reduce support load',
+  },
+  {
     slug: 'insights-activity-log',
     title: 'Activity Log',
     figma: 'https://www.figma.com/design/fChBFcd7WAfqxq73sduKrn/%E2%9C%A8-Insights?node-id=33310-85229',
