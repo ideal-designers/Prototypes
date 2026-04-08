@@ -182,8 +182,8 @@ const VARIANT_CONFIG: Record<SidebarNavVariant, { bg: string; label: string }> =
       flex: 1;
       display: flex;
       flex-direction: column;
-      padding: 16px 0 8px;
-      gap: 2px;
+      padding: 8px 0;
+      gap: 0;
       overflow-y: auto;
       overflow-x: hidden;
       background: var(--color-stone-100);
@@ -257,7 +257,7 @@ const VARIANT_CONFIG: Record<SidebarNavVariant, { bg: string; label: string }> =
       background: var(--color-stone-100);
     }
     .nav-subitem {
-      height: 36px;
+      height: 40px;
       padding: 0 16px 0 56px;
       background: none;
       border: none;
