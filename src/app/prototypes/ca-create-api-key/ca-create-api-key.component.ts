@@ -273,7 +273,7 @@ interface CreateKeyForm {
           </ng-container>
           <ng-container *ngIf="currentStep === 'success'">
             <div class="footer-right">
-              <fvdr-btn label="Download" variant="primary" size="m" icon="download" (clicked)="downloadKey()" data-track="modal-download" />
+              <fvdr-btn label="Download" variant="primary" size="m" iconName="download" (clicked)="downloadKey()" data-track="modal-download" />
             </div>
           </ng-container>
         </div>
