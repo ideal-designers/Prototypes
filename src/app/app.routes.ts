@@ -55,6 +55,11 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./prototypes/ca-create-api-key/ca-create-api-key.component').then(m => m.CaCreateApiKeyComponent),
   },
+    {
+    path: 'quick-access-panel',
+    loadComponent: () =>
+      import('./prototypes/quick-access-panel/quick-access-panel.component').then(m => m.QuickAccessPanelComponent),
+  },
   // PROTO_ROUTES_PLACEHOLDER
   {
     path: '**',
