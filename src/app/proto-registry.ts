@@ -37,5 +37,12 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
     status: 'wip',
     description: 'Multi-step flow for creating a new API key in Corporate Account',
   },
+    {
+    slug: 'quick-access-panel',
+    title: 'Quick access panel',
+    figma: 'https://www.figma.com/design/h9MR3O7N3kLV2xl2MGQDxs/Documents?node-id=22560-22984',
+    status: 'wip',
+    description: '',
+  },
   // REGISTRY_PLACEHOLDER
 ];
