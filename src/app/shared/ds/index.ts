@@ -76,6 +76,7 @@ import { ChipComponent } from './components/chip/chip.component';
 import { DropdownComponent } from './components/dropdown/dropdown.component';
 import { DroplistComponent } from './components/droplist/droplist.component';
 import { StatusComponent, StatusButtonComponent } from './components/status/status.component';
+import { MultiselectComponent } from './components/multiselect/multiselect.component';
 import { CounterComponent } from './components/counter/counter.component';
 import { InlineMessageComponent } from './components/inline-message/inline-message.component';
 import { ToastComponent, ToastHostComponent, ToastService } from './components/toast/toast.component';
@@ -85,7 +86,6 @@ import { TreeComponent } from './components/tree/tree.component';
 import { DropAreaComponent } from './components/drop-area/drop-area.component';
 import { HeaderComponent, MobileHeaderComponent } from './components/header/header.component';
 import { NumberStepperComponent, ProgressComponent, RangeComponent } from './components/special-controls/special-controls.component';
-import { MultiselectComponent } from './components/multiselect/multiselect.component';
 
 // ─── Re-exports ───────────────────────────────────────────────────────────────
 
@@ -124,6 +124,7 @@ export type { SearchFilter } from './components/search/search.component';
 
 export { DatepickerComponent } from './components/datepicker/datepicker.component';
 export { TimepickerComponent } from './components/timepicker/timepicker.component';
+export type { TimeValue } from './components/timepicker/timepicker.component';
 
 export { PhoneInputComponent } from './components/phone-input/phone-input.component';
 export type { PhoneCountry } from './components/phone-input/phone-input.component';
@@ -151,6 +152,9 @@ export type { DroplistItem } from './components/droplist/droplist.component';
 export { StatusComponent, StatusButtonComponent } from './components/status/status.component';
 export type { StatusVariant, StatusBtnVariant } from './components/status/status.component';
 
+export { MultiselectComponent } from './components/multiselect/multiselect.component';
+export type { MultiselectOption } from './components/multiselect/multiselect.component';
+
 export { CounterComponent } from './components/counter/counter.component';
 export type { CounterVariant, CounterSize } from './components/counter/counter.component';
 
@@ -175,9 +179,6 @@ export { HeaderComponent, MobileHeaderComponent } from './components/header/head
 export type { HeaderNavItem, HeaderAction } from './components/header/header.component';
 
 export { NumberStepperComponent, ProgressComponent, RangeComponent } from './components/special-controls/special-controls.component';
-
-export { MultiselectComponent } from './components/multiselect/multiselect.component';
-export type { MultiselectOption } from './components/multiselect/multiselect.component';
 
 /** Convenience array — spread into component imports[] */
 export const DS_COMPONENTS = [
@@ -208,6 +209,7 @@ export const DS_COMPONENTS = [
   DroplistComponent,
   StatusComponent,
   StatusButtonComponent,
+  MultiselectComponent,
   CounterComponent,
   InlineMessageComponent,
   ToastComponent,
@@ -222,5 +224,4 @@ export const DS_COMPONENTS = [
   NumberStepperComponent,
   ProgressComponent,
   RangeComponent,
-  MultiselectComponent,
 ];

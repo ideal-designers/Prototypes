@@ -46,10 +46,10 @@ export type CardSelector = 'none' | 'checkbox' | 'radio';
     </div>
   `,
   styles: [`
-    /* DS: State=default → border 1px var(--color-border), radius 4px */
+    /* DS: State=default → border 1px #DEE0EB, radius 4px */
     .card {
       background: var(--color-stone-0);
-      border: 1px solid var(--color-stone-400);  /* var(--color-border) */
+      border: 1px solid var(--color-stone-400);  /* #DEE0EB */
       border-radius: var(--radius-sm);            /* 4px */
       padding: var(--space-4);                    /* 16px */
       display: flex;
@@ -59,7 +59,7 @@ export type CardSelector = 'none' | 'checkbox' | 'radio';
       transition: border-color 0.15s, box-shadow 0.15s;
     }
 
-    /* DS: State=hover-active → border 1px var(--color-interactive-primary) */
+    /* DS: State=hover-active → border 1px #2C9C74 */
     .card--hoverable:hover {
       border-color: var(--color-primary-500);
       box-shadow: var(--shadow-card-hover);
@@ -69,7 +69,7 @@ export type CardSelector = 'none' | 'checkbox' | 'radio';
     }
     .card--no-padding { padding: 0; }
 
-    /* DS: Title → Label/Large 16px w600 var(--color-text-primary) */
+    /* DS: Title → Label/Large 16px w600 #1F2129 */
     .card__header {
       display: flex;
       align-items: center;
@@ -82,7 +82,7 @@ export type CardSelector = 'none' | 'checkbox' | 'radio';
       color: var(--color-text-primary);
       flex: 1;
     }
-    /* DS: Badge 12px w600 var(--color-interactive-primary) */
+    /* DS: Badge 12px w600 #2C9C74 */
     .card__badge {
       font-size: var(--text-caption2-size);
       font-weight: var(--text-caption2-weight);

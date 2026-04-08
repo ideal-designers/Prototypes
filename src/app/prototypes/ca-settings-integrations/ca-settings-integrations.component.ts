@@ -128,7 +128,7 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
               <span class="theme-toggle__label">{{ isDark ? 'Dark mode' : 'Light mode' }}</span>
             </button>
             <fvdr-icon name="help" class="header-icon"></fvdr-icon>
-            <fvdr-avatar initials="TN" size="lg" color="var(--color-selection-bg)" textColor="var(--color-text-primary)" />
+            <fvdr-avatar initials="TN" size="lg" color="#eceef9" textColor="#1f2129" />
           </div>
         </header>
 
@@ -401,21 +401,16 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
     </div>
   `,
   styles: [`
-    :host {
-      font-family: var(--font-family);
-      display: block;
-      --color-border: #DEE0EB;
-      --color-divider: #DEE0EB;
-    }
+    :host { font-family: var(--font-family); display: block; }
 
     /* ── Layout ── */
-    .page-layout { display: flex; height: 100vh; background: var(--color-bg-surface); overflow: hidden; }
+    .page-layout { display: flex; height: 100vh; background: #f7f7f7; overflow: hidden; }
 
     /* ── Sidebar ── */
     .sidebar {
       width: 280px; min-width: 280px;
-      background: var(--color-bg-surface);
-      border-right: 1px solid var(--color-border);
+      background: #f7f7f7;
+      border-right: 1px solid #dee0eb;
       display: flex; flex-direction: column;
       overflow: hidden;
       transition: width 0.22s ease, min-width 0.22s ease;
@@ -426,36 +421,36 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
     /* Account switcher — Figma: 64px h, pad L=16 R=16 T=12 B=12, itemSpacing=10 */
     .account-switcher {
       height: 64px; min-height: 64px;
-      background: var(--color-bg-surface);
-      border-bottom: 1px solid var(--color-border);
+      background: #f7f7f7;
+      border-bottom: 1px solid #dee0eb;
       display: flex; align-items: center;
       padding: 0 16px;
       gap: 10px;
       cursor: pointer;
       overflow: hidden;
     }
-    .account-switcher:hover { background: var(--color-hover-light); }
+    .account-switcher:hover { background: #efefef; }
     .account-logo {
       width: 40px; height: 40px; min-width: 40px;
       border-radius: 4px;
       flex-shrink: 0;
       display: flex;
     }
-    .account-name { font-size: var(--font-size-lg); font-weight: 600; color: var(--color-text-primary); flex: 1; white-space: nowrap; overflow: hidden; }
-    .account-chevron { flex-shrink: 0; font-size: var(--font-size-lg); color: var(--color-icon); }
+    .account-name { font-size: 16px; font-weight: 600; color: #1f2129; flex: 1; white-space: nowrap; overflow: hidden; }
+    .account-chevron { flex-shrink: 0; font-size: 16px; color: #5f616a; }
 
     /* Nav list */
-    .nav-list { display: flex; flex-direction: column; flex: 1; background: var(--color-bg-surface); overflow-y: auto; padding: 24px 0 8px; gap: 24px; }
+    .nav-list { display: flex; flex-direction: column; flex: 1; background: #f7f7f7; overflow-y: auto; padding: 24px 0 8px; gap: 24px; }
 
     /* Nav item — Figma: 280×32 (or 72×32 collapsed) */
     .nav-item {
       width: 100%;
       height: 32px; min-height: 32px;
       border: none; background: transparent;
-      color: var(--color-interactive-secondary);
+      color: #40424b;
       cursor: pointer;
       display: flex; align-items: center;
-      font-size: var(--font-size-lg); font-weight: 400;
+      font-size: 16px; font-weight: 400;
       font-family: var(--font-family);
       text-align: left;
       transition: background 0.12s;
@@ -466,9 +461,9 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
     .nav-item:hover { background: transparent; font-weight: 600; }
     .nav-item:hover .icon-default { display: none; }
     .nav-item:hover .icon-active  { display: inline-flex; }
-    .nav-item--active, .nav-item--open { color: var(--color-text-primary); font-weight: 600; }
-    .nav-item--active { background: var(--color-active-nav-bg); }
-    .nav-item--active:hover { background: var(--color-active-nav-bg); }
+    .nav-item--active, .nav-item--open { color: #1f2129; font-weight: 600; }
+    .nav-item--active { background: #f0faf5; }
+    .nav-item--active:hover { background: #f0faf5; }
     .nav-item--active .icon-default,
     .nav-item--open   .icon-default { display: none; }
     .nav-item--active .icon-active,
@@ -480,34 +475,34 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
       display: flex; align-items: center; justify-content: center;
       flex-shrink: 0;
     }
-    /* nav-icon: default state uses currentColor (var(--color-icon)), active icon has hardcoded 2-tone colors */
-    .nav-icon { display: flex; align-items: center; justify-content: center; color: var(--color-icon); font-size: 24px; }
+    /* nav-icon: default state uses currentColor (#5f616a), active icon has hardcoded 2-tone colors */
+    .nav-icon { display: flex; align-items: center; justify-content: center; color: #5f616a; font-size: 24px; }
 
     .nav-label { flex: 1; }
-    .nav-chevron { flex-shrink: 0; margin-right: 16px; transition: transform 0.2s; font-size: var(--font-size-lg); color: var(--color-icon); }
+    .nav-chevron { flex-shrink: 0; margin-right: 16px; transition: transform 0.2s; font-size: 16px; color: #5f616a; }
     .nav-chevron--up { transform: rotate(180deg); }
 
     /* Sub-items */
-    .nav-subitems { display: flex; flex-direction: column; background: var(--color-bg-surface); }
+    .nav-subitems { display: flex; flex-direction: column; background: #f7f7f7; }
     .nav-subitem {
       height: 32px;
       padding: 0 16px 0 72px;
       border: none; background: transparent; cursor: pointer;
-      font-size: var(--font-size-base); font-weight: 400; color: var(--color-text-primary);
+      font-size: 14px; font-weight: 400; color: #1f2129;
       font-family: var(--font-family);
       text-align: left;
       white-space: nowrap;
       transition: background 0.12s;
     }
     .nav-subitem:hover { background: transparent; font-weight: 600; }
-    .nav-subitem--active { font-weight: 600; color: var(--color-interactive-primary); background: transparent; }
+    .nav-subitem--active { font-weight: 600; color: #2c9c74; background: transparent; }
     .nav-subitem--active:hover { background: transparent; }
 
     /* Bottom logo + collapse — Figma: 72px h, pad L=24 R=16 */
     .sidebar-bottom {
       height: 72px; min-height: 72px;
-      background: var(--color-bg-surface);
-      border-top: 1px solid var(--color-border);
+      background: #f7f7f7;
+      border-top: 1px solid #dee0eb;
       display: flex; align-items: center;
       padding: 0 16px 0 24px;
       justify-content: space-between;
@@ -521,19 +516,19 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
       display: flex; align-items: center; justify-content: center;
       transition: background 0.12s;
       margin-left: auto;
-      font-size: var(--font-size-lg); color: var(--color-icon);
+      font-size: 16px; color: #5f616a;
     }
     .collapse-btn:hover { background: #e8e8e8; }
 
     /* ── Main ── */
     .main-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
 
-    /* ── Header — Figma: h=64, pad 12/24/12/24, border-bottom 1px var(--color-border) ── */
+    /* ── Header — Figma: h=64, pad 12/24/12/24, border-bottom 1px #dee0eb ── */
     .page-header {
       height: 64px; min-height: 64px;
       padding: 12px 24px;
-      border-bottom: 1px solid var(--color-border);
-      background: var(--color-bg-page);
+      border-bottom: 1px solid #dee0eb;
+      background: #ffffff;
       display: flex; align-items: center; justify-content: space-between;
     }
     /* Breadcrumb — Figma: gap 0 between items, each item has internal pad 8/8 */
@@ -543,14 +538,14 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
       padding: 8px 8px;
       background: none; border: none; cursor: pointer;
       font-family: var(--font-family);
-      font-size: var(--font-size-md); line-height: 20px;
+      font-size: 15px; line-height: 20px;
     }
-    .bc-item--link { font-weight: 600; color: var(--color-icon); }
-    .bc-item--link:hover { color: var(--color-interactive-primary); }
-    .bc-item--current { font-weight: 600; color: var(--color-text-primary); }
-    .bc-item--sub { font-size: var(--font-size-base); font-weight: 400; color: var(--color-text-subtle); cursor: default; }
+    .bc-item--link { font-weight: 600; color: #5f616a; }
+    .bc-item--link:hover { color: #2c9c74; }
+    .bc-item--current { font-weight: 600; color: #1f2129; }
+    .bc-item--sub { font-size: 14px; font-weight: 400; color: #9c9ea8; cursor: default; }
     .header-right { display: flex; align-items: center; gap: 24px; }
-    .header-icon { font-size: 24px; color: var(--color-icon); }
+    .header-icon { font-size: 24px; color: #5f616a; }
 
     /* Theme toggle */
     .theme-toggle {
@@ -559,16 +554,16 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
       gap: 2px;
       border: none; background: transparent; cursor: pointer; padding: 0;
     }
-    .theme-toggle__icon { font-size: 24px; color: var(--color-icon); }
+    .theme-toggle__icon { font-size: 24px; color: #5f616a; }
     .theme-toggle__label {
       position: absolute;
       top: calc(100% + 6px);
       left: 50%; transform: translateX(-50%);
-      background: var(--color-bg-page);
-      border: 1px solid var(--color-border);
+      background: #ffffff;
+      border: 1px solid #dee0eb;
       border-radius: 4px;
       padding: 4px 10px;
-      font-size: var(--font-size-xs); font-weight: 400; color: var(--color-text-primary);
+      font-size: 12px; font-weight: 400; color: #1f2129;
       white-space: nowrap;
       box-shadow: 0 2px 8px rgba(0,0,0,0.10);
       opacity: 0; pointer-events: none;
@@ -578,22 +573,22 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
     .theme-toggle:hover .theme-toggle__label { opacity: 1; }
 
     /* ── Content area — Figma: Midgard pad 24/24/24/24 ── */
-    .content-area { flex: 1; overflow-y: auto; padding: 24px; background: var(--color-bg-page); }
+    .content-area { flex: 1; overflow-y: auto; padding: 24px; background: #ffffff; }
 
-    /* ── Banners — Figma: Inline bg var(--color-bg-surface), pad 8/12, gap 8, r=4 ── */
+    /* ── Banners — Figma: Inline bg #f7f7f7, pad 8/12, gap 8, r=4 ── */
     .banners { display: flex; flex-direction: column; gap: 8px; margin: 20px 0 24px; }
     .banner {
       display: flex; align-items: flex-start; gap: 8px;
-      background: var(--color-bg-surface);
+      background: #f7f7f7;
       border-radius: 4px;
       padding: 8px 12px;
-      font-size: var(--font-size-md); color: var(--color-text-primary); line-height: 24px;
+      font-size: 15px; color: #1f2129; line-height: 24px;
     }
-    .banner-icon { font-size: var(--font-size-lg); flex-shrink: 0; margin-top: 3px; }
-    .info-link { color: var(--color-interactive-primary); text-decoration: none; }
+    .banner-icon { font-size: 16px; flex-shrink: 0; margin-top: 3px; }
+    .info-link { color: #2c9c74; text-decoration: none; }
     .info-link:hover { text-decoration: underline; }
-    .bc-chevron { font-size: var(--font-size-lg); }
-    .bc-chevron--dim { color: var(--color-border-input); }
+    .bc-chevron { font-size: 16px; }
+    .bc-chevron--dim { color: #bbbdc8; }
 
     /* ── Cards Grid — Figma: 3 cols, gap 24px ── */
     .cards-grid {
@@ -604,18 +599,18 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
     @media (max-width: 1100px) { .cards-grid { grid-template-columns: repeat(2, 1fr); } }
     @media (max-width: 740px)  { .cards-grid { grid-template-columns: 1fr; } }
 
-    /* ── Integration Card — Figma: bg #fff, border 1px var(--color-border), r=4, pad 24/0, gap 24, VERTICAL ── */
+    /* ── Integration Card — Figma: bg #fff, border 1px #dee0eb, r=4, pad 24/0, gap 24, VERTICAL ── */
     .int-card {
-      border: 1px solid var(--color-border);
+      border: 1px solid #dee0eb;
       border-radius: 4px;
-      background: var(--color-bg-page);
+      background: #ffffff;
       display: flex; flex-direction: column;
       gap: 24px;
       padding: 24px 0;
       transition: border-color 0.15s;
     }
-    .int-card:hover { border-color: var(--color-interactive-primary); }
-    .int-card--allowed { border-color: var(--color-interactive-primary); }
+    .int-card:hover { border-color: #2c9c74; }
+    .int-card--allowed { border-color: #2c9c74; }
 
     /* Card body — Figma: Frame 1000006716, pad 0/24, gap 12 VERTICAL */
     .int-card__body { padding: 0 24px; display: flex; flex-direction: column; gap: 12px; flex: 1; }
@@ -623,41 +618,41 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
     /* Head row — Figma: gap 12 HORIZONTAL */
     .int-card__head-row { display: flex; align-items: flex-start; gap: 12px; }
 
-    /* Logo — Figma: 40×40, border 1px var(--color-border), r=4, bg var(--color-bg-page) */
+    /* Logo — Figma: 40×40, border 1px #dee0eb, r=4, bg #ffffff */
     .int-logo {
       width: 40px; height: 40px; min-width: 40px;
-      border: 1px solid var(--color-border);
+      border: 1px solid #dee0eb;
       border-radius: 4px;
-      background: var(--color-bg-page);
+      background: #ffffff;
       display: flex; align-items: center; justify-content: center;
     }
-    .int-logo-initial { font-size: var(--font-size-lg); font-weight: 700; line-height: 1; }
+    .int-logo-initial { font-size: 16px; font-weight: 700; line-height: 1; }
 
     /* Meta */
     .int-meta { display: flex; flex-direction: column; gap: 0; }
-    .int-name { font-size: var(--font-size-lg); font-weight: 600; color: var(--color-text-primary); line-height: 24px; }
-    .int-domain { font-size: var(--font-size-xs); font-weight: 400; color: var(--color-icon); line-height: 16px; }
+    .int-name { font-size: 16px; font-weight: 600; color: #1f2129; line-height: 24px; }
+    .int-domain { font-size: 12px; font-weight: 400; color: #5f616a; line-height: 16px; }
 
     /* Desc block — Figma: Frame 1000006709, gap 16 VERTICAL */
     .int-card__desc-block { display: flex; flex-direction: column; gap: 16px; }
-    .int-desc { font-size: var(--font-size-base); font-weight: 400; color: var(--color-text-primary); line-height: 20px; margin: 0; }
+    .int-desc { font-size: 14px; font-weight: 400; color: #1f2129; line-height: 20px; margin: 0; }
 
     /* Feature order — Figma: "Order", VERTICAL gap 8 */
     .feature-order { display: flex; flex-direction: column; gap: 8px; }
     /* Feature row — HORIZONTAL gap 8 */
     .feature-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 
-    /* Badge — Figma: "Badge Locked", bg var(--color-feature-bg), pad 0/8, r=4, h=20, fs=12 var(--color-text-primary), icon 14×14 var(--color-interactive-primary) */
+    /* Badge — Figma: "Badge Locked", bg #ebf4fd, pad 0/8, r=4, h=20, fs=12 #1f2129, icon 14×14 #2c9c74 */
     .feature-badge {
       display: inline-flex; align-items: center; gap: 8px;
-      background: var(--color-feature-bg);
+      background: #ebf4fd;
       border-radius: 4px;
       padding: 0 8px;
       height: 20px;
-      font-size: var(--font-size-xs); font-weight: 400; color: var(--color-text-primary);
+      font-size: 12px; font-weight: 400; color: #1f2129;
       white-space: nowrap;
     }
-    .badge-icon { font-size: var(--font-size-base); flex-shrink: 0; color: var(--color-interactive-primary); }
+    .badge-icon { font-size: 14px; flex-shrink: 0; color: #2c9c74; }
 
     /* Card footer — Figma: Frame 37573, pad 0/24, gap 16 HORIZONTAL */
     .int-card__footer {
@@ -665,31 +660,31 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
       display: flex; align-items: center; gap: 16px;
     }
 
-    .btn-icon { font-size: var(--font-size-base); flex-shrink: 0; }
+    .btn-icon { font-size: 14px; flex-shrink: 0; }
 
     /* Forbid card button — red outline */
     .btn-card-forbid {
       display: inline-flex; align-items: center; gap: 6px;
       height: 36px; padding: 0 14px;
-      border: 1px solid var(--color-danger-border); border-radius: 4px;
-      background: var(--color-bg-page); cursor: pointer;
-      font-size: var(--font-size-base); color: var(--color-danger); font-family: var(--font-family);
+      border: 1px solid #ed7c6e; border-radius: 4px;
+      background: #ffffff; cursor: pointer;
+      font-size: 14px; color: #e54430; font-family: var(--font-family);
       transition: background 0.15s, border-color 0.15s;
       white-space: nowrap;
     }
-    .btn-card-forbid:hover { background: var(--color-danger-surface); border-color: var(--color-danger); }
+    .btn-card-forbid:hover { background: #fff5f4; border-color: #e54430; }
 
     /* Edit projects card button — gray outline */
     .btn-card-edit {
       display: inline-flex; align-items: center; gap: 6px;
       height: 36px; padding: 0 14px;
-      border: 1px solid var(--color-border-input); border-radius: 4px;
-      background: var(--color-bg-page); cursor: pointer;
-      font-size: var(--font-size-base); color: var(--color-interactive-secondary); font-family: var(--font-family);
+      border: 1px solid #bbbdc8; border-radius: 4px;
+      background: #ffffff; cursor: pointer;
+      font-size: 14px; color: #40424b; font-family: var(--font-family);
       transition: background 0.15s, border-color 0.15s;
       white-space: nowrap;
     }
-    .btn-card-edit:hover { background: var(--color-bg-surface); border-color: var(--color-icon); }
+    .btn-card-edit:hover { background: #f7f7f7; border-color: #5f616a; }
 
     /* ══════════════════════════════════════════
        MODAL
@@ -706,7 +701,7 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
     /* Figma: 512px wide, r=4 */
     .modal {
       width: 512px;
-      background: var(--color-bg-page);
+      background: #ffffff;
       border-radius: 4px;
       box-shadow: 0 8px 32px rgba(0,0,0,0.2);
       display: flex; flex-direction: column;
@@ -716,23 +711,23 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
     }
     @keyframes slideUp { from { transform: translateY(6px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-    /* Header — Figma: h=72, pad 24/24, border-bottom 1px var(--color-border) */
+    /* Header — Figma: h=72, pad 24/24, border-bottom 1px #dee0eb */
     .modal-header {
       display: flex; align-items: center; justify-content: space-between;
       padding: 0 24px;
       height: 72px; min-height: 72px;
-      border-bottom: 1px solid var(--color-border);
+      border-bottom: 1px solid #dee0eb;
       flex-shrink: 0;
     }
-    .modal-title { font-size: var(--font-size-lg); font-weight: 600; color: var(--color-text-primary); }
+    .modal-title { font-size: 16px; font-weight: 600; color: #1f2129; }
     .modal-close {
       width: 24px; height: 24px;
       border: none; background: transparent; cursor: pointer; padding: 0;
       display: flex; align-items: center; justify-content: center;
-      border-radius: 4px; color: var(--color-icon); font-size: var(--font-size-base);
+      border-radius: 4px; color: #5f616a; font-size: 14px;
       transition: background 0.15s;
     }
-    .modal-close:hover { background: var(--color-bg-surface); }
+    .modal-close:hover { background: #f7f7f7; }
 
     /* Body — Figma: Frame 576, pad right=24 bottom=8 left=24, gap=16 */
     .modal-body {
@@ -742,85 +737,85 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
       flex-shrink: 0;
     }
 
-    /* Info text — Figma: 16px fw=400 var(--color-text-primary) */
-    .modal-info-text { margin: 0; font-size: var(--font-size-lg); line-height: 24px; color: var(--color-text-primary); }
+    /* Info text — Figma: 16px fw=400 #1f2129 */
+    .modal-info-text { margin: 0; font-size: 16px; line-height: 24px; color: #1f2129; }
 
     /* Field wrapper */
     .field { display: flex; flex-direction: column; gap: 4px; }
     .trigger-wrapper { position: relative; }
-    .field-label { font-size: var(--font-size-md); font-weight: 600; color: var(--color-text-primary); line-height: 20px; }
-    .field-hint { font-size: var(--font-size-xs); color: var(--color-icon); line-height: 16px; }
-    .field-hint--error { color: var(--color-danger); }
+    .field-label { font-size: 15px; font-weight: 600; color: #1f2129; line-height: 20px; }
+    .field-hint { font-size: 12px; color: #5f616a; line-height: 16px; }
+    .field-hint--error { color: #e54430; }
 
-    /* Dropdown trigger — Figma: h=40, border 1px var(--color-border-input), r=4, pad 8/16, gap=8 */
+    /* Dropdown trigger — Figma: h=40, border 1px #bbbdc8, r=4, pad 8/16, gap=8 */
     .dropdown-trigger {
       height: 40px; padding: 8px 16px;
-      border: 1px solid var(--color-border-input);
+      border: 1px solid #bbbdc8;
       border-radius: 4px;
-      background: var(--color-bg-page);
+      background: #ffffff;
       display: flex; align-items: center; justify-content: space-between;
       cursor: pointer; gap: 8px;
       transition: border-color 0.15s;
-      font-size: var(--font-size-md); font-family: var(--font-family);
+      font-size: 15px; font-family: var(--font-family);
     }
-    .dropdown-trigger:hover:not(.dropdown-trigger--error) { border-color: var(--color-interactive-primary); }
-    .dropdown-trigger--open { border-color: var(--color-interactive-primary); }
-    .dropdown-trigger--error { border-color: var(--color-danger-border) !important; }
-    .trigger-placeholder { color: var(--color-text-subtle); flex: 1; }
-    .trigger-value { color: var(--color-text-primary); flex: 1; }
+    .dropdown-trigger:hover:not(.dropdown-trigger--error) { border-color: #2c9c74; }
+    .dropdown-trigger--open { border-color: #2c9c74; }
+    .dropdown-trigger--error { border-color: #ed7c6e !important; }
+    .trigger-placeholder { color: #9c9ea8; flex: 1; }
+    .trigger-value { color: #1f2129; flex: 1; }
     .trigger-icons { display: flex; align-items: center; gap: 8px; }
     .trigger-clear {
       width: 16px; height: 16px;
       border: none; background: transparent; cursor: pointer; padding: 0;
       display: flex; align-items: center; justify-content: center;
       border-radius: 2px;
-      color: var(--color-icon);
+      color: #5f616a;
     }
     .trigger-clear:hover { background: #f0f0f0; }
-    .trigger-chevron { flex-shrink: 0; transition: transform 0.2s; font-size: var(--font-size-lg); color: var(--color-icon); }
+    .trigger-chevron { flex-shrink: 0; transition: transform 0.2s; font-size: 16px; color: #5f616a; }
     .trigger-chevron.rotated { transform: rotate(180deg); }
-    .search-icon { font-size: var(--font-size-lg); color: var(--color-text-subtle); flex-shrink: 0; }
+    .search-icon { font-size: 16px; color: #9c9ea8; flex-shrink: 0; }
 
-    /* Droplist — Figma: position below trigger, border 1px var(--color-border) */
+    /* Droplist — Figma: position below trigger, border 1px #dee0eb */
     .droplist {
       position: absolute;
       top: calc(100% + 2px);
       left: 0;
       width: 100%;
-      background: var(--color-bg-page);
-      border: 1px solid var(--color-border);
+      background: #ffffff;
+      border: 1px solid #dee0eb;
       border-radius: 4px;
       box-shadow: 0 4px 16px rgba(0,0,0,0.12);
       z-index: 100;
       overflow: hidden;
     }
 
-    /* Search area — Figma: bg var(--color-bg-subtle), border-bottom 1px var(--color-border), pad 16, gap 16, h=72 */
+    /* Search area — Figma: bg #fbfbfb, border-bottom 1px #dee0eb, pad 16, gap 16, h=72 */
     .droplist-search {
       display: flex; align-items: center; gap: 16px;
       padding: 16px;
-      background: var(--color-bg-subtle);
-      border-bottom: 1px solid var(--color-border);
+      background: #fbfbfb;
+      border-bottom: 1px solid #dee0eb;
       height: 72px;
     }
     .search-field {
       flex: 1;
       display: flex; align-items: center; gap: 8px;
       height: 40px; padding: 8px 16px;
-      border: 1px solid var(--color-border-input);
+      border: 1px solid #bbbdc8;
       border-radius: 4px;
-      background: var(--color-bg-page);
+      background: #ffffff;
     }
     .search-input {
       flex: 1; border: none; outline: none; background: transparent;
-      font-size: var(--font-size-md); color: var(--color-text-primary); font-family: var(--font-family);
+      font-size: 15px; color: #1f2129; font-family: var(--font-family);
     }
-    .search-input::placeholder { color: var(--color-text-subtle); }
+    .search-input::placeholder { color: #9c9ea8; }
 
     /* List items */
     .droplist-body { max-height: 200px; overflow-y: auto; }
 
-    /* Select all row — Figma: pad 8/16, border-bottom 1px var(--color-border) */
+    /* Select all row — Figma: pad 8/16, border-bottom 1px #dee0eb */
     .tree-item {
       display: flex; align-items: center; gap: 16px;
       height: 40px; cursor: pointer;
@@ -828,78 +823,78 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
     }
     .tree-item--select-all {
       padding: 8px 16px;
-      border-bottom: 1px solid var(--color-border);
+      border-bottom: 1px solid #dee0eb;
     }
-    .tree-item--select-all:hover { background: var(--color-bg-surface); }
+    .tree-item--select-all:hover { background: #f7f7f7; }
 
-    /* Project rows — Figma: pad 8/32 (indented), bg var(--color-selected-row) when selected */
+    /* Project rows — Figma: pad 8/32 (indented), bg #ebf8ef when selected */
     .tree-item--project { padding: 8px 32px; }
-    .tree-item--project:hover { background: var(--color-bg-surface); }
-    .tree-item--selected { background: var(--color-selected-row); }
-    .tree-item--selected:hover { background: var(--color-selected-row-hover); }
+    .tree-item--project:hover { background: #f7f7f7; }
+    .tree-item--selected { background: #ebf8ef; }
+    .tree-item--selected:hover { background: #dff4e8; }
 
-    .tree-label { font-size: var(--font-size-base); color: var(--color-text-primary); }
-    .tree-empty { padding: 16px; font-size: var(--font-size-base); color: var(--color-text-subtle); text-align: center; }
+    .tree-label { font-size: 14px; color: #1f2129; }
+    .tree-empty { padding: 16px; font-size: 14px; color: #9c9ea8; text-align: center; }
 
     /* Checkbox row inside modal body */
     .modal-checkbox-row { display: flex; align-items: center; gap: 12px; padding: 8px 0 8px 0; }
-    .modal-checkbox-label { font-size: var(--font-size-md); color: var(--color-text-primary); line-height: 24px; }
+    .modal-checkbox-label { font-size: 15px; color: #1f2129; line-height: 24px; }
 
-    /* Info banner — Figma: bg var(--color-bg-surface), pad 8/12, r=4, gap=8 */
+    /* Info banner — Figma: bg #f7f7f7, pad 8/12, r=4, gap=8 */
     .modal-banner {
       display: flex; align-items: flex-start; gap: 8px;
-      background: var(--color-bg-surface); border-radius: 4px;
+      background: #f7f7f7; border-radius: 4px;
       padding: 8px 12px;
-      font-size: var(--font-size-md); color: var(--color-text-primary); line-height: 24px;
+      font-size: 15px; color: #1f2129; line-height: 24px;
     }
-    .modal-link { color: var(--color-interactive-primary); text-decoration: none; }
+    .modal-link { color: #2c9c74; text-decoration: none; }
     .modal-link:hover { text-decoration: underline; }
 
-    /* Footer — Figma: h=88, pad 24, border-top var(--color-border), HORIZONTAL space-between */
+    /* Footer — Figma: h=88, pad 24, border-top #dee0eb, HORIZONTAL space-between */
     .modal-footer {
       display: flex; align-items: center; justify-content: space-between;
       padding: 24px;
-      border-top: 1px solid var(--color-border);
+      border-top: 1px solid #dee0eb;
       min-height: 88px;
       flex-shrink: 0;
     }
     .modal-footer-right { display: flex; align-items: center; gap: 16px; margin-left: auto; }
 
-    /* Forbid button — Figma: trash icon var(--color-danger-border) + text "Delete report" var(--color-danger), 16px */
+    /* Forbid button — Figma: trash icon #ed7c6e + text "Delete report" #e54430, 16px */
     .btn-forbid {
       display: flex; align-items: center; gap: 8px;
       border: none; background: transparent; cursor: pointer; padding: 0;
-      font-size: var(--font-size-lg); color: var(--color-danger); font-family: var(--font-family);
+      font-size: 16px; color: #e54430; font-family: var(--font-family);
     }
     .btn-forbid:hover { opacity: 0.8; }
 
-    /* Cancel — Figma: bg #fff, border 1px var(--color-border-input), pad 16, r=4, text "Cancel" var(--color-interactive-secondary) 15px */
+    /* Cancel — Figma: bg #fff, border 1px #bbbdc8, pad 16, r=4, text "Cancel" #40424b 15px */
     .btn-cancel {
       height: 40px; padding: 0 16px;
-      border: 1px solid var(--color-border-input); border-radius: 4px;
-      background: var(--color-bg-page); cursor: pointer;
-      font-size: var(--font-size-md); color: var(--color-interactive-secondary); font-family: var(--font-family);
+      border: 1px solid #bbbdc8; border-radius: 4px;
+      background: #ffffff; cursor: pointer;
+      font-size: 15px; color: #40424b; font-family: var(--font-family);
       transition: border-color 0.15s;
     }
-    .btn-cancel:hover { border-color: var(--color-icon); }
+    .btn-cancel:hover { border-color: #5f616a; }
 
-    /* Confirm — Figma: bg var(--color-interactive-primary), pad 16, r=4, text "Confirm" #fff 15px */
+    /* Confirm — Figma: bg #2c9c74, pad 16, r=4, text "Confirm" #fff 15px */
     .btn-confirm {
       height: 40px; padding: 0 16px;
       border: none; border-radius: 4px;
-      background: var(--color-interactive-primary); cursor: pointer;
-      font-size: var(--font-size-md); color: var(--color-bg-page); font-family: var(--font-family);
+      background: #2c9c74; cursor: pointer;
+      font-size: 15px; color: #ffffff; font-family: var(--font-family);
       transition: background 0.15s;
     }
-    .btn-confirm:hover:not(.btn-confirm--disabled) { background: var(--color-interactive-hover); }
-    .btn-confirm--disabled { background: var(--color-border-input); cursor: not-allowed; }
+    .btn-confirm:hover:not(.btn-confirm--disabled) { background: #268a65; }
+    .btn-confirm--disabled { background: #bbbdc8; cursor: not-allowed; }
 
     /* ── Toast — top-right, slide in from right ── */
     .toast {
       position: fixed; top: 24px; right: 24px;
       transform: translateY(-120%);
       width: 360px; min-height: 56px;
-      background: var(--color-bg-subtle);
+      background: #fbfbfb;
       border-radius: 4px;
       box-shadow: 0 4px 16px rgba(0,0,0,0.14);
       display: flex; align-items: stretch;
@@ -908,49 +903,49 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
       opacity: 0; z-index: 2000; pointer-events: none;
     }
     .toast--visible { transform: translateY(0); opacity: 1; pointer-events: auto; }
-    .toast-bar { width: 4px; flex-shrink: 0; background: var(--color-interactive-primary); }
-    .toast--error .toast-bar { background: var(--color-danger); }
+    .toast-bar { width: 4px; flex-shrink: 0; background: #2c9c74; }
+    .toast--error .toast-bar { background: #e54430; }
     .toast-content {
       display: flex; align-items: center; gap: 12px;
       padding: 12px 16px;
-      font-size: var(--font-size-base); color: var(--color-text-primary); flex: 1;
+      font-size: 14px; color: #1f2129; flex: 1;
     }
-    .toast-icon { font-size: var(--font-size-2xl); flex-shrink: 0; }
-    .toast-icon--success { color: var(--color-interactive-primary); }
-    .toast-icon--error   { color: var(--color-danger); }
+    .toast-icon { font-size: 20px; flex-shrink: 0; }
+    .toast-icon--success { color: #2c9c74; }
+    .toast-icon--error   { color: #e54430; }
 
     /* ── Forbid confirmation modal ── */
     .modal--forbid { width: 480px; }
     .forbid-body { display: flex; flex-direction: column; gap: 12px; }
-    .forbid-title { margin: 0; font-size: var(--font-size-lg); font-weight: 400; color: var(--color-text-primary); line-height: 24px; }
-    .forbid-text { margin: 0; font-size: var(--font-size-md); font-weight: 400; color: var(--color-text-primary); line-height: 22px; }
+    .forbid-title { margin: 0; font-size: 16px; font-weight: 400; color: #1f2129; line-height: 24px; }
+    .forbid-text { margin: 0; font-size: 15px; font-weight: 400; color: #1f2129; line-height: 22px; }
 
     /* Forbid confirm button — red solid */
     .btn-forbid-confirm {
       height: 40px; padding: 0 16px;
       border: none; border-radius: 4px;
-      background: var(--color-danger); cursor: pointer;
-      font-size: var(--font-size-md); color: var(--color-bg-page); font-family: var(--font-family);
+      background: #e54430; cursor: pointer;
+      font-size: 15px; color: #ffffff; font-family: var(--font-family);
       transition: background 0.15s;
     }
-    .btn-forbid-confirm:hover { background: var(--color-danger-hover); }
+    .btn-forbid-confirm:hover { background: #cc3926; }
 
     /* ══════════════════════════════════════════
        DARK THEME OVERRIDES
     ══════════════════════════════════════════ */
-    .dark-theme.page-layout { background: #1F2129; }
+    .dark-theme.page-layout { background: #1f2129; }
 
     .dark-theme .sidebar { background: #212426; border-right-color: #33383b; }
     .dark-theme .account-switcher { background: #212426; border-bottom-color: #33383b; }
     .dark-theme .account-switcher:hover { background: #2d3235; }
-    .dark-theme .account-name { color: var(--color-bg-page); }
+    .dark-theme .account-name { color: #ffffff; }
     .dark-theme .account-chevron { color: #8b949a; }
 
     .dark-theme .nav-list { background: #212426; }
     .dark-theme .nav-item { color: #b5bbbf; }
     .dark-theme .nav-item:hover { background: transparent; }
     .dark-theme .nav-item--active,
-    .dark-theme .nav-item--open { color: var(--color-bg-page); }
+    .dark-theme .nav-item--open { color: #ffffff; }
     .dark-theme .nav-item--active { background: #1e3028; }
     .dark-theme .nav-item--active:hover { background: #1e3028; }
     .dark-theme .nav-icon { color: #8b949a; }
@@ -958,7 +953,7 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
     .dark-theme .nav-subitems { background: #212426; }
     .dark-theme .nav-subitem { color: #b5bbbf; }
     .dark-theme .nav-subitem:hover { background: transparent; }
-    .dark-theme .nav-subitem--active { color: var(--color-interactive-primary); background: transparent; }
+    .dark-theme .nav-subitem--active { color: #2c9c74; background: transparent; }
     .dark-theme .nav-subitem--active:hover { background: transparent; }
 
     .dark-theme .sidebar-bottom { background: #212426; border-top-color: #33383b; }
@@ -967,19 +962,19 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
 
     .dark-theme .page-header { background: #212426; border-bottom-color: #33383b; }
     .dark-theme .bc-item--link { color: #8b949a; }
-    .dark-theme .bc-item--current { color: var(--color-bg-page); }
+    .dark-theme .bc-item--current { color: #ffffff; }
     .dark-theme .bc-chevron--dim { color: #50575c; }
     .dark-theme .header-icon { color: #8b949a; }
     .dark-theme .theme-toggle__icon { color: #8b949a; }
-    .dark-theme .theme-toggle__label { background: #292d2f; border-color: #33383b; color: var(--color-bg-page); }
+    .dark-theme .theme-toggle__label { background: #292d2f; border-color: #33383b; color: #ffffff; }
 
-    .dark-theme .content-area { background: #1F2129; }
+    .dark-theme .content-area { background: #1f2129; }
     .dark-theme .banner { background: #292d2f; color: #b5bbbf; }
 
     .dark-theme .int-card { background: #292d2f; border-color: #33383b; }
-    .dark-theme .int-card:hover { border-color: var(--color-interactive-primary); }
+    .dark-theme .int-card:hover { border-color: #2c9c74; }
     .dark-theme .int-logo { background: #33383b; border-color: #40464a; }
-    .dark-theme .int-name { color: var(--color-bg-page); }
+    .dark-theme .int-name { color: #ffffff; }
     .dark-theme .int-domain { color: #8b949a; }
     .dark-theme .int-desc { color: #b5bbbf; }
     .dark-theme .feature-badge { background: #1e2d3f; color: #b5bbbf; }
@@ -991,15 +986,15 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
 
     .dark-theme .modal { background: #292d2f; }
     .dark-theme .modal-header { border-bottom-color: #33383b; }
-    .dark-theme .modal-title { color: var(--color-bg-page); }
+    .dark-theme .modal-title { color: #ffffff; }
     .dark-theme .modal-close { color: #8b949a; }
     .dark-theme .modal-close:hover { background: #33383b; }
     .dark-theme .modal-info-text { color: #b5bbbf; }
-    .dark-theme .field-label { color: var(--color-bg-page); }
+    .dark-theme .field-label { color: #ffffff; }
     .dark-theme .field-hint { color: #8b949a; }
     .dark-theme .dropdown-trigger { background: #33383b; border-color: #50575c; color: #b5bbbf; }
     .dark-theme .trigger-placeholder { color: #6f7980; }
-    .dark-theme .trigger-value { color: var(--color-bg-page); }
+    .dark-theme .trigger-value { color: #ffffff; }
     .dark-theme .trigger-chevron { color: #8b949a; }
     .dark-theme .droplist { background: #292d2f; border-color: #33383b; }
   `],

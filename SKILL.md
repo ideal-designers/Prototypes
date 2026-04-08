@@ -559,71 +559,12 @@ export class MyPrototypeComponent implements OnInit, OnDestroy {
 
 ## Темна тема
 
-Додай клас `.dark-theme` до кореневого елементу компонента (`.page-layout`). Глобальний `styles.css` використовує темну тему для всього застосунку, але токени прототипів визначаються на рівні `:host`.
+Додай клас `.dark-theme` до `<html>` або кореневого елементу. Токени переопределяться автоматично.
 
 ```typescript
 // Перемикання теми:
-isDark = false;
-toggleTheme() { this.isDark = !this.isDark; }
+document.documentElement.classList.toggle('dark-theme');
 ```
-
-```html
-<div class="page-layout" [class.dark-theme]="isDark">...</div>
-```
-
-### Принцип інверсії Stone-шкали
-
-У темній темі **stone-шкала повністю інвертується** (0↔1000):
-
-| Токен | Light | Dark |
-|-------|-------|------|
-| `stone-0` / page bg | `#FFFFFF` | `#1F2129` |
-| `stone-100` / sidebar | `#FBFBFB` | `#212426` |
-| `stone-200` / cards, modals | `#F7F7F7` | `#292D2F` |
-| `stone-300` / borders dark | `#ECEEF9` | `#33383B` |
-| `stone-400` / dividers dark | `#DEE0EB` | `#40464A` |
-| `stone-500` | `#BBBDC8` | `#50575C` |
-| `stone-600` | `#9C9EA8` | `#6F7980` |
-| `stone-700` / icon muted | `#73757F` | `#8B949A` |
-| `stone-800` / secondary text dark | `#5F616A` | `#A2A9AF` |
-| `stone-900` / secondary text | `#40424B` | `#B5BBBF` |
-| `stone-1000` / primary text | `#1F2129` | `#FFFFFF` |
-
-### Dark theme — CSS-класи для прототипів
-
-```css
-/* Завжди в компоненті через explicit hex (styles.css перебиває var()) */
-.dark-theme.page-layout   { background: #1F2129; }          /* stone-0 dark */
-.dark-theme .content-area { background: #1F2129; }          /* stone-0 dark */
-.dark-theme .sidebar       { background: #212426; border-right-color: #33383B; }
-.dark-theme .page-header   { background: #212426; border-bottom-color: #33383B; }
-.dark-theme .sidebar-bottom { background: #212426; border-top-color: #33383B; }
-.dark-theme .card          { background: #292D2F; border-color: #33383B; }
-.dark-theme .modal         { background: #292D2F; }
-.dark-theme .modal-header  { border-bottom-color: #33383B; }
-
-/* Текст */
-.dark-theme .title         { color: #FFFFFF; }               /* stone-1000 dark */
-.dark-theme .secondary     { color: #A2A9AF; }               /* stone-800 dark */
-.dark-theme .muted         { color: #8B949A; }               /* stone-700 dark */
-
-/* Dividers */
-.dark-theme .divider       { border-color: #33383B; }        /* stone-300 dark */
-
-/* Inputs/controls */
-.dark-theme .input         { background: #33383B; border-color: #50575C; color: #B5BBBF; }
-```
-
-### Важливо: `styles.css` override
-
-`styles.css` задає глобально `--color-border: #1e2e28`. Тому в кожному прототипі **обов'язково** перевизначай у `:host`:
-```css
-:host {
-  --color-border: #DEE0EB;   /* light mode divider */
-  --color-divider: #DEE0EB;
-}
-```
-В `.dark-theme` блоках використовуй **явні hex** (`#33383B`), а не `var()`.
 
 ---
 

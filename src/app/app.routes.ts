@@ -43,10 +43,17 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./prototypes/project-archive-creation-flow-testing/project-archive-creation-flow-testing.component').then(m => m.ProjectArchiveCreationFlowTestingComponent),
   },
-    {
-    path: 'my-prototype-delete-account',
+  {
+    path: 'insights-activity-log',
+    canActivate: [authGuard],
     loadComponent: () =>
-      import('./prototypes/my-prototype-delete-account/my-prototype-delete-account.component').then(m => m.MyPrototypeDeleteAccountComponent),
+      import('./prototypes/insights-activity-log/insights-activity-log.component').then(m => m.InsightsActivityLogComponent),
+  },
+  {
+    path: 'ca-create-api-key',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./prototypes/ca-create-api-key/ca-create-api-key.component').then(m => m.CaCreateApiKeyComponent),
   },
   // PROTO_ROUTES_PLACEHOLDER
   {

@@ -1,9 +1,7 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, HostBinding } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FvdrIconComponent } from '../../icons/icon.component';
-import { FvdrIconName } from '../../icons/icons';
 
-export type ButtonType = 'primary' | 'secondary' | 'ghost' | 'danger' | 'link';
+export type ButtonType = 'primary' | 'secondary' | 'ghost' | 'danger';
 export type ButtonSize = 's' | 'm' | 'l';
 
 /**
@@ -11,10 +9,9 @@ export type ButtonSize = 's' | 'm' | 'l';
  *
  * Variants:
  *   Type=Primary   → bg #2C9C74, hover #1C8269, active #12695C
- *   Type=Secondary → bg white, border #BBBDC8 (stone-500), text #40424B (stone-900), hover bg #F7F7F7
+ *   Type=Secondary → border #2C9C74, text #2C9C74, bg transparent
  *   Type=Ghost     → no border, text #5F616A
  *   Type=Danger    → bg #E54430, hover #C62C19
- *   Type=Link      → no border/bg, primary green text
  *
  * Sizes (DS):
  *   S → h=32px, text 14px
@@ -31,7 +28,7 @@ export type ButtonSize = 's' | 'm' | 'l';
 @Component({
   selector: 'fvdr-btn',
   standalone: true,
-  imports: [CommonModule, FvdrIconComponent],
+  imports: [CommonModule],
   template: `
     <button
       class="btn btn--{{ variant }} btn--{{ size }}"
@@ -40,7 +37,7 @@ export type ButtonSize = 's' | 'm' | 'l';
       (click)="!disabled && !loading && clicked.emit($event)"
     >
       <span *ngIf="loading" class="btn__spinner"></span>
-      <fvdr-icon *ngIf="icon && !loading" [name]="icon" class="btn__icon"></fvdr-icon>
+      <svg *ngIf="icon && !loading" class="btn__icon" [innerHTML]="icon" width="16" height="16" viewBox="0 0 16 16"></svg>
       <span class="btn__label">{{ label }}</span>
     </button>
   `,
@@ -85,36 +82,19 @@ export type ButtonSize = 's' | 'm' | 'l';
     }
 
     /* ── Type: Secondary ── */
-    /* Figma: white bg, stone-500 border (#bbbdc8), stone-900 text (#40424b) */
     .btn--secondary {
-      background: var(--color-stone-0);
-      border-color: var(--color-stone-500);
-      color: var(--color-stone-900);
+      background: transparent;
+      border-color: var(--color-primary-500);
+      color: var(--color-primary-500);
     }
     .btn--secondary:hover:not(:disabled) {
-      background: var(--color-stone-200);
-      border-color: var(--color-stone-500);
-      color: var(--color-stone-900);
+      background: var(--color-primary-50);
+      border-color: var(--color-primary-600);
+      color: var(--color-primary-600);
     }
     .btn--secondary:active:not(:disabled) {
-      background: var(--color-stone-300);
-      border-color: var(--color-stone-500);
-      color: var(--color-stone-900);
-    }
-
-    /* ── Type: Link ── */
-    .btn--link {
-      background: transparent;
-      border-color: transparent;
-      color: var(--color-primary-500);
-      padding: 0;
-    }
-    .btn--link:hover:not(:disabled) {
-      color: var(--color-primary-600);
-      background: transparent;
-      border-color: transparent;
-    }
-    .btn--link:active:not(:disabled) {
+      background: #d4f0e3;
+      border-color: var(--color-primary-700);
       color: var(--color-primary-700);
     }
 
@@ -151,7 +131,7 @@ export type ButtonSize = 's' | 'm' | 'l';
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    .btn__icon { flex-shrink: 0; font-size: 16px; }
+    .btn__icon { flex-shrink: 0; }
     .btn__label { line-height: 1; }
   `],
 })
@@ -161,7 +141,7 @@ export class ButtonComponent {
   @Input() size: ButtonSize = 'm';
   @Input() disabled = false;
   @Input() loading = false;
-  @Input() icon?: FvdrIconName;
+  @Input() icon?: string;
   @Input() dataTrack?: string;
   @Output() clicked = new EventEmitter<MouseEvent>();
 }

@@ -1,0 +1,10 @@
+wing: fp
+rooms:
+- name: src
+  description: Files from src/
+- name: supabase
+  description: Files from supabase/
+- name: scripts
+  description: Files from scripts/
+- name: general
+  description: Files that don't fit other rooms

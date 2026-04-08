@@ -78,14 +78,6 @@ export class PrototypeService {
       hasComponent: this.localSlugs.has(row.slug),
     }));
 
-    // Auto-promote: if component now exists but Supabase status is still 'pending', bump to 'wip'
-    for (const entry of supabaseEntries) {
-      if (entry.status === 'pending' && entry.hasComponent) {
-        entry.status = 'wip';
-        this.supabase!.from('prototypes').update({ status: 'wip' }).eq('slug', entry.slug);
-      }
-    }
-
     // Append local-only entries not yet in Supabase
     const supabaseSlugs = new Set(supabaseEntries.map(p => p.slug));
     const localOnly: PrototypeDef[] = PROTO_REGISTRY

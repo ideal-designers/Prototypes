@@ -65,7 +65,7 @@ export interface TabItem {
       font-size: var(--text-base-l-size);   /* 16px */
       font-weight: var(--text-base-l-weight); /* 400 */
       line-height: var(--text-base-l-lh);
-      color: var(--color-text-secondary);   /* var(--color-icon) */
+      color: var(--color-text-secondary);   /* #5F616A */
       cursor: pointer;
       display: flex;
       align-items: center;
@@ -83,13 +83,13 @@ export interface TabItem {
 
     /* DS: Selection states=selected */
     .tab-item.active {
-      background: var(--color-primary-50);        /* var(--color-selected-row) */
+      background: var(--color-primary-50);        /* #EBF8EF */
       color: var(--color-text-primary);           /* #1F2129 */
-      border-bottom-color: var(--color-primary-500); /* 2px var(--color-interactive-primary) */
+      border-bottom-color: var(--color-primary-500); /* 2px #2C9C74 */
     }
     .tab-item:hover:not(.active):not(:disabled) {
       color: var(--color-text-primary);
-      background: var(--color-hover-bg);  /* var(--color-selection-bg) per Figma */
+      background: var(--color-hover-bg);  /* #eceef9 per Figma */
     }
 
     .tab-counter {
@@ -107,7 +107,7 @@ export interface TabItem {
     }
     .tab-item.active .tab-counter {
       background: var(--color-primary-500);
-      color: var(--color-text-inverse);
+      color: #fff;
     }
   `],
 })

@@ -66,7 +66,7 @@ import { AuthService } from '../../services/auth.service';
       font-size: 0.7rem;
       font-weight: 700;
       letter-spacing: 0.2em;
-      color: var(--color-interactive-primary);
+      color: #2C9C74;
       background: rgba(44,156,116,.12);
       border: 1px solid rgba(44,156,116,.25);
       border-radius: 6px;
@@ -107,19 +107,19 @@ import { AuthService } from '../../services/auth.service';
       text-align: center;
       letter-spacing: 0.15em;
     }
-    .input:focus { border-color: var(--color-interactive-primary); }
+    .input:focus { border-color: #2C9C74; }
     .input::placeholder { letter-spacing: 0; color: #3a5a50; }
-    .input--error { border-color: var(--color-danger); }
+    .input--error { border-color: #e54430; }
 
     .error {
       font-size: 0.8rem;
-      color: var(--color-danger);
+      color: #e54430;
       margin: 0;
     }
 
     .btn {
       height: 44px;
-      background: var(--color-interactive-primary);
+      background: #2C9C74;
       color: #fff;
       border: none;
       border-radius: 8px;
