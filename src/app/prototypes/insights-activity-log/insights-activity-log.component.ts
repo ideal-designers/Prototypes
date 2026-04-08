@@ -171,8 +171,8 @@ interface NavItem {
               ></fvdr-dropdown>
             </div>
             <div class="filter-bar-right">
-              <fvdr-btn label="Export" variant="secondary" size="m" icon="download"></fvdr-btn>
-              <fvdr-btn label="Subscribe" variant="secondary" size="m" icon="bell"></fvdr-btn>
+              <fvdr-btn label="Export" variant="secondary" size="m" iconName="download"></fvdr-btn>
+              <fvdr-btn label="Subscribe" variant="secondary" size="m" iconName="bell"></fvdr-btn>
             </div>
           </div>
 

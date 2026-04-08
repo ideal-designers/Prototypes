@@ -1,5 +1,7 @@
 import { Component, Input, Output, EventEmitter, HostBinding } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FvdrIconComponent } from '../../icons/icon.component';
+import type { FvdrIconName } from '../../icons/icons';
 
 export type ButtonType = 'primary' | 'secondary' | 'ghost' | 'danger';
 export type ButtonSize = 's' | 'm' | 'l';
@@ -28,7 +30,7 @@ export type ButtonSize = 's' | 'm' | 'l';
 @Component({
   selector: 'fvdr-btn',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FvdrIconComponent],
   template: `
     <button
       class="btn btn--{{ variant }} btn--{{ size }}"
@@ -37,7 +39,10 @@ export type ButtonSize = 's' | 'm' | 'l';
       (click)="!disabled && !loading && clicked.emit($event)"
     >
       <span *ngIf="loading" class="btn__spinner"></span>
-      <svg *ngIf="icon && !loading" class="btn__icon" [innerHTML]="icon" width="16" height="16" viewBox="0 0 16 16"></svg>
+      <!-- iconName: FvdrIconName (preferred) -->
+      <fvdr-icon *ngIf="iconName && !loading" [name]="iconName" class="btn__icon-ds"></fvdr-icon>
+      <!-- icon: raw SVG innerHTML (legacy) -->
+      <svg *ngIf="icon && !iconName && !loading" class="btn__icon" [innerHTML]="icon" width="16" height="16" viewBox="0 0 16 16"></svg>
       <span class="btn__label">{{ label }}</span>
     </button>
   `,
@@ -132,6 +137,7 @@ export type ButtonSize = 's' | 'm' | 'l';
     @keyframes spin { to { transform: rotate(360deg); } }
 
     .btn__icon { flex-shrink: 0; }
+    .btn__icon-ds { flex-shrink: 0; font-size: 16px; }
     .btn__label { line-height: 1; }
   `],
 })
@@ -141,7 +147,8 @@ export class ButtonComponent {
   @Input() size: ButtonSize = 'm';
   @Input() disabled = false;
   @Input() loading = false;
-  @Input() icon?: string;
+  @Input() icon?: string;           // legacy: raw SVG string
+  @Input() iconName?: FvdrIconName; // preferred: DS icon name
   @Input() dataTrack?: string;
   @Output() clicked = new EventEmitter<MouseEvent>();
 }
