@@ -201,7 +201,7 @@ interface CreateKeyForm {
         <!-- Modal header -->
         <div class="modal-header">
           <span class="modal-title">
-            {{ currentStep === 'success' ? 'API key created' : 'Create API key' }}
+            {{ currentStep === 'success' ? 'API key' : 'Create API key' }}
           </span>
           <button class="modal-close" (click)="closeModal()" data-track="modal-close">
             <fvdr-icon name="cancel"></fvdr-icon>
@@ -236,32 +236,29 @@ interface CreateKeyForm {
 
         <!-- ── Success ── -->
         <div class="modal-body modal-body--success" *ngIf="currentStep === 'success'">
-          <div class="success-icon">
-            <fvdr-icon name="check" class="success-check"></fvdr-icon>
+          <div class="success-banner">
+            <fvdr-icon name="check" class="success-banner__icon"></fvdr-icon>
+            <span>Secret key created</span>
           </div>
-          <h3 class="success-title">{{ form.name }} created</h3>
-          <p class="success-desc">Copy your API key now. For security reasons, it won't be shown again.</p>
+          <p class="success-desc">Make sure you save or copy this secret key for your API setup</p>
 
-          <div class="key-display">
-            <div class="key-display__label">Your API key</div>
-            <div class="key-display__row">
-              <span class="key-display__value">{{ generatedKey }}</span>
-              <button class="copy-btn" (click)="copyKey()" [class.copy-btn--copied]="keyCopied" data-track="copy-generated-key">
-                <fvdr-icon [name]="keyCopied ? 'check' : 'link'"></fvdr-icon>
-                <span>{{ keyCopied ? 'Copied!' : 'Copy' }}</span>
-              </button>
+          <div class="key-card">
+            <div class="key-card__row">
+              <div class="key-card__label">Name</div>
+              <div class="key-card__value">{{ form.name }}</div>
             </div>
-          </div>
-
-          <fvdr-info-banner
-            variant="warning"
-            message="Store this key securely. It won't be displayed again and cannot be recovered."
-          />
-
-          <div class="success-meta">
-            <div class="success-meta__row">
-              <fvdr-icon name="calendar" class="meta-icon"></fvdr-icon>
-              <span>Expires: <strong>{{ expirationLabel }}</strong></span>
+            <div class="key-card__row">
+              <div class="key-card__label">Secret key</div>
+              <div class="key-card__value key-card__value--key">
+                <span class="key-card__key-text">{{ generatedKey }}</span>
+                <button class="key-copy-btn" (click)="copyKey()" [class.key-copy-btn--copied]="keyCopied" data-track="copy-generated-key">
+                  <fvdr-icon [name]="keyCopied ? 'check' : 'link'"></fvdr-icon>
+                </button>
+              </div>
+            </div>
+            <div class="key-card__row key-card__row--last">
+              <div class="key-card__label">Expires on</div>
+              <div class="key-card__value">{{ expirationDateOnly }}</div>
             </div>
           </div>
         </div>
@@ -276,7 +273,7 @@ interface CreateKeyForm {
           </ng-container>
           <ng-container *ngIf="currentStep === 'success'">
             <div class="footer-right">
-              <fvdr-btn label="Done" variant="primary" size="m" (clicked)="closeModal()" data-track="modal-done" />
+              <fvdr-btn label="Download" variant="primary" size="m" icon="download" (clicked)="downloadKey()" data-track="modal-download" />
             </div>
           </ng-container>
         </div>
@@ -533,15 +530,14 @@ interface CreateKeyForm {
       font-weight: 600;
       color: var(--color-text-secondary);
       background: var(--color-stone-100);
-      border-bottom: 1px solid var(--color-divider);
       white-space: nowrap;
+      border: none;
     }
     .keys-table td {
       padding: var(--space-3) var(--space-4);
-      border-bottom: 1px solid var(--color-divider);
       vertical-align: middle;
+      border: none;
     }
-    .keys-table__row:last-child td { border-bottom: none; }
     .keys-table__row:nth-child(even) td { background: var(--color-stone-100); }
     .keys-table__row:nth-child(odd) td { background: var(--color-stone-0); }
 
@@ -599,7 +595,6 @@ interface CreateKeyForm {
     .modal-header {
       display: flex; align-items: center; justify-content: space-between;
       padding: var(--space-5) var(--space-6);
-      border-bottom: 1px solid var(--color-divider);
       flex-shrink: 0;
     }
     .modal-title { font-size: 18px; font-weight: 600; color: var(--color-text-primary); }
@@ -715,68 +710,43 @@ interface CreateKeyForm {
     .review-value--muted { font-weight: 400; color: var(--color-text-secondary); }
 
     /* Success */
-    .modal-body--success { align-items: center; text-align: center; }
-    .success-icon {
-      width: 56px; height: 56px;
+    .modal-body--success { gap: var(--space-4); }
+    .success-banner {
+      display: flex; align-items: center; gap: var(--space-2);
+      padding: var(--space-3) var(--space-4);
       background: var(--color-primary-50);
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      margin-bottom: var(--space-1);
+      border-radius: var(--radius-md);
+      color: var(--color-primary-600);
+      font-size: 14px; font-weight: 500;
+      width: 100%;
     }
-    .success-check { font-size: 24px; color: var(--color-primary-500); }
-    .success-title { font-size: 18px; font-weight: 600; margin: 0 0 var(--space-1); }
+    .success-banner__icon { color: var(--color-primary-500); font-size: 16px; }
     .success-desc { font-size: 14px; color: var(--color-text-secondary); margin: 0; }
 
-    .key-display {
+    .key-card {
       width: 100%;
       background: var(--color-stone-100);
-      border: 1px solid var(--color-divider);
       border-radius: var(--radius-md);
-      padding: var(--space-4);
-      text-align: left;
+      overflow: hidden;
     }
-    .key-display__label { font-size: 12px; font-weight: 600; color: var(--color-text-secondary); margin-bottom: var(--space-2); }
-    .key-display__row { display: flex; align-items: center; gap: var(--space-3); }
-    .key-display__value {
-      flex: 1;
-      font-family: monospace;
-      font-size: 13px;
-      color: var(--color-text-primary);
-      word-break: break-all;
-      background: var(--color-stone-0);
-      border: 1px solid var(--color-divider);
-      border-radius: var(--radius-sm);
-      padding: var(--space-2) var(--space-3);
+    .key-card__row {
+      padding: var(--space-3) var(--space-4);
     }
-    .copy-btn {
-      display: flex; align-items: center; gap: var(--space-1);
-      height: 36px; padding: 0 var(--space-3);
-      background: var(--color-stone-0);
-      border: 1px solid var(--color-divider);
+    .key-card__label { font-size: 13px; font-weight: 600; color: var(--color-text-primary); margin-bottom: var(--space-1); }
+    .key-card__value { font-size: 14px; color: var(--color-text-secondary); }
+    .key-card__value--key { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); }
+    .key-card__key-text { font-family: monospace; font-size: 13px; word-break: break-all; }
+    .key-copy-btn {
+      display: flex; align-items: center; justify-content: center;
+      width: 32px; height: 32px; flex-shrink: 0;
+      background: none; border: none; cursor: pointer;
       border-radius: var(--radius-sm);
-      cursor: pointer;
-      font-size: 13px;
-      font-family: var(--font-family);
-      color: var(--color-text-primary);
-      white-space: nowrap;
-      flex-shrink: 0;
+      color: var(--color-text-secondary);
+      font-size: 16px;
       transition: all 0.15s;
     }
-    .copy-btn:hover { border-color: var(--color-primary-500); color: var(--color-primary-500); }
-    .copy-btn--copied { border-color: var(--color-primary-500); color: var(--color-primary-500); background: var(--color-primary-50); }
-
-    .success-meta {
-      display: flex;
-      gap: var(--space-6);
-      background: var(--color-stone-100);
-      border: 1px solid var(--color-divider);
-      border-radius: var(--radius-md);
-      padding: var(--space-3) var(--space-4);
-      width: 100%;
-      justify-content: center;
-    }
-    .success-meta__row { display: flex; align-items: center; gap: var(--space-2); font-size: 13px; color: var(--color-text-secondary); }
-    .meta-icon { font-size: 14px; }
+    .key-copy-btn:hover { background: var(--color-hover-bg); color: var(--color-text-primary); }
+    .key-copy-btn--copied { color: var(--color-primary-500); }
 
     /* Modal footer */
     .modal-footer {
@@ -784,7 +754,6 @@ interface CreateKeyForm {
       align-items: center;
       justify-content: space-between;
       padding: var(--space-4) var(--space-6);
-      border-top: 1px solid var(--color-divider);
       flex-shrink: 0;
     }
     .footer-right { display: flex; gap: var(--space-3); margin-left: auto; }
@@ -800,18 +769,12 @@ interface CreateKeyForm {
     .dark-theme .page-header  { background: #212426; border-bottom-color: #33383b; }
     .dark-theme .content-area { background: #292d2f; }
     .dark-theme .table-container { background: #292d2f; }
-    .dark-theme .keys-table th { background: #212426; border-bottom-color: #33383b; }
-    .dark-theme .keys-table td { border-bottom-color: #33383b; }
+    .dark-theme .keys-table th { background: #212426; }
     .dark-theme .keys-table__row:nth-child(even) td { background: #212426; }
     .dark-theme .keys-table__row:nth-child(odd) td { background: #292d2f; }
     .dark-theme .sidebar-bottom { border-top-color: #33383b; }
     .dark-theme .modal         { background: #292d2f; }
-    .dark-theme .modal-header  { border-bottom-color: #33383b; }
-    .dark-theme .modal-footer  { border-top-color: #33383b; }
-    .dark-theme .key-display  { background: #212426; border-color: #33383b; }
-    .dark-theme .key-display__value { background: #292d2f; border-color: #33383b; color: #b5bbbf; }
-    .dark-theme .copy-btn     { background: #292d2f; border-color: #40464a; color: #b5bbbf; }
-    .dark-theme .success-meta { background: #212426; border-color: #33383b; }
+    .dark-theme .key-card__value { color: #b5bbbf; }
   `],
 })
 export class CaCreateApiKeyComponent implements OnInit, OnDestroy {
@@ -918,6 +881,24 @@ export class CaCreateApiKeyComponent implements OnInit, OnDestroy {
 
   asString(v: string | string[]): string { return Array.isArray(v) ? v[0] : v; }
   setExpiration(v: string | string[]) { this.form.expiration = this.asString(v) as CreateKeyForm['expiration']; }
+
+  get expirationDateOnly(): string {
+    if (this.form.expiration === 'never') return 'Never';
+    if (this.form.expiration === 'custom') return this.form.customDate || 'Not set';
+    const days = this.form.expiration === '30d' ? 30 : this.form.expiration === '90d' ? 90 : 365;
+    const d = new Date();
+    d.setDate(d.getDate() + days);
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  }
+
+  downloadKey() {
+    const content = `API Key: ${this.generatedKey}\nName: ${this.form.name}\nExpires: ${this.expirationDateOnly}`;
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `api-key-${this.form.name.replace(/\s+/g, '-')}.txt`;
+    a.click(); URL.revokeObjectURL(url);
+  }
 
   get expirationLabel(): string {
     const map: Record<string, string> = {
