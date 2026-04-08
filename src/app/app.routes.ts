@@ -43,6 +43,12 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./prototypes/project-archive-creation-flow-testing/project-archive-creation-flow-testing.component').then(m => m.ProjectArchiveCreationFlowTestingComponent),
   },
+  {
+    path: 'ca-create-api-key',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./prototypes/ca-create-api-key/ca-create-api-key.component').then(m => m.CaCreateApiKeyComponent),
+  },
   // PROTO_ROUTES_PLACEHOLDER
   {
     path: '**',

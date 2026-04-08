@@ -30,5 +30,12 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
     status: 'wip',
     description: 'Project archiving flow - side by side UI',
   },
+  {
+    slug: 'ca-create-api-key',
+    title: 'CA — Create API Key',
+    figma: 'https://www.figma.com/design/PITzEfwRA26GWSG2MvzmDy/CA?node-id=33212-45471',
+    status: 'wip',
+    description: 'Multi-step flow for creating a new API key in Corporate Account',
+  },
   // REGISTRY_PLACEHOLDER
 ];
