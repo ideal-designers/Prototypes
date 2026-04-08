@@ -42,6 +42,7 @@
  *   <fvdr-number-stepper>   → Number input with +/- buttons
  *   <fvdr-progress>         → Progress bar
  *   <fvdr-range>            → Range slider
+ *   <fvdr-sidebar-nav>      → App sidebar (VDR/CA/Internal, collapsible, with sub-nav)
  *
  * Usage in prototype:
  *   import { DS_COMPONENTS } from '../../shared/ds';
@@ -86,6 +87,7 @@ import { TreeComponent } from './components/tree/tree.component';
 import { DropAreaComponent } from './components/drop-area/drop-area.component';
 import { HeaderComponent, MobileHeaderComponent } from './components/header/header.component';
 import { NumberStepperComponent, ProgressComponent, RangeComponent } from './components/special-controls/special-controls.component';
+import { SidebarNavComponent } from './components/sidebar-nav/sidebar-nav.component';
 
 // ─── Re-exports ───────────────────────────────────────────────────────────────
 
@@ -180,6 +182,9 @@ export type { HeaderNavItem, HeaderAction } from './components/header/header.com
 
 export { NumberStepperComponent, ProgressComponent, RangeComponent } from './components/special-controls/special-controls.component';
 
+export { SidebarNavComponent } from './components/sidebar-nav/sidebar-nav.component';
+export type { SidebarNavItem, SidebarNavSubItem, SidebarNavVariant } from './components/sidebar-nav/sidebar-nav.component';
+
 /** Convenience array — spread into component imports[] */
 export const DS_COMPONENTS = [
   // Original
@@ -224,4 +229,5 @@ export const DS_COMPONENTS = [
   NumberStepperComponent,
   ProgressComponent,
   RangeComponent,
+  SidebarNavComponent,
 ];

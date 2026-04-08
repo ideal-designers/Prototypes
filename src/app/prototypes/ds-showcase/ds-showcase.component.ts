@@ -6,7 +6,7 @@ import { TrackerService } from '../../services/tracker.service';
 import type {
   TabItem, DroplistItem, DropdownOption, RadioOption,
   SearchFilter, SegmentItem, TableColumn, TreeNode,
-  HeaderNavItem, HeaderAction,
+  HeaderNavItem, HeaderAction, SidebarNavItem,
 } from '../../shared/ds';
 
 /**
@@ -25,7 +25,7 @@ import type {
       <!-- Sidebar nav -->
       <nav class="showcase__nav">
         <div class="showcase__nav-logo">DS Components</div>
-        <a *ngFor="let s of sections" class="showcase__nav-link" [href]="'#' + s.id">{{ s.label }}</a>
+        <a *ngFor="let s of sections" class="showcase__nav-link" href="javascript:void(0)" (click)="scrollTo(s.id)">{{ s.label }}</a>
       </nav>
 
       <!-- Content -->
@@ -457,6 +457,41 @@ import type {
           </div>
         </section>
 
+        <!-- ── SIDEBAR NAV ── -->
+        <section class="section" id="sidebar-nav">
+          <h2 class="section__title">Sidebar Navigation</h2>
+          <div class="section__desc">Figma: node 15032-15291 · Variants: VDR / CA / Internal · Collapsible</div>
+          <div class="row wrap" style="gap: 24px; align-items: flex-start;">
+            <!-- VDR variant -->
+            <div style="height: 420px; border: 1px solid var(--color-divider); border-radius: var(--radius-md); overflow: hidden; display: flex;">
+              <fvdr-sidebar-nav
+                variant="vdr"
+                accountName="VDR Project"
+                [items]="sidebarItemsVdr"
+                [(collapsed)]="sidebarVdrCollapsed"
+              />
+            </div>
+            <!-- CA variant -->
+            <div style="height: 420px; border: 1px solid var(--color-divider); border-radius: var(--radius-md); overflow: hidden; display: flex;">
+              <fvdr-sidebar-nav
+                variant="ca"
+                accountName="ACME Corp"
+                [items]="sidebarItemsCa"
+                [(collapsed)]="sidebarCaCollapsed"
+              />
+            </div>
+            <!-- Internal variant -->
+            <div style="height: 420px; border: 1px solid var(--color-divider); border-radius: var(--radius-md); overflow: hidden; display: flex;">
+              <fvdr-sidebar-nav
+                variant="internal"
+                accountName="Internal Tools"
+                [items]="sidebarItemsInternal"
+                [(collapsed)]="sidebarInternalCollapsed"
+              />
+            </div>
+          </div>
+        </section>
+
         <!-- ── ICONS ── -->
         <section class="section" id="icons">
           <h2 class="section__title">Icons (51)</h2>
@@ -603,6 +638,10 @@ export class DsShowcaseComponent implements OnInit, OnDestroy {
   ngOnInit(): void { this.tracker.trackPageView('ds-showcase'); }
   ngOnDestroy(): void { this.tracker.destroyListeners(); }
 
+  scrollTo(id: string): void {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
   sections = [
     { id: 'buttons', label: 'Buttons' },
     { id: 'inputs', label: 'Input / Text field' },
@@ -636,6 +675,7 @@ export class DsShowcaseComponent implements OnInit, OnDestroy {
     { id: 'tabs', label: 'Tabs' },
     { id: 'cards', label: 'Cards' },
     { id: 'header', label: 'Headers' },
+    { id: 'sidebar-nav', label: 'Sidebar Nav' },
     { id: 'icons', label: 'Icons' },
   ];
 
@@ -770,6 +810,46 @@ export class DsShowcaseComponent implements OnInit, OnDestroy {
   mobileActions: HeaderAction[] = [
     { id: 'bell', icon: 'bell', badge: 5 },
     { id: 'more', icon: 'more' },
+  ];
+
+  // Sidebar Nav
+  sidebarVdrCollapsed = false;
+  sidebarCaCollapsed = false;
+  sidebarInternalCollapsed = true;
+
+  sidebarItemsVdr: SidebarNavItem[] = [
+    { id: 'overview',   label: 'Overview',   icon: 'nav-overview',      iconActive: 'nav-overview-active',      active: true },
+    { id: 'documents',  label: 'Documents',  icon: 'folder',            iconActive: 'folder',                   open: false,
+      children: [
+        { id: 'legal',    label: 'Legal',    active: false },
+        { id: 'finance',  label: 'Finance',  active: false },
+      ]
+    },
+    { id: 'members',    label: 'Members',    icon: 'nav-participants',  iconActive: 'nav-participants-active'  },
+    { id: 'activity',   label: 'Activity',   icon: 'nav-reports',       iconActive: 'nav-reports-active'       },
+    { id: 'settings',   label: 'Settings',   icon: 'nav-settings',      iconActive: 'nav-settings-active'      },
+  ];
+
+  sidebarItemsCa: SidebarNavItem[] = [
+    { id: 'dashboard',    label: 'Dashboard',    icon: 'nav-overview',   iconActive: 'nav-overview-active',   active: true },
+    { id: 'projects',     label: 'Projects',     icon: 'nav-projects',   iconActive: 'nav-projects-active'    },
+    { id: 'users',        label: 'Users',        icon: 'nav-participants', iconActive: 'nav-participants-active' },
+    { id: 'billing',      label: 'Billing',      icon: 'nav-billing',    iconActive: 'nav-billing-active'     },
+    { id: 'integrations', label: 'Integrations', icon: 'nav-api',        iconActive: 'nav-api-active',        open: true,
+      children: [
+        { id: 'api',       label: 'API Keys',   active: true  },
+        { id: 'webhooks',  label: 'Webhooks',   active: false },
+        { id: 'sso',       label: 'SSO',        active: false },
+      ]
+    },
+    { id: 'settings',     label: 'Settings',     icon: 'nav-settings',   iconActive: 'nav-settings-active'    },
+  ];
+
+  sidebarItemsInternal: SidebarNavItem[] = [
+    { id: 'home',     label: 'Home',      icon: 'nav-overview',      iconActive: 'nav-overview-active',  active: true },
+    { id: 'accounts', label: 'Accounts',  icon: 'nav-participants',  iconActive: 'nav-participants-active' },
+    { id: 'reports',  label: 'Reports',   icon: 'nav-reports',       iconActive: 'nav-reports-active'      },
+    { id: 'tools',    label: 'Dev Tools', icon: 'nav-settings',      iconActive: 'nav-settings-active'     },
   ];
 
   // Special controls

@@ -23,13 +23,6 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
     status: 'wip',
     description: 'Corporate account settings integrations management',
   },
-    {
-    slug: 'project-archive-creation-flow-testing',
-    title: 'Project Archive Creation flow - testing',
-    figma: 'https://www.figma.com/design/t98iZowGc1YrR0oXTHxqxD/%F0%9F%97%84%EF%B8%8F-Project-archiving?node-id=1829-45793&t=ymjV1qud5eDd1EDh-4',
-    status: 'wip',
-    description: 'Project archiving flow - side by side UI',
-  },
   {
     slug: 'my-prototype-delete-account',
     title: 'Delete Account',
