@@ -318,7 +318,7 @@ interface NavItem {
       flex-direction: column;
       flex-shrink: 0;
       width: 280px;
-      background: var(--color-stone-0);
+      background: var(--color-stone-200);
       border-right: 1px solid var(--color-divider);
       transition: width 0.22s ease;
       overflow: hidden;
@@ -328,9 +328,7 @@ interface NavItem {
     .account-switcher {
       display: flex;
       align-items: center;
-      height: 64px;
-      padding: 0 var(--space-4);
-      border-bottom: 1px solid var(--color-divider);
+      padding: 12px var(--space-4);
       flex-shrink: 0;
     }
 
@@ -352,7 +350,8 @@ interface NavItem {
       flex: 1;
       display: flex;
       flex-direction: column;
-      padding: var(--space-2) 0;
+      gap: var(--space-6);
+      padding: var(--space-6) 0;
       overflow: hidden;
     }
 
@@ -376,7 +375,7 @@ interface NavItem {
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
-      font-size: 20px;
+      font-size: 24px;
       position: relative;
     }
 
@@ -389,9 +388,7 @@ interface NavItem {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      height: 72px;
-      padding: 0 var(--space-4);
-      border-top: 1px solid var(--color-divider);
+      padding: var(--space-6) var(--space-4) var(--space-6) 19px;
       flex-shrink: 0;
     }
     .sidebar-logo-sm { display: flex; align-items: center; }
@@ -829,11 +826,11 @@ export class QuickAccessPanelComponent implements OnInit, OnDestroy {
   private startWidth = 0;
 
   navItems: NavItem[] = [
-    { id: 'overview',     icon: 'nav-overview',      iconActive: 'nav-overview-active',      active: false, title: 'Overview'      },
-    { id: 'projects',     icon: 'nav-projects',      iconActive: 'nav-projects-active',      active: false, title: 'Projects'      },
-    { id: 'participants', icon: 'nav-participants',   iconActive: 'nav-participants-active',  active: false, title: 'Participants'  },
-    { id: 'billing',      icon: 'nav-billing',        iconActive: 'nav-billing-active',       active: false, title: 'Billing'       },
+    { id: 'overview',     icon: 'nav-overview',      iconActive: 'nav-overview-active',      active: false, title: 'Dashboard'     },
+    { id: 'projects',     icon: 'nav-projects',      iconActive: 'nav-projects-active',      active: true,  title: 'Documents'     },
     { id: 'reports',      icon: 'nav-reports',        iconActive: 'nav-reports-active',       active: false, title: 'Reports'       },
+    { id: 'participants', icon: 'nav-participants',   iconActive: 'nav-participants-active',  active: false, title: 'Participants'  },
+    { id: 'api',          icon: 'nav-api',            iconActive: 'nav-api-active',           active: false, title: 'Q&A'           },
     { id: 'settings',     icon: 'nav-settings',       iconActive: 'nav-settings-active',      active: false, title: 'Settings'      },
     { id: 'trash',        icon: 'trash',              iconActive: 'trash',                    active: false, title: 'Trash'         },
   ];
