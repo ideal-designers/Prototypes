@@ -137,8 +137,8 @@ interface NavItem {
                 <div class="qa-header">
                   <span class="qa-title">Quick access</span>
                   <div class="qa-header-btns">
-                    <button class="icon-btn" title="Close">
-                      <fvdr-icon name="cancel"></fvdr-icon>
+                    <button class="icon-btn" title="Collapse">
+                      <fvdr-icon name="angle-double-left"></fvdr-icon>
                     </button>
                     <button class="icon-btn" title="Navigate back">
                       <fvdr-icon name="chevron-left"></fvdr-icon>
@@ -474,6 +474,7 @@ interface NavItem {
       gap: var(--space-5);
       overflow: hidden;
       min-height: 0;
+      background: var(--color-stone-0);
     }
 
     /* ──────────────────────────────────────────
@@ -507,6 +508,7 @@ interface NavItem {
       gap: var(--space-6);
       min-height: 0;
       overflow: hidden;
+      background: var(--color-stone-0);
     }
 
     /* ──────────────────────────────────────────
@@ -517,8 +519,6 @@ interface NavItem {
       flex-shrink: 0;
       position: relative;
       background: var(--color-stone-0);
-      border-radius: var(--radius-md);
-      border: 1px solid var(--color-divider);
       min-width: 200px;
       max-width: 560px;
       overflow: hidden;
@@ -543,7 +543,6 @@ interface NavItem {
       background: var(--color-stone-200);
       border-bottom: 1px solid var(--color-divider);
       flex-shrink: 0;
-      border-radius: var(--radius-md) var(--radius-md) 0 0;
     }
     .qa-title {
       font-size: var(--font-size-base);
@@ -688,8 +687,6 @@ interface NavItem {
       display: flex;
       flex-direction: column;
       background: var(--color-stone-0);
-      border-radius: var(--radius-md);
-      border: 1px solid var(--color-divider);
       overflow: hidden;
       min-width: 0;
     }
