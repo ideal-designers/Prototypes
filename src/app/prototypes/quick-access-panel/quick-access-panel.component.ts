@@ -236,14 +236,7 @@ interface NavItem {
                 <!-- Index: doc icon + number -->
                 <div class="col-idx">
                   <span class="doc-icon">
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                      <rect x="2" y="1" width="13" height="17" rx="1" fill="#FDE8E6" stroke="#F3A49D" stroke-width="1"/>
-                      <path d="M11 1v4h4" stroke="#F3A49D" stroke-width="1" fill="none"/>
-                      <path d="M15 5L11 1" stroke="#F3A49D" stroke-width="1"/>
-                      <line x1="5" y1="8"  x2="12" y2="8"  stroke="#F3A49D" stroke-width="1"/>
-                      <line x1="5" y1="11" x2="12" y2="11" stroke="#F3A49D" stroke-width="1"/>
-                      <line x1="5" y1="14" x2="9"  y2="14" stroke="#F3A49D" stroke-width="1"/>
-                    </svg>
+                    <img src="https://www.figma.com/api/mcp/asset/a2470176-e359-453c-a5b0-c0840361c949" width="20" height="20" alt="file">
                   </span>
                   <span class="td-idx">{{ row.index }}</span>
                 </div>
@@ -299,6 +292,8 @@ interface NavItem {
       color: var(--color-text-primary);
       height: 100vh;
       overflow: hidden;
+      --color-dodger-blue-50: #ebf4fd;
+      --color-locked-chip: #ececec;
     }
 
     /* ──────────────────────────────────────────
@@ -538,7 +533,6 @@ interface NavItem {
       height: 48px;
       padding: 0 var(--space-4);
       background: var(--color-stone-200);
-      border-bottom: 1px solid var(--color-divider);
       flex-shrink: 0;
     }
     .qa-title {
@@ -553,7 +547,6 @@ interface NavItem {
       flex-shrink: 0;
       display: flex;
       flex-direction: column;
-      border-bottom: 1px solid var(--color-divider);
     }
     .qa-sc-row {
       display: flex;
@@ -690,11 +683,9 @@ interface NavItem {
 
     .tbl-row {
       display: grid;
-      grid-template-columns: 120px 1fr 72px 120px 100px 180px 48px;
+      grid-template-columns: 94px 1fr 72px 121px 127px 172px 80px;
       align-items: center;
-      border-bottom: 1px solid var(--color-divider);
     }
-    .tbl-row:last-child { border-bottom: none; }
     .tbl-row:not(.tbl-row--header):hover { background: var(--color-hover-bg); }
 
     .tbl-row--header {
@@ -764,13 +755,14 @@ interface NavItem {
 
     /* Size col (two-line) */
     .col-size { flex-direction: column; align-items: flex-start; justify-content: center; gap: 2px; }
+    .tbl-row--header .col-size { flex-direction: row; align-items: center; gap: var(--space-2); }
     .td-size-main { font-size: var(--text-caption1-size); color: var(--color-text-primary); line-height: 16px; }
     .td-size-sub  { font-size: var(--text-caption1-size); color: var(--color-text-secondary); line-height: 16px; }
 
     /* Publishing icon */
     .col-pub { justify-content: flex-start; }
-    .pub-yes { color: var(--color-primary-500); font-size: 18px; }
-    .pub-no  { color: var(--color-stone-500);   font-size: 18px; }
+    .pub-yes { color: var(--color-primary-500); font-size: 16px; }
+    .pub-no  { color: var(--color-stone-500);   font-size: 16px; }
 
     /* Redaction chips */
     .col-red {}
@@ -786,9 +778,9 @@ interface NavItem {
       white-space: nowrap;
     }
     .red-chip--applied         { background: var(--color-primary-50); }
-    .red-chip--applied-drafted { background: var(--color-stone-300); }
+    .red-chip--applied-drafted { background: var(--color-dodger-blue-50); }
     .red-chip--drafted         { background: var(--color-stone-300); }
-    .red-chip--none            { background: var(--color-stone-200); }
+    .red-chip--none            { background: var(--color-locked-chip); }
 
     /* Actions col */
     .col-act { justify-content: flex-end; }
@@ -837,7 +829,7 @@ export class QuickAccessPanelComponent implements OnInit, OnDestroy {
 
   shortcuts: ShortcutItem[] = [
     { id: 's1', label: 'Recently viewed', icon: 'clock',  hovered: false },
-    { id: 's2', label: 'Recently viewed', icon: 'clock',  hovered: false },
+    { id: 's2', label: 'Unpublished',      icon: 'cancel', hovered: false },
     { id: 's3', label: 'Newly upload',    icon: 'upload', hovered: false },
     { id: 's4', label: 'Favorites',       icon: 'sort',   hovered: false },
   ];
