@@ -89,18 +89,18 @@ export type ButtonSize = 's' | 'm' | 'l';
     /* ── Type: Secondary ── */
     .btn--secondary {
       background: transparent;
-      border-color: var(--color-primary-500);
-      color: var(--color-primary-500);
+      border-color: var(--color-stone-400);
+      color: var(--color-text-primary);
     }
     .btn--secondary:hover:not(:disabled) {
-      background: var(--color-primary-50);
-      border-color: var(--color-primary-600);
-      color: var(--color-primary-600);
+      background: var(--color-hover-bg);
+      border-color: var(--color-stone-500);
+      color: var(--color-text-primary);
     }
     .btn--secondary:active:not(:disabled) {
-      background: #d4f0e3;
-      border-color: var(--color-primary-700);
-      color: var(--color-primary-700);
+      background: var(--color-stone-300);
+      border-color: var(--color-stone-500);
+      color: var(--color-text-primary);
     }
 
     /* ── Type: Ghost ── */
