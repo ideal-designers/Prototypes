@@ -455,34 +455,34 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
         <ng-container *ngSwitchCase="'sidebar-nav'">
           <div class="examples-group">
             <h3 class="examples-group__title">Expanded — VDR variant</h3>
-            <div class="nav-example-frame" style="height:440px;">
+            <div class="nav-example-frame" style="height:880px;">
               <fvdr-sidebar-nav
                 variant="vdr"
                 accountName="Project Alpha"
                 [items]="demoNavItems"
                 [collapsed]="false"
-                style="height:440px;"
+                style="height:880px;"
               ></fvdr-sidebar-nav>
             </div>
           </div>
           <div class="examples-group">
             <h3 class="examples-group__title">Expanded — CA variant</h3>
-            <div class="nav-example-frame" style="height:440px;">
+            <div class="nav-example-frame" style="height:880px;">
               <fvdr-sidebar-nav
                 variant="ca"
                 accountName="ACME Corp"
                 [items]="demoNavItems"
                 [collapsed]="false"
-                style="height:440px;"
+                style="height:880px;"
               ></fvdr-sidebar-nav>
             </div>
           </div>
           <div class="examples-group">
             <h3 class="examples-group__title">Collapsed (icon-only) — all variants</h3>
-            <div class="nav-example-frame" style="height:440px;">
-              <fvdr-sidebar-nav variant="vdr"      accountName="VDR Project"   [items]="demoNavItems" [collapsed]="true"  style="height:440px;"></fvdr-sidebar-nav>
-              <fvdr-sidebar-nav variant="ca"       accountName="Corp Account"  [items]="demoNavItems" [collapsed]="true"  style="height:440px;"></fvdr-sidebar-nav>
-              <fvdr-sidebar-nav variant="internal" accountName="Internal Tool" [items]="demoNavItems" [collapsed]="true"  style="height:440px;"></fvdr-sidebar-nav>
+            <div class="nav-example-frame" style="height:880px;">
+              <fvdr-sidebar-nav variant="vdr"      accountName="VDR Project"   [items]="demoNavItems" [collapsed]="true"  style="height:880px;"></fvdr-sidebar-nav>
+              <fvdr-sidebar-nav variant="ca"       accountName="Corp Account"  [items]="demoNavItems" [collapsed]="true"  style="height:880px;"></fvdr-sidebar-nav>
+              <fvdr-sidebar-nav variant="internal" accountName="Internal Tool" [items]="demoNavItems" [collapsed]="true"  style="height:880px;"></fvdr-sidebar-nav>
             </div>
           </div>
         </ng-container>
