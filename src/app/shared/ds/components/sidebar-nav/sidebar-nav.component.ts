@@ -66,6 +66,7 @@ const VARIANT_CONFIG: Record<SidebarNavVariant, { bg: string; label: string }> =
             class="nav-item"
             [class.nav-item--active]="item.active"
             [class.nav-item--open]="item.open"
+            [class.nav-item--has-children]="!!item.children"
             [title]="collapsed ? item.label : ''"
             (click)="toggleItem(item)"
           >
@@ -136,21 +137,22 @@ const VARIANT_CONFIG: Record<SidebarNavVariant, { bg: string; label: string }> =
     .sidebar--collapsed { width: 72px; min-width: 72px; }
 
     /* ── Account switcher ── */
+    /* pl-16 → badge left-edge at 16px, badge center at 36px.
+       py-12 → 12+40+12=64px total height. NO border-bottom. */
     .account-switcher {
       height: 64px;
       min-height: 64px;
       background: var(--color-stone-100);
       display: flex;
       align-items: center;
-      gap: 10px;
-      padding: 0 16px;
-      border-bottom: 1px solid var(--color-divider);
+      gap: 16px;
+      padding: 12px 16px;
       overflow: hidden;
       cursor: pointer;
       transition: background 0.12s;
     }
     .account-switcher:hover { background: var(--color-hover-bg); }
-    .sidebar--collapsed .account-switcher { justify-content: center; padding: 0; }
+    .sidebar--collapsed .account-switcher { justify-content: center; padding: 12px 0; }
 
     .account-logo {
       width: 40px;
@@ -178,29 +180,31 @@ const VARIANT_CONFIG: Record<SidebarNavVariant, { bg: string; label: string }> =
     .account-chevron { font-size: 16px; color: var(--color-text-secondary); flex-shrink: 0; }
 
     /* ── Nav list ── */
+    /* gap-24 between items, no top/bottom padding to keep vertical rhythm clean */
     .nav-list {
       flex: 1;
       display: flex;
       flex-direction: column;
-      padding: 8px 0;
-      gap: 0;
+      padding: 24px 0;
+      gap: 24px;
       overflow-y: auto;
       overflow-x: hidden;
       background: var(--color-stone-100);
     }
 
     /* ── Nav item ── */
+    /* height: 32px, font 16px — matches Figma h-[32px] text-[16px] */
     .nav-item {
       display: flex;
       align-items: center;
       width: 100%;
-      height: 40px;
-      padding: 0;
+      height: 32px;
+      padding: 0 24px 0 0;
       background: transparent;
       border: none;
       cursor: pointer;
       color: var(--color-text-primary);
-      font-size: 14px;
+      font-size: 16px;
       font-weight: 400;
       font-family: var(--font-family);
       text-align: left;
@@ -219,11 +223,15 @@ const VARIANT_CONFIG: Record<SidebarNavVariant, { bg: string; label: string }> =
     .nav-item--open   .icon-default { display: none; }
     .nav-item--active .icon-active,
     .nav-item--open   .icon-active  { display: inline-flex; }
+    /* items with chevron use pr-16 instead of pr-24 */
+    .nav-item--has-children { padding-right: 16px; }
 
+    /* icon zone: 72px wide, icon centered → icon left-edge at 24px,
+       icon center at 36px = badge center (pl-16 + 40px/2) */
     .nav-icon-zone {
-      width: 56px;
-      min-width: 56px;
-      height: 40px;
+      width: 72px;
+      min-width: 72px;
+      height: 32px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -234,7 +242,7 @@ const VARIANT_CONFIG: Record<SidebarNavVariant, { bg: string; label: string }> =
       align-items: center;
       justify-content: center;
       color: var(--color-text-secondary);
-      font-size: 20px;
+      font-size: 24px;
     }
     .nav-item--active .nav-icon,
     .nav-item--open   .nav-icon { color: var(--color-primary-500); }
@@ -243,7 +251,7 @@ const VARIANT_CONFIG: Record<SidebarNavVariant, { bg: string; label: string }> =
     .nav-label { flex: 1; }
     .nav-chevron {
       font-size: 16px;
-      margin-right: 16px;
+      margin-right: 0;
       color: var(--color-text-secondary);
       transition: transform 0.2s;
       flex-shrink: 0;
@@ -251,18 +259,20 @@ const VARIANT_CONFIG: Record<SidebarNavVariant, { bg: string; label: string }> =
     .nav-chevron--up { transform: rotate(180deg); }
 
     /* ── Sub-items ── */
+    /* pl-72 aligns sub-item text with nav label start */
     .nav-subitems {
       display: flex;
       flex-direction: column;
+      gap: 10px;
       background: var(--color-stone-100);
     }
     .nav-subitem {
-      height: 40px;
-      padding: 0 16px 0 56px;
+      height: 32px;
+      padding: 0 16px 0 72px;
       background: none;
       border: none;
       cursor: pointer;
-      font-size: 13px;
+      font-size: 14px;
       font-weight: 400;
       font-family: var(--font-family);
       color: var(--color-text-primary);
@@ -273,18 +283,15 @@ const VARIANT_CONFIG: Record<SidebarNavVariant, { bg: string; label: string }> =
     .nav-subitem:hover { background: var(--color-hover-bg); }
     .nav-subitem--active { font-weight: 600; color: var(--color-primary-500); }
 
-    /* ── Bottom ── */
+    /* ── Bottom bar ── */
+    /* pl-24 pr-16 py-24 — matches Figma Logo bar. NO border-top. */
     .sidebar-bottom {
-      height: 64px;
-      min-height: 64px;
       background: var(--color-stone-100);
-      border-top: 1px solid var(--color-divider);
       display: flex;
       align-items: center;
-      padding: 0 16px;
+      padding: 24px 16px 24px 24px;
       overflow: hidden;
       flex-shrink: 0;
-      gap: 8px;
     }
     .sidebar-logo {
       flex: 1;
@@ -308,11 +315,10 @@ const VARIANT_CONFIG: Record<SidebarNavVariant, { bg: string; label: string }> =
       font-size: 16px;
       flex-shrink: 0;
       transition: background 0.12s;
-      margin-left: auto;
     }
     .collapse-btn:hover { background: var(--color-hover-bg); }
-    .sidebar--collapsed .sidebar-bottom { justify-content: center; padding: 0; }
-    .sidebar--collapsed .collapse-btn { margin-left: 0; }
+    .sidebar--collapsed .sidebar-bottom { justify-content: center; padding: 16px 0; }
+    .sidebar--collapsed .collapse-btn { margin: 0; }
   `],
 })
 export class SidebarNavComponent {
