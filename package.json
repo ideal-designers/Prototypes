@@ -21,6 +21,7 @@
     "@angular/platform-browser-dynamic": "^17.0.0",
     "@angular/router": "^17.0.0",
     "@supabase/supabase-js": "^2.39.0",
+    "@tailwindcss/postcss": "^4.2.2",
     "@vercel/analytics": "^1.6.1",
     "posthog-js": "^1.363.3",
     "rxjs": "~7.8.0",
