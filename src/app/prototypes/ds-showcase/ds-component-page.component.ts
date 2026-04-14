@@ -454,33 +454,35 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
         <!-- SIDEBAR NAV -->
         <ng-container *ngSwitchCase="'sidebar-nav'">
           <div class="examples-group">
-            <h3 class="examples-group__title">Expanded (VDR)</h3>
-            <div class="examples-row examples-row--flush" style="align-items:stretch;height:360px;">
+            <h3 class="examples-group__title">Expanded — VDR variant</h3>
+            <div class="nav-example-frame" style="height:440px;">
               <fvdr-sidebar-nav
                 variant="vdr"
                 accountName="Project Alpha"
                 [items]="demoNavItems"
                 [collapsed]="false"
+                style="height:440px;"
               ></fvdr-sidebar-nav>
             </div>
           </div>
           <div class="examples-group">
-            <h3 class="examples-group__title">Collapsed (icon-only)</h3>
-            <div class="examples-row examples-row--flush" style="align-items:stretch;height:360px;">
+            <h3 class="examples-group__title">Expanded — CA variant</h3>
+            <div class="nav-example-frame" style="height:440px;">
               <fvdr-sidebar-nav
                 variant="ca"
                 accountName="ACME Corp"
                 [items]="demoNavItems"
-                [collapsed]="true"
+                [collapsed]="false"
+                style="height:440px;"
               ></fvdr-sidebar-nav>
             </div>
           </div>
           <div class="examples-group">
-            <h3 class="examples-group__title">Variants</h3>
-            <div class="examples-row examples-row--flush" style="align-items:stretch;height:220px;gap:16px;">
-              <fvdr-sidebar-nav variant="vdr"      accountName="VDR Project"   [items]="demoNavItems" [collapsed]="true"></fvdr-sidebar-nav>
-              <fvdr-sidebar-nav variant="ca"       accountName="Corp Account"  [items]="demoNavItems" [collapsed]="true"></fvdr-sidebar-nav>
-              <fvdr-sidebar-nav variant="internal" accountName="Internal Tool" [items]="demoNavItems" [collapsed]="true"></fvdr-sidebar-nav>
+            <h3 class="examples-group__title">Collapsed (icon-only) — all variants</h3>
+            <div class="nav-example-frame" style="height:440px;">
+              <fvdr-sidebar-nav variant="vdr"      accountName="VDR Project"   [items]="demoNavItems" [collapsed]="true"  style="height:440px;"></fvdr-sidebar-nav>
+              <fvdr-sidebar-nav variant="ca"       accountName="Corp Account"  [items]="demoNavItems" [collapsed]="true"  style="height:440px;"></fvdr-sidebar-nav>
+              <fvdr-sidebar-nav variant="internal" accountName="Internal Tool" [items]="demoNavItems" [collapsed]="true"  style="height:440px;"></fvdr-sidebar-nav>
             </div>
           </div>
         </ng-container>
@@ -1095,10 +1097,21 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
     .mock-qa-menu__item--active .mock-qa-menu__icon { color: #2c9c74; }
     .anatomy-wrap--qa-menu { min-height: 200px; }
 
+    /* ── Navigation example frame — sidebar at natural height ── */
+    .nav-example-frame {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      padding: 0;
+      background: #e9ebf0;
+      border-radius: 8px;
+      overflow: visible;
+    }
+
     /* ── Examples row flush (for sidebars that need full height) ── */
     .examples-row--flush {
       padding: 0;
-      overflow: hidden;
+      overflow: visible;
     }
 
     /* ── Examples ── */
