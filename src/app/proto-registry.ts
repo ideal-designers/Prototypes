@@ -41,8 +41,8 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
     slug: 'quick-access-panel',
     title: 'Quick access panel',
     figma: 'https://www.figma.com/design/h9MR3O7N3kLV2xl2MGQDxs/Documents?node-id=22560-22984',
-    status: 'wip',
-    description: '',
+    status: 'live',
+    description: 'Resizable quick access panel with folder tree and document table',
   },
   // REGISTRY_PLACEHOLDER
 ];
