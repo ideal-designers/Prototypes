@@ -1396,8 +1396,8 @@ export class DsComponentPageComponent implements OnInit, OnDestroy {
       { id: 'sub2', label: 'Archived',    active: false },
     ]},
     { id: 'participants',label: 'Participants',  icon: 'nav-participants'  as any, iconActive: 'nav-participants-active'  as any, active: false },
-    { id: 'permissions', label: 'Permissions',  icon: 'lock-close'        as any, iconActive: 'lock-close'               as any, active: false },
-    { id: 'qa',          label: 'Q&A',          icon: 'comment'           as any, iconActive: 'comment'                  as any, active: false },
+    { id: 'permissions', label: 'Permissions',  icon: 'nav-permissions'   as any, iconActive: 'nav-permissions-active'  as any, active: false },
+    { id: 'qa',          label: 'Q&A',          icon: 'nav-qa'            as any, iconActive: 'nav-qa-active'            as any, active: false },
     { id: 'settings',    label: 'Settings',     icon: 'nav-settings'      as any, iconActive: 'nav-settings-active'      as any, active: false },
   ];
 
