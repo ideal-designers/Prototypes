@@ -100,7 +100,7 @@ const VARIANT_CONFIG: Record<SidebarNavVariant, { bg: string; label: string }> =
       <div class="sidebar-bottom">
         <div class="sidebar-logo" *ngIf="!collapsed">
           <!-- ideals. wordmark -->
-          <svg width="68" height="14" viewBox="0 0 87 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <svg width="85" height="18" viewBox="0 0 87 18" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M0.285 2.27C0.285 1.26 1.1 0.487 2.137 0.487c1.005 0 1.804 0.773 1.804 1.782 0 1.05-.8 1.796-1.804 1.796C1.1 4.065.285 3.32.285 2.27Zm0.361 15.525V5.441h2.867V17.795H.646Z" fill="currentColor"/>
             <path d="M17.432 0.752v16.499H14.659v-1.538c-.863 1.038-2.078 1.788-3.817 1.788-3.386 0-5.773-2.674-5.773-5.98 0-3.438 2.452-5.949 5.773-5.949 1.739 0 2.922.773 3.817 1.789V.752h2.773Zm-2.84 10.769c0-1.948-1.37-3.622-3.483-3.622-2.112 0-3.482 1.674-3.482 3.622 0 2.012 1.37 3.622 3.482 3.622 2.113 0 3.483-1.61 3.483-3.622Z" fill="currentColor"/>
             <path d="M30.73 12.343H21.65c.36 1.5 1.434 2.701 3.418 2.701 1.345 0 2.838-.503 3.907-1.253l1.133 2.035c-1.133.847-3.01 1.63-5.105 1.63-4.474 0-6.397-2.894-6.397-6.233 0-3.578 2.484-5.96 5.94-5.96 3.289 0 6.183 2.2 6.183 5.757.024.486-.007.873-.098 1.323Zm-9.08-2.14h6.38c-.245-1.666-1.517-2.654-3.18-2.654-1.663 0-2.936 1.053-3.2 2.654Z" fill="currentColor"/>
@@ -291,7 +291,7 @@ const VARIANT_CONFIG: Record<SidebarNavVariant, { bg: string; label: string }> =
       display: flex;
       align-items: center;
       overflow: hidden;
-      color: var(--color-text-secondary);
+      color: var(--color-text-primary);
     }
     .collapse-btn {
       width: 32px;
