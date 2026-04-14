@@ -162,6 +162,78 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
             </div>
           </ng-container>
 
+          <!-- SIDEBAR NAV -->
+          <ng-container *ngSwitchCase="'sidebar-nav'">
+            <div class="anatomy-wrap anatomy-wrap--sidebar-nav">
+              <div class="mock-sidebar">
+                <div class="mock-sidebar__account">
+                  <span class="mock-sidebar__badge">PA</span>
+                  <span class="mock-sidebar__name">Project Alpha</span>
+                </div>
+                <div class="mock-sidebar__item mock-sidebar__item--active">
+                  <span class="mock-sidebar__icon">◫</span>
+                  <span class="mock-sidebar__label">Dashboard</span>
+                </div>
+                <div class="mock-sidebar__item">
+                  <span class="mock-sidebar__icon">◳</span>
+                  <span class="mock-sidebar__label">Documents</span>
+                </div>
+                <div class="mock-sidebar__item">
+                  <span class="mock-sidebar__icon">◑</span>
+                  <span class="mock-sidebar__label">Participants</span>
+                </div>
+                <div class="mock-sidebar__footer">
+                  <span class="mock-sidebar__logo">ideals.</span>
+                </div>
+              </div>
+              <!-- Part labels -->
+              <div class="anatomy-label anatomy-label--right" style="right:-100px;top:20px">account switcher</div>
+              <div class="anatomy-label anatomy-label--right" style="right:-88px;top:68px">nav item (active)</div>
+              <div class="anatomy-label anatomy-label--right" style="right:-76px;top:108px">nav item</div>
+              <div class="anatomy-label anatomy-label--right" style="right:-76px;bottom:16px">bottom bar</div>
+              <!-- Dimensions -->
+              <div class="dim-v" style="left:-40px;top:0;height:64px">64px</div>
+              <div class="dim-v" style="left:-40px;top:64px;height:40px">40px</div>
+              <div class="dim-h" style="bottom:-28px;left:0;width:280px">280px</div>
+            </div>
+          </ng-container>
+
+          <!-- QUICK ACCESS MENU -->
+          <ng-container *ngSwitchCase="'quick-access-menu'">
+            <div class="anatomy-wrap anatomy-wrap--qa-menu">
+              <div class="mock-qa-menu">
+                <div class="mock-qa-menu__header">
+                  <span class="mock-qa-menu__title">Quick access</span>
+                  <span class="mock-qa-menu__actions">⟨⟨ ‹</span>
+                </div>
+                <div class="mock-qa-menu__item mock-qa-menu__item--active">
+                  <span class="mock-qa-menu__icon">⏱</span>
+                  <span class="mock-qa-menu__label">Recent</span>
+                </div>
+                <div class="mock-qa-menu__item">
+                  <span class="mock-qa-menu__icon">★</span>
+                  <span class="mock-qa-menu__label">Favorites</span>
+                </div>
+                <div class="mock-qa-menu__item">
+                  <span class="mock-qa-menu__icon">↑</span>
+                  <span class="mock-qa-menu__label">New</span>
+                </div>
+                <div class="mock-qa-menu__item">
+                  <span class="mock-qa-menu__icon">≡</span>
+                  <span class="mock-qa-menu__label">Notes</span>
+                </div>
+              </div>
+              <!-- Part labels -->
+              <div class="anatomy-label anatomy-label--right" style="right:-72px;top:14px">header</div>
+              <div class="anatomy-label anatomy-label--right" style="right:-64px;top:60px">item (active)</div>
+              <div class="anatomy-label anatomy-label--right" style="right:-56px;top:100px">item</div>
+              <!-- Dimensions -->
+              <div class="dim-v" style="left:-40px;top:0;height:48px">48px</div>
+              <div class="dim-v" style="left:-40px;top:48px;height:40px">40px</div>
+              <div class="dim-h" style="bottom:-28px;left:0;width:340px">340px</div>
+            </div>
+          </ng-container>
+
           <ng-container *ngSwitchDefault>
             <div class="anatomy-preview-empty">Live anatomy preview coming soon for this component.</div>
           </ng-container>
@@ -376,6 +448,65 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
               (cancelled)="modalOpen = false"
               (closed)="modalOpen = false"
             ></fvdr-modal>
+          </div>
+        </ng-container>
+
+        <!-- SIDEBAR NAV -->
+        <ng-container *ngSwitchCase="'sidebar-nav'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">Expanded (VDR)</h3>
+            <div class="examples-row examples-row--flush" style="align-items:stretch;height:360px;">
+              <fvdr-sidebar-nav
+                variant="vdr"
+                accountName="Project Alpha"
+                [items]="demoNavItems"
+                [collapsed]="false"
+              ></fvdr-sidebar-nav>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Collapsed (icon-only)</h3>
+            <div class="examples-row examples-row--flush" style="align-items:stretch;height:360px;">
+              <fvdr-sidebar-nav
+                variant="ca"
+                accountName="ACME Corp"
+                [items]="demoNavItems"
+                [collapsed]="true"
+              ></fvdr-sidebar-nav>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Variants</h3>
+            <div class="examples-row examples-row--flush" style="align-items:stretch;height:220px;gap:16px;">
+              <fvdr-sidebar-nav variant="vdr"      accountName="VDR Project"   [items]="demoNavItems" [collapsed]="true"></fvdr-sidebar-nav>
+              <fvdr-sidebar-nav variant="ca"       accountName="Corp Account"  [items]="demoNavItems" [collapsed]="true"></fvdr-sidebar-nav>
+              <fvdr-sidebar-nav variant="internal" accountName="Internal Tool" [items]="demoNavItems" [collapsed]="true"></fvdr-sidebar-nav>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- QUICK ACCESS MENU -->
+        <ng-container *ngSwitchCase="'quick-access-menu'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">Expanded (default)</h3>
+            <div class="examples-row">
+              <fvdr-quick-access-menu
+                [items]="demoQaItems"
+                [collapsed]="false"
+              ></fvdr-quick-access-menu>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">With active item</h3>
+            <div class="examples-row">
+              <fvdr-quick-access-menu [items]="demoQaItemsActive" [collapsed]="false"></fvdr-quick-access-menu>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Collapsed (icon-only header)</h3>
+            <div class="examples-row">
+              <fvdr-quick-access-menu [items]="demoQaItems" [collapsed]="true"></fvdr-quick-access-menu>
+            </div>
           </div>
         </ng-container>
 
@@ -845,6 +976,131 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
       gap: 8px;
     }
 
+    /* ── Mock sidebar-nav (anatomy) ── */
+    .mock-sidebar {
+      width: 220px;
+      height: 100%;
+      background: #f7f7f7;
+      border-radius: 6px;
+      border: 1px solid #dee0eb;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .mock-sidebar__account {
+      height: 56px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 14px;
+      border-bottom: 1px solid #dee0eb;
+      flex-shrink: 0;
+    }
+    .mock-sidebar__badge {
+      width: 32px;
+      height: 32px;
+      border-radius: 4px;
+      background: #f4640c;
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .mock-sidebar__name {
+      font-size: 13px;
+      font-weight: 600;
+      color: #1f2129;
+    }
+    .mock-sidebar__item {
+      display: flex;
+      align-items: center;
+      height: 36px;
+      padding: 0 10px;
+      gap: 10px;
+      font-size: 13px;
+      color: #40424b;
+      cursor: default;
+    }
+    .mock-sidebar__item--active {
+      background: #ebf8ef;
+      font-weight: 600;
+      color: #1f2129;
+    }
+    .mock-sidebar__icon {
+      font-size: 14px;
+      opacity: 0.6;
+      width: 18px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+    .mock-sidebar__label { font-size: 13px; }
+    .mock-sidebar__footer {
+      margin-top: auto;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      padding: 0 14px;
+      border-top: 1px solid #dee0eb;
+    }
+    .mock-sidebar__logo {
+      font-size: 13px;
+      font-weight: 700;
+      color: #5f616a;
+      letter-spacing: -0.3px;
+    }
+    .anatomy-wrap--sidebar-nav { min-height: 260px; }
+
+    /* ── Mock quick-access-menu (anatomy) ── */
+    .mock-qa-menu {
+      width: 260px;
+      background: #fff;
+      border-radius: 4px;
+      border: 1px solid #dee0eb;
+      overflow: hidden;
+    }
+    .mock-qa-menu__header {
+      height: 40px;
+      background: #f7f7f7;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 12px;
+      flex-shrink: 0;
+    }
+    .mock-qa-menu__title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #1f2129;
+    }
+    .mock-qa-menu__actions {
+      font-size: 11px;
+      color: #5f616a;
+      letter-spacing: 2px;
+    }
+    .mock-qa-menu__item {
+      display: flex;
+      align-items: center;
+      height: 36px;
+      padding: 0 12px;
+      gap: 12px;
+      font-size: 13px;
+      color: #1f2129;
+      cursor: default;
+    }
+    .mock-qa-menu__item--active { background: #ebf8ef; }
+    .mock-qa-menu__icon { font-size: 13px; color: #5f616a; flex-shrink: 0; }
+    .mock-qa-menu__item--active .mock-qa-menu__icon { color: #2c9c74; }
+    .anatomy-wrap--qa-menu { min-height: 200px; }
+
+    /* ── Examples row flush (for sidebars that need full height) ── */
+    .examples-row--flush {
+      padding: 0;
+      overflow: hidden;
+    }
+
     /* ── Examples ── */
     .examples-group {
       margin-bottom: 28px;
@@ -1118,6 +1374,33 @@ export class DsComponentPageComponent implements OnInit, OnDestroy {
     { id: 'archived', label: 'Archived', counter: 6  },
   ];
   activeTabCounter = 'all';
+
+  // ── Sidebar Nav demo data ──
+  demoNavItems = [
+    { id: 'dashboard',   label: 'Dashboard',    icon: 'overview'      as any, iconActive: 'nav-overview-active'      as any, active: true  },
+    { id: 'documents',   label: 'Documents',    icon: 'folder'        as any, iconActive: 'folder'                   as any, active: false, open: false, children: [
+      { id: 'sub1', label: 'Client Docs', active: false },
+      { id: 'sub2', label: 'Archived',    active: false },
+    ]},
+    { id: 'participants',label: 'Participants',  icon: 'participants'  as any, iconActive: 'nav-participants-active'  as any, active: false },
+    { id: 'permissions', label: 'Permissions',  icon: 'lock-close'    as any, iconActive: 'lock-close'               as any, active: false },
+    { id: 'qa',          label: 'Q&A',          icon: 'comment'       as any, iconActive: 'comment'                  as any, active: false },
+    { id: 'settings',    label: 'Settings',     icon: 'settings'      as any, iconActive: 'nav-settings-active'      as any, active: false },
+  ];
+
+  // ── Quick Access Menu demo data ──
+  demoQaItems = [
+    { id: 'recent',    label: 'Recent',    icon: 'clock'  as any, active: false },
+    { id: 'favorites', label: 'Favorites', icon: 'sort'   as any, active: false },
+    { id: 'new',       label: 'New',       icon: 'upload' as any, active: false },
+    { id: 'notes',     label: 'Notes',     icon: 'note'   as any, active: false },
+  ];
+  demoQaItemsActive = [
+    { id: 'recent',    label: 'Recent',    icon: 'clock'  as any, active: true  },
+    { id: 'favorites', label: 'Favorites', icon: 'sort'   as any, active: false },
+    { id: 'new',       label: 'New',       icon: 'upload' as any, active: false },
+    { id: 'notes',     label: 'Notes',     icon: 'note'   as any, active: false },
+  ];
 
   get componentId(): string { return this.entry?.id ?? ''; }
 

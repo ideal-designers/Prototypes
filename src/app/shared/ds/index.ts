@@ -42,8 +42,9 @@
  *   <fvdr-number-stepper>   → Number input with +/- buttons
  *   <fvdr-progress>         → Progress bar
  *   <fvdr-range>            → Range slider
- *   <fvdr-sidebar-nav>      → App sidebar (VDR/CA/Internal, collapsible, with sub-nav)
- *   <fvdr-file-icon>        → File/folder icon (folder, pdf, doc, xls, image, video, zip…)
+ *   <fvdr-sidebar-nav>         → App sidebar (VDR/CA/Internal, collapsible, with sub-nav)
+ *   <fvdr-file-icon>           → File/folder icon (folder, pdf, doc, xls, image, video, zip…)
+ *   <fvdr-quick-access-menu>   → Quick access shortcuts panel (collapsible, active state)
  *
  * Usage in prototype:
  *   import { DS_COMPONENTS } from '../../shared/ds';
@@ -90,6 +91,7 @@ import { HeaderComponent, MobileHeaderComponent } from './components/header/head
 import { NumberStepperComponent, ProgressComponent, RangeComponent } from './components/special-controls/special-controls.component';
 import { SidebarNavComponent } from './components/sidebar-nav/sidebar-nav.component';
 import { FileIconComponent } from './components/file-icon/file-icon.component';
+import { QuickAccessMenuComponent } from './components/quick-access-menu/quick-access-menu.component';
 
 // ─── Re-exports ───────────────────────────────────────────────────────────────
 
@@ -190,6 +192,9 @@ export type { SidebarNavItem, SidebarNavSubItem, SidebarNavVariant } from './com
 export { FileIconComponent } from './components/file-icon/file-icon.component';
 export type { FvdrFileType } from './components/file-icon/file-icon.component';
 
+export { QuickAccessMenuComponent } from './components/quick-access-menu/quick-access-menu.component';
+export type { QuickAccessItem } from './components/quick-access-menu/quick-access-menu.component';
+
 /** Convenience array — spread into component imports[] */
 export const DS_COMPONENTS = [
   // Original
@@ -237,4 +242,5 @@ export const DS_COMPONENTS = [
   RangeComponent,
   SidebarNavComponent,
   FileIconComponent,
+  QuickAccessMenuComponent,
 ];

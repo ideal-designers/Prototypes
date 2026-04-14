@@ -1219,19 +1219,99 @@ const sidebarNav: ComponentDocEntry = {
   selector: 'fvdr-sidebar-nav',
   category: 'navigation',
   status: 'stable',
+  figmaNode: '22845-6992',
   description:
-    'A vertical navigation menu with icon-and-label items, collapsible groups, and an optional mini (icon-only) collapsed mode.',
-  whenToUse: ['Primary application navigation in a left-sidebar layout.'],
-  whenNotToUse: [],
-  anatomy: [],
-  tokens: [
-    { token: '--color-interactive-primary', value: '#2c9c74', usage: 'Active nav item indicator and icon' },
-    { token: '--color-hover-bg',            value: '#eef0f8', usage: 'Nav item hover background' },
-    { token: '--color-text-secondary',      value: '#5f616a', usage: 'Inactive nav item label color' },
+    'App-level left sidebar navigation. Supports three product variants (VDR / CA / Internal), an account-switcher header with project name, collapsible sub-items, and an icon-only collapsed mode (280 → 72 px). The bottom bar holds the ideals. logo and a toggle button.',
+  whenToUse: [
+    'Main navigation in any VDR, CA, or Internal application screen',
+    'When you need collapsible sub-sections (Documents → sub-folders)',
+    'When the app needs a persistent left rail that can be collapsed to save space',
   ],
-  usedIn: ['All prototype screens (main nav)'],
-  codeSnippet: `<fvdr-sidebar-nav [items]="navItems" [collapsed]="sidebarCollapsed" (itemClicked)="navigate($event)"></fvdr-sidebar-nav>`,
-  claudePrompt: 'Use fvdr-sidebar-nav for left navigation. Import: @fvdr/ui/sidebar-nav. @Input() items: NavItem[]. @Input() collapsed:boolean. @Output() itemClicked emits NavItem.',
+  whenNotToUse: [
+    'Secondary in-page navigation — use Tabs instead',
+    'Short option lists — use Dropdown or Segment',
+    'Mobile layouts — use a bottom navigation bar or drawer',
+  ],
+  anatomy: [
+    { index: 1, part: 'Account switcher',  spec: 'height: 64px · project badge (40px) + name + chevron-down' },
+    { index: 2, part: 'Nav item',          spec: 'height: 40px · icon zone 56px + label · optional chevron-down for groups' },
+    { index: 3, part: 'Sub-items',         spec: 'height: 40px · indent: 56px · font-size: 13px' },
+    { index: 4, part: 'Bottom bar',        spec: 'height: 64px · ideals. logo + collapse button' },
+  ],
+  tokens: [
+    { token: '--color-stone-100',            value: '#f7f7f7', usage: 'Sidebar background (all zones)' },
+    { token: '--color-divider',              value: '#dee0eb', usage: 'Right border + section separators' },
+    { token: '--color-interactive-primary',  value: '#2c9c74', usage: 'Active nav item icon color' },
+    { token: '--color-primary-50',           value: '#ebf8ef', usage: 'Active nav item row background' },
+    { token: '--color-hover-bg',             value: '#eceef9', usage: 'Hover row background' },
+    { token: '--color-text-primary',         value: '#1f2129', usage: 'Active label color' },
+    { token: '--color-text-secondary',       value: '#5f616a', usage: 'Inactive label and icon color' },
+  ],
+  usedIn: ['VDR Deal Room', 'Corporate Account', 'Internal Admin'],
+  codeSnippet: `<fvdr-sidebar-nav
+  variant="vdr"
+  accountName="Project Alpha"
+  [items]="navItems"
+  [(collapsed)]="sidebarCollapsed"
+  (itemClick)="onNavItem($event)"
+  (subItemClick)="onSubNav($event)"
+  (accountClick)="openProjectSwitcher()"
+/>`,
+  claudePrompt:
+    'Use fvdr-sidebar-nav for the app left navigation rail. Import: @fvdr/ui/sidebar-nav. ' +
+    '@Input() variant: "vdr"|"ca"|"internal" — controls the account-badge accent color. ' +
+    '@Input() accountName: string — displayed project/account name. ' +
+    '@Input() items: SidebarNavItem[] — each item: { id, label, icon, iconActive, active?, open?, children?: SidebarNavSubItem[] }. ' +
+    '@Input() collapsed: boolean — two-way binding via [(collapsed)]. Width: 280px expanded, 72px collapsed. ' +
+    '@Output() itemClick emits SidebarNavItem. @Output() subItemClick emits { item, subItem }. @Output() accountClick emits void.',
+};
+
+const quickAccessMenu: ComponentDocEntry = {
+  id: 'quick-access-menu',
+  name: 'Quick Access Menu',
+  selector: 'fvdr-quick-access-menu',
+  category: 'navigation',
+  status: 'stable',
+  figmaNode: '36673-1987',
+  description:
+    'A collapsible shortcut panel placed alongside the sidebar. Displays a labeled header with expand/close controls and a vertical list of shortcut items (Recent, Favorites, New, Notes). Active item is highlighted with a green tint; hover uses a blue-gray tint.',
+  whenToUse: [
+    'Provide quick access to frequently used sections (Recent, Favorites) inside the document workspace',
+    'When the user needs a persistent, dismissible filter panel on the left of the content area',
+  ],
+  whenNotToUse: [
+    'Primary app navigation — use Sidebar Nav instead',
+    'More than 6–8 shortcut items — consider grouping with Tabs',
+  ],
+  anatomy: [
+    { index: 1, part: 'Header',     spec: 'height: 48px · bg stone-200 · title 14px/600 + action icons' },
+    { index: 2, part: 'Item row',   spec: 'height: 40px · px-16 py-10 · 16px icon + 14px label' },
+    { index: 3, part: 'Active row', spec: 'bg: #ebf8ef (primary-50) · icon color: primary-500' },
+    { index: 4, part: 'Hover row',  spec: 'bg: #eceef9 (hover-bg)' },
+  ],
+  tokens: [
+    { token: '--color-stone-200',           value: '#f7f7f7', usage: 'Header background' },
+    { token: '--color-primary-50',          value: '#ebf8ef', usage: 'Active item row background' },
+    { token: '--color-hover-bg',            value: '#eceef9', usage: 'Hover item row background' },
+    { token: '--color-text-primary',        value: '#1f2129', usage: 'Item label color' },
+    { token: '--color-text-secondary',      value: '#5f616a', usage: 'Item icon color (inactive)' },
+    { token: '--color-primary-500',         value: '#2c9c74', usage: 'Active item icon color' },
+  ],
+  usedIn: ['Deal Room (Documents panel)', 'Quick Access Panel prototype'],
+  codeSnippet: `<fvdr-quick-access-menu
+  [items]="shortcuts"
+  [(collapsed)]="menuCollapsed"
+  (itemClick)="onShortcut($event)"
+  (closed)="menuVisible = false"
+/>`,
+  claudePrompt:
+    'Use fvdr-quick-access-menu for a collapsible shortcut panel. Import: @fvdr/ui/quick-access-menu. ' +
+    '@Input() items: QuickAccessItem[] — each: { id, label, icon: FvdrIconName, active? }. ' +
+    'Default items: Recent (clock), Favorites (sort), New (upload), Notes (file-text). ' +
+    '@Input() collapsed: boolean — two-way via [(collapsed)]. ' +
+    '@Output() itemClick emits QuickAccessItem. @Output() closed emits void. ' +
+    'Panel width: 340px expanded, auto when collapsed (icon-only header). ' +
+    'Active item: bg #ebf8ef, icon color primary-500. Hover: bg #eceef9.',
 };
 
 const fileIcon: ComponentDocEntry = {
@@ -1297,6 +1377,7 @@ export const DS_REGISTRY: ComponentDocEntry[] = [
   range,
   progress,
   sidebarNav,
+  quickAccessMenu,
   fileIcon,
 ];
 
