@@ -1,0 +1,9 @@
+<svg preserveAspectRatio="none" width="100%" height="100%" overflow="visible" style="display: block;" viewBox="0 0 20 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="icon">
+<path id="Vector 2" d="M6 1H1V5H19V3H8.5L6 1Z" fill="var(--fill-0, #FFF6C3)" fill-opacity="0.3"/>
+<path id="Vector 2 (Stroke)" fill-rule="evenodd" clip-rule="evenodd" d="M0 0H6.35078L8.85078 2H20V18H0V0ZM8.5 3L6 1H1V17H19V3H8.5Z" fill="var(--fill-0, #D1B200)"/>
+<path id="Vector 4" d="M19 6H1V17H19V6Z" fill="var(--fill-0, #FFF6C3)" fill-opacity="0.3"/>
+<path id="Vector 4 (Stroke)" fill-rule="evenodd" clip-rule="evenodd" d="M0 5H20V18H0V5ZM19 6V17H1V6H19Z" fill="var(--fill-0, #D1B200)"/>
+<path id="Vector 84 (Stroke)" fill-rule="evenodd" clip-rule="evenodd" d="M11.6465 17.3535L0.646484 6.3535V4.93913L13.0607 17.3535H11.6465ZM14.6465 17.3535L2.93938 5.64639H4.35359L16.0607 17.3535H14.6465ZM17.6465 17.3535L5.93938 5.64639H7.35359L19.0607 17.3535H17.6465ZM19.3536 16.0606L8.93938 5.64639H10.3536L19.3536 14.6464V16.0606ZM19.3536 11.6464V13.0606L11.9394 5.64639H13.3536L19.3536 11.6464ZM19.3536 10.0606L14.9394 5.64639H16.3536L19.3536 8.64639V10.0606ZM8.64648 17.3535L0.646484 9.3535V7.93928L10.0607 17.3535H8.64648ZM5.64648 17.3535L0.646484 12.3535V10.9393L7.0607 17.3535H5.64648ZM2.64648 17.3535L0.646484 15.3535V13.9393L4.0607 17.3535H2.64648Z" fill="var(--fill-0, #D1B200)"/>
+</g>
+</svg>

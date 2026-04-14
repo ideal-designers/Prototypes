@@ -1,0 +1,13 @@
+<svg preserveAspectRatio="none" width="100%" height="100%" overflow="visible" style="display: block;" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Icon" clip-path="url(#clip0_0_84)">
+<path id="Rectangle 696" d="M0 0H20V20H0V0Z" fill="var(--fill-0, #BBBDC8)" fill-opacity="0.05"/>
+<path id="Rectangle 696 (Stroke)" fill-rule="evenodd" clip-rule="evenodd" d="M19 1H1V19H19V1ZM0 0V20H20V0H0Z" fill="var(--fill-0, #BBBDC8)"/>
+<path id="Vector 47 (Stroke)" fill-rule="evenodd" clip-rule="evenodd" d="M8.74275 6.57125L9.25725 7.42875L4.97183 10L9.25725 12.5713L8.74275 13.4287L3.02817 10L8.74275 6.57125Z" fill="var(--fill-0, #9C9EA8)"/>
+<path id="Vector 48 (Stroke)" fill-rule="evenodd" clip-rule="evenodd" d="M11.2572 6.57125L10.7428 7.42875L15.0282 10L10.7428 12.5713L11.2572 13.4287L16.9718 10L11.2572 6.57125Z" fill="var(--fill-0, #9C9EA8)"/>
+</g>
+<defs>
+<clipPath id="clip0_0_84">
+<rect width="20" height="20" fill="white"/>
+</clipPath>
+</defs>
+</svg>

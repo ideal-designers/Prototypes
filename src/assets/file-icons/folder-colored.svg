@@ -1,0 +1,8 @@
+<svg preserveAspectRatio="none" width="100%" height="100%" overflow="visible" style="display: block;" viewBox="0 0 20 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Icon">
+<path id="Vector 2" d="M6 1H1V5H19V3H8.5L6 1Z" fill="var(--fill-0, #EBF8EF)"/>
+<path id="Vector 2 (Stroke)" fill-rule="evenodd" clip-rule="evenodd" d="M0 0H6.35078L8.85078 2H20V18H0V0ZM8.5 3L6 1H1V17H19V3H8.5Z" fill="var(--fill-0, #2C9C74)"/>
+<path id="Vector 4" d="M19 6H1V17H19V6Z" fill="var(--fill-0, #EBF8EF)"/>
+<path id="Vector 4 (Stroke)" fill-rule="evenodd" clip-rule="evenodd" d="M0 5H20V18H0V5ZM19 6V17H1V6H19Z" fill="var(--fill-0, #2C9C74)"/>
+</g>
+</svg>

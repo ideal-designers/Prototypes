@@ -1,0 +1,19 @@
+<svg preserveAspectRatio="none" width="100%" height="100%" overflow="visible" style="display: block;" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Icon">
+<g id="Rectangle 168">
+</g>
+<g id="Frame 275">
+<rect width="12" height="1" transform="translate(4 7)" fill="#9C9EA8"/>
+</g>
+<g id="Frame 276">
+<rect width="12" height="1" transform="translate(4 9)" fill="#9C9EA8"/>
+</g>
+<g id="Frame 277">
+<rect width="12" height="1" transform="translate(4 11)" fill="#9C9EA8"/>
+</g>
+<g id="Frame 278">
+<rect width="8" height="1" transform="translate(4 13)" fill="#9C9EA8"/>
+</g>
+<rect id="Rectangle 1340" x="0.5" y="0.5" width="19" height="19" stroke="var(--stroke-0, #9C9EA8)" stroke-dasharray="3 3"/>
+</g>
+</svg>

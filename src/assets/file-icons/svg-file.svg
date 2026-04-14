@@ -1,0 +1,14 @@
+<svg preserveAspectRatio="none" width="100%" height="100%" overflow="visible" style="display: block;" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Icon" clip-path="url(#clip0_0_104)">
+<rect width="20" height="20" fill="#C6B962" fill-opacity="0.05"/>
+<path id="Rectangle 689 (Stroke)" fill-rule="evenodd" clip-rule="evenodd" d="M19 1H1V19H19V1ZM0 0V20H20V0H0Z" fill="var(--fill-0, #C6B962)"/>
+<g id="Union">
+<path d="M4 5C4 4.44772 4.44772 4 5 4H7C7.55228 4 8 4.44772 8 5V5.5H12V5C12 4.44772 12.4477 4 13 4H15C15.5523 4 16 4.44772 16 5V7C16 7.55228 15.5523 8 15 8H14.5V12H15C15.5523 12 16 12.4477 16 13V15C16 15.5523 15.5523 16 15 16H13C12.4477 16 12 15.5523 12 15V14.5H8V15C8 15.5523 7.55228 16 7 16H5C4.44772 16 4 15.5523 4 15V13C4 12.4477 4.44772 12 5 12H5.5V8H5C4.44772 8 4 7.55228 4 7V5ZM5 5V7H7V5H5ZM13.5 12V8H13C12.4477 8 12 7.55228 12 7V6.5H8V7C8 7.55228 7.55228 8 7 8H6.5V12H7C7.55228 12 8 12.4477 8 13V13.5H12V13C12 12.4477 12.4477 12 13 12H13.5ZM5 13V15H7V13H5ZM15 5H13V7H15V5ZM13 13V15H15V13H13Z" fill="#C6B962"/>
+</g>
+</g>
+<defs>
+<clipPath id="clip0_0_104">
+<rect width="20" height="20" fill="white"/>
+</clipPath>
+</defs>
+</svg>

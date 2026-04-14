@@ -1,0 +1,21 @@
+<svg preserveAspectRatio="none" width="100%" height="100%" overflow="visible" style="display: block;" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Icon">
+<rect x="0.5" y="0.5" width="19" height="19" stroke="var(--stroke-0, #E69F6A)"/>
+<path id="Rectangle 169" d="M0 0H20V20H0V0Z" fill="var(--fill-0, #ECB48B)" fill-opacity="0.05"/>
+<path id="Rectangle 169 (Stroke)" fill-rule="evenodd" clip-rule="evenodd" d="M19 1H1V19H19V1ZM0 0V20H20V0H0Z" fill="var(--fill-0, #ECB48B)"/>
+<path id="Ellipse 8" d="M12 10C12 10.9889 11.7068 11.9556 11.1573 12.7779C10.6079 13.6001 9.82705 14.241 8.91342 14.6194C7.99979 14.9978 6.99445 15.0969 6.02455 14.9039C5.05464 14.711 4.16373 14.2348 3.46447 13.5355C2.7652 12.8363 2.289 11.9454 2.09607 10.9755C1.90315 10.0055 2.00216 9.00021 2.3806 8.08658C2.75904 7.17295 3.3999 6.39206 4.22215 5.84265C5.04439 5.29324 6.01109 5 7 5L7 10H12Z" fill="var(--fill-0, #D8A991)"/>
+<circle id="Ellipse 9" cx="7" cy="10" r="4.5" stroke="var(--stroke-0, #E69F6A)"/>
+<g id="Frame 279">
+<rect width="5" height="1" transform="translate(13 5)" fill="#E69F6A"/>
+</g>
+<g id="Frame 280">
+<rect width="5" height="1" transform="translate(13 8)" fill="#E69F6A"/>
+</g>
+<g id="Frame 281">
+<rect width="5" height="1" transform="translate(13 11)" fill="#E69F6A"/>
+</g>
+<g id="Frame 282">
+<rect width="5" height="1" transform="translate(13 14)" fill="#E69F6A"/>
+</g>
+</g>
+</svg>
