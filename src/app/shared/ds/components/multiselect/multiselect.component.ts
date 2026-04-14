@@ -324,7 +324,7 @@ export interface MultiselectOption {
     }
     .ms-item:hover { background: var(--color-hover-bg, #f7f7f7); }
     .ms-item--active { background: var(--color-primary-50, #ebf8ef); }
-    .ms-item--active:hover { background: #dff4e8; }
+    .ms-item--active:hover { background: var(--color-selected-row-hover); }
     .ms-item--disabled { opacity: 0.4; cursor: default; }
     .ms-item--empty {
       color: var(--color-text-secondary);

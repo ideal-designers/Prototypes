@@ -1,4 +1,7 @@
-import { Component, Input, Output, EventEmitter, forwardRef } from '@angular/core';
+import {
+  Component, Input, Output, EventEmitter, forwardRef,
+  HostListener, ElementRef, OnInit, ChangeDetectorRef
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormsModule } from '@angular/forms';
 import { FvdrIconComponent } from '../../icons/icon.component';
@@ -6,16 +9,15 @@ import { FvdrIconComponent } from '../../icons/icon.component';
 export interface TimeValue { hours: number; minutes: number; }
 
 /**
- * DS Input / Time picker — Figma: liyNDiFf1piO8SQmHNKoeU, node 15032-12265
+ * DS Time picker — Figma: liyNDiFf1piO8SQmHNKoeU, node 15032-12265
  *
- * DS specs:
- *   Height: 40px, same as Input
- *   HH:MM format with stepper arrows
- *   Hours: 00–23, Minutes: 00–59
- *   Clock icon right side
+ * Dropdown-based time picker with 15-minute intervals.
+ * Input field (L/M/S sizes) + scrollable popover with time options.
  *
  * Usage:
  *   <fvdr-timepicker label="Start time" [(ngModel)]="time" />
+ *   <fvdr-timepicker label="End time" [mode]="'12h'" [showUtc]="true" />
+ *   <fvdr-timepicker label="Time" size="m" hint="Select departure time" />
  */
 @Component({
   selector: 'fvdr-timepicker',
@@ -26,126 +28,259 @@ export interface TimeValue { hours: number; minutes: number; }
   ],
   template: `
     <div class="tp" [class.tp--disabled]="disabled">
-      <label *ngIf="label" class="tp__label">{{ label }}</label>
-      <div class="tp__wrapper" [class.tp__wrapper--focused]="focused">
-        <div class="tp__segment">
-          <button class="tp__step" (click)="step('h', 1)"><fvdr-icon name="chevron-up" /></button>
-          <input
-            class="tp__input"
-            type="number"
-            min="0" max="23"
-            [value]="pad(hours)"
-            (input)="onHours($event)"
-            (focus)="focused = true"
-            (blur)="focused = false"
-          />
-          <button class="tp__step" (click)="step('h', -1)"><fvdr-icon name="chevron-down" /></button>
+
+      <!-- Label -->
+      <label *ngIf="label" class="tp__label tp__label--{{ size }}">{{ label }}</label>
+
+      <!-- Input field trigger -->
+      <div
+        class="tp__field tp__field--{{ size }}"
+        [class.tp__field--focused]="open"
+        [class.tp__field--error]="error"
+        [class.tp__field--filled]="!!displayValue"
+        (click)="toggle()"
+      >
+        <div class="tp__field-content">
+          <span class="tp__value tp__value--{{ size }}" [class.tp__value--placeholder]="!displayValue">
+            {{ displayValue || placeholder }}
+          </span>
+          <span *ngIf="showUtc" class="tp__utc tp__utc--{{ size }}">UTC</span>
         </div>
-        <span class="tp__sep">:</span>
-        <div class="tp__segment">
-          <button class="tp__step" (click)="step('m', 1)"><fvdr-icon name="chevron-up" /></button>
-          <input
-            class="tp__input"
-            type="number"
-            min="0" max="59"
-            [value]="pad(minutes)"
-            (input)="onMinutes($event)"
-            (focus)="focused = true"
-            (blur)="focused = false"
-          />
-          <button class="tp__step" (click)="step('m', -1)"><fvdr-icon name="chevron-down" /></button>
-        </div>
-        <fvdr-icon name="clock" class="tp__icon" />
+        <fvdr-icon name="clock" class="tp__icon tp__icon--{{ size }}" />
       </div>
+
+      <!-- Hint / Error message -->
+      <span *ngIf="hint || error" class="tp__hint" [class.tp__hint--error]="error">
+        {{ error || hint }}
+      </span>
+
+      <!-- Dropdown -->
+      <div *ngIf="open" class="tp__dropdown">
+        <div class="tp__scroll" #scrollEl>
+          <div
+            *ngFor="let opt of options"
+            class="tp__option"
+            [class.tp__option--selected]="opt === displayValue"
+            (click)="select(opt)"
+            (mouseenter)="hoveredOption = opt"
+            (mouseleave)="hoveredOption = ''"
+          >
+            {{ opt }}
+          </div>
+        </div>
+      </div>
+
     </div>
   `,
   styles: [`
+    :host { display: block; position: relative; }
+
     .tp { display: flex; flex-direction: column; gap: var(--space-1); }
     .tp--disabled { opacity: 0.45; pointer-events: none; }
 
+    /* ── Label ── */
     .tp__label {
       font-family: var(--font-family);
-      font-size: var(--text-caption2-size);
-      font-weight: var(--text-caption2-weight);
-      color: var(--color-text-secondary);
+      font-weight: var(--text-label-weight);
+      color: var(--color-text-primary);
+      line-height: 24px;
+    }
+    .tp__label--l { font-size: var(--text-label-l-size, 16px); }
+    .tp__label--m { font-size: var(--text-label-m-size, 14px); }
+    .tp__label--s { font-size: var(--text-label-s-size, 13px); }
+
+    /* ── Field ── */
+    .tp__field {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--color-stone-0);
+      border: 1px solid var(--color-stone-500);
+      border-radius: var(--radius-sm);
+      padding: 0 var(--space-4);
+      cursor: pointer;
+      transition: border-color 0.15s;
+      user-select: none;
+    }
+    .tp__field:hover:not(.tp__field--focused) { border-color: var(--color-stone-600); }
+    .tp__field--focused { border-color: var(--color-primary-500); }
+    .tp__field--error { border-color: var(--color-error-600); }
+
+    .tp__field--l { height: 48px; }
+    .tp__field--m { height: 40px; }
+    .tp__field--s { height: 32px; padding: 0 var(--space-3); }
+
+    /* ── Field content ── */
+    .tp__field-content {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex: 1;
+      gap: var(--space-1);
     }
 
-    .tp__wrapper {
-      display: inline-flex;
+    /* ── Value / Placeholder ── */
+    .tp__value {
+      font-family: var(--font-family);
+      font-weight: 400;
+      color: var(--color-text-primary);
+      white-space: nowrap;
+    }
+    .tp__value--placeholder { color: var(--color-text-placeholder); }
+    .tp__value--l { font-size: var(--text-base-l-size, 16px); line-height: 24px; }
+    .tp__value--m { font-size: var(--text-base-s-size, 15px); line-height: 24px; }
+    .tp__value--s { font-size: var(--text-caption1-size, 14px); line-height: 24px; }
+
+    /* ── UTC badge ── */
+    .tp__utc {
+      font-family: var(--font-family);
+      font-weight: 400;
+      color: var(--color-text-secondary);
+      white-space: nowrap;
+    }
+    .tp__utc--l { font-size: var(--text-base-s-size, 15px); }
+    .tp__utc--m { font-size: var(--text-caption1-size, 14px); }
+    .tp__utc--s { font-size: var(--text-caption2-size, 12px); }
+
+    /* ── Clock icon ── */
+    .tp__icon { color: var(--color-text-secondary); flex-shrink: 0; margin-left: var(--space-2); }
+    .tp__icon--l { font-size: 16px; }
+    .tp__icon--m { font-size: 16px; }
+    .tp__icon--s { font-size: 14px; }
+
+    /* ── Hint ── */
+    .tp__hint {
+      font-family: var(--font-family);
+      font-size: var(--text-caption2-size);
+      font-weight: 400;
+      color: var(--color-text-secondary);
+      line-height: 16px;
+    }
+    .tp__hint--error { color: var(--color-error-600); }
+
+    /* ── Dropdown ── */
+    .tp__dropdown {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      z-index: 1000;
+      background: var(--color-stone-0);
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow-popover);
+      width: 160px;
+      overflow: hidden;
+    }
+
+    .tp__scroll {
+      max-height: 240px;
+      overflow-y: auto;
+      padding: var(--space-2) 0;
+    }
+    .tp__scroll::-webkit-scrollbar { width: 4px; }
+    .tp__scroll::-webkit-scrollbar-thumb { background: var(--color-stone-400); border-radius: 2px; }
+
+    /* ── Option ── */
+    .tp__option {
+      display: flex;
       align-items: center;
       height: 40px;
-      padding: 0 var(--space-3);
-      background: var(--color-stone-0);
-      border: 1.5px solid var(--color-stone-400);
-      border-radius: var(--radius-sm);
-      gap: var(--space-1);
-      transition: border-color 0.15s;
-    }
-    .tp__wrapper--focused { border-color: var(--color-primary-500); background: var(--color-stone-0); }
-
-    .tp__segment { display: flex; flex-direction: column; align-items: center; }
-    .tp__step {
-      display: flex; align-items: center; justify-content: center;
-      width: 16px; height: 12px; border: none; background: transparent;
-      cursor: pointer; color: var(--color-text-secondary); font-size: 10px; padding: 0;
-    }
-    .tp__step:hover { color: var(--color-primary-500); }
-
-    .tp__input {
-      width: 28px;
-      border: none;
-      outline: none;
-      background: transparent;
+      padding: var(--space-2) var(--space-4);
       font-family: var(--font-family);
       font-size: var(--text-base-s-size);
+      font-weight: 400;
       color: var(--color-text-primary);
-      text-align: center;
-      -moz-appearance: textfield;
+      cursor: pointer;
+      transition: background 0.1s;
+      white-space: nowrap;
     }
-    .tp__input::-webkit-inner-spin-button,
-    .tp__input::-webkit-outer-spin-button { -webkit-appearance: none; }
-
-    .tp__sep {
-      font-family: var(--font-family);
-      font-size: var(--text-base-s-size);
-      color: var(--color-text-secondary);
+    .tp__option:hover { background: var(--color-hover-bg); }
+    .tp__option--selected {
+      background: var(--color-primary-50);
+      color: var(--color-text-primary);
     }
-    .tp__icon { font-size: 16px; color: var(--color-text-secondary); margin-left: var(--space-2); }
   `],
 })
-export class TimepickerComponent implements ControlValueAccessor {
+export class TimepickerComponent implements ControlValueAccessor, OnInit {
   @Input() label = '';
+  @Input() hint = '';
+  @Input() placeholder = 'hh:mm';
+  @Input() size: 'l' | 'm' | 's' = 'm';
+  @Input() mode: '12h' | '24h' = '24h';
+  @Input() showUtc = false;
   @Input() disabled = false;
+  @Input() error = '';
+  @Input() step = 15; // minutes between options
 
-  hours = 0;
-  minutes = 0;
-  focused = false;
+  displayValue = '';
+  open = false;
+  options: string[] = [];
+  hoveredOption = '';
 
-  private onChange: (v: TimeValue) => void = () => {};
+  private onChange: (v: string) => void = () => {};
   private onTouched: () => void = () => {};
 
-  pad(n: number): string { return String(n).padStart(2, '0'); }
+  constructor(private elRef: ElementRef, private cdr: ChangeDetectorRef) {}
 
-  step(type: 'h' | 'm', dir: number): void {
-    if (type === 'h') { this.hours = (this.hours + dir + 24) % 24; }
-    else { this.minutes = (this.minutes + dir + 60) % 60; }
-    this.emit();
+  ngOnInit(): void {
+    this.options = this.buildOptions();
   }
 
-  onHours(e: Event): void {
-    this.hours = Math.min(23, Math.max(0, +(e.target as HTMLInputElement).value || 0));
-    this.emit();
+  buildOptions(): string[] {
+    const opts: string[] = [];
+    const total = 24 * 60;
+    for (let m = 0; m < total; m += this.step) {
+      const h = Math.floor(m / 60);
+      const min = m % 60;
+      if (this.mode === '12h') {
+        const period = h < 12 ? 'AM' : 'PM';
+        const h12 = h % 12 === 0 ? 12 : h % 12;
+        opts.push(`${String(h12).padStart(2, '0')}:${String(min).padStart(2, '0')} ${period}`);
+      } else {
+        opts.push(`${String(h).padStart(2, '0')}:${String(min).padStart(2, '0')}`);
+      }
+    }
+    return opts;
   }
 
-  onMinutes(e: Event): void {
-    this.minutes = Math.min(59, Math.max(0, +(e.target as HTMLInputElement).value || 0));
-    this.emit();
+  toggle(): void {
+    if (this.disabled) return;
+    this.open = !this.open;
+    this.onTouched();
+    if (this.open) {
+      setTimeout(() => this.scrollToSelected(), 0);
+    }
   }
 
-  private emit(): void { this.onChange({ hours: this.hours, minutes: this.minutes }); }
+  select(opt: string): void {
+    this.displayValue = opt;
+    this.open = false;
+    this.onChange(opt);
+  }
 
-  writeValue(v: TimeValue): void { if (v) { this.hours = v.hours; this.minutes = v.minutes; } }
-  registerOnChange(fn: (v: TimeValue) => void): void { this.onChange = fn; }
+  scrollToSelected(): void {
+    if (!this.displayValue) return;
+    const idx = this.options.indexOf(this.displayValue);
+    if (idx === -1) return;
+    const scroll = this.elRef.nativeElement.querySelector('.tp__scroll');
+    if (scroll) {
+      const itemHeight = 40;
+      scroll.scrollTop = Math.max(0, idx * itemHeight - 80);
+    }
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocClick(e: MouseEvent): void {
+    if (!this.elRef.nativeElement.contains(e.target)) {
+      this.open = false;
+      this.cdr.markForCheck();
+    }
+  }
+
+  // ControlValueAccessor
+  writeValue(v: string): void {
+    this.displayValue = v || '';
+  }
+  registerOnChange(fn: (v: string) => void): void { this.onChange = fn; }
   registerOnTouched(fn: () => void): void { this.onTouched = fn; }
   setDisabledState(d: boolean): void { this.disabled = d; }
 }

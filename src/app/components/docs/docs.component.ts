@@ -147,10 +147,10 @@ interface FileRef {
       transition: color 0.15s;
       white-space: nowrap;
     }
-    .docs__back:hover { color: #2C9C74; }
+    .docs__back:hover { color: var(--color-interactive-primary); }
     .docs__back-arrow { font-size: 1rem; }
     .docs__header-center { text-align: center; }
-    h1 { font-size: 1.5rem; font-weight: 700; color: #2C9C74; margin: 0 0 2px; }
+    h1 { font-size: 1.5rem; font-weight: 700; color: var(--color-interactive-primary); margin: 0 0 2px; }
     .docs__subtitle { font-size: 0.8rem; color: #9bbfb0; margin: 0; }
     .docs__pdf-btn {
       display: inline-flex; align-items: center; gap: 6px;
@@ -161,7 +161,7 @@ interface FileRef {
       transition: border-color 0.15s, color 0.15s;
       white-space: nowrap;
     }
-    .docs__pdf-btn:hover { border-color: #2C9C74; color: #2C9C74; }
+    .docs__pdf-btn:hover { border-color: var(--color-interactive-primary); color: var(--color-interactive-primary); }
 
     /* ── Body ── */
     .docs__body {
@@ -187,7 +187,7 @@ interface FileRef {
     .banner code {
       font-family: monospace; font-size: 0.82rem;
       background: rgba(44, 156, 116, 0.12);
-      color: #2C9C74; padding: 1px 6px; border-radius: 4px;
+      color: var(--color-interactive-primary); padding: 1px 6px; border-radius: 4px;
     }
 
     /* ── Sections ── */
@@ -202,7 +202,7 @@ interface FileRef {
       content: '';
       display: inline-block;
       width: 3px; height: 18px;
-      background: #2C9C74;
+      background: var(--color-interactive-primary);
       border-radius: 2px;
     }
     .divider { border: none; border-top: 1px solid #1e2e28; margin: 32px 0; }
@@ -219,7 +219,7 @@ interface FileRef {
     .step__num {
       flex-shrink: 0;
       width: 28px; height: 28px;
-      background: #2C9C74; color: #fff;
+      background: var(--color-interactive-primary); color: #fff;
       border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
       font-size: 0.85rem; font-weight: 700;
@@ -259,7 +259,7 @@ interface FileRef {
       display: inline-block;
       font-size: 0.72rem; font-weight: 600;
       background: rgba(44, 156, 116, 0.12);
-      color: #2C9C74;
+      color: var(--color-interactive-primary);
       border: 1px solid rgba(44, 156, 116, 0.2);
       padding: 2px 8px; border-radius: 20px;
       white-space: nowrap;
@@ -274,7 +274,7 @@ interface FileRef {
     }
     .file__path {
       font-family: monospace; font-size: 0.8rem;
-      color: #2C9C74; flex-shrink: 0;
+      color: var(--color-interactive-primary); flex-shrink: 0;
       min-width: 220px;
     }
     .file__desc { font-size: 0.82rem; color: #9bbfb0; }
@@ -292,8 +292,8 @@ interface FileRef {
       font-size: 0.8rem; font-weight: 600;
       border-bottom: 1px solid #1e2e28;
     }
-    .rules__col--good .rules__header { color: #2C9C74; }
-    .rules__col--bad  .rules__header { color: #e54430; }
+    .rules__col--good .rules__header { color: var(--color-interactive-primary); }
+    .rules__col--bad  .rules__header { color: var(--color-danger); }
     .rule {
       padding: 8px 16px;
       border-bottom: 1px solid #0f1f19;
@@ -305,7 +305,7 @@ interface FileRef {
       color: #9bbfb0;
     }
     .rules__col--good .rule code { color: #3FB67D; }
-    .rules__col--bad  .rule code { color: #e54430; opacity: 0.75; }
+    .rules__col--bad  .rule code { color: var(--color-danger); opacity: 0.75; }
 
     @media (max-width: 600px) {
       .docs__header { padding: 16px; }

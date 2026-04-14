@@ -1,6 +1,28 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import {
+  Component, Directive, Input, Output, EventEmitter,
+  ContentChildren, QueryList, TemplateRef, AfterContentInit
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FvdrIconComponent } from '../../icons/icon.component';
+import { CheckboxComponent } from '../checkbox/checkbox.component';
+
+/**
+ * Use inside <fvdr-table> to provide a custom cell template for a column.
+ *
+ * Example:
+ *   <fvdr-table [columns]="cols" [data]="rows">
+ *     <ng-template fvdrCell="status" let-value let-row="row">
+ *       <fvdr-status [label]="value" />
+ *     </ng-template>
+ *   </fvdr-table>
+ *
+ * Context: { $implicit: cellValue, row: rowObject, index: rowIndex }
+ */
+@Directive({ selector: '[fvdrCell]', standalone: true })
+export class FvdrTableCellDirective {
+  @Input('fvdrCell') columnKey = '';
+  constructor(public tpl: TemplateRef<{ $implicit: any; row: any; index: number }>) {}
+}
 
 export interface TableColumn {
   key: string;
@@ -21,29 +43,37 @@ export interface SortState {
  * DS Tables — Figma: liyNDiFf1piO8SQmHNKoeU, node 15032-15291
  *
  * DS specs:
- *   Header: bg #FAFAFA, border-bottom 1px #DEE0EB, height 40px
- *   Row: height 48px, hover bg #ECEEF9
+ *   Header: bg stone-100, border-bottom 1px divider, height 40px
+ *   Row: height 48px, hover bg hover-bg, selected bg primary-50
  *   Cell padding: 0 16px
  *   Font: 14px
  *   Sortable columns: chevron icons
- *   Row selection via checkbox
- *   Sticky header option
+ *   Row selection via fvdr-checkbox
+ *   Sticky header via [stickyHeader]="true"
  *
  * Usage:
  *   <fvdr-table [columns]="cols" [data]="rows" />
- *   <fvdr-table [columns]="cols" [data]="rows" [selectable]="true" (selectionChange)="onSelect($event)" />
+ *   <fvdr-table [columns]="cols" [data]="rows" [selectable]="true" [stickyHeader]="true">
+ *     <ng-template fvdrCell="status" let-value let-row="row">
+ *       <fvdr-status [label]="value" />
+ *     </ng-template>
+ *   </fvdr-table>
  */
 @Component({
   selector: 'fvdr-table',
   standalone: true,
-  imports: [CommonModule, FvdrIconComponent],
+  imports: [CommonModule, FvdrIconComponent, CheckboxComponent],
   template: `
     <div class="table-wrap" [class.table-wrap--bordered]="bordered">
       <table class="table">
-        <thead class="table__head">
+        <thead class="table__head" [class.table__head--sticky]="stickyHeader">
           <tr>
             <th *ngIf="selectable" class="table__th table__th--check">
-              <input type="checkbox" [checked]="allSelected" (change)="toggleAll()" />
+              <fvdr-checkbox
+                [checked]="allSelected"
+                [indeterminate]="someSelected"
+                (checkedChange)="toggleAll()"
+              />
             </th>
             <th
               *ngFor="let col of columns"
@@ -75,22 +105,36 @@ export interface SortState {
             (click)="rowClick.emit(row)"
           >
             <td *ngIf="selectable" class="table__td table__td--check" (click)="$event.stopPropagation()">
-              <input type="checkbox" [checked]="selectedRows.has(i)" (change)="toggleRow(i)" />
+              <fvdr-checkbox
+                [checked]="selectedRows.has(i)"
+                (checkedChange)="toggleRow(i)"
+              />
             </td>
             <td
               *ngFor="let col of columns"
               class="table__td"
               [style.text-align]="col.align || 'left'"
-            >{{ row[col.key] }}</td>
+            >
+              <ng-container
+                *ngIf="getCellTpl(col.key) as tpl; else defaultCell"
+                [ngTemplateOutlet]="tpl"
+                [ngTemplateOutletContext]="{ $implicit: row[col.key], row: row, index: i }"
+              />
+              <ng-template #defaultCell>{{ row[col.key] }}</ng-template>
+            </td>
           </tr>
           <tr *ngIf="!data?.length">
-            <td [attr.colspan]="columns.length + (selectable ? 1 : 0)" class="table__empty">{{ emptyText }}</td>
+            <td [attr.colspan]="columns.length + (selectable ? 1 : 0)" class="table__empty">
+              {{ emptyText }}
+            </td>
           </tr>
         </tbody>
       </table>
     </div>
   `,
   styles: [`
+    :host { display: block; }
+
     .table-wrap { overflow-x: auto; }
     .table-wrap--bordered {
       border: 1px solid var(--color-divider);
@@ -104,31 +148,35 @@ export interface SortState {
       font-family: var(--font-family);
     }
 
-    .table__head { background: var(--color-stone-100); }
+    /* Header: stone-200 bg, semibold 14px, primary text — no border */
+    .table__head { background: var(--color-stone-200); }
+    .table__head--sticky th { position: sticky; top: 0; z-index: 1; background: var(--color-stone-200); }
 
     .table__th {
-      height: 40px;
+      height: 48px;
       padding: 0 var(--space-4);
-      border-bottom: 1px solid var(--color-divider);
-      font-size: var(--text-caption2-size);
-      font-weight: var(--text-caption2-weight);
-      color: var(--color-text-secondary);
+      font-size: var(--text-base-s-size);
+      font-weight: 600;
+      color: var(--color-text-primary);
       white-space: nowrap;
-      position: relative;
+      text-align: left;
     }
+    .table__th:first-child { border-radius: 4px 0 0 4px; }
+    .table__th:last-child  { border-radius: 0 4px 4px 0; }
     .table__th--check { width: 48px; padding: 0 var(--space-3); }
     .table__th--sortable { cursor: pointer; user-select: none; }
-    .table__th--sortable:hover { color: var(--color-text-primary); }
+    .table__th--sortable:hover { color: var(--color-text-secondary); }
 
     .table__th-content { display: inline-flex; align-items: center; gap: 4px; }
-    .table__sort-icons { display: inline-flex; flex-direction: column; }
     .table__sort-icon { font-size: 12px; color: var(--color-stone-500); }
     .table__sort-icon--active { color: var(--color-primary-500); }
 
-    .table__row { border-bottom: 1px solid var(--color-divider); transition: background 0.1s; }
-    .table__row:last-child { border-bottom: none; }
+    /* Rows: zebra striping, no border lines */
+    .table__row { transition: background 0.1s; }
+    .table__row:nth-child(odd)  { background: var(--color-stone-0, #fff); }
+    .table__row:nth-child(even) { background: var(--color-stone-100); }
     .table__row:hover { background: var(--color-hover-bg); }
-    .table__row--selected { background: var(--color-primary-50); }
+    .table__row--selected { background: var(--color-primary-50) !important; }
     .table__row--clickable { cursor: pointer; }
 
     .table__td {
@@ -148,21 +196,44 @@ export interface SortState {
     }
   `],
 })
-export class TableComponent {
+export class TableComponent implements AfterContentInit {
   @Input() columns: TableColumn[] = [];
   @Input() data: Record<string, any>[] = [];
   @Input() selectable = false;
-  @Input() bordered = true;
+  @Input() bordered = false;
+  @Input() stickyHeader = false;
   @Input() emptyText = 'No data';
   @Input() sortState?: SortState;
   @Output() sortChange = new EventEmitter<SortState>();
   @Output() selectionChange = new EventEmitter<number[]>();
   @Output() rowClick = new EventEmitter<Record<string, any>>();
 
+  @ContentChildren(FvdrTableCellDirective) cellDefs!: QueryList<FvdrTableCellDirective>;
+
+  private cellTplMap = new Map<string, TemplateRef<any>>();
+
   selectedRows = new Set<number>();
+
+  ngAfterContentInit(): void {
+    this.rebuildTplMap();
+    this.cellDefs.changes.subscribe(() => this.rebuildTplMap());
+  }
+
+  private rebuildTplMap(): void {
+    this.cellTplMap.clear();
+    this.cellDefs?.forEach(d => this.cellTplMap.set(d.columnKey, d.tpl));
+  }
+
+  getCellTpl(key: string): TemplateRef<any> | null {
+    return this.cellTplMap.get(key) ?? null;
+  }
 
   get allSelected(): boolean {
     return !!this.data.length && this.selectedRows.size === this.data.length;
+  }
+
+  get someSelected(): boolean {
+    return this.selectedRows.size > 0 && !this.allSelected;
   }
 
   toggleAll(): void {

@@ -29,7 +29,7 @@ import { TrackerService } from '../../services/tracker.service';
       gap: 16px;
       padding: 24px;
     }
-    h1 { color: #2C9C74; margin: 0 0 24px; }
+    h1 { color: var(--color-interactive-primary); margin: 0 0 24px; }
     button {
       padding: 12px 24px;
       border-radius: 8px;
@@ -38,7 +38,7 @@ import { TrackerService } from '../../services/tracker.service';
       cursor: pointer;
       font-family: inherit;
     }
-    [data-track="primary-cta"] { background: #2C9C74; color: #fff; }
+    [data-track="primary-cta"] { background: var(--color-interactive-primary); color: #fff; }
     [data-track="primary-cta"]:hover { background: #3FB67D; }
     [data-track="cancel"] { background: #101A16; color: #9bbfb0; border: 1px solid #1e2e28; }
   `],

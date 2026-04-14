@@ -37,8 +37,8 @@ interface ClickDot {
       <svg *ngIf="!loading" class="heatmap-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
         <defs>
           <radialGradient id="dot-grad" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stop-color="#F4640C" stop-opacity="0.7" />
-            <stop offset="100%" stop-color="#F4640C" stop-opacity="0" />
+            <stop offset="0%" stop-color="var(--color-brand-orange)" stop-opacity="0.7" />
+            <stop offset="100%" stop-color="var(--color-brand-orange)" stop-opacity="0" />
           </radialGradient>
         </defs>
         <circle
@@ -72,7 +72,7 @@ interface ClickDot {
       transition: transform 0.15s;
     }
     .heatmap-fab:hover { transform: scale(1.1); }
-    .heatmap-fab--active { background: #2C9C74; }
+    .heatmap-fab--active { background: var(--color-interactive-primary); }
 
     .heatmap-overlay {
       position: fixed;

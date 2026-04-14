@@ -20,6 +20,11 @@ export interface HeaderAction {
   badge?: number;
 }
 
+export interface BreadcrumbItem {
+  id: string;
+  label: string;
+}
+
 /**
  * DS Desktop header — Figma: liyNDiFf1piO8SQmHNKoeU, node 16471-25871
  *
@@ -40,29 +45,42 @@ export interface HeaderAction {
   imports: [CommonModule, FvdrIconComponent, AvatarComponent, BadgeComponent],
   template: `
     <header class="header">
-      <!-- Logo -->
-      <div class="header__logo" (click)="logoClick.emit()">
-        <ng-content select="[logo]"></ng-content>
-        <span *ngIf="!hasLogo" class="header__logo-text">{{ appName }}</span>
-      </div>
-
-      <!-- Nav -->
-      <nav *ngIf="navItems?.length" class="header__nav">
-        <button
-          *ngFor="let item of navItems"
-          class="header__nav-item"
-          [class.header__nav-item--active]="activeNavId === item.id"
-          (click)="onNavClick(item)"
-        >
-          <fvdr-icon
-            *ngIf="item.icon"
-            [name]="activeNavId === item.id && item.activeIcon ? item.activeIcon : (item.icon || 'overview')"
-            class="header__nav-icon"
-          />
-          <span>{{ item.label }}</span>
-          <span *ngIf="item.badge" class="header__nav-badge">{{ item.badge }}</span>
+      <!-- Breadcrumbs mode -->
+      <ng-container *ngIf="breadcrumbs?.length; else logoMode">
+        <button *ngIf="showMenu" class="header__menu" (click)="menuClick.emit()">
+          <fvdr-icon name="more" />
         </button>
-      </nav>
+        <nav class="header__breadcrumbs">
+          <span *ngFor="let item of breadcrumbs; let last = last" class="header__bc-item" [class.header__bc-item--last]="last" (click)="!last && breadcrumbClick.emit(item.id)">
+            {{ item.label }}
+            <fvdr-icon [name]="last ? 'chevron-down' : 'chevron-right'" class="header__bc-icon" />
+          </span>
+        </nav>
+      </ng-container>
+
+      <!-- Logo + Nav mode (original) -->
+      <ng-template #logoMode>
+        <div class="header__logo" (click)="logoClick.emit()">
+          <ng-content select="[logo]"></ng-content>
+          <span *ngIf="!hasLogo" class="header__logo-text">{{ appName }}</span>
+        </div>
+        <nav *ngIf="navItems?.length" class="header__nav">
+          <button
+            *ngFor="let item of navItems"
+            class="header__nav-item"
+            [class.header__nav-item--active]="activeNavId === item.id"
+            (click)="onNavClick(item)"
+          >
+            <fvdr-icon
+              *ngIf="item.icon"
+              [name]="activeNavId === item.id && item.activeIcon ? item.activeIcon : (item.icon || 'overview')"
+              class="header__nav-icon"
+            />
+            <span>{{ item.label }}</span>
+            <span *ngIf="item.badge" class="header__nav-badge">{{ item.badge }}</span>
+          </button>
+        </nav>
+      </ng-template>
 
       <!-- Right -->
       <div class="header__right">
@@ -75,7 +93,7 @@ export interface HeaderAction {
           <fvdr-icon [name]="action.icon" />
           <span *ngIf="action.badge" class="header__action-badge">{{ action.badge > 99 ? '99+' : action.badge }}</span>
         </button>
-        <fvdr-avatar *ngIf="userName" [initials]="toInitials(userName)" [imgSrc]="userAvatar" size="sm" class="header__avatar" (click)="avatarClick.emit()" />
+        <fvdr-avatar *ngIf="userName" [initials]="toInitials(userName)" [imgSrc]="userAvatar" size="md" class="header__avatar" (click)="avatarClick.emit()" />
       </div>
     </header>
   `,
@@ -149,10 +167,18 @@ export interface HeaderAction {
       font-weight: 600;
     }
 
+    .header__menu { width:36px; height:36px; border:none; background:transparent; cursor:pointer; display:flex; align-items:center; justify-content:center; border-radius:var(--radius-sm); color:var(--color-text-secondary); font-size:24px; flex-shrink:0; }
+    .header__menu:hover { background:var(--color-hover-bg); color:var(--color-text-primary); }
+    .header__breadcrumbs { display:flex; align-items:center; flex:1; }
+    .header__bc-item { display:inline-flex; align-items:center; gap:var(--space-2); padding:var(--space-2) var(--space-2) var(--space-2) 0; font-family:var(--font-family); font-size:var(--text-sub2-size); font-weight:var(--text-sub2-weight); color:var(--color-text-secondary); cursor:pointer; white-space:nowrap; }
+    .header__bc-item--last { color:var(--color-text-primary); cursor:default; }
+    .header__bc-item:not(.header__bc-item--last):hover { color:var(--color-primary-500); }
+    .header__bc-icon { font-size:16px; flex-shrink:0; }
+
     .header__right {
       display: flex;
       align-items: center;
-      gap: var(--space-1);
+      gap: var(--space-6);
       margin-left: auto;
     }
 
@@ -168,7 +194,7 @@ export interface HeaderAction {
       border-radius: var(--radius-sm);
       cursor: pointer;
       color: var(--color-text-secondary);
-      font-size: 20px;
+      font-size: 24px;
     }
     .header__action:hover { background: var(--color-hover-bg); color: var(--color-text-primary); }
 
@@ -200,10 +226,14 @@ export class HeaderComponent {
   @Input() userName = '';
   @Input() userAvatar = '';
   @Input() hasLogo = false;
+  @Input() breadcrumbs: BreadcrumbItem[] = [];
+  @Input() showMenu = false;
   @Output() logoClick = new EventEmitter<void>();
   @Output() navClick = new EventEmitter<string>();
   @Output() actionClick = new EventEmitter<string>();
   @Output() avatarClick = new EventEmitter<void>();
+  @Output() breadcrumbClick = new EventEmitter<string>();
+  @Output() menuClick = new EventEmitter<void>();
 
   onNavClick(item: HeaderNavItem): void { this.navClick.emit(item.id); }
   toInitials(name: string): string { return name.split(' ').map(p => p[0]).slice(0, 2).join('').toUpperCase(); }

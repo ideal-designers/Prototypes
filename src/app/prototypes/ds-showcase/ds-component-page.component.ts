@@ -1,0 +1,1170 @@
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { RouterModule, ActivatedRoute, Router } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { Subscription } from 'rxjs';
+import { DS_COMPONENTS, ToastService } from '../../shared/ds';
+import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, ComponentCategory } from './ds-registry';
+
+@Component({
+  selector: 'app-ds-component-page',
+  standalone: true,
+  imports: [CommonModule, RouterModule, FormsModule, ...DS_COMPONENTS],
+  template: `
+<div class="doc-page">
+
+  <!-- ── Sidebar ──────────────────────── -->
+  <aside class="doc-sidebar">
+    <a class="sidebar-back" routerLink="/ds">← DS Overview</a>
+    <div class="sidebar-search">
+      <input type="text" [(ngModel)]="searchQuery" placeholder="Search components…" class="sidebar-input" />
+    </div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-group" *ngFor="let group of groupedRegistry">
+        <div class="sidebar-group__label">{{ group.category.label }}</div>
+        <button
+          *ngFor="let item of group.items"
+          class="sidebar-item"
+          [class.sidebar-item--active]="item.id === componentId"
+          (click)="navigate(item.id)"
+        >{{ item.name }}</button>
+      </div>
+    </nav>
+  </aside>
+
+  <!-- ── Main Content ─────────────────── -->
+  <main class="doc-main" *ngIf="entry">
+
+    <!-- 1. HERO -->
+    <section class="doc-hero">
+      <div class="doc-hero__top">
+        <h1 class="doc-hero__title">{{ entry.name }}</h1>
+        <div class="doc-hero__meta">
+          <span class="doc-hero__selector">{{ entry.selector }}</span>
+          <span class="doc-hero__status" [ngClass]="statusClass(entry.status)">{{ entry.status }}</span>
+          <span class="doc-hero__category">{{ categoryLabel(entry.category) }}</span>
+          <a *ngIf="entry.figmaNode" class="doc-hero__figma" [href]="'https://www.figma.com/design/liyNDiFf1piO8SQmHNKoeU/FVDR---Design-System?node-id=' + entry.figmaNode" target="_blank">Figma ↗</a>
+        </div>
+      </div>
+      <p class="doc-hero__desc">{{ entry.description }}</p>
+    </section>
+
+    <!-- 2. OVERVIEW -->
+    <section class="doc-section" *ngIf="entry.whenToUse.length || entry.whenNotToUse.length">
+      <h2 class="doc-section__title">Overview</h2>
+      <div class="overview-grid">
+        <div class="overview-col" *ngIf="entry.whenToUse.length">
+          <p class="overview-label overview-label--do">When to use</p>
+          <ul class="overview-list">
+            <li *ngFor="let item of entry.whenToUse">{{ item }}</li>
+          </ul>
+        </div>
+        <div class="overview-col" *ngIf="entry.whenNotToUse.length">
+          <p class="overview-label overview-label--dont">When not to use</p>
+          <ul class="overview-list">
+            <li *ngFor="let item of entry.whenNotToUse">{{ item }}</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. ANATOMY -->
+    <section class="doc-section" *ngIf="entry.anatomy.length">
+      <h2 class="doc-section__title">Anatomy</h2>
+      <div class="anatomy-preview">
+        <ng-container [ngSwitch]="componentId">
+
+          <ng-container *ngSwitchCase="'button'">
+            <div class="anatomy-wrap anatomy-wrap--button">
+              <fvdr-btn label="Button" iconName="check" size="m" variant="primary"></fvdr-btn>
+              <!-- Part labels -->
+              <div class="anatomy-label anatomy-label--top" style="top:-42px;left:6px">icon</div>
+              <div class="anatomy-label anatomy-label--top" style="top:-42px;right:6px">label</div>
+              <div class="anatomy-label anatomy-label--left" style="left:-72px;top:50%;transform:translateY(-50%)">root</div>
+              <!-- Dimensions -->
+              <div class="dim-v" style="right:-48px;top:0;height:36px">36px</div>
+              <div class="dim-v" style="left:-22px;top:0;height:8px">8</div>
+              <div class="dim-v" style="left:-22px;bottom:0;height:8px">8</div>
+              <div class="dim-h" style="bottom:-28px;left:0;width:16px">16</div>
+              <div class="dim-h" style="bottom:-28px;right:0;width:16px">16</div>
+              <div class="dim-label" style="top:50%;transform:translateY(-50%);left:12px">16px</div>
+              <div class="dim-label" style="top:50%;transform:translateY(-50%);right:12px">14px</div>
+            </div>
+          </ng-container>
+
+          <ng-container *ngSwitchCase="'badge'">
+            <div class="anatomy-wrap">
+              <fvdr-badge label="Active" variant="primary"></fvdr-badge>
+              <!-- Part labels -->
+              <div class="anatomy-label anatomy-label--top" style="top:-42px;left:50%;transform:translateX(-50%)">root</div>
+              <div class="anatomy-label anatomy-label--left" style="left:-52px;top:50%;transform:translateY(-50%)">dot</div>
+              <!-- Dimensions -->
+              <div class="dim-v" style="right:-44px;top:0;height:20px">20px</div>
+              <div class="dim-h" style="bottom:-28px;left:0;width:8px">8</div>
+              <div class="dim-h" style="bottom:-28px;right:0;width:8px">8</div>
+              <div class="dim-label" style="top:50%;transform:translateY(-50%);right:6px">12px</div>
+            </div>
+          </ng-container>
+
+          <ng-container *ngSwitchCase="'avatar'">
+            <div class="anatomy-wrap">
+              <fvdr-avatar initials="JS" size="lg"></fvdr-avatar>
+              <!-- Part labels -->
+              <div class="anatomy-label anatomy-label--top" style="top:-42px;left:50%;transform:translateX(-50%)">root</div>
+              <div class="anatomy-label anatomy-label--bottom" style="bottom:-42px;left:50%;transform:translateX(-50%)">initials</div>
+              <!-- Dimensions: avatar lg = 48×48 -->
+              <div class="dim-v" style="right:-44px;top:0;height:48px">48px</div>
+              <div class="dim-h" style="bottom:-28px;left:0;width:48px">48px</div>
+              <div class="dim-label" style="top:50%;transform:translateY(-50%);left:50%;transform:translate(-50%,-50%)">18px</div>
+            </div>
+          </ng-container>
+
+          <ng-container *ngSwitchCase="'input'">
+            <div class="anatomy-wrap anatomy-wrap--input">
+              <fvdr-input label="Email" placeholder="Enter email" iconLeft="search" helperText="We'll send a confirmation"></fvdr-input>
+              <!-- Part labels -->
+              <div class="anatomy-label anatomy-label--left" style="left:-68px;top:4px">label</div>
+              <div class="anatomy-label anatomy-label--left" style="left:-68px;top:42px">root</div>
+              <div class="anatomy-label anatomy-label--top" style="top:-42px;left:18px">icon</div>
+              <div class="anatomy-label anatomy-label--right" style="right:-68px;top:38px">input</div>
+              <div class="anatomy-label anatomy-label--left" style="left:-68px;bottom:2px">helper</div>
+              <!-- Dimensions: field = 40px, label 20px, helper 18px, pad 8/12 -->
+              <div class="dim-v" style="right:-48px;top:20px;height:40px">40px</div>
+              <div class="dim-v" style="right:-48px;top:0;height:20px">20</div>
+              <div class="dim-h" style="bottom:-28px;left:0;width:12px">12</div>
+              <div class="dim-h" style="bottom:-28px;right:0;width:12px">12</div>
+              <div class="dim-v" style="left:-22px;top:20px;height:8px">8</div>
+              <div class="dim-v" style="left:-22px;bottom:18px;height:8px">8</div>
+              <div class="dim-label" style="top:46px;left:38px">14px</div>
+            </div>
+          </ng-container>
+
+          <ng-container *ngSwitchCase="'modal'">
+            <div class="anatomy-wrap anatomy-wrap--modal-preview">
+              <div class="mock-modal">
+                <div class="mock-modal__header">Confirm action</div>
+                <div class="mock-modal__body">Are you sure you want to proceed?</div>
+                <div class="mock-modal__footer">
+                  <fvdr-btn label="Cancel" variant="secondary" size="s"></fvdr-btn>
+                  <fvdr-btn label="Confirm" variant="primary" size="s"></fvdr-btn>
+                </div>
+              </div>
+              <!-- Part labels -->
+              <div class="anatomy-label anatomy-label--top" style="top:-42px;left:50%;transform:translateX(-50%)">overlay</div>
+              <div class="anatomy-label anatomy-label--right" style="right:-76px;top:16px">header</div>
+              <div class="anatomy-label anatomy-label--right" style="right:-76px;top:50%;transform:translateY(-50%)">body</div>
+              <div class="anatomy-label anatomy-label--right" style="right:-76px;bottom:16px">actions</div>
+              <!-- Dimensions: pad 24px, header ~48px, footer ~52px, radius 8px -->
+              <div class="dim-v" style="left:-44px;top:0;height:48px">48px</div>
+              <div class="dim-v" style="left:-44px;bottom:0;height:52px">52px</div>
+              <div class="dim-h" style="bottom:-28px;left:0;width:24px">24</div>
+              <div class="dim-h" style="bottom:-28px;right:0;width:24px">24</div>
+            </div>
+          </ng-container>
+
+          <ng-container *ngSwitchDefault>
+            <div class="anatomy-preview-empty">Live anatomy preview coming soon for this component.</div>
+          </ng-container>
+
+        </ng-container>
+      </div>
+    </section>
+
+    <!-- 4–6. LIVE EXAMPLES (Sizes, States, Variants) -->
+    <section class="doc-section">
+      <h2 class="doc-section__title">Examples</h2>
+      <ng-container [ngSwitch]="componentId">
+
+        <!-- BUTTON -->
+        <ng-container *ngSwitchCase="'button'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">Sizes</h3>
+            <div class="examples-row">
+              <fvdr-btn label="Large"  size="l" variant="primary"></fvdr-btn>
+              <fvdr-btn label="Medium" size="m" variant="primary"></fvdr-btn>
+              <fvdr-btn label="Small"  size="s" variant="primary"></fvdr-btn>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Variants</h3>
+            <div class="examples-row">
+              <fvdr-btn label="Primary"   variant="primary"   size="m"></fvdr-btn>
+              <fvdr-btn label="Secondary" variant="secondary" size="m"></fvdr-btn>
+              <fvdr-btn label="Ghost"     variant="ghost"     size="m"></fvdr-btn>
+              <fvdr-btn label="Danger"    variant="danger"    size="m"></fvdr-btn>
+              <fvdr-btn label="Link"      variant="link"      size="m"></fvdr-btn>
+              <fvdr-btn label="Text"      variant="text"      size="m"></fvdr-btn>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">With Icon</h3>
+            <div class="examples-row">
+              <fvdr-btn label="Add item"  variant="primary"   size="m" iconName="plus"></fvdr-btn>
+              <fvdr-btn label="Download"  variant="secondary" size="m" iconName="download"></fvdr-btn>
+              <fvdr-btn label="Delete"    variant="danger"    size="m" iconName="trash"></fvdr-btn>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">States</h3>
+            <div class="examples-row">
+              <fvdr-btn label="Default"   variant="primary" size="m"></fvdr-btn>
+              <fvdr-btn label="Loading…"  variant="primary" size="m" [loading]="true"></fvdr-btn>
+              <fvdr-btn label="Disabled"  variant="primary" size="m" [disabled]="true"></fvdr-btn>
+              <fvdr-btn label="Secondary disabled" variant="secondary" size="m" [disabled]="true"></fvdr-btn>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- BADGE -->
+        <ng-container *ngSwitchCase="'badge'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">Variants</h3>
+            <div class="examples-row examples-row--wrap">
+              <fvdr-badge label="Primary"   variant="primary"></fvdr-badge>
+              <fvdr-badge label="Success"   variant="success"></fvdr-badge>
+              <fvdr-badge label="Error"     variant="error"></fvdr-badge>
+              <fvdr-badge label="Warning"   variant="warning"></fvdr-badge>
+              <fvdr-badge label="Info"      variant="info"></fvdr-badge>
+              <fvdr-badge label="Neutral"   variant="neutral"></fvdr-badge>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Typical labels</h3>
+            <div class="examples-row examples-row--wrap">
+              <fvdr-badge label="Active"      variant="success"></fvdr-badge>
+              <fvdr-badge label="Inactive"    variant="neutral"></fvdr-badge>
+              <fvdr-badge label="Pending"     variant="warning"></fvdr-badge>
+              <fvdr-badge label="Failed"      variant="error"></fvdr-badge>
+              <fvdr-badge label="New"         variant="info"></fvdr-badge>
+              <fvdr-badge label="Admin"       variant="primary"></fvdr-badge>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- AVATAR -->
+        <ng-container *ngSwitchCase="'avatar'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">Sizes</h3>
+            <div class="examples-row examples-row--align-end">
+              <div class="example-labeled"><fvdr-avatar initials="AB" size="xl"></fvdr-avatar><span>xl · 48px</span></div>
+              <div class="example-labeled"><fvdr-avatar initials="AB" size="lg"></fvdr-avatar><span>lg · 40px</span></div>
+              <div class="example-labeled"><fvdr-avatar initials="AB" size="md"></fvdr-avatar><span>md · 32px</span></div>
+              <div class="example-labeled"><fvdr-avatar initials="AB" size="sm"></fvdr-avatar><span>sm · 24px</span></div>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Custom colors</h3>
+            <div class="examples-row">
+              <fvdr-avatar initials="JD" size="md" color="#4862D3" textColor="#ffffff"></fvdr-avatar>
+              <fvdr-avatar initials="MK" size="md" color="#e54430" textColor="#ffffff"></fvdr-avatar>
+              <fvdr-avatar initials="NP" size="md" color="#2c9c74" textColor="#ffffff"></fvdr-avatar>
+              <fvdr-avatar initials="AR" size="md" color="#F4640C" textColor="#ffffff"></fvdr-avatar>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- INPUT -->
+        <ng-container *ngSwitchCase="'input'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">Sizes</h3>
+            <div class="examples-col">
+              <fvdr-input label="Large"  size="l" placeholder="Enter value…"></fvdr-input>
+              <fvdr-input label="Medium" size="m" placeholder="Enter value…"></fvdr-input>
+              <fvdr-input label="Small"  size="s" placeholder="Enter value…"></fvdr-input>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">States</h3>
+            <div class="examples-col">
+              <fvdr-input label="Default"  state="default"  placeholder="Enter email…"></fvdr-input>
+              <fvdr-input label="Error"    state="error"    placeholder="Enter email…" errorText="Invalid email address"></fvdr-input>
+              <fvdr-input label="Success"  state="success"  placeholder="Enter email…"></fvdr-input>
+              <fvdr-input label="Disabled" state="disabled" placeholder="Enter email…"></fvdr-input>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">With icons</h3>
+            <div class="examples-col">
+              <fvdr-input label="Search"   iconLeft="search"   placeholder="Search…"></fvdr-input>
+              <fvdr-input label="Password" iconRight="lock-close" placeholder="Enter password…" type="password"></fvdr-input>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- DROPDOWN -->
+        <ng-container *ngSwitchCase="'dropdown'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">Sizes</h3>
+            <div class="examples-col">
+              <fvdr-dropdown label="Large"  size="l" [options]="demoOptions" placeholder="Select…"></fvdr-dropdown>
+              <fvdr-dropdown label="Medium" size="m" [options]="demoOptions" placeholder="Select…"></fvdr-dropdown>
+              <fvdr-dropdown label="Small"  size="s" [options]="demoOptions" placeholder="Select…"></fvdr-dropdown>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Searchable</h3>
+            <fvdr-dropdown label="Searchable" [options]="demoOptions" placeholder="Type to filter…" [searchable]="true"></fvdr-dropdown>
+          </div>
+        </ng-container>
+
+        <!-- TOGGLE -->
+        <ng-container *ngSwitchCase="'toggle'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">States</h3>
+            <div class="examples-row">
+              <div class="example-labeled"><fvdr-toggle></fvdr-toggle><span>Off</span></div>
+              <div class="example-labeled"><fvdr-toggle [checked]="true"></fvdr-toggle><span>On</span></div>
+              <div class="example-labeled"><fvdr-toggle [disabled]="true"></fvdr-toggle><span>Disabled off</span></div>
+              <div class="example-labeled"><fvdr-toggle [checked]="true" [disabled]="true"></fvdr-toggle><span>Disabled on</span></div>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- CHECKBOX -->
+        <ng-container *ngSwitchCase="'checkbox'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">States</h3>
+            <div class="examples-row">
+              <div class="example-labeled"><fvdr-checkbox [ngModel]="false"></fvdr-checkbox><span>Unchecked</span></div>
+              <div class="example-labeled"><fvdr-checkbox [ngModel]="true"></fvdr-checkbox><span>Checked</span></div>
+              <div class="example-labeled"><fvdr-checkbox [ngModel]="false" [indeterminate]="true"></fvdr-checkbox><span>Indeterminate</span></div>
+              <div class="example-labeled"><fvdr-checkbox [ngModel]="false" [disabled]="true"></fvdr-checkbox><span>Disabled</span></div>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- TABS -->
+        <ng-container *ngSwitchCase="'tabs'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">Basic tabs</h3>
+            <fvdr-tabs [tabs]="demoTabs" [(activeId)]="activeTab"></fvdr-tabs>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">With counters</h3>
+            <fvdr-tabs [tabs]="demoTabsWithCounters" [(activeId)]="activeTabCounter"></fvdr-tabs>
+          </div>
+        </ng-container>
+
+        <!-- STATUS -->
+        <ng-container *ngSwitchCase="'status'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">Variants</h3>
+            <div class="examples-row examples-row--wrap">
+              <fvdr-status label="Active"   variant="active"></fvdr-status>
+              <fvdr-status label="Pending"  variant="pending"></fvdr-status>
+              <fvdr-status label="Error"    variant="error"></fvdr-status>
+              <fvdr-status label="Inactive" variant="inactive"></fvdr-status>
+              <fvdr-status label="Info"     variant="info"></fvdr-status>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- MODAL -->
+        <ng-container *ngSwitchCase="'modal'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">Basic modal</h3>
+            <div class="examples-row">
+              <fvdr-btn label="Open modal" variant="primary" size="m" (clicked)="modalOpen = true"></fvdr-btn>
+            </div>
+            <fvdr-modal
+              [visible]="modalOpen"
+              title="Confirm action"
+              content="Are you sure you want to perform this action? This cannot be undone."
+              confirmLabel="Confirm"
+              cancelLabel="Cancel"
+              (confirmed)="modalOpen = false"
+              (cancelled)="modalOpen = false"
+              (closed)="modalOpen = false"
+            ></fvdr-modal>
+          </div>
+        </ng-container>
+
+        <!-- DEFAULT STUB -->
+        <ng-container *ngSwitchDefault>
+          <div class="stub-example">
+            <p class="stub-example__label">Basic usage</p>
+            <div class="stub-example__preview">
+              <div class="stub-coming-soon">
+                <span>Full interactive demo coming soon</span>
+                <span class="stub-selector">{{ entry?.selector }}</span>
+              </div>
+            </div>
+          </div>
+        </ng-container>
+
+      </ng-container>
+    </section>
+
+    <!-- 7. DESIGN TOKENS -->
+    <section class="doc-section" *ngIf="entry.tokens.length">
+      <h2 class="doc-section__title">Design Tokens</h2>
+      <table class="token-table">
+        <thead>
+          <tr><th>Token</th><th>Value</th><th>Usage</th></tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let t of entry.tokens">
+            <td><code class="token-name">{{ t.token }}</code></td>
+            <td class="token-value-cell">
+              <span *ngIf="isColorToken(t.value)" class="color-swatch" [style.background]="t.value"></span>
+              <span class="token-value">{{ t.value }}</span>
+            </td>
+            <td class="token-usage">{{ t.usage }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 8. USAGE -->
+    <section class="doc-section" *ngIf="entry.usedIn.length">
+      <h2 class="doc-section__title">Used in</h2>
+      <div class="used-in-list">
+        <span class="used-in-chip" *ngFor="let screen of entry.usedIn">{{ screen }}</span>
+      </div>
+    </section>
+
+    <!-- 9. CODE -->
+    <section class="doc-section">
+      <h2 class="doc-section__title">Code</h2>
+      <div class="code-panels">
+        <div class="code-panel">
+          <div class="code-panel__header">
+            <span>Angular HTML</span>
+            <button class="code-panel__copy" (click)="copy(entry.codeSnippet)">Copy</button>
+          </div>
+          <pre class="code-panel__body">{{ entry.codeSnippet }}</pre>
+        </div>
+        <div class="code-panel">
+          <div class="code-panel__header">
+            <span>Claude Code Prompt</span>
+            <button class="code-panel__copy" (click)="copy(entry.claudePrompt)">Copy</button>
+          </div>
+          <pre class="code-panel__body">{{ entry.claudePrompt }}</pre>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+</div>
+  `,
+  styles: [`
+    .doc-page {
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+      font-family: var(--font-family, 'Open Sans', sans-serif);
+      background: var(--color-bg-page, #fff);
+    }
+
+    /* ── Sidebar ── */
+    .doc-sidebar {
+      width: 220px;
+      min-width: 220px;
+      border-right: 1px solid var(--color-border, #dee0eb);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      background: var(--color-bg-subtle, #fbfbfb);
+    }
+
+    .sidebar-back {
+      display: block;
+      padding: 16px 16px 12px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--color-interactive-primary, #2c9c74);
+      text-decoration: none;
+      border-bottom: 1px solid var(--color-border, #dee0eb);
+    }
+    .sidebar-back:hover { text-decoration: underline; }
+
+    .sidebar-search {
+      padding: 12px 16px;
+    }
+    .sidebar-input {
+      width: 100%;
+      box-sizing: border-box;
+      border: 1px solid var(--color-border, #dee0eb);
+      border-radius: 4px;
+      padding: 6px 8px;
+      font-size: 13px;
+      font-family: inherit;
+      background: var(--color-bg-page, #fff);
+      color: var(--color-text-primary, #1f2129);
+      outline: none;
+    }
+    .sidebar-input:focus {
+      border-color: var(--color-interactive-primary, #2c9c74);
+    }
+
+    .sidebar-nav {
+      flex: 1;
+      padding: 8px 0 16px;
+      overflow-y: auto;
+    }
+
+    .sidebar-group {
+      margin-bottom: 4px;
+    }
+
+    .sidebar-group__label {
+      padding: 8px 16px 4px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--color-text-secondary, #73757f);
+    }
+
+    .sidebar-item {
+      display: block;
+      width: 100%;
+      text-align: left;
+      background: none;
+      border: none;
+      border-left: 2px solid transparent;
+      padding: 0 16px;
+      height: 36px;
+      line-height: 36px;
+      font-size: 13px;
+      font-family: inherit;
+      color: var(--color-text-primary, #1f2129);
+      cursor: pointer;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      transition: background 0.12s, color 0.12s;
+    }
+    .sidebar-item:hover {
+      background: var(--color-hover-bg, #f0f2f5);
+    }
+    .sidebar-item--active {
+      border-left-color: var(--color-interactive-primary, #2c9c74);
+      color: var(--color-interactive-primary, #2c9c74);
+      font-weight: 600;
+      background: var(--color-selected-row, #edf7f3);
+    }
+
+    /* ── Main ── */
+    .doc-main {
+      flex: 1;
+      overflow-y: auto;
+      padding: 40px 48px;
+      max-width: 900px;
+    }
+
+    /* ── Hero ── */
+    .doc-hero {
+      margin-bottom: 16px;
+      padding-bottom: 16px;
+    }
+
+    .doc-hero__top {
+      display: flex;
+      align-items: baseline;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .doc-hero__title {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--color-text-primary, #1f2129);
+      margin: 0;
+      line-height: 1.2;
+    }
+
+    .doc-hero__meta {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .doc-hero__selector {
+      font-family: 'Menlo', 'Courier New', monospace;
+      font-size: 13px;
+      background: var(--color-bg-surface, #f7f7f7);
+      border-radius: 4px;
+      padding: 2px 8px;
+      color: var(--color-text-secondary, #73757f);
+      border: 1px solid var(--color-border, #dee0eb);
+    }
+
+    .doc-hero__status {
+      padding: 2px 8px;
+      border-radius: 9999px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .status--stable {
+      background: var(--color-selected-row, #edf7f3);
+      color: var(--color-interactive-primary, #2c9c74);
+    }
+    .status--beta {
+      background: var(--color-feature-bg, #ebf4fd);
+      color: #4862d3;
+    }
+    .status--deprecated {
+      background: #fff5f4;
+      color: var(--color-danger, #e54430);
+    }
+
+    .doc-hero__category {
+      font-size: 11px;
+      font-weight: 500;
+      text-transform: uppercase;
+      background: var(--color-hover-bg, #f0f2f5);
+      border-radius: 4px;
+      padding: 2px 8px;
+      color: var(--color-text-secondary, #73757f);
+    }
+
+    .doc-hero__figma {
+      font-size: 12px;
+      color: var(--color-interactive-primary, #2c9c74);
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .doc-hero__figma:hover { text-decoration: underline; }
+
+    .doc-hero__desc {
+      font-size: 15px;
+      color: var(--color-text-secondary, #73757f);
+      line-height: 1.6;
+      margin: 0;
+    }
+
+    /* ── Sections ── */
+    .doc-section {
+      margin-bottom: 24px;
+      padding-top: 16px;
+    }
+
+    .doc-section__title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--color-text-primary, #1f2129);
+      margin: 0 0 20px;
+    }
+
+    /* ── Overview ── */
+    .overview-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    .overview-col {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .overview-label {
+      font-size: 13px;
+      font-weight: 700;
+      margin: 0 0 8px;
+    }
+    .overview-label--do  { color: var(--color-interactive-primary, #2c9c74); }
+    .overview-label--dont { color: var(--color-danger, #e54430); }
+
+    .overview-list {
+      margin: 0;
+      padding-left: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .overview-list li {
+      font-size: 14px;
+      color: var(--color-text-primary, #1f2129);
+      line-height: 1.5;
+    }
+
+    /* ── Anatomy ── */
+    .anatomy-preview {
+      background: #1e2125;
+      border-radius: 8px;
+      padding: 56px 96px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 180px;
+    }
+
+    .anatomy-preview-empty {
+      font-size: 13px;
+      color: rgba(255,255,255,0.35);
+      font-style: italic;
+      text-align: center;
+    }
+
+    .anatomy-wrap {
+      position: relative;
+      display: inline-block;
+    }
+
+    .anatomy-wrap--input { width: 240px; }
+
+    .anatomy-wrap--modal-preview { display: block; }
+
+    .anatomy-label {
+      position: absolute;
+      font-size: 11px;
+      font-family: monospace;
+      color: #8a9baa;
+      white-space: nowrap;
+      letter-spacing: 0.3px;
+    }
+
+    .anatomy-label--top { text-align: center; }
+    .anatomy-label--top::after {
+      content: '';
+      display: block;
+      width: 1px;
+      height: 18px;
+      background: rgba(255,255,255,0.18);
+      margin: 4px auto 0;
+    }
+
+    .anatomy-label--bottom { text-align: center; }
+    .anatomy-label--bottom::before {
+      content: '';
+      display: block;
+      width: 1px;
+      height: 18px;
+      background: rgba(255,255,255,0.18);
+      margin: 0 auto 4px;
+    }
+
+    .anatomy-label--left { display: flex; align-items: center; }
+    .anatomy-label--left::after {
+      content: '';
+      width: 18px;
+      height: 1px;
+      background: rgba(255,255,255,0.18);
+      margin-left: 6px;
+      flex-shrink: 0;
+    }
+
+    .anatomy-label--right { display: flex; align-items: center; }
+    .anatomy-label--right::before {
+      content: '';
+      width: 18px;
+      height: 1px;
+      background: rgba(255,255,255,0.18);
+      margin-right: 6px;
+      flex-shrink: 0;
+    }
+
+    /* ── Dimension brackets (orange) ── */
+    .dim-v {
+      position: absolute;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-family: monospace;
+      color: #e8933a;
+      border-left: 1px solid rgba(232,147,58,0.5);
+      padding-left: 5px;
+      min-width: 32px;
+      box-sizing: border-box;
+    }
+    .dim-v::before, .dim-v::after {
+      content: '';
+      position: absolute;
+      left: -3px;
+      width: 5px;
+      height: 1px;
+      background: rgba(232,147,58,0.5);
+    }
+    .dim-v::before { top: 0; }
+    .dim-v::after  { bottom: 0; }
+
+    .dim-h {
+      position: absolute;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      font-size: 10px;
+      font-family: monospace;
+      color: #e8933a;
+      border-top: 1px solid rgba(232,147,58,0.5);
+      padding-top: 4px;
+      min-height: 20px;
+      box-sizing: border-box;
+    }
+    .dim-h::before, .dim-h::after {
+      content: '';
+      position: absolute;
+      top: -3px;
+      width: 1px;
+      height: 5px;
+      background: rgba(232,147,58,0.5);
+    }
+    .dim-h::before { left: 0; }
+    .dim-h::after  { right: 0; }
+
+    .dim-label {
+      position: absolute;
+      font-size: 10px;
+      font-family: monospace;
+      color: #e8933a;
+      white-space: nowrap;
+    }
+
+    /* ── Mock modal (anatomy preview) ── */
+    .mock-modal {
+      background: var(--color-bg-page, #fff);
+      border-radius: 8px;
+      padding: 20px;
+      width: 280px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.14);
+      border: 1px solid var(--color-border, #dee0eb);
+    }
+    .mock-modal__header {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--color-text-primary, #1f2129);
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--color-border, #dee0eb);
+      margin-bottom: 12px;
+    }
+    .mock-modal__body {
+      font-size: 13px;
+      color: var(--color-text-secondary, #73757f);
+      margin-bottom: 16px;
+    }
+    .mock-modal__footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    /* ── Examples ── */
+    .examples-group {
+      margin-bottom: 28px;
+    }
+
+    .examples-group__title {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--color-text-secondary, #73757f);
+      margin: 0 0 12px;
+    }
+
+    .examples-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+      padding: 20px;
+      background: var(--color-bg-surface, #f7f7f7);
+      border-radius: 8px;
+    }
+
+    .examples-row--wrap {
+      flex-wrap: wrap;
+    }
+
+    .examples-row--align-end {
+      align-items: flex-end;
+    }
+
+    .examples-col {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      padding: 20px;
+      background: var(--color-bg-surface, #f7f7f7);
+      border-radius: 8px;
+    }
+
+    .example-labeled {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    .example-labeled span {
+      font-size: 11px;
+      color: var(--color-text-secondary, #73757f);
+    }
+
+    /* ── Stub default ── */
+    .stub-example {
+      border: 1px solid var(--color-border, #dee0eb);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .stub-example__label {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: var(--color-text-secondary, #73757f);
+      padding: 8px 16px;
+      background: var(--color-bg-surface, #f7f7f7);
+      border-bottom: 1px solid var(--color-border, #dee0eb);
+      margin: 0;
+    }
+    .stub-example__preview {
+      padding: 40px 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 80px;
+    }
+    .stub-coming-soon {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      color: var(--color-text-secondary, #73757f);
+      font-style: italic;
+    }
+    .stub-selector {
+      font-family: 'Menlo', 'Courier New', monospace;
+      font-size: 12px;
+      color: var(--color-interactive-primary, #2c9c74);
+      background: var(--color-selected-row, #edf7f3);
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-style: normal;
+    }
+
+    /* ── Token table ── */
+    .token-table {
+      width: 100%;
+      border-collapse: collapse;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid var(--color-border, #dee0eb);
+    }
+
+    .token-table th {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--color-text-secondary, #73757f);
+      border-bottom: 1px solid var(--color-border, #dee0eb);
+      padding: 8px 12px;
+      text-align: left;
+      background: var(--color-bg-surface, #f7f7f7);
+    }
+
+    .token-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--color-border, #dee0eb);
+      font-size: 14px;
+      color: var(--color-text-primary, #1f2129);
+      vertical-align: middle;
+    }
+
+    .token-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .token-name {
+      font-family: 'Menlo', 'Courier New', monospace;
+      font-size: 13px;
+      color: var(--color-interactive-primary, #2c9c74);
+      background: var(--color-selected-row, #edf7f3);
+      padding: 2px 6px;
+      border-radius: 3px;
+    }
+
+    .token-value-cell {
+      display: flex;
+      align-items: center;
+    }
+
+    .color-swatch {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+      border: 1px solid var(--color-border, #dee0eb);
+      margin-right: 6px;
+      vertical-align: middle;
+      flex-shrink: 0;
+    }
+
+    .token-value {
+      font-family: 'Menlo', 'Courier New', monospace;
+      font-size: 13px;
+      color: var(--color-text-secondary, #73757f);
+    }
+
+    .token-usage {
+      font-size: 13px;
+      color: var(--color-text-secondary, #73757f);
+    }
+
+    /* ── Used in ── */
+    .used-in-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .used-in-chip {
+      border: 1px solid var(--color-border, #dee0eb);
+      border-radius: 9999px;
+      padding: 4px 12px;
+      font-size: 13px;
+      color: var(--color-text-secondary, #73757f);
+    }
+
+    /* ── Code panels ── */
+    .code-panels {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .code-panel {
+      border: 1px solid var(--color-border, #dee0eb);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .code-panel__header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 16px;
+      background: var(--color-bg-surface, #f7f7f7);
+      border-bottom: 1px solid var(--color-border, #dee0eb);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--color-text-primary, #1f2129);
+    }
+
+    .code-panel__copy {
+      background: transparent;
+      border: 1px solid var(--color-interactive-primary, #2c9c74);
+      border-radius: 4px;
+      color: var(--color-interactive-primary, #2c9c74);
+      font-size: 12px;
+      padding: 2px 10px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.12s;
+    }
+    .code-panel__copy:hover {
+      background: var(--color-selected-row, #edf7f3);
+    }
+
+    .code-panel__body {
+      background: #1a1d21;
+      color: #e5e7eb;
+      font-family: 'Menlo', 'Courier New', monospace;
+      font-size: 12px;
+      line-height: 1.6;
+      padding: 16px;
+      overflow-x: auto;
+      white-space: pre;
+      margin: 0;
+    }
+
+    @media (max-width: 768px) {
+      .code-panels {
+        grid-template-columns: 1fr;
+      }
+      .overview-grid {
+        grid-template-columns: 1fr;
+      }
+      .anatomy-container {
+        grid-template-columns: 1fr;
+      }
+    }
+  `],
+})
+export class DsComponentPageComponent implements OnInit, OnDestroy {
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private toastSvc = inject(ToastService);
+  private sub!: Subscription;
+
+  entry: ComponentDocEntry | undefined;
+  searchQuery = '';
+  modalOpen = false;
+
+  demoOptions = [
+    { value: 'opt1', label: 'Option one' },
+    { value: 'opt2', label: 'Option two' },
+    { value: 'opt3', label: 'Option three' },
+    { value: 'opt4', label: 'Option four' },
+  ];
+
+  demoTabs = [
+    { id: 'overview', label: 'Overview' },
+    { id: 'details',  label: 'Details' },
+    { id: 'history',  label: 'History' },
+  ];
+  activeTab = 'overview';
+
+  demoTabsWithCounters = [
+    { id: 'all',      label: 'All',      counter: 24 },
+    { id: 'active',   label: 'Active',   counter: 12 },
+    { id: 'archived', label: 'Archived', counter: 6  },
+  ];
+  activeTabCounter = 'all';
+
+  get componentId(): string { return this.entry?.id ?? ''; }
+
+  get filteredRegistry(): ComponentDocEntry[] {
+    if (!this.searchQuery.trim()) return DS_REGISTRY;
+    const q = this.searchQuery.toLowerCase();
+    return DS_REGISTRY.filter(e =>
+      e.name.toLowerCase().includes(q) ||
+      e.selector.toLowerCase().includes(q) ||
+      e.category.toLowerCase().includes(q)
+    );
+  }
+
+  get groupedRegistry(): { category: (typeof DS_CATEGORIES)[number]; items: ComponentDocEntry[] }[] {
+    return DS_CATEGORIES.map(cat => ({
+      category: cat,
+      items: this.filteredRegistry.filter(e => e.category === cat.id)
+    })).filter(g => g.items.length > 0);
+  }
+
+  ngOnInit(): void {
+    this.sub = this.route.paramMap.subscribe(params => {
+      const id = params.get('id') ?? '';
+      this.entry = DS_REGISTRY.find(e => e.id === id);
+      if (!this.entry) this.router.navigate(['/ds']);
+    });
+  }
+
+  ngOnDestroy(): void { this.sub?.unsubscribe(); }
+
+  navigate(id: string): void { this.router.navigate(['/ds', id]); }
+
+  copy(text: string): void {
+    navigator.clipboard.writeText(text).then(() => {
+      this.toastSvc.show({ variant: 'success', title: 'Copied!', message: 'Content copied to clipboard.' });
+    });
+  }
+
+  statusClass(status: ComponentStatus): string {
+    return { stable: 'status--stable', beta: 'status--beta', deprecated: 'status--deprecated' }[status];
+  }
+
+  categoryLabel(cat: ComponentCategory): string {
+    return DS_CATEGORIES.find(c => c.id === cat)?.label ?? cat;
+  }
+
+  isColorToken(value: string): boolean {
+    return value.startsWith('#') || value.startsWith('rgb');
+  }
+}

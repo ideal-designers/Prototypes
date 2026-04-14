@@ -43,6 +43,7 @@
  *   <fvdr-progress>         → Progress bar
  *   <fvdr-range>            → Range slider
  *   <fvdr-sidebar-nav>      → App sidebar (VDR/CA/Internal, collapsible, with sub-nav)
+ *   <fvdr-file-icon>        → File/folder icon (folder, pdf, doc, xls, image, video, zip…)
  *
  * Usage in prototype:
  *   import { DS_COMPONENTS } from '../../shared/ds';
@@ -82,12 +83,13 @@ import { CounterComponent } from './components/counter/counter.component';
 import { InlineMessageComponent } from './components/inline-message/inline-message.component';
 import { ToastComponent, ToastHostComponent, ToastService } from './components/toast/toast.component';
 import { ModalComponent, BottomSheetComponent } from './components/modal/modal.component';
-import { TableComponent } from './components/table/table.component';
+import { TableComponent, FvdrTableCellDirective } from './components/table/table.component';
 import { TreeComponent } from './components/tree/tree.component';
 import { DropAreaComponent } from './components/drop-area/drop-area.component';
 import { HeaderComponent, MobileHeaderComponent } from './components/header/header.component';
 import { NumberStepperComponent, ProgressComponent, RangeComponent } from './components/special-controls/special-controls.component';
 import { SidebarNavComponent } from './components/sidebar-nav/sidebar-nav.component';
+import { FileIconComponent } from './components/file-icon/file-icon.component';
 
 // ─── Re-exports ───────────────────────────────────────────────────────────────
 
@@ -169,7 +171,7 @@ export type { ToastVariant, ToastData } from './components/toast/toast.component
 export { ModalComponent, BottomSheetComponent } from './components/modal/modal.component';
 export type { ModalSize, ModalConfig } from './components/modal/modal.component';
 
-export { TableComponent } from './components/table/table.component';
+export { TableComponent, FvdrTableCellDirective } from './components/table/table.component';
 export type { TableColumn, SortState, SortDirection } from './components/table/table.component';
 
 export { TreeComponent } from './components/tree/tree.component';
@@ -178,12 +180,15 @@ export type { TreeNode } from './components/tree/tree.component';
 export { DropAreaComponent } from './components/drop-area/drop-area.component';
 
 export { HeaderComponent, MobileHeaderComponent } from './components/header/header.component';
-export type { HeaderNavItem, HeaderAction } from './components/header/header.component';
+export type { HeaderNavItem, HeaderAction, BreadcrumbItem } from './components/header/header.component';
 
 export { NumberStepperComponent, ProgressComponent, RangeComponent } from './components/special-controls/special-controls.component';
 
 export { SidebarNavComponent } from './components/sidebar-nav/sidebar-nav.component';
 export type { SidebarNavItem, SidebarNavSubItem, SidebarNavVariant } from './components/sidebar-nav/sidebar-nav.component';
+
+export { FileIconComponent } from './components/file-icon/file-icon.component';
+export type { FvdrFileType } from './components/file-icon/file-icon.component';
 
 /** Convenience array — spread into component imports[] */
 export const DS_COMPONENTS = [
@@ -222,6 +227,7 @@ export const DS_COMPONENTS = [
   ModalComponent,
   BottomSheetComponent,
   TableComponent,
+  FvdrTableCellDirective,
   TreeComponent,
   DropAreaComponent,
   HeaderComponent,
@@ -230,4 +236,5 @@ export const DS_COMPONENTS = [
   ProgressComponent,
   RangeComponent,
   SidebarNavComponent,
+  FileIconComponent,
 ];

@@ -217,7 +217,7 @@ import { PrototypeService, PrototypeDef } from '../../services/prototype.service
     }
     .home__header { max-width: 960px; margin: 0 auto 40px; }
     .home__header-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
-    h1 { font-size: 2rem; font-weight: 700; color: #2C9C74; margin: 0 0 8px; }
+    h1 { font-size: 2rem; font-weight: 700; color: var(--color-interactive-primary); margin: 0 0 8px; }
     .home__subtitle { color: #9bbfb0; margin: 0; }
     .home__grid {
       max-width: 960px; margin: 0 auto;
@@ -237,7 +237,7 @@ import { PrototypeService, PrototypeDef } from '../../services/prototype.service
     .btn-new {
       display: inline-flex; align-items: center; gap: 6px;
       height: 40px; padding: 0 16px;
-      background: #2C9C74; color: #fff;
+      background: var(--color-interactive-primary); color: #fff;
       border: none; border-radius: 8px;
       font-size: 0.9rem; font-weight: 600; font-family: inherit;
       cursor: pointer; white-space: nowrap;
@@ -254,7 +254,7 @@ import { PrototypeService, PrototypeDef } from '../../services/prototype.service
       transition: border-color 0.15s, transform 0.15s;
       position: relative; display: block;
     }
-    a.proto-card:hover { border-color: #2C9C74; transform: translateY(-2px); }
+    a.proto-card:hover { border-color: var(--color-interactive-primary); transform: translateY(-2px); }
     .proto-card--pending { border-style: dashed; border-color: #2a3d36; cursor: default; }
 
     .proto-card__top {
@@ -266,8 +266,8 @@ import { PrototypeService, PrototypeDef } from '../../services/prototype.service
       text-transform: uppercase; letter-spacing: 0.08em;
       padding: 2px 8px; border-radius: 20px;
     }
-    .proto-card--wip     .proto-card__status { background: rgba(244,100,12,.15); color: #F4640C; }
-    .proto-card--live    .proto-card__status { background: rgba(44,156,116,.15); color: #2C9C74; }
+    .proto-card--wip     .proto-card__status { background: rgba(244,100,12,.15); color: var(--color-brand-orange); }
+    .proto-card--live    .proto-card__status { background: rgba(44,156,116,.15); color: var(--color-interactive-primary); }
     .proto-card--archived .proto-card__status { background: rgba(155,191,176,.1); color: #9bbfb0; }
     .proto-card--pending  .proto-card__status { background: rgba(53,140,235,.12); color: #358CEB; }
 
@@ -279,7 +279,7 @@ import { PrototypeService, PrototypeDef } from '../../services/prototype.service
       display: flex; align-items: center; justify-content: center;
       transition: color 0.12s, background 0.12s;
     }
-    .proto-card__archive:hover { color: #e54430; background: rgba(229,68,48,.1); }
+    .proto-card__archive:hover { color: var(--color-danger); background: rgba(229,68,48,.1); }
 
     .proto-card__title { font-size: 1.1rem; font-weight: 600; margin: 0 0 6px; }
     .proto-card__desc { font-size: 0.875rem; color: #9bbfb0; margin: 0 0 12px; }
@@ -301,7 +301,7 @@ import { PrototypeService, PrototypeDef } from '../../services/prototype.service
       background: radial-gradient(circle, rgba(44,156,116,0.12) 0%, transparent 70%);
       pointer-events: none;
     }
-    .proto-card--ds:hover { border-color: #2C9C74; }
+    .proto-card--ds:hover { border-color: var(--color-interactive-primary); }
 
     /* ── Docs card ── */
     .proto-card--docs {
@@ -326,14 +326,14 @@ import { PrototypeService, PrototypeDef } from '../../services/prototype.service
     }
     .proto-card__status--ds {
       background: rgba(44,156,116,.18);
-      color: #2C9C74;
+      color: var(--color-interactive-primary);
       font-size: 0.7rem; font-weight: 600;
       text-transform: uppercase; letter-spacing: 0.08em;
       padding: 2px 8px; border-radius: 20px;
     }
     .ds-card__icon {
       font-size: 1.1rem;
-      color: #2C9C74;
+      color: var(--color-interactive-primary);
       opacity: 0.7;
     }
     .ds-card__meta {
@@ -345,7 +345,7 @@ import { PrototypeService, PrototypeDef } from '../../services/prototype.service
     .ds-card__pill {
       font-size: 0.72rem;
       background: rgba(44,156,116,.12);
-      color: #2C9C74;
+      color: var(--color-interactive-primary);
       padding: 2px 8px;
       border-radius: 20px;
       border: 1px solid rgba(44,156,116,.2);
@@ -358,7 +358,7 @@ import { PrototypeService, PrototypeDef } from '../../services/prototype.service
       padding: 4px 10px; font-size: 0.8rem; font-family: inherit;
       cursor: pointer; transition: border-color 0.12s, color 0.12s;
     }
-    .btn-scaffold:hover { border-color: #2C9C74; color: #2C9C74; }
+    .btn-scaffold:hover { border-color: var(--color-interactive-primary); color: var(--color-interactive-primary); }
 
     /* ── Overlays ── */
     .overlay {
@@ -386,7 +386,7 @@ import { PrototypeService, PrototypeDef } from '../../services/prototype.service
     .modal__body { padding: 16px 24px; }
     .modal__info { margin: 0 0 12px; color: #9bbfb0; font-size: 0.9rem; }
     .modal__hint { margin: 8px 0 0; color: #9bbfb0; font-size: 0.8rem; }
-    .modal__error { color: #e54430; font-size: 0.85rem; margin: 8px 0 0; }
+    .modal__error { color: var(--color-danger); font-size: 0.85rem; margin: 8px 0 0; }
     .modal__footer {
       padding: 12px 24px 20px;
       display: flex; justify-content: flex-end; gap: 10px;
@@ -395,7 +395,7 @@ import { PrototypeService, PrototypeDef } from '../../services/prototype.service
     /* ── Form fields ── */
     .field { display: flex; flex-direction: column; gap: 4px; margin-bottom: 14px; }
     .field__label { font-size: 0.85rem; font-weight: 600; color: #9bbfb0; }
-    .field__req { color: #e54430; }
+    .field__req { color: var(--color-danger); }
     .field__hint { font-size: 0.75rem; color: #3a5a50; }
     .field__input {
       height: 38px; padding: 0 12px;
@@ -405,7 +405,7 @@ import { PrototypeService, PrototypeDef } from '../../services/prototype.service
       transition: border-color 0.15s;
       outline: none;
     }
-    .field__input:focus { border-color: #2C9C74; }
+    .field__input:focus { border-color: var(--color-interactive-primary); }
     .field__input::placeholder { color: #3a5a50; }
     .field__slug-wrap { display: flex; align-items: center; gap: 0; }
     .field__slug-prefix {
@@ -435,12 +435,12 @@ import { PrototypeService, PrototypeDef } from '../../services/prototype.service
       display: flex; align-items: center; justify-content: center;
       transition: border-color 0.12s, color 0.12s;
     }
-    .btn-copy:hover { border-color: #2C9C74; color: #2C9C74; }
+    .btn-copy:hover { border-color: var(--color-interactive-primary); color: var(--color-interactive-primary); }
 
     /* ── Buttons ── */
     .btn-primary {
       height: 36px; padding: 0 18px;
-      background: #2C9C74; color: #fff;
+      background: var(--color-interactive-primary); color: #fff;
       border: none; border-radius: 6px;
       font-size: 0.9rem; font-weight: 600; font-family: inherit;
       cursor: pointer; transition: background 0.15s;
@@ -457,7 +457,7 @@ import { PrototypeService, PrototypeDef } from '../../services/prototype.service
     .btn-cancel:hover { border-color: #9bbfb0; }
     .btn-danger {
       height: 36px; padding: 0 18px;
-      background: #e54430; color: #fff;
+      background: var(--color-danger); color: #fff;
       border: none; border-radius: 6px;
       font-size: 0.9rem; font-weight: 600; font-family: inherit;
       cursor: pointer; transition: background 0.15s;

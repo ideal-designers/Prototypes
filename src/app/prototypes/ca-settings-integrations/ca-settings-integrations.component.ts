@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TrackerService } from '../../services/tracker.service';
 import { DS_COMPONENTS, TabItem, FvdrIconName } from '../../shared/ds';
+import type { HeaderAction } from '../../shared/ds';
 
 interface Integration {
   id: string;
@@ -110,27 +111,14 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
       <!-- ── Main ── -->
       <div class="main-area">
 
-        <!-- ── Header 64px — Figma: pad 12/24/12/24, border-bottom 1px #dee0eb ── -->
-        <header class="page-header">
-          <nav class="breadcrumb" aria-label="breadcrumb">
-            <button class="bc-item bc-item--link">
-              Settings
-              <fvdr-icon name="chevron-right" class="bc-chevron bc-chevron--dim"></fvdr-icon>
-            </button>
-            <button class="bc-item bc-item--current">
-              Integrations
-              <fvdr-icon name="chevron-down" class="bc-chevron"></fvdr-icon>
-            </button>
-          </nav>
-          <div class="header-right">
-            <button class="theme-toggle" (click)="toggleTheme()">
-              <fvdr-icon [name]="isDark ? 'theme-light' : 'theme-dark'" class="theme-toggle__icon"></fvdr-icon>
-              <span class="theme-toggle__label">{{ isDark ? 'Dark mode' : 'Light mode' }}</span>
-            </button>
-            <fvdr-icon name="help" class="header-icon"></fvdr-icon>
-            <fvdr-avatar initials="TN" size="lg" color="#eceef9" textColor="#1f2129" />
-          </div>
-        </header>
+        <!-- ── Header ── -->
+        <fvdr-header
+          [breadcrumbs]="headerBreadcrumbs"
+          [actions]="headerActions"
+          [showMenu]="false"
+          userName="Test Name"
+          (actionClick)="onHeaderAction($event)"
+        />
 
         <!-- ── Content ── -->
         <div class="content-area">
@@ -197,14 +185,8 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
                 </ng-container>
                 <ng-container *ngIf="item.allowed">
                   <!-- Forbid — red outline button -->
-                  <button class="btn-card-forbid" (click)="openForbidModal(item)" [attr.data-track]="'forbid-card-' + item.id">
-                    <fvdr-icon name="cancel" class="btn-icon"></fvdr-icon>
-                    Forbid
-                  </button>
-                  <button class="btn-card-edit" (click)="openEditModal(item)" [attr.data-track]="'edit-' + item.id">
-                    <fvdr-icon name="edit" class="btn-icon"></fvdr-icon>
-                    Edit projects
-                  </button>
+                  <fvdr-btn label="Forbid" variant="danger" size="m" iconName="cancel" [dataTrack]="'forbid-card-' + item.id" (clicked)="openForbidModal(item)" />
+                  <fvdr-btn label="Edit projects" variant="secondary" size="m" iconName="edit" [dataTrack]="'edit-' + item.id" (clicked)="openEditModal(item)" />
                 </ng-container>
               </div>
 
@@ -338,20 +320,10 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
         <!-- Footer — Figma: h=88, pad 24, border-top #dee0eb -->
         <!-- Left: Forbid (trash + red text) | Right: Cancel + Confirm -->
         <div class="modal-footer">
-          <button *ngIf="modalMode === 'edit'" class="btn-forbid" (click)="openForbidModal(modalIntegration)" data-track="modal-forbid">
-            <fvdr-icon name="trash" class="btn-icon"></fvdr-icon>
-            <span>Forbid integration</span>
-          </button>
+          <fvdr-btn *ngIf="modalMode === 'edit'" label="Forbid integration" variant="ghost" size="m" iconName="trash" data-track="modal-forbid" (clicked)="openForbidModal(modalIntegration)" />
           <div class="modal-footer-right">
-            <!-- Cancel — Figma: bg #fff, border 1px #bbbdc8, pad 16, r=4, text "Cancel" #40424b 15px -->
-            <button class="btn-cancel" (click)="closeModal()" data-track="modal-cancel">Cancel</button>
-            <!-- Confirm — Figma: bg #2c9c74, pad 16, r=4, text "Confirm" #fff 15px -->
-            <button
-              class="btn-confirm"
-              [class.btn-confirm--disabled]="selectedProjects.length === 0"
-              (click)="confirmAllow()"
-              data-track="modal-confirm"
-            >Confirm</button>
+            <fvdr-btn label="Cancel" variant="secondary" size="m" data-track="modal-cancel" (clicked)="closeModal()" />
+            <fvdr-btn label="Confirm" variant="primary" size="m" data-track="modal-confirm" (clicked)="confirmAllow()" />
           </div>
         </div>
 
@@ -382,8 +354,8 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
         <!-- Footer -->
         <div class="modal-footer">
           <div class="modal-footer-right">
-            <button class="btn-cancel" (click)="forbidModalOpen = false" data-track="forbid-cancel">Cancel</button>
-            <button class="btn-forbid-confirm" (click)="confirmForbid()" data-track="forbid-confirm">Forbid</button>
+            <fvdr-btn label="Cancel" variant="secondary" size="m" data-track="forbid-cancel" (clicked)="forbidModalOpen = false" />
+            <fvdr-btn label="Forbid" variant="danger" size="m" data-track="forbid-confirm" (clicked)="confirmForbid()" />
           </div>
         </div>
 
@@ -404,13 +376,13 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
     :host { font-family: var(--font-family); display: block; }
 
     /* ── Layout ── */
-    .page-layout { display: flex; height: 100vh; background: #f7f7f7; overflow: hidden; }
+    .page-layout { display: flex; height: 100vh; background: var(--color-stone-200); overflow: hidden; }
 
     /* ── Sidebar ── */
     .sidebar {
       width: 280px; min-width: 280px;
-      background: #f7f7f7;
-      border-right: 1px solid #dee0eb;
+      background: var(--color-stone-200);
+      border-right: 1px solid var(--color-divider);
       display: flex; flex-direction: column;
       overflow: hidden;
       transition: width 0.22s ease, min-width 0.22s ease;
@@ -421,36 +393,36 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
     /* Account switcher — Figma: 64px h, pad L=16 R=16 T=12 B=12, itemSpacing=10 */
     .account-switcher {
       height: 64px; min-height: 64px;
-      background: #f7f7f7;
-      border-bottom: 1px solid #dee0eb;
+      background: var(--color-stone-200);
+      border-bottom: 1px solid var(--color-divider);
       display: flex; align-items: center;
-      padding: 0 16px;
-      gap: 10px;
+      padding: 0 var(--space-4);
+      gap: var(--space-3);
       cursor: pointer;
       overflow: hidden;
     }
-    .account-switcher:hover { background: #efefef; }
+    .account-switcher:hover { background: var(--color-stone-300); }
     .account-logo {
       width: 40px; height: 40px; min-width: 40px;
-      border-radius: 4px;
+      border-radius: var(--radius-sm);
       flex-shrink: 0;
       display: flex;
     }
-    .account-name { font-size: 16px; font-weight: 600; color: #1f2129; flex: 1; white-space: nowrap; overflow: hidden; }
-    .account-chevron { flex-shrink: 0; font-size: 16px; color: #5f616a; }
+    .account-name { font-size: var(--text-label-l-size); font-weight: var(--text-label-l-weight); color: var(--color-text-primary); flex: 1; white-space: nowrap; overflow: hidden; }
+    .account-chevron { flex-shrink: 0; font-size: 16px; color: var(--color-text-secondary); }
 
     /* Nav list */
-    .nav-list { display: flex; flex-direction: column; flex: 1; background: #f7f7f7; overflow-y: auto; padding: 24px 0 8px; gap: 24px; }
+    .nav-list { display: flex; flex-direction: column; flex: 1; background: var(--color-stone-200); overflow-y: auto; padding: var(--space-6) 0 var(--space-2); gap: var(--space-6); }
 
     /* Nav item — Figma: 280×32 (or 72×32 collapsed) */
     .nav-item {
       width: 100%;
       height: 32px; min-height: 32px;
       border: none; background: transparent;
-      color: #40424b;
+      color: var(--color-stone-900);
       cursor: pointer;
       display: flex; align-items: center;
-      font-size: 16px; font-weight: 400;
+      font-size: var(--text-body1-size); font-weight: var(--text-body1-weight);
       font-family: var(--font-family);
       text-align: left;
       transition: background 0.12s;
@@ -458,12 +430,12 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
       overflow: hidden;
     }
     .icon-active { display: none; }
-    .nav-item:hover { background: transparent; font-weight: 600; }
+    .nav-item:hover { background: transparent; font-weight: var(--text-label-l-weight); }
     .nav-item:hover .icon-default { display: none; }
     .nav-item:hover .icon-active  { display: inline-flex; }
-    .nav-item--active, .nav-item--open { color: #1f2129; font-weight: 600; }
-    .nav-item--active { background: #f0faf5; }
-    .nav-item--active:hover { background: #f0faf5; }
+    .nav-item--active, .nav-item--open { color: var(--color-text-primary); font-weight: var(--text-label-l-weight); }
+    .nav-item--active { background: var(--color-primary-50); }
+    .nav-item--active:hover { background: var(--color-primary-50); }
     .nav-item--active .icon-default,
     .nav-item--open   .icon-default { display: none; }
     .nav-item--active .icon-active,
@@ -475,36 +447,36 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
       display: flex; align-items: center; justify-content: center;
       flex-shrink: 0;
     }
-    /* nav-icon: default state uses currentColor (#5f616a), active icon has hardcoded 2-tone colors */
-    .nav-icon { display: flex; align-items: center; justify-content: center; color: #5f616a; font-size: 24px; }
+    /* nav-icon: default state uses currentColor, active icon has hardcoded 2-tone colors */
+    .nav-icon { display: flex; align-items: center; justify-content: center; color: var(--color-text-secondary); font-size: var(--text-h3-size); }
 
     .nav-label { flex: 1; }
-    .nav-chevron { flex-shrink: 0; margin-right: 16px; transition: transform 0.2s; font-size: 16px; color: #5f616a; }
+    .nav-chevron { flex-shrink: 0; margin-right: var(--space-4); transition: transform 0.2s; font-size: var(--text-body1-size); color: var(--color-text-secondary); }
     .nav-chevron--up { transform: rotate(180deg); }
 
     /* Sub-items */
-    .nav-subitems { display: flex; flex-direction: column; background: #f7f7f7; }
+    .nav-subitems { display: flex; flex-direction: column; background: var(--color-stone-200); }
     .nav-subitem {
       height: 32px;
-      padding: 0 16px 0 72px;
+      padding: 0 var(--space-4) 0 72px;
       border: none; background: transparent; cursor: pointer;
-      font-size: 14px; font-weight: 400; color: #1f2129;
+      font-size: var(--text-body3-size); font-weight: var(--text-body3-weight); color: var(--color-text-primary);
       font-family: var(--font-family);
       text-align: left;
       white-space: nowrap;
       transition: background 0.12s;
     }
-    .nav-subitem:hover { background: transparent; font-weight: 600; }
-    .nav-subitem--active { font-weight: 600; color: #2c9c74; background: transparent; }
+    .nav-subitem:hover { background: transparent; font-weight: var(--text-label-s-weight); }
+    .nav-subitem--active { font-weight: var(--text-label-s-weight); color: var(--color-primary-500); background: transparent; }
     .nav-subitem--active:hover { background: transparent; }
 
     /* Bottom logo + collapse — Figma: 72px h, pad L=24 R=16 */
     .sidebar-bottom {
       height: 72px; min-height: 72px;
-      background: #f7f7f7;
-      border-top: 1px solid #dee0eb;
+      background: var(--color-stone-200);
+      border-top: 1px solid var(--color-divider);
       display: flex; align-items: center;
-      padding: 0 16px 0 24px;
+      padding: 0 var(--space-4) 0 var(--space-6);
       justify-content: space-between;
       overflow: hidden;
     }
@@ -512,179 +484,111 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
     .collapse-btn {
       width: 32px; height: 32px; min-width: 32px;
       border: none; background: transparent; cursor: pointer;
-      border-radius: 4px;
+      border-radius: var(--radius-sm);
       display: flex; align-items: center; justify-content: center;
       transition: background 0.12s;
       margin-left: auto;
-      font-size: 16px; color: #5f616a;
+      font-size: 16px; color: var(--color-text-secondary);
     }
-    .collapse-btn:hover { background: #e8e8e8; }
+    .collapse-btn:hover { background: var(--color-hover-bg); }
 
     /* ── Main ── */
     .main-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
 
-    /* ── Header — Figma: h=64, pad 12/24/12/24, border-bottom 1px #dee0eb ── */
-    .page-header {
-      height: 64px; min-height: 64px;
-      padding: 12px 24px;
-      border-bottom: 1px solid #dee0eb;
-      background: #ffffff;
-      display: flex; align-items: center; justify-content: space-between;
-    }
-    /* Breadcrumb — Figma: gap 0 between items, each item has internal pad 8/8 */
-    .breadcrumb { display: flex; align-items: center; gap: 0; }
-    .bc-item {
-      display: inline-flex; align-items: center; gap: 8px;
-      padding: 8px 8px;
-      background: none; border: none; cursor: pointer;
-      font-family: var(--font-family);
-      font-size: 15px; line-height: 20px;
-    }
-    .bc-item--link { font-weight: 600; color: #5f616a; }
-    .bc-item--link:hover { color: #2c9c74; }
-    .bc-item--current { font-weight: 600; color: #1f2129; }
-    .bc-item--sub { font-size: 14px; font-weight: 400; color: #9c9ea8; cursor: default; }
-    .header-right { display: flex; align-items: center; gap: 24px; }
-    .header-icon { font-size: 24px; color: #5f616a; }
-
-    /* Theme toggle */
-    .theme-toggle {
-      position: relative;
-      display: flex; flex-direction: column; align-items: center;
-      gap: 2px;
-      border: none; background: transparent; cursor: pointer; padding: 0;
-    }
-    .theme-toggle__icon { font-size: 24px; color: #5f616a; }
-    .theme-toggle__label {
-      position: absolute;
-      top: calc(100% + 6px);
-      left: 50%; transform: translateX(-50%);
-      background: #ffffff;
-      border: 1px solid #dee0eb;
-      border-radius: 4px;
-      padding: 4px 10px;
-      font-size: 12px; font-weight: 400; color: #1f2129;
-      white-space: nowrap;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.10);
-      opacity: 0; pointer-events: none;
-      transition: opacity 0.15s;
-      z-index: 10;
-    }
-    .theme-toggle:hover .theme-toggle__label { opacity: 1; }
+    /* ── Header — handled by fvdr-header DS component ── */
 
     /* ── Content area — Figma: Midgard pad 24/24/24/24 ── */
-    .content-area { flex: 1; overflow-y: auto; padding: 24px; background: #ffffff; }
+    .content-area { flex: 1; overflow-y: auto; padding: var(--space-6); background: var(--color-stone-0); }
 
     /* ── Banners — Figma: Inline bg #f7f7f7, pad 8/12, gap 8, r=4 ── */
-    .banners { display: flex; flex-direction: column; gap: 8px; margin: 20px 0 24px; }
+    .banners { display: flex; flex-direction: column; gap: var(--space-2); margin: var(--space-5) 0 var(--space-6); }
     .banner {
-      display: flex; align-items: flex-start; gap: 8px;
-      background: #f7f7f7;
-      border-radius: 4px;
-      padding: 8px 12px;
-      font-size: 15px; color: #1f2129; line-height: 24px;
+      display: flex; align-items: flex-start; gap: var(--space-2);
+      background: var(--color-stone-200);
+      border-radius: var(--radius-sm);
+      padding: var(--space-2) var(--space-3);
+      font-size: var(--text-body2-size); color: var(--color-text-primary); line-height: var(--text-body2-lh);
     }
     .banner-icon { font-size: 16px; flex-shrink: 0; margin-top: 3px; }
-    .info-link { color: #2c9c74; text-decoration: none; }
+    .info-link { color: var(--color-primary-500); text-decoration: none; }
     .info-link:hover { text-decoration: underline; }
     .bc-chevron { font-size: 16px; }
-    .bc-chevron--dim { color: #bbbdc8; }
+    .bc-chevron--dim { color: var(--color-stone-500); }
 
     /* ── Cards Grid — Figma: 3 cols, gap 24px ── */
     .cards-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 24px;
+      gap: var(--space-6);
     }
     @media (max-width: 1100px) { .cards-grid { grid-template-columns: repeat(2, 1fr); } }
     @media (max-width: 740px)  { .cards-grid { grid-template-columns: 1fr; } }
 
     /* ── Integration Card — Figma: bg #fff, border 1px #dee0eb, r=4, pad 24/0, gap 24, VERTICAL ── */
     .int-card {
-      border: 1px solid #dee0eb;
-      border-radius: 4px;
-      background: #ffffff;
+      border: 1px solid var(--color-divider);
+      border-radius: var(--radius-sm);
+      background: var(--color-stone-0);
       display: flex; flex-direction: column;
-      gap: 24px;
-      padding: 24px 0;
+      gap: var(--space-6);
+      padding: var(--space-6) 0;
       transition: border-color 0.15s;
     }
-    .int-card:hover { border-color: #2c9c74; }
-    .int-card--allowed { border-color: #2c9c74; }
+    .int-card:hover { border-color: var(--color-primary-500); }
+    .int-card--allowed { border-color: var(--color-primary-500); }
 
     /* Card body — Figma: Frame 1000006716, pad 0/24, gap 12 VERTICAL */
-    .int-card__body { padding: 0 24px; display: flex; flex-direction: column; gap: 12px; flex: 1; }
+    .int-card__body { padding: 0 var(--space-6); display: flex; flex-direction: column; gap: var(--space-3); flex: 1; }
 
     /* Head row — Figma: gap 12 HORIZONTAL */
-    .int-card__head-row { display: flex; align-items: flex-start; gap: 12px; }
+    .int-card__head-row { display: flex; align-items: flex-start; gap: var(--space-3); }
 
     /* Logo — Figma: 40×40, border 1px #dee0eb, r=4, bg #ffffff */
     .int-logo {
       width: 40px; height: 40px; min-width: 40px;
-      border: 1px solid #dee0eb;
-      border-radius: 4px;
-      background: #ffffff;
+      border: 1px solid var(--color-divider);
+      border-radius: var(--radius-sm);
+      background: var(--color-stone-0);
       display: flex; align-items: center; justify-content: center;
     }
-    .int-logo-initial { font-size: 16px; font-weight: 700; line-height: 1; }
+    .int-logo-initial { font-size: var(--text-body1-size); font-weight: var(--text-h3-weight); line-height: 1; }
 
     /* Meta */
     .int-meta { display: flex; flex-direction: column; gap: 0; }
-    .int-name { font-size: 16px; font-weight: 600; color: #1f2129; line-height: 24px; }
-    .int-domain { font-size: 12px; font-weight: 400; color: #5f616a; line-height: 16px; }
+    .int-name { font-size: var(--text-label-l-size); font-weight: var(--text-label-l-weight); color: var(--color-text-primary); line-height: var(--text-label-l-lh); }
+    .int-domain { font-size: var(--text-caption1-size); font-weight: var(--text-caption1-weight); color: var(--color-text-secondary); line-height: var(--text-caption1-lh); }
 
     /* Desc block — Figma: Frame 1000006709, gap 16 VERTICAL */
-    .int-card__desc-block { display: flex; flex-direction: column; gap: 16px; }
-    .int-desc { font-size: 14px; font-weight: 400; color: #1f2129; line-height: 20px; margin: 0; }
+    .int-card__desc-block { display: flex; flex-direction: column; gap: var(--space-4); }
+    .int-desc { font-size: var(--text-body3-size); font-weight: var(--text-body3-weight); color: var(--color-text-primary); line-height: var(--text-body3-lh); margin: 0; }
 
     /* Feature order — Figma: "Order", VERTICAL gap 8 */
-    .feature-order { display: flex; flex-direction: column; gap: 8px; }
+    .feature-order { display: flex; flex-direction: column; gap: var(--space-2); }
     /* Feature row — HORIZONTAL gap 8 */
-    .feature-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .feature-row { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; }
 
     /* Badge — Figma: "Badge Locked", bg #ebf4fd, pad 0/8, r=4, h=20, fs=12 #1f2129, icon 14×14 #2c9c74 */
     .feature-badge {
-      display: inline-flex; align-items: center; gap: 8px;
-      background: #ebf4fd;
-      border-radius: 4px;
-      padding: 0 8px;
+      display: inline-flex; align-items: center; gap: var(--space-2);
+      background: var(--color-info-50);
+      border-radius: var(--radius-sm);
+      padding: 0 var(--space-2);
       height: 20px;
-      font-size: 12px; font-weight: 400; color: #1f2129;
+      font-size: var(--text-caption1-size); font-weight: var(--text-caption1-weight); color: var(--color-text-primary);
       white-space: nowrap;
     }
-    .badge-icon { font-size: 14px; flex-shrink: 0; color: #2c9c74; }
+    .badge-icon { font-size: 14px; flex-shrink: 0; color: var(--color-primary-500); }
 
     /* Card footer — Figma: Frame 37573, pad 0/24, gap 16 HORIZONTAL */
     .int-card__footer {
-      padding: 0 24px;
-      display: flex; align-items: center; gap: 16px;
+      padding: 0 var(--space-6);
+      display: flex; align-items: center; gap: var(--space-4);
     }
 
     .btn-icon { font-size: 14px; flex-shrink: 0; }
 
     /* Forbid card button — red outline */
-    .btn-card-forbid {
-      display: inline-flex; align-items: center; gap: 6px;
-      height: 36px; padding: 0 14px;
-      border: 1px solid #ed7c6e; border-radius: 4px;
-      background: #ffffff; cursor: pointer;
-      font-size: 14px; color: #e54430; font-family: var(--font-family);
-      transition: background 0.15s, border-color 0.15s;
-      white-space: nowrap;
-    }
-    .btn-card-forbid:hover { background: #fff5f4; border-color: #e54430; }
-
-    /* Edit projects card button — gray outline */
-    .btn-card-edit {
-      display: inline-flex; align-items: center; gap: 6px;
-      height: 36px; padding: 0 14px;
-      border: 1px solid #bbbdc8; border-radius: 4px;
-      background: #ffffff; cursor: pointer;
-      font-size: 14px; color: #40424b; font-family: var(--font-family);
-      transition: background 0.15s, border-color 0.15s;
-      white-space: nowrap;
-    }
-    .btn-card-edit:hover { background: #f7f7f7; border-color: #5f616a; }
+    /* Card buttons now use fvdr-btn DS component */
 
     /* ══════════════════════════════════════════
        MODAL
@@ -701,9 +605,9 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
     /* Figma: 512px wide, r=4 */
     .modal {
       width: 512px;
-      background: #ffffff;
-      border-radius: 4px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+      background: var(--color-stone-0);
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow-popover);
       display: flex; flex-direction: column;
       animation: slideUp 0.18s ease;
       max-height: 90vh;
@@ -714,67 +618,67 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
     /* Header — Figma: h=72, pad 24/24, border-bottom 1px #dee0eb */
     .modal-header {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 0 24px;
+      padding: 0 var(--space-6);
       height: 72px; min-height: 72px;
-      border-bottom: 1px solid #dee0eb;
+      border-bottom: 1px solid var(--color-divider);
       flex-shrink: 0;
     }
-    .modal-title { font-size: 16px; font-weight: 600; color: #1f2129; }
+    .modal-title { font-size: var(--text-label-l-size); font-weight: var(--text-label-l-weight); color: var(--color-text-primary); }
     .modal-close {
       width: 24px; height: 24px;
       border: none; background: transparent; cursor: pointer; padding: 0;
       display: flex; align-items: center; justify-content: center;
-      border-radius: 4px; color: #5f616a; font-size: 14px;
+      border-radius: var(--radius-sm); color: var(--color-text-secondary); font-size: var(--text-body3-size);
       transition: background 0.15s;
     }
-    .modal-close:hover { background: #f7f7f7; }
+    .modal-close:hover { background: var(--color-stone-200); }
 
     /* Body — Figma: Frame 576, pad right=24 bottom=8 left=24, gap=16 */
     .modal-body {
-      padding: 16px 24px 8px 24px;
-      display: flex; flex-direction: column; gap: 16px;
+      padding: var(--space-4) var(--space-6) var(--space-2) var(--space-6);
+      display: flex; flex-direction: column; gap: var(--space-4);
       overflow-y: visible;
       flex-shrink: 0;
     }
 
     /* Info text — Figma: 16px fw=400 #1f2129 */
-    .modal-info-text { margin: 0; font-size: 16px; line-height: 24px; color: #1f2129; }
+    .modal-info-text { margin: 0; font-size: var(--text-body1-size); line-height: var(--text-body1-lh); color: var(--color-text-primary); }
 
     /* Field wrapper */
-    .field { display: flex; flex-direction: column; gap: 4px; }
+    .field { display: flex; flex-direction: column; gap: var(--space-1); }
     .trigger-wrapper { position: relative; }
-    .field-label { font-size: 15px; font-weight: 600; color: #1f2129; line-height: 20px; }
-    .field-hint { font-size: 12px; color: #5f616a; line-height: 16px; }
-    .field-hint--error { color: #e54430; }
+    .field-label { font-size: var(--text-label-m-size); font-weight: var(--text-label-m-weight); color: var(--color-text-primary); line-height: var(--text-label-m-lh); }
+    .field-hint { font-size: var(--text-caption1-size); color: var(--color-text-secondary); line-height: var(--text-caption1-lh); }
+    .field-hint--error { color: var(--color-error-600); }
 
     /* Dropdown trigger — Figma: h=40, border 1px #bbbdc8, r=4, pad 8/16, gap=8 */
     .dropdown-trigger {
-      height: 40px; padding: 8px 16px;
-      border: 1px solid #bbbdc8;
-      border-radius: 4px;
-      background: #ffffff;
+      height: 40px; padding: var(--space-2) var(--space-4);
+      border: 1px solid var(--color-stone-500);
+      border-radius: var(--radius-sm);
+      background: var(--color-stone-0);
       display: flex; align-items: center; justify-content: space-between;
-      cursor: pointer; gap: 8px;
+      cursor: pointer; gap: var(--space-2);
       transition: border-color 0.15s;
-      font-size: 15px; font-family: var(--font-family);
+      font-size: var(--text-body2-size); font-family: var(--font-family);
     }
-    .dropdown-trigger:hover:not(.dropdown-trigger--error) { border-color: #2c9c74; }
-    .dropdown-trigger--open { border-color: #2c9c74; }
-    .dropdown-trigger--error { border-color: #ed7c6e !important; }
-    .trigger-placeholder { color: #9c9ea8; flex: 1; }
-    .trigger-value { color: #1f2129; flex: 1; }
-    .trigger-icons { display: flex; align-items: center; gap: 8px; }
+    .dropdown-trigger:hover:not(.dropdown-trigger--error) { border-color: var(--color-primary-500); }
+    .dropdown-trigger--open { border-color: var(--color-primary-500); }
+    .dropdown-trigger--error { border-color: var(--color-error-500) !important; }
+    .trigger-placeholder { color: var(--color-text-placeholder); flex: 1; }
+    .trigger-value { color: var(--color-text-primary); flex: 1; }
+    .trigger-icons { display: flex; align-items: center; gap: var(--space-2); }
     .trigger-clear {
       width: 16px; height: 16px;
       border: none; background: transparent; cursor: pointer; padding: 0;
       display: flex; align-items: center; justify-content: center;
-      border-radius: 2px;
-      color: #5f616a;
+      border-radius: var(--radius-xs);
+      color: var(--color-text-secondary);
     }
-    .trigger-clear:hover { background: #f0f0f0; }
-    .trigger-chevron { flex-shrink: 0; transition: transform 0.2s; font-size: 16px; color: #5f616a; }
+    .trigger-clear:hover { background: var(--color-stone-300); }
+    .trigger-chevron { flex-shrink: 0; transition: transform 0.2s; font-size: 16px; color: var(--color-text-secondary); }
     .trigger-chevron.rotated { transform: rotate(180deg); }
-    .search-icon { font-size: 16px; color: #9c9ea8; flex-shrink: 0; }
+    .search-icon { font-size: 16px; color: var(--color-text-placeholder); flex-shrink: 0; }
 
     /* Droplist — Figma: position below trigger, border 1px #dee0eb */
     .droplist {
@@ -782,170 +686,135 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
       top: calc(100% + 2px);
       left: 0;
       width: 100%;
-      background: #ffffff;
-      border: 1px solid #dee0eb;
-      border-radius: 4px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+      background: var(--color-stone-0);
+      border: 1px solid var(--color-divider);
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow-popover);
       z-index: 100;
       overflow: hidden;
     }
 
     /* Search area — Figma: bg #fbfbfb, border-bottom 1px #dee0eb, pad 16, gap 16, h=72 */
     .droplist-search {
-      display: flex; align-items: center; gap: 16px;
-      padding: 16px;
-      background: #fbfbfb;
-      border-bottom: 1px solid #dee0eb;
+      display: flex; align-items: center; gap: var(--space-4);
+      padding: var(--space-4);
+      background: var(--color-stone-100);
+      border-bottom: 1px solid var(--color-divider);
       height: 72px;
     }
     .search-field {
       flex: 1;
-      display: flex; align-items: center; gap: 8px;
-      height: 40px; padding: 8px 16px;
-      border: 1px solid #bbbdc8;
-      border-radius: 4px;
-      background: #ffffff;
+      display: flex; align-items: center; gap: var(--space-2);
+      height: 40px; padding: var(--space-2) var(--space-4);
+      border: 1px solid var(--color-stone-500);
+      border-radius: var(--radius-sm);
+      background: var(--color-stone-0);
     }
     .search-input {
       flex: 1; border: none; outline: none; background: transparent;
-      font-size: 15px; color: #1f2129; font-family: var(--font-family);
+      font-size: var(--text-body2-size); color: var(--color-text-primary); font-family: var(--font-family);
     }
-    .search-input::placeholder { color: #9c9ea8; }
+    .search-input::placeholder { color: var(--color-text-placeholder); }
 
     /* List items */
     .droplist-body { max-height: 200px; overflow-y: auto; }
 
     /* Select all row — Figma: pad 8/16, border-bottom 1px #dee0eb */
     .tree-item {
-      display: flex; align-items: center; gap: 16px;
+      display: flex; align-items: center; gap: var(--space-4);
       height: 40px; cursor: pointer;
       transition: background 0.1s;
     }
     .tree-item--select-all {
-      padding: 8px 16px;
-      border-bottom: 1px solid #dee0eb;
+      padding: var(--space-2) var(--space-4);
+      border-bottom: 1px solid var(--color-divider);
     }
-    .tree-item--select-all:hover { background: #f7f7f7; }
+    .tree-item--select-all:hover { background: var(--color-stone-200); }
 
     /* Project rows — Figma: pad 8/32 (indented), bg #ebf8ef when selected */
-    .tree-item--project { padding: 8px 32px; }
-    .tree-item--project:hover { background: #f7f7f7; }
-    .tree-item--selected { background: #ebf8ef; }
-    .tree-item--selected:hover { background: #dff4e8; }
+    .tree-item--project { padding: var(--space-2) var(--space-8); }
+    .tree-item--project:hover { background: var(--color-stone-200); }
+    .tree-item--selected { background: var(--color-primary-50); }
+    .tree-item--selected:hover { background: var(--color-primary-100); }
 
-    .tree-label { font-size: 14px; color: #1f2129; }
-    .tree-empty { padding: 16px; font-size: 14px; color: #9c9ea8; text-align: center; }
+    .tree-label { font-size: var(--text-body3-size); color: var(--color-text-primary); }
+    .tree-empty { padding: var(--space-4); font-size: var(--text-body3-size); color: var(--color-text-placeholder); text-align: center; }
 
     /* Checkbox row inside modal body */
-    .modal-checkbox-row { display: flex; align-items: center; gap: 12px; padding: 8px 0 8px 0; }
-    .modal-checkbox-label { font-size: 15px; color: #1f2129; line-height: 24px; }
+    .modal-checkbox-row { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-2) 0 var(--space-2) 0; }
+    .modal-checkbox-label { font-size: var(--text-body2-size); color: var(--color-text-primary); line-height: var(--text-body2-lh); }
 
     /* Info banner — Figma: bg #f7f7f7, pad 8/12, r=4, gap=8 */
     .modal-banner {
-      display: flex; align-items: flex-start; gap: 8px;
-      background: #f7f7f7; border-radius: 4px;
-      padding: 8px 12px;
-      font-size: 15px; color: #1f2129; line-height: 24px;
+      display: flex; align-items: flex-start; gap: var(--space-2);
+      background: var(--color-stone-200); border-radius: var(--radius-sm);
+      padding: var(--space-2) var(--space-3);
+      font-size: var(--text-body2-size); color: var(--color-text-primary); line-height: var(--text-body2-lh);
     }
-    .modal-link { color: #2c9c74; text-decoration: none; }
+    .modal-link { color: var(--color-primary-500); text-decoration: none; }
     .modal-link:hover { text-decoration: underline; }
 
     /* Footer — Figma: h=88, pad 24, border-top #dee0eb, HORIZONTAL space-between */
     .modal-footer {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 24px;
-      border-top: 1px solid #dee0eb;
+      padding: var(--space-6);
+      border-top: 1px solid var(--color-divider);
       min-height: 88px;
       flex-shrink: 0;
     }
-    .modal-footer-right { display: flex; align-items: center; gap: 16px; margin-left: auto; }
+    .modal-footer-right { display: flex; align-items: center; gap: var(--space-4); margin-left: auto; }
 
-    /* Forbid button — Figma: trash icon #ed7c6e + text "Delete report" #e54430, 16px */
-    .btn-forbid {
-      display: flex; align-items: center; gap: 8px;
-      border: none; background: transparent; cursor: pointer; padding: 0;
-      font-size: 16px; color: #e54430; font-family: var(--font-family);
-    }
-    .btn-forbid:hover { opacity: 0.8; }
-
-    /* Cancel — Figma: bg #fff, border 1px #bbbdc8, pad 16, r=4, text "Cancel" #40424b 15px */
-    .btn-cancel {
-      height: 40px; padding: 0 16px;
-      border: 1px solid #bbbdc8; border-radius: 4px;
-      background: #ffffff; cursor: pointer;
-      font-size: 15px; color: #40424b; font-family: var(--font-family);
-      transition: border-color 0.15s;
-    }
-    .btn-cancel:hover { border-color: #5f616a; }
-
-    /* Confirm — Figma: bg #2c9c74, pad 16, r=4, text "Confirm" #fff 15px */
-    .btn-confirm {
-      height: 40px; padding: 0 16px;
-      border: none; border-radius: 4px;
-      background: #2c9c74; cursor: pointer;
-      font-size: 15px; color: #ffffff; font-family: var(--font-family);
-      transition: background 0.15s;
-    }
-    .btn-confirm:hover:not(.btn-confirm--disabled) { background: #268a65; }
-    .btn-confirm--disabled { background: #bbbdc8; cursor: not-allowed; }
+    /* Modal footer buttons now use fvdr-btn DS component */
 
     /* ── Toast — top-right, slide in from right ── */
     .toast {
-      position: fixed; top: 24px; right: 24px;
+      position: fixed; top: var(--space-6); right: var(--space-6);
       transform: translateY(-120%);
       width: 360px; min-height: 56px;
-      background: #fbfbfb;
-      border-radius: 4px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.14);
+      background: var(--color-stone-100);
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow-toast);
       display: flex; align-items: stretch;
       overflow: hidden;
       transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
       opacity: 0; z-index: 2000; pointer-events: none;
     }
     .toast--visible { transform: translateY(0); opacity: 1; pointer-events: auto; }
-    .toast-bar { width: 4px; flex-shrink: 0; background: #2c9c74; }
-    .toast--error .toast-bar { background: #e54430; }
+    .toast-bar { width: 4px; flex-shrink: 0; background: var(--color-primary-500); }
+    .toast--error .toast-bar { background: var(--color-error-600); }
     .toast-content {
-      display: flex; align-items: center; gap: 12px;
-      padding: 12px 16px;
-      font-size: 14px; color: #1f2129; flex: 1;
+      display: flex; align-items: center; gap: var(--space-3);
+      padding: var(--space-3) var(--space-4);
+      font-size: var(--text-body3-size); color: var(--color-text-primary); flex: 1;
     }
     .toast-icon { font-size: 20px; flex-shrink: 0; }
-    .toast-icon--success { color: #2c9c74; }
-    .toast-icon--error   { color: #e54430; }
+    .toast-icon--success { color: var(--color-primary-500); }
+    .toast-icon--error   { color: var(--color-error-600); }
 
     /* ── Forbid confirmation modal ── */
     .modal--forbid { width: 480px; }
-    .forbid-body { display: flex; flex-direction: column; gap: 12px; }
-    .forbid-title { margin: 0; font-size: 16px; font-weight: 400; color: #1f2129; line-height: 24px; }
-    .forbid-text { margin: 0; font-size: 15px; font-weight: 400; color: #1f2129; line-height: 22px; }
+    .forbid-body { display: flex; flex-direction: column; gap: var(--space-3); }
+    .forbid-title { margin: 0; font-size: var(--text-body1-size); font-weight: var(--text-body1-weight); color: var(--color-text-primary); line-height: var(--text-body1-lh); }
+    .forbid-text { margin: 0; font-size: var(--text-body2-size); font-weight: var(--text-body2-weight); color: var(--color-text-primary); line-height: var(--text-body2-lh); }
 
-    /* Forbid confirm button — red solid */
-    .btn-forbid-confirm {
-      height: 40px; padding: 0 16px;
-      border: none; border-radius: 4px;
-      background: #e54430; cursor: pointer;
-      font-size: 15px; color: #ffffff; font-family: var(--font-family);
-      transition: background 0.15s;
-    }
-    .btn-forbid-confirm:hover { background: #cc3926; }
+    /* Forbid confirm button now uses fvdr-btn DS component */
 
     /* ══════════════════════════════════════════
        DARK THEME OVERRIDES
     ══════════════════════════════════════════ */
-    .dark-theme.page-layout { background: #1f2129; }
+    .dark-theme.page-layout { background: var(--color-text-primary); }
 
     .dark-theme .sidebar { background: #212426; border-right-color: #33383b; }
     .dark-theme .account-switcher { background: #212426; border-bottom-color: #33383b; }
     .dark-theme .account-switcher:hover { background: #2d3235; }
-    .dark-theme .account-name { color: #ffffff; }
+    .dark-theme .account-name { color: var(--color-bg-page); }
     .dark-theme .account-chevron { color: #8b949a; }
 
     .dark-theme .nav-list { background: #212426; }
     .dark-theme .nav-item { color: #b5bbbf; }
     .dark-theme .nav-item:hover { background: transparent; }
     .dark-theme .nav-item--active,
-    .dark-theme .nav-item--open { color: #ffffff; }
+    .dark-theme .nav-item--open { color: var(--color-bg-page); }
     .dark-theme .nav-item--active { background: #1e3028; }
     .dark-theme .nav-item--active:hover { background: #1e3028; }
     .dark-theme .nav-icon { color: #8b949a; }
@@ -953,28 +822,21 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
     .dark-theme .nav-subitems { background: #212426; }
     .dark-theme .nav-subitem { color: #b5bbbf; }
     .dark-theme .nav-subitem:hover { background: transparent; }
-    .dark-theme .nav-subitem--active { color: #2c9c74; background: transparent; }
+    .dark-theme .nav-subitem--active { color: var(--color-interactive-primary); background: transparent; }
     .dark-theme .nav-subitem--active:hover { background: transparent; }
 
     .dark-theme .sidebar-bottom { background: #212426; border-top-color: #33383b; }
     .dark-theme .collapse-btn { color: #8b949a; }
     .dark-theme .collapse-btn:hover { background: #33383b; }
 
-    .dark-theme .page-header { background: #212426; border-bottom-color: #33383b; }
-    .dark-theme .bc-item--link { color: #8b949a; }
-    .dark-theme .bc-item--current { color: #ffffff; }
-    .dark-theme .bc-chevron--dim { color: #50575c; }
-    .dark-theme .header-icon { color: #8b949a; }
-    .dark-theme .theme-toggle__icon { color: #8b949a; }
-    .dark-theme .theme-toggle__label { background: #292d2f; border-color: #33383b; color: #ffffff; }
 
-    .dark-theme .content-area { background: #1f2129; }
+    .dark-theme .content-area { background: var(--color-text-primary); }
     .dark-theme .banner { background: #292d2f; color: #b5bbbf; }
 
     .dark-theme .int-card { background: #292d2f; border-color: #33383b; }
-    .dark-theme .int-card:hover { border-color: #2c9c74; }
+    .dark-theme .int-card:hover { border-color: var(--color-interactive-primary); }
     .dark-theme .int-logo { background: #33383b; border-color: #40464a; }
-    .dark-theme .int-name { color: #ffffff; }
+    .dark-theme .int-name { color: var(--color-bg-page); }
     .dark-theme .int-domain { color: #8b949a; }
     .dark-theme .int-desc { color: #b5bbbf; }
     .dark-theme .feature-badge { background: #1e2d3f; color: #b5bbbf; }
@@ -986,15 +848,15 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
 
     .dark-theme .modal { background: #292d2f; }
     .dark-theme .modal-header { border-bottom-color: #33383b; }
-    .dark-theme .modal-title { color: #ffffff; }
+    .dark-theme .modal-title { color: var(--color-bg-page); }
     .dark-theme .modal-close { color: #8b949a; }
     .dark-theme .modal-close:hover { background: #33383b; }
     .dark-theme .modal-info-text { color: #b5bbbf; }
-    .dark-theme .field-label { color: #ffffff; }
+    .dark-theme .field-label { color: var(--color-bg-page); }
     .dark-theme .field-hint { color: #8b949a; }
     .dark-theme .dropdown-trigger { background: #33383b; border-color: #50575c; color: #b5bbbf; }
     .dark-theme .trigger-placeholder { color: #6f7980; }
-    .dark-theme .trigger-value { color: #ffffff; }
+    .dark-theme .trigger-value { color: var(--color-bg-page); }
     .dark-theme .trigger-chevron { color: #8b949a; }
     .dark-theme .droplist { background: #292d2f; border-color: #33383b; }
   `],
@@ -1012,6 +874,20 @@ export class CaSettingsIntegrationsComponent implements OnInit, OnDestroy {
   isDark = false;
 
   toggleTheme(): void { this.isDark = !this.isDark; }
+
+  headerBreadcrumbs: { id: string; label: string }[] = [
+    { id: 'settings', label: 'Settings' },
+    { id: 'integrations', label: 'Integrations' },
+  ];
+  get headerActions(): HeaderAction[] {
+    return [
+      { id: 'theme', icon: this.isDark ? 'theme-light' : 'theme-dark' },
+      { id: 'help', icon: 'help' },
+    ];
+  }
+  onHeaderAction(id: string): void {
+    if (id === 'theme') this.toggleTheme();
+  }
 
   navItems: NavItem[] = [
     { id: 'overview',     label: 'Overview',     icon: 'nav-overview',     iconActive: 'nav-overview-active' },

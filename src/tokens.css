@@ -14,6 +14,19 @@
    ═══════════════════════════════════════════════ */
 :root {
 
+  /* ── Dark Stone (Dark Theme) — Figma "Dark theme/If Dark stone-*" ── */
+  --primitive-dark-stone-0:    #1f2129;
+  --primitive-dark-stone-100:  #212426;
+  --primitive-dark-stone-200:  #292d2f;
+  --primitive-dark-stone-300:  #33383b;
+  --primitive-dark-stone-400:  #40464a;
+  --primitive-dark-stone-500:  #50575c;
+  --primitive-dark-stone-600:  #6f7980;
+  --primitive-dark-stone-700:  #8b949a;
+  --primitive-dark-stone-800:  #a2a9af;
+  --primitive-dark-stone-900:  #b5bbbf;
+  --primitive-dark-stone-1000: #ffffff;
+
   /* ── Neutral / Stone ── */
   --primitive-neutral-0:    #ffffff;
   --primitive-neutral-25:   #fbfbfb;

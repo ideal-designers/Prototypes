@@ -33,6 +33,12 @@ export const routes: Routes = [
       import('./prototypes/ds-showcase/ds-showcase.component').then(m => m.DsShowcaseComponent),
   },
   {
+    path: 'ds/:id',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./prototypes/ds-showcase/ds-component-page.component').then(m => m.DsComponentPageComponent),
+  },
+  {
     path: 'docs',
     canActivate: [authGuard],
     loadComponent: () =>

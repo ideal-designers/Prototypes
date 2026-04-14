@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FvdrIconComponent } from '../../icons/icon.component';
 import type { FvdrIconName } from '../../icons/icons';
 
-export type ButtonType = 'primary' | 'secondary' | 'ghost' | 'danger';
+export type ButtonType = 'primary' | 'secondary' | 'ghost' | 'danger' | 'link' | 'text';
 export type ButtonSize = 's' | 'm' | 'l';
 
 /**
@@ -11,9 +11,11 @@ export type ButtonSize = 's' | 'm' | 'l';
  *
  * Variants:
  *   Type=Primary   → bg #2C9C74, hover #1C8269, active #12695C
- *   Type=Secondary → border #2C9C74, text #2C9C74, bg transparent
- *   Type=Ghost     → no border, text #5F616A
+ *   Type=Secondary → border #BBBDC8 (stone-500), text #40424B (stone-900), bg transparent
+ *   Type=Ghost     → no border, text #40424B (stone-900)
  *   Type=Danger    → bg #E54430, hover #C62C19
+ *   Type=Link      → no bg, bottom-border underline, primary color
+ *   Type=Text      → no bg/border, primary color
  *
  * Sizes (DS):
  *   S → h=32px, text 14px
@@ -69,7 +71,7 @@ export type ButtonSize = 's' | 'm' | 'l';
     /* ── Size: M — DS: h=40px, fs=15px ── */
     .btn--m { height: var(--btn-height-m); font-size: var(--text-btn-m-size); padding: 0 var(--space-4); }
     /* ── Size: L — DS: h=48px, fs=16px ── */
-    .btn--l { height: var(--btn-height-l); font-size: var(--text-btn-l-size); padding: 0 var(--space-6); }
+    .btn--l { height: var(--btn-height-l); font-size: var(--text-btn-l-size); padding: 0 var(--space-4); }
 
     /* ── Type: Primary ── */
     .btn--primary {
@@ -86,33 +88,76 @@ export type ButtonSize = 's' | 'm' | 'l';
       border-color: var(--color-primary-700);
     }
 
-    /* ── Type: Secondary ── */
+    /* ── Type: Secondary — gray outlined (stone) ── */
     .btn--secondary {
       background: transparent;
-      border-color: var(--color-stone-400);
-      color: var(--color-text-primary);
+      border-color: var(--color-stone-500);
+      color: var(--color-stone-900);
     }
     .btn--secondary:hover:not(:disabled) {
-      background: var(--color-hover-bg);
+      background: var(--color-stone-200);
       border-color: var(--color-stone-500);
-      color: var(--color-text-primary);
+      color: var(--color-stone-900);
     }
     .btn--secondary:active:not(:disabled) {
-      background: var(--color-stone-300);
+      background: var(--color-stone-400);
       border-color: var(--color-stone-500);
-      color: var(--color-text-primary);
+      color: var(--color-stone-900);
     }
 
-    /* ── Type: Ghost ── */
+    /* ── Type: Ghost — no border, stone-900 text ── */
     .btn--ghost {
       background: transparent;
-      border-color: var(--color-stone-400);
-      color: var(--color-text-secondary);
+      border-color: transparent;
+      color: var(--color-stone-900);
     }
     .btn--ghost:hover:not(:disabled) {
       background: var(--color-hover-bg);
-      border-color: var(--color-stone-500);
-      color: var(--color-text-primary);
+      border-color: transparent;
+      color: var(--color-stone-900);
+    }
+    .btn--ghost:active:not(:disabled) {
+      background: var(--color-stone-300);
+      border-color: transparent;
+      color: var(--color-stone-900);
+    }
+
+    /* ── Type: Link — inline text + bottom underline border ── */
+    .btn--link {
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid var(--color-primary-500);
+      border-radius: 0;
+      padding: 0;
+      height: auto;
+      color: var(--color-primary-500);
+    }
+    .btn--link:hover:not(:disabled) {
+      background: transparent;
+      border-bottom-color: var(--color-primary-600);
+      color: var(--color-primary-600);
+    }
+    .btn--link:active:not(:disabled) {
+      background: transparent;
+      border-bottom-color: var(--color-primary-700);
+      color: var(--color-primary-700);
+    }
+
+    /* ── Type: Text — text only, primary color, no decoration ── */
+    .btn--text {
+      background: transparent;
+      border-color: transparent;
+      color: var(--color-primary-500);
+      padding: 0;
+      height: auto;
+    }
+    .btn--text:hover:not(:disabled) {
+      background: transparent;
+      color: var(--color-primary-600);
+    }
+    .btn--text:active:not(:disabled) {
+      background: transparent;
+      color: var(--color-primary-700);
     }
 
     /* ── Type: Danger ── */

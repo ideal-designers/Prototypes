@@ -138,6 +138,7 @@ const SKIP_LINE_PATTERNS = [
   /logoColor.*#/,                   // logoColor value
   /\[style\.color\]="item\.logoColor"/, // Dynamic logo color binding
   /color="#[0-9a-fA-F]".*fvdr-avatar/, // Avatar color prop (DS component prop)
+  /textColor="#[0-9a-fA-F]{3,8}"/, // Avatar textColor prop (DS component prop)
 ];
 
 // These hex values are intentionally not in the token map (dark theme, SVG brand colors, etc.)
@@ -156,6 +157,11 @@ const KNOWN_INTENTIONAL = new Set([
   '#c62c19', // danger darker variant
   '#3a5a50', '#2a3d36', '#0f201a', // home/login screen dark bg variants
   '#fff', '#FFF', // shorthand white used in non-prototype DS components
+  '#0f1f19', // docs.component.ts dark background (table row divider)
+  '#0d1820', // home.component.ts dark background (docs card gradient)
+  '#1a1d21', // doc-block.component.ts dark background (prompt block)
+  '#e5e7eb', // doc-block.component.ts light border (prompt text color)
+  '#1a2e4a', // project-archive component dark background (logo bg)
 ]);
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────

@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DS_COMPONENTS } from '../../shared/ds';
+import type { HeaderAction } from '../../shared/ds';
 import { TrackerService } from '../../services/tracker.service';
 
 @Component({
@@ -64,22 +65,13 @@ import { TrackerService } from '../../services/tracker.service';
       <!-- ── Right area ── -->
       <div class="main-area">
 
-        <!-- Header 64px -->
-        <header class="page-header">
-          <span class="breadcrumb-title">Security settings</span>
-          <div class="header-actions">
-            <button class="icon-btn" title="Dark theme">
-              <fvdr-icon name="theme-dark" />
-            </button>
-            <button class="icon-btn" title="Help">
-              <fvdr-icon name="help" />
-            </button>
-            <button class="icon-btn" title="Applications">
-              <fvdr-icon name="nav-api" />
-            </button>
-            <div class="avatar-circle">TN</div>
-          </div>
-        </header>
+        <!-- Header -->
+        <fvdr-header
+          [breadcrumbs]="headerBreadcrumbs"
+          [actions]="headerActions"
+          userName="TN"
+          (actionClick)="onHeaderAction($event)"
+        />
 
         <!-- Scrollable content -->
         <div class="content-scroll">
@@ -241,8 +233,7 @@ import { TrackerService } from '../../services/tracker.service';
       display: block;
       font-family: var(--font-family);
       color: var(--color-text-primary);
-      --color-border:   #DEE0EB;
-      --color-divider:  #DEE0EB;
+      --color-divider:  var(--color-border);
     }
 
     /* ── Page layout ── */
@@ -321,7 +312,7 @@ import { TrackerService } from '../../services/tracker.service';
     }
     .nav-item:hover { background: var(--color-hover-bg); }
     .nav-item--active {
-      font-weight: 600;
+      font-weight: var(--text-label-l-weight);
       color: var(--color-text-primary);
     }
     .nav-icon-wrap {
@@ -361,44 +352,7 @@ import { TrackerService } from '../../services/tracker.service';
       min-width: 0;
     }
 
-    /* Header */
-    .page-header {
-      height: 64px;
-      flex-shrink: 0;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 var(--space-6);
-      border-bottom: 1px solid var(--color-divider);
-      background: var(--color-stone-0);
-    }
-    .breadcrumb-title {
-      font-size: var(--text-label-l-size);
-      font-weight: var(--text-label-l-weight);
-      color: var(--color-text-primary);
-    }
-    .header-actions {
-      display: flex;
-      align-items: center;
-      gap: var(--space-6);
-    }
-    .icon-btn {
-      display: flex; align-items: center; justify-content: center;
-      width: 24px; height: 24px;
-      border: none; background: transparent; cursor: pointer;
-      color: var(--color-text-secondary);
-      font-size: 20px;
-      border-radius: var(--radius-sm);
-    }
-    .icon-btn:hover { color: var(--color-text-primary); }
-    .avatar-circle {
-      width: 40px; height: 40px;
-      border-radius: 50%;
-      background: var(--color-stone-300);
-      display: flex; align-items: center; justify-content: center;
-      font-size: var(--text-body1-size);
-      color: var(--color-text-primary);
-    }
+    /* Header — handled by fvdr-header DS component */
 
     /* Scrollable content */
     .content-scroll {
@@ -460,7 +414,7 @@ import { TrackerService } from '../../services/tracker.service';
     .link-btn {
       border: none; background: transparent; cursor: pointer;
       font-family: var(--font-family);
-      font-size: 15px;
+      font-size: var(--text-body2-size);
       color: var(--color-primary-500);
       padding: 0;
     }
@@ -502,7 +456,7 @@ import { TrackerService } from '../../services/tracker.service';
     }
     .device-tile__name {
       font-size: var(--text-body3-size);
-      font-weight: 600;
+      font-weight: var(--text-label-s-weight);
       color: var(--color-text-primary);
       line-height: 20px;
     }
@@ -564,6 +518,17 @@ export class MyPrototypeDeleteAccountComponent implements OnInit, OnDestroy {
 
   twoFactorEnabled = true;
   showDeleteModal = false;
+
+  headerBreadcrumbs: { id: string; label: string }[] = [
+    { id: 'security', label: 'Security settings' },
+  ];
+  get headerActions(): HeaderAction[] {
+    return [
+      { id: 'theme', icon: 'theme-dark' },
+      { id: 'help', icon: 'help' },
+    ];
+  }
+  onHeaderAction(_id: string): void {}
 
   navItems = [
     { label: 'Corporate account', icon: 'nav-overview' as const,      active: false },

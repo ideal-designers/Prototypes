@@ -62,6 +62,59 @@ export type FvdrIconName =
   | 'help'
   | 'theme-dark'
   | 'theme-light'
+  // ── 24x24 Main navigation ──────────────────────────
+  | 'activities'
+  | 'activities-active'
+  | 'documents'
+  | 'documents-active'
+  | 'users-groups'
+  | 'users-groups-active'
+  | 'projects'
+  | 'projects-active'
+  | 'user'
+  | 'user-active'
+  | 'settings-filter'
+  | 'recycle-bin'
+  | 'recycle-bin-active'
+  | 'admins'
+  | 'branding'
+  // ── Common actions (16x16) ─────────────────────────
+  | 'copy'
+  | 'eye'
+  | 'eye-slash'
+  | 'envelope'
+  | 'history'
+  | 'label'
+  | 'comment'
+  | 'bookmark'
+  | 'pin'
+  | 'print'
+  | 'image'
+  | 'phone'
+  | 'add-folder'
+  | 'undo'
+  | 'redo'
+  | 'video'
+  | 'language'
+  | 'company'
+  | 'note-add'
+  | 'branding-sm'
+  | 'list-view'
+  | 'table-view'
+  | 'grid-view'
+  | 'user-add'
+  | 'user-remove'
+  | 'user-check'
+  | 'user-edit'
+  | 'group'
+  | 'group-add'
+  | 'time'
+  | 'trending-up'
+  | 'trending-down'
+  | 'plan'
+  | 'card'
+  | 'usage'
+  | 'note'
 ;
 
 export const FVDR_ICONS: Record<FvdrIconName, string> = {
@@ -124,4 +177,59 @@ export const FVDR_ICONS: Record<FvdrIconName, string> = {
   'help': `<svg viewBox="0 0 24 24" fill="none"> <path d="M11 18H13V16H11V18ZM12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 20C7.59 20 4 16.41 4 12C4 7.59 7.59 4 12 4C16.41 4 20 7.59 20 12C20 16.41 16.41 20 12 20ZM12 6C9.79 6 8 7.79 8 10H10C10 8.9 10.9 8 12 8C13.1 8 14 8.9 14 10C14 12 11 11.75 11 15H13C13 12.75 16 12.5 16 10C16 7.79 14.21 6 12 6Z" fill="currentColor"/> </svg>`,
   'theme-dark': `<svg viewBox="0 0 24 24" fill="none"> <path d="M9.30507 4.48124C7.6672 12.025 13.0732 16.8974 17.002 18.2881C15.6053 19.3787 13.867 19.999 12.0482 19.999C7.61696 19.999 4.00965 16.4072 4.00965 11.995C4.00965 8.54327 6.22026 5.5918 9.30507 4.48124ZM12.0382 2C6.42122 2 2 6.53227 2 11.995C2 17.5178 6.50161 22 12.0482 22C15.7761 22 19.0117 19.979 20.75 16.9775C13.2038 16.7274 8.60169 8.54327 12.3899 2C12.2693 2 12.1588 2 12.0382 2Z" fill="currentColor"/> </svg>`,
   'theme-light': `<svg viewBox="0 0 24 24" fill="none"> <path d="M7.23636 5.91781L5.6 4.2831L4.31818 5.57078L5.94545 7.20548L7.23636 5.91781ZM2 11.0868H4.72727V12.9132H2V11.0868ZM11.0909 2H12.9091V4.69406H11.0909V2ZM18.4 4.27854L19.68 5.56347L18.0527 7.19817L16.7736 5.91233L18.4 4.27854ZM16.7636 18.0822L18.3909 19.726L19.6727 18.4384L18.0364 16.8037L16.7636 18.0822ZM19.2727 11.0868H22V12.9132H19.2727V11.0868ZM12 6.52055C8.99091 6.52055 6.54545 8.97717 6.54545 12C6.54545 15.0228 8.99091 17.4795 12 17.4795C15.0091 17.4795 17.4545 15.0228 17.4545 12C17.4545 8.97717 15.0091 6.52055 12 6.52055ZM12 15.653C9.99091 15.653 8.36364 14.0183 8.36364 12C8.36364 9.98173 9.99091 8.34703 12 8.34703C14.0091 8.34703 15.6364 9.98173 15.6364 12C15.6364 14.0183 14.0091 15.653 12 15.653ZM11.0909 19.3059H12.9091V22H11.0909V19.3059ZM4.31818 18.4292L5.6 19.7169L7.22727 18.0731L5.94545 16.7854L4.31818 18.4292Z" fill="currentColor"/> </svg>`,
+
+  // ── 24x24 Main navigation ──────────────────────────────────────────────────
+  'activities': `<svg viewBox="0 0 24 24" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M2 20H22V22H2V20ZM4 14H6V18H4V14ZM8 10H10V18H8V10ZM12 12H14V18H12V12ZM16 6H18V18H16V6Z" fill="currentColor"/></svg>`,
+  'activities-active': `<svg viewBox="0 0 24 24" fill="none"><path d="M2 20H22V22H2V20Z" fill="#5F616A"/><path fill-rule="evenodd" clip-rule="evenodd" d="M4 14H6V18H4V14ZM8 10H10V18H8V10ZM12 12H14V18H12V12ZM16 6H18V18H16V6Z" fill="#2C9C74"/></svg>`,
+  'documents': `<svg viewBox="0 0 24 24" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M4 4H10.5L12.5 6H20V18H4V4ZM6 6V16H18V8H11.5L9.5 6H6Z" fill="currentColor"/><path d="M7 11H17V13H7V11ZM7 14H13V16H7V14Z" fill="currentColor"/></svg>`,
+  'documents-active': `<svg viewBox="0 0 24 24" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M4 4H10.5L12.5 6H20V18H4V4ZM6 6V16H18V8H11.5L9.5 6H6Z" fill="#5F616A"/><path d="M7 11H17V13H7V11ZM7 14H13V16H7V14Z" fill="#2C9C74"/></svg>`,
+  'users-groups': `<svg viewBox="0 0 24 24" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M9 4C7.34315 4 6 5.34315 6 7C6 8.65685 7.34315 10 9 10C10.6569 10 12 8.65685 12 7C12 5.34315 10.6569 4 9 4ZM4 7C4 4.23858 6.23858 2 9 2C11.7614 2 14 4.23858 14 7C14 9.76142 11.7614 12 9 12C6.23858 12 4 9.76142 4 7ZM5 15C3.89543 15 3 15.8954 3 17V20H1V17C1 14.7909 2.79086 13 5 13H13C15.2091 13 17 14.7909 17 17V20H15V17C15 15.8954 14.1046 15 13 15H5ZM19 8C17.8954 8 17 8.89543 17 10C17 11.1046 17.8954 12 19 12C20.1046 12 21 11.1046 21 10C21 8.89543 20.1046 8 19 8ZM15 10C15 7.79086 16.7909 6 19 6C21.2091 6 23 7.79086 23 10C23 12.2091 21.2091 14 19 14C16.7909 14 15 12.2091 15 10ZM18 17C16.8954 17 16 17.8954 16 19V22H14V19C14 16.7909 15.7909 15 18 15H20C22.2091 15 24 16.7909 24 19V22H22V19C22 17.8954 21.1046 17 20 17H18Z" fill="currentColor"/></svg>`,
+  'users-groups-active': `<svg viewBox="0 0 24 24" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M5 15C3.89543 15 3 15.8954 3 17V20H1V17C1 14.7909 2.79086 13 5 13H13C15.2091 13 17 14.7909 17 17V20H15V17C15 15.8954 14.1046 15 13 15H5Z" fill="#5F616A"/><path fill-rule="evenodd" clip-rule="evenodd" d="M18 17C16.8954 17 16 17.8954 16 19V22H14V19C14 16.7909 15.7909 15 18 15H20C22.2091 15 24 16.7909 24 19V22H22V19C22 17.8954 21.1046 17 20 17H18Z" fill="#2C9C74"/><path fill-rule="evenodd" clip-rule="evenodd" d="M9 4C7.34315 4 6 5.34315 6 7C6 8.65685 7.34315 10 9 10C10.6569 10 12 8.65685 12 7C12 5.34315 10.6569 4 9 4ZM4 7C4 4.23858 6.23858 2 9 2C11.7614 2 14 4.23858 14 7C14 9.76142 11.7614 12 9 12C6.23858 12 4 9.76142 4 7Z" fill="#5F616A"/><path fill-rule="evenodd" clip-rule="evenodd" d="M19 8C17.8954 8 17 8.89543 17 10C17 11.1046 17.8954 12 19 12C20.1046 12 21 11.1046 21 10C21 8.89543 20.1046 8 19 8ZM15 10C15 7.79086 16.7909 6 19 6C21.2091 6 23 7.79086 23 10C23 12.2091 21.2091 14 19 14C16.7909 14 15 12.2091 15 10Z" fill="#2C9C74"/></svg>`,
+  'projects': `<svg viewBox="0 0 24 24" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M6 3H14.4281L16.0281 5.16667H22V16H6V3ZM8 5V14H20V7H15.1719L13.5719 5H8Z" fill="currentColor"/><path fill-rule="evenodd" clip-rule="evenodd" d="M4 7H2V20H19V18L4 18V7Z" fill="currentColor"/></svg>`,
+  'projects-active': `<svg viewBox="0 0 24 24" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M6 3H14.4281L16.0281 5.16667H22V16H6V3ZM8 5V14H20V7H15.1719L13.5719 5H8Z" fill="#2C9C74"/><path fill-rule="evenodd" clip-rule="evenodd" d="M4 7H2V20H19V18L4 18V7Z" fill="#5F616A"/></svg>`,
+  'user': `<svg viewBox="0 0 24 24" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 4C10.3431 4 9 5.34315 9 7C9 8.65685 10.3431 10 12 10C13.6569 10 15 8.65685 15 7C15 5.34315 13.6569 4 12 4ZM7 7C7 4.23858 9.23858 2 12 2C14.7614 2 17 4.23858 17 7C17 9.76142 14.7614 12 12 12C9.23858 12 7 9.76142 7 7ZM8 15C6.89543 15 6 15.8954 6 17V21H4V17C4 14.7909 5.79086 13 8 13H16C18.2091 13 20 14.7909 20 17V21H18V17C18 15.8954 17.1046 15 16 15H8Z" fill="currentColor"/></svg>`,
+  'user-active': `<svg viewBox="0 0 24 24" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 4C10.3431 4 9 5.34315 9 7C9 8.65685 10.3431 10 12 10C13.6569 10 15 8.65685 15 7C15 5.34315 13.6569 4 12 4ZM7 7C7 4.23858 9.23858 2 12 2C14.7614 2 17 4.23858 17 7C17 9.76142 14.7614 12 12 12C9.23858 12 7 9.76142 7 7Z" fill="#5F616A"/><path fill-rule="evenodd" clip-rule="evenodd" d="M8 15C6.89543 15 6 15.8954 6 17V21H4V17C4 14.7909 5.79086 13 8 13H16C18.2091 13 20 14.7909 20 17V21H18V17C18 15.8954 17.1046 15 16 15H8Z" fill="#2C9C74"/></svg>`,
+  'settings-filter': `<svg viewBox="0 0 24 24" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M5 2V22H3V2H5ZM13 2V22H11V2H13ZM21 2V22H19V2H21ZM1 9H7V11H1V9ZM9 5H15V7H9V5ZM17 13H23V15H17V13Z" fill="currentColor"/></svg>`,
+  'recycle-bin': `<svg viewBox="0 0 24 24" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M9 1H15V3H21V5H3V3H9V1ZM6 7H18L17 22H7L6 7ZM8.1 9L8.9 20H15.1L15.9 9H8.1Z" fill="currentColor"/></svg>`,
+  'recycle-bin-active': `<svg viewBox="0 0 24 24" fill="none"><path d="M9 1H15V3H21V5H3V3H9V1Z" fill="#5F616A"/><path fill-rule="evenodd" clip-rule="evenodd" d="M6 7H18L17 22H7L6 7ZM8.1 9L8.9 20H15.1L15.9 9H8.1Z" fill="#2C9C74"/></svg>`,
+  'admins': `<svg viewBox="0 0 24 24" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2L4 6V12C4 16.4183 7.58172 20 12 20C16.4183 20 20 16.4183 20 12V6L12 2ZM18 12C18 15.3137 15.3137 18 12 18C8.68629 18 6 15.3137 6 12V7.23607L12 4.23607L18 7.23607V12ZM10 12L8 10L7 11L10 14L17 7L16 6L10 12Z" fill="currentColor"/></svg>`,
+  'branding': `<svg viewBox="0 0 24 24" fill="none"><path d="M12 2L14.5 9H22L16 13.5L18.5 20.5L12 16L5.5 20.5L8 13.5L2 9H9.5L12 2Z" fill="currentColor"/></svg>`,
+
+  // ── Common actions (16x16) ─────────────────────────────────────────────────
+  'copy': `<svg viewBox="0 0 16 16" fill="none"><rect x="5" y="3" width="8" height="8" rx="1" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M3 5H2C1.44772 5 1 5.44772 1 6V13C1 13.5523 1.44772 14 2 14H9C9.55228 14 10 13.5523 10 13V12" stroke="currentColor" stroke-width="1.5"/></svg>`,
+  'eye': `<svg viewBox="0 0 16 16" fill="none"><path d="M8 3C4.5 3 1.5 6 1 8C1.5 10 4.5 13 8 13C11.5 13 14.5 10 15 8C14.5 6 11.5 3 8 3Z" stroke="currentColor" stroke-width="1.5" fill="none"/><circle cx="8" cy="8" r="2" fill="currentColor"/></svg>`,
+  'eye-slash': `<svg viewBox="0 0 16 16" fill="none"><path d="M8 3C4.5 3 1.5 6 1 8C1.5 10 4.5 13 8 13C11.5 13 14.5 10 15 8C14.5 6 11.5 3 8 3Z" stroke="currentColor" stroke-width="1.5" fill="none"/><circle cx="8" cy="8" r="2" stroke="currentColor" stroke-width="1.5" fill="none"/><line x1="2" y1="2" x2="14" y2="14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>`,
+  'envelope': `<svg viewBox="0 0 16 16" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M1 3H15V13H1V3ZM3 5V11H13V5L8 8.5L3 5ZM12 4.5H4L8 7.5L12 4.5Z" fill="currentColor"/></svg>`,
+  'history': `<svg viewBox="0 0 16 16" fill="none"><path d="M2 2V6H6V4.5H4.1C5.1 3.3 6.5 2.5 8 2.5C10.9 2.5 13.5 5.1 13.5 8C13.5 10.9 10.9 13.5 8 13.5C5.1 13.5 2.5 10.9 2.5 8H1C1 11.6 3.9 15 8 15C12.1 15 15 11.6 15 8C15 4.4 12.1 1 8 1C6 1 4.2 1.8 2.9 3L2 2Z" fill="currentColor"/><path d="M7.25 4.5V8.5L10 10L10.75 8.75L8.75 7.75V4.5H7.25Z" fill="currentColor"/></svg>`,
+  'label': `<svg viewBox="0 0 16 16" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M1 2H9L15 8L9 14H1V2ZM3 4V12H8.17L13 8L8.17 4H3Z" fill="currentColor"/></svg>`,
+  'comment': `<svg viewBox="0 0 16 16" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M1 1H15V12H4L1 15V1ZM3 3V11L4.5 9.5H13V3H3ZM5 6H11V8H5V6Z" fill="currentColor"/></svg>`,
+  'bookmark': `<svg viewBox="0 0 16 16" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M3 1H13V15L8 12L3 15V1ZM5 3V12L8 10.5L11 12V3H5Z" fill="currentColor"/></svg>`,
+  'pin': `<svg viewBox="0 0 16 16" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M10 1L15 6L11.5 9.5L9 8L5 12L4 11L8 7L6.5 4.5L10 1ZM8.6 5.1L10.9 7.4L12.5 5.8L10.2 3.5L8.6 5.1ZM7 13V15H9V13H7Z" fill="currentColor"/></svg>`,
+  'print': `<svg viewBox="0 0 16 16" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M4 1H12V4H14V11H12V14H4V11H2V4H4V1ZM5 3V4H11V3H5ZM4 6H3V9H4V6ZM5 6H11V12H5V6ZM12 6H13V9H12V6Z" fill="currentColor"/></svg>`,
+  'image': `<svg viewBox="0 0 16 16" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M1 1H15V15H1V1ZM3 3V13H13V3H3ZM10.5 4C11.3284 4 12 4.67157 12 5.5C12 6.32843 11.3284 7 10.5 7C9.67157 7 9 6.32843 9 5.5C9 4.67157 9.67157 4 10.5 4ZM3 11L6 8L8.5 10.5L10 9L13 12V13H3V11Z" fill="currentColor"/></svg>`,
+  'phone': `<svg viewBox="0 0 16 16" fill="none"><path d="M3 1H6L8 5L6 7C6.667 8.333 7.667 9.333 9 10L11 8L15 10V13C15 14 14 15 12 15C5.373 15 1 10.627 1 4C1 2 2 1 3 1ZM4 3C3.5 3 3 3.5 3 4C3 9.523 6.477 13 12 13C12.5 13 13 12.5 13 12L11.5 10.5L9.5 11.5C7.5 10.5 5.5 8.5 4.5 6.5L5.5 4.5L4 3Z" fill="currentColor"/></svg>`,
+  'add-folder': `<svg viewBox="0 0 16 16" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M1 2H7L8.5 4H15V13H1V2ZM3 4V11H13V6H7.5L6 4H3ZM8 7H9V9H11V10H9V12H8V10H6V9H8V7Z" fill="currentColor"/></svg>`,
+  'undo': `<svg viewBox="0 0 16 16" fill="none"><path d="M4 4L1 7L4 10V8H9C10.657 8 12 9.343 12 11C12 12.657 10.657 14 9 14H5V15H9C11.209 15 13 13.209 13 11C13 8.791 11.209 7 9 7H4V4Z" fill="currentColor"/></svg>`,
+  'redo': `<svg viewBox="0 0 16 16" fill="none"><path d="M12 4L15 7L12 10V8H7C5.343 8 4 9.343 4 11C4 12.657 5.343 14 7 14H11V15H7C4.791 15 3 13.209 3 11C3 8.791 4.791 7 7 7H12V4Z" fill="currentColor"/></svg>`,
+  'video': `<svg viewBox="0 0 16 16" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M1 2H10V14H1V2ZM3 4V12H8V4H3ZM11 5L15 3V13L11 11V5Z" fill="currentColor"/></svg>`,
+  'language': `<svg viewBox="0 0 16 16" fill="none"><path d="M8 1C4.134 1 1 4.134 1 8C1 11.866 4.134 15 8 15C11.866 15 15 11.866 15 8C15 4.134 11.866 1 8 1ZM12.9 7H10.9C10.7 5.6 10.2 4.4 9.5 3.5C11.3 4.1 12.6 5.4 12.9 7ZM8 13C7.3 12.1 6.5 10.2 6.5 8H9.5C9.5 10.2 8.7 12.1 8 13ZM6.5 7C6.5 4.8 7.3 2.9 8 2C8.7 2.9 9.5 4.8 9.5 7H6.5ZM6.5 3.5C5.8 4.4 5.3 5.6 5.1 7H3.1C3.4 5.4 4.7 4.1 6.5 3.5ZM3.1 9H5.1C5.3 10.4 5.8 11.6 6.5 12.5C4.7 11.9 3.4 10.6 3.1 9ZM9.5 12.5C10.2 11.6 10.7 10.4 10.9 9H12.9C12.6 10.6 11.3 11.9 9.5 12.5Z" fill="currentColor"/></svg>`,
+  'company': `<svg viewBox="0 0 16 16" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M2 1H10V4H14V15H2V1ZM4 3V13H12V6H8V3H4ZM8 3V6H12L8 3ZM5 5H7V7H5V5ZM5 8H7V10H5V8ZM9 8H11V10H9V8ZM5 11H7V13H5V11ZM9 11H11V13H9V11Z" fill="currentColor"/></svg>`,
+  'note-add': `<svg viewBox="0 0 16 16" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M2 1H14V9H12V3H4V13H9V15H2V1ZM10 11V9H12V11H14V13H12V15H10V13H8V11H10Z" fill="currentColor"/></svg>`,
+  'branding-sm': `<svg viewBox="0 0 16 16" fill="none"><path d="M8 1L10 6H15L11 9.5L12.5 14.5L8 12L3.5 14.5L5 9.5L1 6H6L8 1Z" fill="currentColor"/></svg>`,
+  'list-view': `<svg viewBox="0 0 16 16" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M1 3H3V5H1V3ZM5 3H15V5H5V3ZM1 7H3V9H1V7ZM5 7H15V9H5V7ZM1 11H3V13H1V11ZM5 11H15V13H5V11Z" fill="currentColor"/></svg>`,
+  'table-view': `<svg viewBox="0 0 16 16" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M1 2H15V14H1V2ZM3 4V6H6V4H3ZM8 4V6H13V4H8ZM3 8V10H6V8H3ZM8 8V10H13V8H8ZM3 12V13H6V12H3ZM8 12V13H13V12H8Z" fill="currentColor"/></svg>`,
+  'grid-view': `<svg viewBox="0 0 16 16" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M1 1H7V7H1V1ZM3 3V5H5V3H3ZM9 1H15V7H9V1ZM11 3V5H13V3H11ZM1 9H7V15H1V9ZM3 11V13H5V11H3ZM9 9H15V15H9V9ZM11 11V13H13V11H11Z" fill="currentColor"/></svg>`,
+  'user-add': `<svg viewBox="0 0 16 16" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M6 1C4.34315 1 3 2.34315 3 4C3 5.65685 4.34315 7 6 7C7.65685 7 9 5.65685 9 4C9 2.34315 7.65685 1 6 1ZM3 9C1.89543 9 1 9.89543 1 11V13H3V11H9V13H11V11C11 9.89543 10.1046 9 9 9H3ZM13 4V6H15V8H13V10H11V8H9V6H11V4H13Z" fill="currentColor"/></svg>`,
+  'user-remove': `<svg viewBox="0 0 16 16" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M6 1C4.34315 1 3 2.34315 3 4C3 5.65685 4.34315 7 6 7C7.65685 7 9 5.65685 9 4C9 2.34315 7.65685 1 6 1ZM3 9C1.89543 9 1 9.89543 1 11V13H3V11H9V13H11V11C11 9.89543 10.1046 9 9 9H3ZM9 6H15V8H9V6Z" fill="currentColor"/></svg>`,
+  'user-check': `<svg viewBox="0 0 16 16" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M6 1C4.34315 1 3 2.34315 3 4C3 5.65685 4.34315 7 6 7C7.65685 7 9 5.65685 9 4C9 2.34315 7.65685 1 6 1ZM3 9C1.89543 9 1 9.89543 1 11V13H3V11H9V13H11V11C11 9.89543 10.1046 9 9 9H3ZM15 4L11 8L9 6L10 5L11 6L14 3L15 4Z" fill="currentColor"/></svg>`,
+  'user-edit': `<svg viewBox="0 0 16 16" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M6 1C4.34315 1 3 2.34315 3 4C3 5.65685 4.34315 7 6 7C7.65685 7 9 5.65685 9 4C9 2.34315 7.65685 1 6 1ZM3 9C1.89543 9 1 9.89543 1 11V13H3V11H7V13H9V11C9 9.89543 8.10457 9 7 9H3ZM12 8L15 11L11 15H8V12L12 8ZM12 10.5L10 12.5V13H10.5L12.5 11L12 10.5Z" fill="currentColor"/></svg>`,
+  'group': `<svg viewBox="0 0 16 16" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M8 1C6.34315 1 5 2.34315 5 4C5 5.65685 6.34315 7 8 7C9.65685 7 11 5.65685 11 4C11 2.34315 9.65685 1 8 1ZM4 9C2.89543 9 2 9.89543 2 11V15H4V11H12V15H14V11C14 9.89543 13.1046 9 12 9H4Z" fill="currentColor"/></svg>`,
+  'group-add': `<svg viewBox="0 0 16 16" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M6 1C4.34315 1 3 2.34315 3 4C3 5.65685 4.34315 7 6 7C7.65685 7 9 5.65685 9 4C9 2.34315 7.65685 1 6 1ZM2 9C1.44772 9 1 9.44772 1 10V13H3V11H9V13H11V10C11 9.44772 10.5523 9 10 9H2ZM13 3V5H11V7H13V9H15V7H13V5H15V3H13Z" fill="currentColor"/></svg>`,
+  'time': `<svg viewBox="0 0 16 16" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M8 1C4.13401 1 1 4.13401 1 8C1 11.866 4.13401 15 8 15C11.866 15 15 11.866 15 8C15 4.13401 11.866 1 8 1ZM3 8C3 5.23858 5.23858 3 8 3C10.7614 3 13 5.23858 13 8C13 10.7614 10.7614 13 8 13C5.23858 13 3 10.7614 3 8ZM7 4V8.5L10 11L11 9.5L8.5 7.5V4H7Z" fill="currentColor"/></svg>`,
+  'trending-up': `<svg viewBox="0 0 16 16" fill="none"><path d="M1 11L6 6L9 9L14 4H11V2H15V6H13L9 12L6 9L2 13L1 11Z" fill="currentColor"/></svg>`,
+  'trending-down': `<svg viewBox="0 0 16 16" fill="none"><path d="M1 5L6 10L9 7L14 12H11V14H15V10H13L9 4L6 7L2 3L1 5Z" fill="currentColor"/></svg>`,
+  'plan': `<svg viewBox="0 0 16 16" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M2 1H14V15H2V1ZM4 3V13H12V3H4ZM5 5H11V7H5V5ZM5 8H11V10H5V8ZM5 11H9V13H5V11Z" fill="currentColor"/></svg>`,
+  'card': `<svg viewBox="0 0 16 16" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M1 3H15V13H1V3ZM3 5V11H13V5H3ZM3 7H13V9H3V7ZM5 10H8V11H5V10Z" fill="currentColor"/></svg>`,
+  'usage': `<svg viewBox="0 0 16 16" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M8 1C4.134 1 1 4.134 1 8C1 9.898 1.747 11.623 2.954 12.9L4.4 11.45C3.527 10.527 3 9.301 3 8C3 5.239 5.239 3 8 3C10.761 3 13 5.239 13 8C13 9.301 12.473 10.527 11.6 11.45L13.046 12.9C14.253 11.623 15 9.898 15 8C15 4.134 11.866 1 8 1ZM5 8C5 6.343 6.343 5 8 5C9.657 5 11 6.343 11 8H9C9 7.448 8.552 7 8 7C7.448 7 7 7.448 7 8H5ZM7 9V12H9V9H7Z" fill="currentColor"/></svg>`,
+  'note': `<svg viewBox="0 0 16 16" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M2 1H14V11L10 15H2V1ZM4 3V13H9V10H13V3H4ZM11 11H10V12L11 11ZM5 5H11V7H5V5ZM5 8H9V10H5V8Z" fill="currentColor"/></svg>`,
 };

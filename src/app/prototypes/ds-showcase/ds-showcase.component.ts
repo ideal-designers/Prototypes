@@ -1,6 +1,7 @@
 import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
 import { DS_COMPONENTS, ToastService } from '../../shared/ds';
 import { TrackerService } from '../../services/tracker.service';
 import type {
@@ -8,6 +9,8 @@ import type {
   SearchFilter, SegmentItem, TableColumn, TreeNode,
   HeaderNavItem, HeaderAction, SidebarNavItem,
 } from '../../shared/ds';
+import { DS_REGISTRY, DS_CATEGORIES } from './ds-registry';
+import type { ComponentDocEntry } from './ds-registry';
 
 /**
  * DS Showcase — all FVDR Design System components on one page
@@ -16,7 +19,7 @@ import type {
 @Component({
   selector: 'app-ds-showcase',
   standalone: true,
-  imports: [CommonModule, FormsModule, ...DS_COMPONENTS],
+  imports: [CommonModule, FormsModule, RouterModule, ...DS_COMPONENTS],
   template: `
     <!-- Toast host -->
     <fvdr-toast-host />
@@ -34,21 +37,48 @@ import type {
           <h1 class="showcase__h1">FVDR Design System</h1>
           <p class="showcase__subtitle">All components in one place · Figma: <a href="https://www.figma.com/design/liyNDiFf1piO8SQmHNKoeU" target="_blank">liyNDiFf1piO8SQmHNKoeU</a></p>
           <div class="showcase__stats">
-            <span class="showcase__stat"><b>35</b> components</span>
-            <span class="showcase__stat"><b>51</b> icons</span>
-            <span class="showcase__stat"><b>1</b> token file</span>
+            <span class="showcase__stat"><b>34</b> components</span>
+            <span class="showcase__stat"><b>110</b> icons</span>
+            <span class="showcase__stat"><b>6</b> categories</span>
           </div>
+        </div>
+
+        <!-- ── COMPONENT CATALOG GRID ── -->
+        <div class="catalog">
+          <div class="catalog__intro">
+            <p class="catalog__intro-text">Each component has a dedicated documentation page with anatomy, tokens, sizes, states, and ready-to-copy code.</p>
+          </div>
+          <div *ngFor="let cat of catalogGroups" class="catalog__group">
+            <h3 class="catalog__group-label">{{ cat.label }}</h3>
+            <div class="catalog__grid">
+              <a
+                *ngFor="let item of cat.items"
+                class="catalog__card"
+                [routerLink]="['/ds', item.id]"
+              >
+                <div class="catalog__card-name">{{ item.name }}</div>
+                <code class="catalog__card-selector">{{ item.selector }}</code>
+                <span class="catalog__card-status catalog__card-status--{{ item.status }}">{{ item.status }}</span>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div class="showcase__divider">
+          <span>— Legacy showcase (all components) —</span>
         </div>
 
         <!-- ── BUTTONS ── -->
         <section class="section" id="buttons">
           <h2 class="section__title">Buttons</h2>
           <div class="section__desc">Figma: node 15023-113844</div>
-          <div class="row wrap">
+          <div class="row wrap" style="align-items: center;">
             <fvdr-btn label="Primary" variant="primary" />
             <fvdr-btn label="Secondary" variant="secondary" />
             <fvdr-btn label="Ghost" variant="ghost" />
             <fvdr-btn label="Danger" variant="danger" />
+            <fvdr-btn label="Link" variant="link" />
+            <fvdr-btn label="Text" variant="text" />
           </div>
           <div class="row wrap">
             <fvdr-btn label="Small" variant="primary" size="s" />
@@ -58,6 +88,14 @@ import type {
           <div class="row wrap">
             <fvdr-btn label="Loading..." variant="primary" [loading]="true" />
             <fvdr-btn label="Disabled" variant="primary" [disabled]="true" />
+            <fvdr-btn label="Disabled" variant="secondary" [disabled]="true" />
+            <fvdr-btn label="Disabled" variant="ghost" [disabled]="true" />
+          </div>
+          <div class="row wrap" style="align-items: center;">
+            <fvdr-btn label="Icon + label" variant="primary" iconName="plus" />
+            <fvdr-btn label="Icon + label" variant="secondary" iconName="plus" />
+            <fvdr-btn label="Icon + label" variant="ghost" iconName="edit" />
+            <fvdr-btn label="Icon + label" variant="danger" iconName="trash" />
           </div>
         </section>
 
@@ -130,9 +168,16 @@ import type {
         <section class="section" id="timepicker">
           <h2 class="section__title">Input / Time picker</h2>
           <div class="section__desc">Figma: node 15032-12265</div>
-          <div class="row wrap" style="gap: 24px;">
-            <fvdr-timepicker label="Start time" style="width: 180px;" />
-            <fvdr-timepicker label="End time" style="width: 180px;" />
+          <div class="row wrap" style="gap: 24px; align-items: flex-start;">
+            <fvdr-timepicker label="Time (24h, L)" size="l" style="width: 200px;" hint="Select time" />
+            <fvdr-timepicker label="Time (24h, M)" size="m" style="width: 200px;" />
+            <fvdr-timepicker label="Time (24h, S)" size="s" style="width: 200px;" />
+          </div>
+          <div class="row wrap" style="gap: 24px; align-items: flex-start; margin-top: 16px;">
+            <fvdr-timepicker label="12h format" size="m" mode="12h" style="width: 200px;" />
+            <fvdr-timepicker label="With UTC" size="m" [showUtc]="true" style="width: 200px;" />
+            <fvdr-timepicker label="Error state" size="m" error="Invalid time" style="width: 200px;" />
+            <fvdr-timepicker label="Disabled" size="m" [disabled]="true" style="width: 200px;" />
           </div>
         </section>
 
@@ -355,7 +400,9 @@ import type {
         <!-- ── TABLE ── -->
         <section class="section" id="table">
           <h2 class="section__title">Tables</h2>
-          <div class="section__desc">Figma: node 15032-15291</div>
+          <div class="section__desc">Figma: node 15032-15291 — sortable, selectable, sticky header, custom cell templates via <code>fvdrCell</code></div>
+
+          <!-- Basic: plain text, sortable, selectable -->
           <fvdr-table
             [columns]="tableCols"
             [data]="tableData"
@@ -363,6 +410,29 @@ import type {
             [sortState]="tableSort"
             (sortChange)="tableSort = $event"
           />
+
+          <!-- Rich cells: status badge + avatar + name -->
+          <div style="margin-top: var(--space-6)">
+            <fvdr-table
+              [columns]="tableCols"
+              [data]="tableData"
+              [stickyHeader]="true"
+              emptyText="No users found"
+            >
+              <ng-template fvdrCell="name" let-value>
+                <span style="display:flex;align-items:center;gap:var(--space-2)">
+                  <fvdr-avatar [initials]="value.slice(0,2)" size="sm" />
+                  {{ value }}
+                </span>
+              </ng-template>
+              <ng-template fvdrCell="status" let-value>
+                <fvdr-badge
+                  [label]="value"
+                  [variant]="value === 'Active' ? 'success' : value === 'Pending' ? 'warning' : 'neutral'"
+                />
+              </ng-template>
+            </fvdr-table>
+          </div>
         </section>
 
         <!-- ── TREE VIEW ── -->
@@ -450,6 +520,15 @@ import type {
             />
           </div>
 
+          <div class="section__desc" style="margin-top:16px">Breadcrumb variant (Figma)</div>
+          <div style="border: 1px solid var(--color-divider); border-radius: var(--radius-md); overflow: hidden;">
+            <fvdr-header
+              [breadcrumbs]="showcaseHeaderBreadcrumbs"
+              [actions]="showcaseHeaderActions"
+              userName="TN"
+            />
+          </div>
+
           <h2 class="section__title" style="margin-top: 24px;">Mobile Header</h2>
           <div class="section__desc">Figma: node 16411-25469</div>
           <div style="border: 1px solid var(--color-divider); border-radius: var(--radius-md); overflow: hidden; max-width: 390px;">
@@ -494,7 +573,7 @@ import type {
 
         <!-- ── ICONS ── -->
         <section class="section" id="icons">
-          <h2 class="section__title">Icons (51)</h2>
+          <h2 class="section__title">Icons (110)</h2>
           <div class="section__desc">Figma: node 15846-7469</div>
           <div class="icons-grid">
             <div *ngFor="let icon of iconNames" class="icon-item">
@@ -629,11 +708,95 @@ import type {
       border: 1px solid var(--color-divider);
     }
     .icon-item:hover { background: var(--color-hover-bg); }
+
+    /* ── Component Catalog Grid ── */
+    .catalog {
+      margin-bottom: 48px;
+    }
+    .catalog__intro {
+      margin-bottom: 24px;
+    }
+    .catalog__intro-text {
+      font-size: 14px;
+      color: var(--color-text-secondary);
+      margin: 0;
+    }
+    .catalog__group {
+      margin-bottom: 28px;
+    }
+    .catalog__group-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--color-text-muted);
+      margin: 0 0 12px;
+    }
+    .catalog__grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 10px;
+    }
+    .catalog__card {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding: 14px 16px;
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      background: var(--color-bg-page);
+      text-decoration: none;
+      transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+      cursor: pointer;
+    }
+    .catalog__card:hover {
+      border-color: var(--color-interactive-primary);
+      box-shadow: 0 2px 8px rgba(44,156,116,0.12);
+      transform: translateY(-1px);
+    }
+    .catalog__card-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--color-text-primary);
+    }
+    .catalog__card-selector {
+      font-family: 'Menlo', 'Courier New', monospace;
+      font-size: 11px;
+      color: var(--color-text-muted);
+    }
+    .catalog__card-status {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 1px 6px;
+      border-radius: 9999px;
+      align-self: flex-start;
+      margin-top: 4px;
+    }
+    .catalog__card-status--stable     { background: var(--color-selected-row); color: var(--color-interactive-primary); }
+    .catalog__card-status--beta       { background: var(--color-feature-bg); color: #4862d3; }
+    .catalog__card-status--deprecated { background: #fff5f4; color: var(--color-danger); }
+
+    .showcase__divider {
+      text-align: center;
+      border-top: 1px solid var(--color-border);
+      margin: 0 0 40px;
+      padding-top: 16px;
+      font-size: 12px;
+      color: var(--color-text-muted);
+      letter-spacing: 0.5px;
+    }
   `],
 })
 export class DsShowcaseComponent implements OnInit, OnDestroy {
   private toastSvc = inject(ToastService);
   private tracker = inject(TrackerService);
+
+  readonly catalogGroups = DS_CATEGORIES.map(cat => ({
+    label: cat.label,
+    items: DS_REGISTRY.filter((e: ComponentDocEntry) => e.category === cat.id),
+  })).filter(g => g.items.length > 0);
 
   ngOnInit(): void { this.tracker.trackPageView('ds-showcase'); }
   ngOnDestroy(): void { this.tracker.destroyListeners(); }
@@ -797,6 +960,14 @@ export class DsShowcaseComponent implements OnInit, OnDestroy {
   ];
 
   // Header
+  showcaseHeaderBreadcrumbs: { id: string; label: string }[] = [
+    { id: 'settings', label: 'Settings' },
+    { id: 'api-keys', label: 'API Keys' },
+  ];
+  showcaseHeaderActions: HeaderAction[] = [
+    { id: 'theme', icon: 'theme-dark' },
+    { id: 'help', icon: 'help' },
+  ];
   headerNav: HeaderNavItem[] = [
     { id: 'overview', label: 'Overview', icon: 'overview' },
     { id: 'projects', label: 'Projects', icon: 'folder' },
@@ -876,15 +1047,40 @@ export class DsShowcaseComponent implements OnInit, OnDestroy {
   }
 
   iconNames: import('../../shared/ds').FvdrIconName[] = [
-    'angle-double-left','angle-double-right','api','attention','bell','billing',
+    // 16x16 — General UI
+    'angle-double-left','angle-double-right','attention','bell','billing',
     'cancel','check','chevron-down','chevron-left','chevron-right','chevron-up',
     'close','download','drag','edit','error','filter','finished','folder',
     'info','link','lock-close','lock-open','minus','more','move',
+    'overview','participants','plus','reports','search','settings',
+    'share','sort','spinner','storage','trash','upload','warning',
+    'calendar','clock',
+    // 16x16 — Common actions
+    'copy','eye','eye-slash','envelope','history',
+    'label','comment','bookmark','pin','print',
+    'image','phone','add-folder','undo','redo',
+    'video','language','company','note-add',
+    'branding-sm','list-view','table-view','grid-view',
+    'user-add','user-remove','user-check','user-edit',
+    'group','group-add','time','trending-up','trending-down',
+    'plan','card','usage','note',
+    // 24x24 — Navigation (API)
+    'api',
+    // 24x24 — Navigation (nav-*)
     'nav-api','nav-api-active','nav-billing','nav-billing-active',
     'nav-overview','nav-overview-active','nav-participants','nav-participants-active',
     'nav-projects','nav-projects-active','nav-reports','nav-reports-active',
     'nav-settings','nav-settings-active',
-    'overview','participants','plus','reports','search','settings',
-    'share','sort','spinner','storage','theme-dark','theme-light','trash','upload',
+    // 24x24 — Navigation (new)
+    'activities','activities-active',
+    'documents','documents-active',
+    'users-groups','users-groups-active',
+    'projects','projects-active',
+    'user','user-active',
+    'settings-filter',
+    'recycle-bin','recycle-bin-active',
+    'admins','branding',
+    // 24x24 — Theme
+    'help','theme-dark','theme-light',
   ];
 }
