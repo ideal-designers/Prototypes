@@ -1390,15 +1390,15 @@ export class DsComponentPageComponent implements OnInit, OnDestroy {
 
   // ── Sidebar Nav demo data ──
   demoNavItems = [
-    { id: 'dashboard',   label: 'Dashboard',    icon: 'overview'      as any, iconActive: 'nav-overview-active'      as any, active: true  },
-    { id: 'documents',   label: 'Documents',    icon: 'folder'        as any, iconActive: 'folder'                   as any, active: false, open: false, children: [
+    { id: 'dashboard',   label: 'Dashboard',    icon: 'nav-overview'      as any, iconActive: 'nav-overview-active'      as any, active: true  },
+    { id: 'documents',   label: 'Documents',    icon: 'documents'         as any, iconActive: 'documents-active'         as any, active: false, open: false, children: [
       { id: 'sub1', label: 'Client Docs', active: false },
       { id: 'sub2', label: 'Archived',    active: false },
     ]},
-    { id: 'participants',label: 'Participants',  icon: 'participants'  as any, iconActive: 'nav-participants-active'  as any, active: false },
-    { id: 'permissions', label: 'Permissions',  icon: 'lock-close'    as any, iconActive: 'lock-close'               as any, active: false },
-    { id: 'qa',          label: 'Q&A',          icon: 'comment'       as any, iconActive: 'comment'                  as any, active: false },
-    { id: 'settings',    label: 'Settings',     icon: 'settings'      as any, iconActive: 'nav-settings-active'      as any, active: false },
+    { id: 'participants',label: 'Participants',  icon: 'nav-participants'  as any, iconActive: 'nav-participants-active'  as any, active: false },
+    { id: 'permissions', label: 'Permissions',  icon: 'lock-close'        as any, iconActive: 'lock-close'               as any, active: false },
+    { id: 'qa',          label: 'Q&A',          icon: 'comment'           as any, iconActive: 'comment'                  as any, active: false },
+    { id: 'settings',    label: 'Settings',     icon: 'nav-settings'      as any, iconActive: 'nav-settings-active'      as any, active: false },
   ];
 
   // ── Quick Access Menu demo data ──
