@@ -547,6 +547,7 @@ interface NavItem {
       flex-shrink: 0;
       display: flex;
       flex-direction: column;
+      border-bottom: 1px solid var(--color-divider);
     }
     .qa-sc-row {
       display: flex;
