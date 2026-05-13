@@ -44,12 +44,5 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
     status: 'live',
     description: 'Resizable quick access panel with folder tree and document table',
   },
-  {
-    slug: 'permission-search',
-    title: 'Permission Search',
-    figma: 'https://www.figma.com/design/E2LJ0seWC3c1bJrgenukSS/Permissions-%F0%9F%94%90?node-id=1479-27778',
-    status: 'wip',
-    description: 'Search filters the folder/document tree in real time with match highlighting',
-  },
   // REGISTRY_PLACEHOLDER
 ];

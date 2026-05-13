@@ -66,12 +66,6 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./prototypes/quick-access-panel/quick-access-panel.component').then(m => m.QuickAccessPanelComponent),
   },
-  {
-    path: 'permission-search',
-    canActivate: [authGuard],
-    loadComponent: () =>
-      import('./prototypes/permission-search/permission-search.component').then(m => m.PermissionSearchComponent),
-  },
   // PROTO_ROUTES_PLACEHOLDER
   {
     path: '**',
