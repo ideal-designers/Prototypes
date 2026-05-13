@@ -1,10 +1,13 @@
 const fs = require('fs');
 const path = require('path');
 
-const supabaseUrl = process.env['SUPABASE_URL'] || '';
-const supabaseAnonKey = process.env['SUPABASE_ANON_KEY'] || '';
-const password = process.env['PROTO_PASSWORD'] || '';
-const posthogKey = process.env['POSTHOG_KEY'] || '';
+// Trim + escape single quotes to guard against stray whitespace/newlines from env vars
+const clean = (v) => (v || '').trim().replace(/'/g, "\\'");
+const supabaseUrl = clean(process.env['SUPABASE_URL']);
+const supabaseAnonKey = clean(process.env['SUPABASE_ANON_KEY']);
+const password = clean(process.env['PROTO_PASSWORD']);
+const posthogKey = clean(process.env['POSTHOG_KEY']);
+const tinymceApiKey = clean(process.env['TINYMCE_API_KEY']);
 
 const content = `export const environment = {
   production: true,
@@ -12,6 +15,7 @@ const content = `export const environment = {
   supabaseAnonKey: '${supabaseAnonKey}',
   password: '${password}',
   posthogKey: '${posthogKey}',
+  tinymceApiKey: '${tinymceApiKey}',
 };
 `;
 

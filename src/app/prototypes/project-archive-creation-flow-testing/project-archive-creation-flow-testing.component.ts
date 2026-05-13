@@ -109,7 +109,7 @@ const SLUG = 'project-archive-creation-flow-testing';
 
         <!-- Header -->
         <header class="top-bar">
-          <span class="breadcrumb">Project archiving</span>
+          <fvdr-breadcrumbs [items]="breadcrumbItems" />
           <div class="hdr-actions">
             <button class="ic-btn" aria-label="Dark mode">
               <fvdr-icon name="theme-dark" />
@@ -303,11 +303,6 @@ const SLUG = 'project-archive-creation-flow-testing';
       padding: 0 var(--space-6);
       flex-shrink: 0;
     }
-    .breadcrumb {
-      font-size: var(--text-label-l-size);
-      font-weight: var(--text-label-l-weight);
-      color: var(--color-text-primary);
-    }
     .hdr-actions { display: flex; align-items: center; gap: var(--space-6); }
     .ic-btn {
       background: none; border: none; cursor: pointer;
@@ -398,6 +393,10 @@ const SLUG = 'project-archive-creation-flow-testing';
 })
 export class ProjectArchiveCreationFlowTestingComponent implements OnInit, OnDestroy {
   private tracker = inject(TrackerService);
+
+  breadcrumbItems = [
+    { id: 'archiving', label: 'Project archiving' },
+  ];
 
   ngOnInit(): void {
     this.tracker.trackPageView(SLUG);

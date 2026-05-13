@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FvdrIconComponent } from '../../icons/icon.component';
 import { AvatarComponent } from '../avatar/avatar.component';
 import { BadgeComponent } from '../badge/badge.component';
+import { BreadcrumbsComponent } from '../breadcrumbs/breadcrumbs.component';
 import { FvdrIconName } from '../../icons/icons';
 
 export interface HeaderNavItem {
@@ -42,7 +43,7 @@ export interface BreadcrumbItem {
 @Component({
   selector: 'fvdr-header',
   standalone: true,
-  imports: [CommonModule, FvdrIconComponent, AvatarComponent, BadgeComponent],
+  imports: [CommonModule, FvdrIconComponent, AvatarComponent, BadgeComponent, BreadcrumbsComponent],
   template: `
     <header class="header">
       <!-- Breadcrumbs mode -->
@@ -50,12 +51,11 @@ export interface BreadcrumbItem {
         <button *ngIf="showMenu" class="header__menu" (click)="menuClick.emit()">
           <fvdr-icon name="more" />
         </button>
-        <nav class="header__breadcrumbs">
-          <span *ngFor="let item of breadcrumbs; let last = last" class="header__bc-item" [class.header__bc-item--last]="last" (click)="!last && breadcrumbClick.emit(item.id)">
-            {{ item.label }}
-            <fvdr-icon [name]="last ? 'chevron-down' : 'chevron-right'" class="header__bc-icon" />
-          </span>
-        </nav>
+        <fvdr-breadcrumbs
+          class="header__breadcrumbs"
+          [items]="breadcrumbs"
+          (itemClick)="breadcrumbClick.emit($event)"
+        />
       </ng-container>
 
       <!-- Logo + Nav mode (original) -->
@@ -169,11 +169,7 @@ export interface BreadcrumbItem {
 
     .header__menu { width:36px; height:36px; border:none; background:transparent; cursor:pointer; display:flex; align-items:center; justify-content:center; border-radius:var(--radius-sm); color:var(--color-text-secondary); font-size:24px; flex-shrink:0; }
     .header__menu:hover { background:var(--color-hover-bg); color:var(--color-text-primary); }
-    .header__breadcrumbs { display:flex; align-items:center; flex:1; }
-    .header__bc-item { display:inline-flex; align-items:center; gap:var(--space-2); padding:var(--space-2) var(--space-2) var(--space-2) 0; font-family:var(--font-family); font-size:var(--text-sub2-size); font-weight:var(--text-sub2-weight); color:var(--color-text-secondary); cursor:pointer; white-space:nowrap; }
-    .header__bc-item--last { color:var(--color-text-primary); cursor:default; }
-    .header__bc-item:not(.header__bc-item--last):hover { color:var(--color-primary-500); }
-    .header__bc-icon { font-size:16px; flex-shrink:0; }
+    .header__breadcrumbs { flex:1; }
 
     .header__right {
       display: flex;

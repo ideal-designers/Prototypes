@@ -6,7 +6,7 @@ import { DS_COMPONENTS, ToastService } from '../../shared/ds';
 import { TrackerService } from '../../services/tracker.service';
 import type {
   TabItem, DroplistItem, DropdownOption, RadioOption,
-  SearchFilter, SegmentItem, TableColumn, TreeNode,
+  SegmentItem, TableColumn, TreeNode,
   HeaderNavItem, HeaderAction, SidebarNavItem,
 } from '../../shared/ds';
 import { DS_REGISTRY, DS_CATEGORIES } from './ds-registry';
@@ -37,7 +37,7 @@ import type { ComponentDocEntry } from './ds-registry';
           <h1 class="showcase__h1">FVDR Design System</h1>
           <p class="showcase__subtitle">All components in one place · Figma: <a href="https://www.figma.com/design/liyNDiFf1piO8SQmHNKoeU" target="_blank">liyNDiFf1piO8SQmHNKoeU</a></p>
           <div class="showcase__stats">
-            <span class="showcase__stat"><b>34</b> components</span>
+            <span class="showcase__stat"><b>35</b> components</span>
             <span class="showcase__stat"><b>110</b> icons</span>
             <span class="showcase__stat"><b>6</b> categories</span>
           </div>
@@ -135,8 +135,8 @@ import type { ComponentDocEntry } from './ds-registry';
           <div class="section__desc">Figma: node 15032-12166</div>
           <div class="col" style="max-width: 400px; gap: 12px;">
             <fvdr-search placeholder="Search users..." />
-            <fvdr-search placeholder="Search with filters..." [filters]="searchFilters" (filterToggle)="toggleFilter($event)" />
-            <fvdr-search placeholder="Search + filter btn" [showFilterBtn]="true" />
+            <fvdr-search placeholder="Search with filter icon" [filter]="true" />
+            <fvdr-search placeholder="Search with active filter" [filter]="true" [indicator]="true" />
           </div>
         </section>
 
@@ -571,6 +571,26 @@ import type { ComponentDocEntry } from './ds-registry';
           </div>
         </section>
 
+        <!-- ── BREADCRUMBS ── -->
+        <section class="section" id="breadcrumbs">
+          <h2 class="section__title">Breadcrumbs</h2>
+          <div class="section__desc">Figma: node 22780-6027 · Collapses middle items to ··· when &gt; 4 levels</div>
+          <div class="row" style="flex-direction: column; gap: 16px; align-items: flex-start;">
+            <div>
+              <div class="section__label" style="margin-bottom: 6px;">3 items</div>
+              <fvdr-breadcrumbs [items]="bc3Items" />
+            </div>
+            <div>
+              <div class="section__label" style="margin-bottom: 6px;">4 items</div>
+              <fvdr-breadcrumbs [items]="bc4Items" />
+            </div>
+            <div>
+              <div class="section__label" style="margin-bottom: 6px;">6 items — collapsed</div>
+              <fvdr-breadcrumbs [items]="bc6Items" />
+            </div>
+          </div>
+        </section>
+
         <!-- ── ICONS ── -->
         <section class="section" id="icons">
           <h2 class="section__title">Icons (110)</h2>
@@ -839,6 +859,7 @@ export class DsShowcaseComponent implements OnInit, OnDestroy {
     { id: 'cards', label: 'Cards' },
     { id: 'header', label: 'Headers' },
     { id: 'sidebar-nav', label: 'Sidebar Nav' },
+    { id: 'breadcrumbs', label: 'Breadcrumbs' },
     { id: 'icons', label: 'Icons' },
   ];
 
@@ -859,14 +880,6 @@ export class DsShowcaseComponent implements OnInit, OnDestroy {
   // Toggle
   toggle1 = true;
   toggle2 = false;
-
-  // Search filters
-  searchFilters: SearchFilter[] = [
-    { id: 'active', label: 'Active', active: true },
-    { id: 'pending', label: 'Pending' },
-    { id: 'draft', label: 'Draft' },
-  ];
-  toggleFilter(f: SearchFilter): void { f.active = !f.active; }
 
   // Segment
   segItems: SegmentItem[] = [
@@ -960,6 +973,27 @@ export class DsShowcaseComponent implements OnInit, OnDestroy {
   ];
 
   // Header
+  // Breadcrumbs
+  bc3Items = [
+    { id: 'p', label: 'Project Alpha' },
+    { id: 'f1', label: '1 Folder' },
+    { id: 'f3', label: '3 Folder' },
+  ];
+  bc4Items = [
+    { id: 'p', label: 'Project Alpha' },
+    { id: 'f1', label: '1 Folder' },
+    { id: 'f2', label: '2 Folder' },
+    { id: 'f5', label: '5 Folder' },
+  ];
+  bc6Items = [
+    { id: 'p', label: 'Project Alpha' },
+    { id: 'f1', label: '1 Folder' },
+    { id: 'f3', label: '3 Folder' },
+    { id: 'f8', label: '8 Folder' },
+    { id: 'f10', label: '10 Folder' },
+    { id: 'f11', label: '11 Folder' },
+  ];
+
   showcaseHeaderBreadcrumbs: { id: string; label: string }[] = [
     { id: 'settings', label: 'Settings' },
     { id: 'api-keys', label: 'API Keys' },

@@ -51,14 +51,33 @@ export interface MultiselectOption {
       [disabled]="disabled || null"
       (click)="toggle()"
     >
-      <span class="ms-trigger__text" [class.ms-trigger__text--placeholder]="selected.length === 0">
-        {{ triggerLabel }}
-      </span>
-      <!-- selected chips strip -->
+      <!-- placeholder / text label (hidden when chips are showing) -->
+      <span
+        *ngIf="!showChips || selected.length === 0"
+        class="ms-trigger__text"
+        [class.ms-trigger__text--placeholder]="selected.length === 0"
+      >{{ triggerLabel }}</span>
+
+      <!-- selected chips strip — left-aligned, fills remaining space -->
       <span *ngIf="selected.length > 0 && showChips" class="ms-trigger__chips">
-        <span *ngFor="let v of selected.slice(0, maxChips)" class="ms-chip">{{ labelOf(v) }}</span>
+        <span *ngFor="let v of selected.slice(0, maxChips)" class="ms-chip">
+          {{ labelOf(v) }}
+          <button class="ms-chip__remove" type="button" (click)="removeChip($event, v)" aria-label="Remove">
+            <fvdr-icon name="close" style="font-size:14px" />
+          </button>
+        </span>
         <span *ngIf="selected.length > maxChips" class="ms-chip ms-chip--more">+{{ selected.length - maxChips }}</span>
       </span>
+      <!-- bulk clear button -->
+      <button
+        *ngIf="selected.length > 0"
+        class="ms-trigger__clear"
+        type="button"
+        (click)="clearAll($event)"
+        aria-label="Clear all"
+      >
+        <fvdr-icon name="cross-solid" style="font-size:14px" />
+      </button>
       <fvdr-icon name="chevron-down" class="ms-trigger__chevron" [class.ms-trigger__chevron--up]="open" />
     </button>
 
@@ -179,21 +198,61 @@ export interface MultiselectOption {
     .ms-trigger__chips {
       display: flex;
       flex-wrap: wrap;
+      align-items: center;
       gap: 4px;
       flex: 1;
+      justify-content: flex-start;
     }
     .ms-chip {
       display: inline-flex;
       align-items: center;
-      height: 20px;
-      padding: 0 6px;
-      background: var(--color-primary-50, #ebf8ef);
-      border-radius: 10px;
-      font-size: 12px;
-      color: var(--color-primary-500);
+      gap: 6px;
+      height: 28px;
+      padding: 4px 8px 4px 12px;
+      background: var(--color-hover-bg, #eceef9);
+      border-radius: var(--radius-md, 8px);
+      font-size: 14px;
+      color: var(--color-text-primary, #1f2129);
       white-space: nowrap;
     }
-    .ms-chip--more { background: var(--color-stone-200, #efefef); color: var(--color-text-secondary); }
+    .ms-chip--more {
+      padding: 4px 12px;
+      background: var(--color-hover-bg, #eceef9);
+      color: var(--color-text-primary, #1f2129);
+    }
+    .ms-chip__remove {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      width: 16px;
+      height: 16px;
+      padding: 0;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      color: var(--color-text-secondary, #5f616a);
+      font-size: 10px;
+      border-radius: 2px;
+      line-height: 1;
+    }
+    .ms-chip__remove:hover { color: var(--color-text-primary, #1f2129); }
+
+    .ms-trigger__clear {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      width: 20px;
+      height: 20px;
+      padding: 0;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      color: var(--color-text-secondary, #9c9ea8);
+      border-radius: var(--radius-xs, 2px);
+    }
+    .ms-trigger__clear:hover { color: var(--color-text-primary, #1f2129); }
 
     .ms-trigger__chevron {
       flex-shrink: 0;
@@ -475,6 +534,18 @@ export class MultiselectComponent implements ControlValueAccessor, OnInit {
     this.filtered = q
       ? this.options.filter(o => o.label.toLowerCase().includes(q))
       : [...this.options];
+  }
+
+  removeChip(e: Event, value: string): void {
+    e.stopPropagation();
+    this.selected = this.selected.filter(v => v !== value);
+    this.emit();
+  }
+
+  clearAll(e: Event): void {
+    e.stopPropagation();
+    this.selected = [];
+    this.emit();
   }
 
   private emit(): void {

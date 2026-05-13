@@ -92,6 +92,7 @@ import { NumberStepperComponent, ProgressComponent, RangeComponent } from './com
 import { SidebarNavComponent } from './components/sidebar-nav/sidebar-nav.component';
 import { FileIconComponent } from './components/file-icon/file-icon.component';
 import { QuickAccessMenuComponent } from './components/quick-access-menu/quick-access-menu.component';
+import { BreadcrumbsComponent } from './components/breadcrumbs/breadcrumbs.component';
 
 // ─── Re-exports ───────────────────────────────────────────────────────────────
 
@@ -126,7 +127,6 @@ export { TextareaComponent } from './components/textarea/textarea.component';
 export type { TextareaState } from './components/textarea/textarea.component';
 
 export { SearchComponent } from './components/search/search.component';
-export type { SearchFilter } from './components/search/search.component';
 
 export { DatepickerComponent } from './components/datepicker/datepicker.component';
 export { TimepickerComponent } from './components/timepicker/timepicker.component';
@@ -195,6 +195,8 @@ export type { FvdrFileType } from './components/file-icon/file-icon.component';
 export { QuickAccessMenuComponent } from './components/quick-access-menu/quick-access-menu.component';
 export type { QuickAccessItem } from './components/quick-access-menu/quick-access-menu.component';
 
+export { BreadcrumbsComponent } from './components/breadcrumbs/breadcrumbs.component';
+
 /** Convenience array — spread into component imports[] */
 export const DS_COMPONENTS = [
   // Original
@@ -243,4 +245,5 @@ export const DS_COMPONENTS = [
   SidebarNavComponent,
   FileIconComponent,
   QuickAccessMenuComponent,
+  BreadcrumbsComponent,
 ];

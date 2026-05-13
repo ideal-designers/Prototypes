@@ -56,6 +56,8 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
     </label>
   `,
   styles: [`
+    :host { display: inline-flex; align-items: center; }
+
     .checkbox-wrapper {
       display: inline-flex;
       align-items: center;

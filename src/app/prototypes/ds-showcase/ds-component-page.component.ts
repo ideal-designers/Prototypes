@@ -374,8 +374,38 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
             </div>
           </div>
           <div class="examples-group">
+            <h3 class="examples-group__title">States</h3>
+            <div class="examples-col">
+              <fvdr-dropdown label="Default" [options]="demoOptions" placeholder="Select…"></fvdr-dropdown>
+              <fvdr-dropdown label="Pre-selected" [options]="demoOptions" value="opt2"></fvdr-dropdown>
+              <fvdr-dropdown label="Error" [options]="demoOptions" placeholder="Select…" [error]="true" helperText="This field is required"></fvdr-dropdown>
+              <fvdr-dropdown label="Disabled" [options]="demoOptions" placeholder="Not available" [disabled]="true"></fvdr-dropdown>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">With hint text</h3>
+            <div class="examples-col">
+              <fvdr-dropdown label="Department" [options]="demoOptionsGrouped" placeholder="Choose a role…" helperText="Select the user's access level"></fvdr-dropdown>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Icon left</h3>
+            <div class="examples-col">
+              <fvdr-dropdown label="Filter by status" [options]="demoOptions" placeholder="All statuses" iconLeft="filter"></fvdr-dropdown>
+              <fvdr-dropdown label="Sort by" [options]="demoOptions" placeholder="Choose order" iconLeft="sort" size="s"></fvdr-dropdown>
+            </div>
+          </div>
+          <div class="examples-group">
             <h3 class="examples-group__title">Searchable</h3>
-            <fvdr-dropdown label="Searchable" [options]="demoOptions" placeholder="Type to filter…" [searchable]="true"></fvdr-dropdown>
+            <fvdr-dropdown label="Country" [options]="demoOptionsLong" placeholder="Type to filter…" [searchable]="true"></fvdr-dropdown>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Grouped options</h3>
+            <fvdr-dropdown label="Role" [options]="demoOptionsGrouped" placeholder="Choose a role…"></fvdr-dropdown>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Multi-select with chips</h3>
+            <fvdr-dropdown label="Tags" [options]="demoOptions" [multi]="true" placeholder="Select multiple…" helperText="You can select several options"></fvdr-dropdown>
           </div>
         </ng-container>
 
@@ -509,6 +539,462 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
             <div class="examples-row">
               <fvdr-quick-access-menu [items]="demoQaItems" [collapsed]="true"></fvdr-quick-access-menu>
             </div>
+          </div>
+        </ng-container>
+
+        <!-- TEXTAREA -->
+        <ng-container *ngSwitchCase="'textarea'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">States</h3>
+            <div class="examples-col">
+              <fvdr-textarea label="Default" placeholder="Enter description…"></fvdr-textarea>
+              <fvdr-textarea label="Error" state="error" errorText="This field is required" placeholder="Enter description…"></fvdr-textarea>
+              <fvdr-textarea label="Disabled" state="disabled" placeholder="Not available"></fvdr-textarea>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">With character limit</h3>
+            <fvdr-textarea label="Notes" [maxlength]="200" placeholder="Max 200 characters…" helperText="Enter up to 200 characters"></fvdr-textarea>
+          </div>
+        </ng-container>
+
+        <!-- SEARCH -->
+        <ng-container *ngSwitchCase="'search'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">Sizes</h3>
+            <div class="examples-col">
+              <fvdr-search label="Large" size="l" placeholder="Search…"></fvdr-search>
+              <fvdr-search label="Medium" size="m" placeholder="Search…"></fvdr-search>
+              <fvdr-search label="Small" size="s" placeholder="Search…"></fvdr-search>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">States</h3>
+            <div class="examples-col">
+              <fvdr-search label="Default" placeholder="Search…"></fvdr-search>
+              <fvdr-search label="Error" placeholder="Search…" [error]="true" helperText="No results found"></fvdr-search>
+              <fvdr-search label="Disabled" placeholder="Search unavailable" [disabled]="true"></fvdr-search>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">With filter button</h3>
+            <div class="examples-col">
+              <fvdr-search label="No active filters" placeholder="Search…" [filter]="true" helperText="Click the filter icon to narrow results"></fvdr-search>
+              <fvdr-search label="Active filters" placeholder="Search…" [filter]="true" [indicator]="true" helperText="3 filters applied"></fvdr-search>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- CALENDAR -->
+        <ng-container *ngSwitchCase="'calendar'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">Single date</h3>
+            <fvdr-calendar></fvdr-calendar>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Range mode</h3>
+            <fvdr-calendar [rangeMode]="true"></fvdr-calendar>
+          </div>
+        </ng-container>
+
+        <!-- DATEPICKER -->
+        <ng-container *ngSwitchCase="'datepicker'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">Single date</h3>
+            <div class="examples-col">
+              <fvdr-datepicker label="Due date" placeholder="Select date…"></fvdr-datepicker>
+              <fvdr-datepicker label="Disabled" placeholder="Select date…" [disabled]="true"></fvdr-datepicker>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Range mode</h3>
+            <fvdr-datepicker label="Date range" placeholder="Select range…" [rangeMode]="true"></fvdr-datepicker>
+          </div>
+        </ng-container>
+
+        <!-- TIMEPICKER -->
+        <ng-container *ngSwitchCase="'timepicker'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">24h mode</h3>
+            <div class="examples-col">
+              <fvdr-timepicker label="Start time" mode="24h"></fvdr-timepicker>
+              <fvdr-timepicker label="Disabled" mode="24h" [disabled]="true"></fvdr-timepicker>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">12h mode with UTC</h3>
+            <fvdr-timepicker label="Meeting time" mode="12h" [showUtc]="true"></fvdr-timepicker>
+          </div>
+        </ng-container>
+
+        <!-- PHONE INPUT -->
+        <ng-container *ngSwitchCase="'phone-input'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">Default</h3>
+            <div class="examples-col">
+              <fvdr-phone-input label="Phone number"></fvdr-phone-input>
+              <fvdr-phone-input label="Disabled" [disabled]="true"></fvdr-phone-input>
+              <fvdr-phone-input label="With error" errorText="Invalid phone number"></fvdr-phone-input>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- TEXT EDITOR -->
+        <ng-container *ngSwitchCase="'text-editor'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">Basic toolbar</h3>
+            <fvdr-text-editor label="Description" toolbar="basic" [height]="240"></fvdr-text-editor>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Full toolbar</h3>
+            <fvdr-text-editor label="Notes" toolbar="full" [height]="300"></fvdr-text-editor>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Disabled</h3>
+            <fvdr-text-editor label="Readonly" [disabled]="true"></fvdr-text-editor>
+          </div>
+        </ng-container>
+
+        <!-- RADIO -->
+        <ng-container *ngSwitchCase="'radio'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">Vertical (default)</h3>
+            <fvdr-radio [options]="demoRadioOptions" [(value)]="demoRadioValue" layout="vertical"></fvdr-radio>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Horizontal</h3>
+            <fvdr-radio [options]="demoRadioOptions" [(value)]="demoRadioValue" layout="horizontal"></fvdr-radio>
+          </div>
+        </ng-container>
+
+        <!-- SEGMENT -->
+        <ng-container *ngSwitchCase="'segment'">
+
+          <!-- ── Segment control (Primary) ── -->
+          <div class="examples-group">
+            <h3 class="examples-group__title">Segment control — 2 options</h3>
+            <fvdr-segment [items]="demoSeg2" [(activeId)]="demoSeg2Value"></fvdr-segment>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Segment control — 3 options</h3>
+            <fvdr-segment [items]="demoSegmentItems" [(activeId)]="demoSegmentValue"></fvdr-segment>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Segment control — 4 options</h3>
+            <fvdr-segment [items]="demoSegmentItems4" [(activeId)]="demoSegmentValue4"></fvdr-segment>
+          </div>
+
+          <!-- ── Table segment control ── -->
+          <div class="examples-group">
+            <h3 class="examples-group__title">Table segment — S size 28px · Icon + Label</h3>
+            <fvdr-segment variant="table" size="sm" [items]="demoTableSegIconLabel" [(activeId)]="demoTableSegValue"></fvdr-segment>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Table segment — S size 28px · Label only</h3>
+            <fvdr-segment variant="table" size="sm" [items]="demoTableSegLabel" [(activeId)]="demoTableSegValue2"></fvdr-segment>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Table segment — S size 28px · Label + Counter</h3>
+            <fvdr-segment variant="table" size="sm" [items]="demoTableSegCounter" [(activeId)]="demoTableSegValue3"></fvdr-segment>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Table segment — S size 28px · Icon only</h3>
+            <fvdr-segment variant="table" size="sm" [items]="demoTableSegIconOnly" [(activeId)]="demoTableSegValue4"></fvdr-segment>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Table segment — M size 40px · Icon + Label</h3>
+            <fvdr-segment variant="table" size="md" [items]="demoTableSegIconLabel" [(activeId)]="demoTableSegValue5"></fvdr-segment>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Table segment — M size 40px · Label + Counter</h3>
+            <fvdr-segment variant="table" size="md" [items]="demoTableSegCounter" [(activeId)]="demoTableSegValue6"></fvdr-segment>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Table segment — Mobile 32px · Icon + Label</h3>
+            <fvdr-segment variant="table" size="mobile" [items]="demoTableSegIconLabel" [(activeId)]="demoTableSegValue7"></fvdr-segment>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Table segment — Active middle item</h3>
+            <fvdr-segment variant="table" size="sm" [items]="demoTableSegLabel" [(activeId)]="demoTableSegMiddle"></fvdr-segment>
+          </div>
+
+        </ng-container>
+
+        <!-- CHIP -->
+        <ng-container *ngSwitchCase="'chip'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">Variants</h3>
+            <div class="examples-row examples-row--wrap">
+              <fvdr-chip label="Default"></fvdr-chip>
+              <fvdr-chip label="Primary"  variant="primary"></fvdr-chip>
+              <fvdr-chip label="Success"  variant="success"></fvdr-chip>
+              <fvdr-chip label="Warning"  variant="warning"></fvdr-chip>
+              <fvdr-chip label="Error"    variant="error"></fvdr-chip>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">States</h3>
+            <div class="examples-row examples-row--wrap">
+              <fvdr-chip label="Removable" [removable]="true"></fvdr-chip>
+              <fvdr-chip label="Selected"  [selected]="true"></fvdr-chip>
+              <fvdr-chip label="Clickable" [clickable]="true" icon="edit"></fvdr-chip>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- MULTISELECT -->
+        <ng-container *ngSwitchCase="'multiselect'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">Default</h3>
+            <div class="examples-col">
+              <fvdr-multiselect label="Countries" [options]="demoMultiselectOptions" placeholder="Select countries…" [(values)]="demoMultiselectValues"></fvdr-multiselect>
+              <fvdr-multiselect label="Pre-selected" [options]="demoMultiselectOptions" [values]="demoMultiselectPreselected" placeholder="Select countries…"></fvdr-multiselect>
+              <fvdr-multiselect label="Disabled" [options]="demoMultiselectOptions" placeholder="Not available" [disabled]="true"></fvdr-multiselect>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- DROPLIST -->
+        <ng-container *ngSwitchCase="'droplist'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">Context menu (icons + shortcuts)</h3>
+            <div class="examples-row">
+              <fvdr-droplist [items]="demoDroplistItems" activeId="edit"></fvdr-droplist>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Text only</h3>
+            <div class="examples-row">
+              <fvdr-droplist [items]="demoDroplistTextOnly"></fvdr-droplist>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">With badges</h3>
+            <div class="examples-row">
+              <fvdr-droplist [items]="demoDroplistBadges"></fvdr-droplist>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Active / disabled / danger states</h3>
+            <div class="examples-row">
+              <fvdr-droplist [items]="demoDroplistStates" activeId="active-item"></fvdr-droplist>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Button / action menu</h3>
+            <div class="examples-row">
+              <fvdr-droplist [items]="demoDroplistActions"></fvdr-droplist>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">With description</h3>
+            <div class="examples-row">
+              <fvdr-droplist [items]="demoDroplistDescriptions"></fvdr-droplist>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Checkbox multi-select</h3>
+            <div class="examples-row">
+              <fvdr-droplist
+                [items]="demoDroplistCheckboxItems"
+                [checkboxes]="true"
+                [selectedIds]="demoDroplistChecked"
+                (selectionChange)="demoDroplistChecked=$event"
+              ></fvdr-droplist>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Cascade (hover to expand)</h3>
+            <div class="examples-row">
+              <fvdr-droplist [items]="demoDroplistCascade"></fvdr-droplist>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- COUNTER -->
+        <ng-container *ngSwitchCase="'counter'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">Small (s)</h3>
+            <div class="examples-row examples-row--wrap">
+              <div class="example-labeled"><fvdr-counter [value]="3"   variant="default" size="s"></fvdr-counter><span>default</span></div>
+              <div class="example-labeled"><fvdr-counter [value]="12"  variant="primary" size="s"></fvdr-counter><span>primary</span></div>
+              <div class="example-labeled"><fvdr-counter [value]="99"  variant="error"   size="s"></fvdr-counter><span>error</span></div>
+              <div class="example-labeled"><fvdr-counter [value]="150" variant="warning" size="s"></fvdr-counter><span>warning (capped)</span></div>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Medium (m)</h3>
+            <div class="examples-row examples-row--wrap">
+              <div class="example-labeled"><fvdr-counter [value]="7"  variant="default" size="m"></fvdr-counter><span>default</span></div>
+              <div class="example-labeled"><fvdr-counter [value]="42" variant="primary" size="m"></fvdr-counter><span>primary</span></div>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- INLINE MESSAGE -->
+        <ng-container *ngSwitchCase="'inline-message'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">Variants</h3>
+            <div class="examples-col">
+              <fvdr-inline-message variant="info"    text="Your changes will be auto-saved."></fvdr-inline-message>
+              <fvdr-inline-message variant="success" text="Settings saved successfully."></fvdr-inline-message>
+              <fvdr-inline-message variant="warning" text="You have unsaved changes."></fvdr-inline-message>
+              <fvdr-inline-message variant="error"   text="Failed to connect. Please retry."></fvdr-inline-message>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- INFO BANNER -->
+        <ng-container *ngSwitchCase="'info-banner'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">Variants</h3>
+            <div class="examples-col">
+              <fvdr-info-banner variant="info"    title="Update available" message="A new version of this feature is ready."></fvdr-info-banner>
+              <fvdr-info-banner variant="success" title="Import complete"  message="120 records were successfully imported."></fvdr-info-banner>
+              <fvdr-info-banner variant="warning" title="Action required"  message="Please verify your email address."></fvdr-info-banner>
+              <fvdr-info-banner variant="error"   title="Error"            message="Failed to load data. Please refresh."></fvdr-info-banner>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- TOAST -->
+        <ng-container *ngSwitchCase="'toast'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">Trigger toasts</h3>
+            <div class="examples-row examples-row--wrap">
+              <fvdr-btn label="Success toast" variant="primary"   size="m" (clicked)="toastSvc.show({ variant: 'success', title: 'Saved!',   message: 'Your changes were saved.' })"></fvdr-btn>
+              <fvdr-btn label="Error toast"   variant="danger"    size="m" (clicked)="toastSvc.show({ variant: 'error',   title: 'Error',     message: 'Something went wrong.' })"></fvdr-btn>
+              <fvdr-btn label="Warning toast" variant="secondary" size="m" (clicked)="toastSvc.show({ variant: 'warning', title: 'Warning',   message: 'Unsaved changes detected.' })"></fvdr-btn>
+              <fvdr-btn label="Info toast"    variant="ghost"     size="m" (clicked)="toastSvc.show({ variant: 'info',    title: 'Info',      message: 'New update available.' })"></fvdr-btn>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- TABLE -->
+        <ng-container *ngSwitchCase="'table'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">Basic table</h3>
+            <fvdr-table [columns]="demoTableCols" [data]="demoTableData"></fvdr-table>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Selectable + bordered</h3>
+            <fvdr-table [columns]="demoTableCols" [data]="demoTableData" [selectable]="true" [bordered]="true"></fvdr-table>
+          </div>
+        </ng-container>
+
+        <!-- TREE -->
+        <ng-container *ngSwitchCase="'tree'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">File tree</h3>
+            <fvdr-tree [nodes]="demoTreeNodes"></fvdr-tree>
+          </div>
+        </ng-container>
+
+        <!-- DROP AREA -->
+        <ng-container *ngSwitchCase="'drop-area'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">Default</h3>
+            <fvdr-drop-area title="Drag &amp; drop files here" subtitle="or click to browse"></fvdr-drop-area>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Disabled</h3>
+            <fvdr-drop-area title="Upload not available" subtitle="Contact admin" [disabled]="true"></fvdr-drop-area>
+          </div>
+        </ng-container>
+
+        <!-- FILE ICON -->
+        <ng-container *ngSwitchCase="'file-icon'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">Folders</h3>
+            <div class="examples-row examples-row--wrap">
+              <div class="example-labeled"><fvdr-file-icon type="folder"></fvdr-file-icon><span>folder</span></div>
+              <div class="example-labeled"><fvdr-file-icon type="folder-colored"></fvdr-file-icon><span>colored</span></div>
+              <div class="example-labeled"><fvdr-file-icon type="folder-locked"></fvdr-file-icon><span>locked</span></div>
+              <div class="example-labeled"><fvdr-file-icon type="folder-files"></fvdr-file-icon><span>files</span></div>
+              <div class="example-labeled"><fvdr-file-icon type="folder-requests"></fvdr-file-icon><span>requests</span></div>
+              <div class="example-labeled"><fvdr-file-icon type="folder-recycle"></fvdr-file-icon><span>recycle</span></div>
+              <div class="example-labeled"><fvdr-file-icon type="folder-qa"></fvdr-file-icon><span>qa</span></div>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Documents</h3>
+            <div class="examples-row examples-row--wrap">
+              <div class="example-labeled"><fvdr-file-icon type="doc"></fvdr-file-icon><span>doc</span></div>
+              <div class="example-labeled"><fvdr-file-icon type="pdf"></fvdr-file-icon><span>pdf</span></div>
+              <div class="example-labeled"><fvdr-file-icon type="ppt"></fvdr-file-icon><span>ppt</span></div>
+              <div class="example-labeled"><fvdr-file-icon type="xls"></fvdr-file-icon><span>xls</span></div>
+              <div class="example-labeled"><fvdr-file-icon type="image"></fvdr-file-icon><span>image</span></div>
+              <div class="example-labeled"><fvdr-file-icon type="video"></fvdr-file-icon><span>video</span></div>
+              <div class="example-labeled"><fvdr-file-icon type="zip"></fvdr-file-icon><span>zip</span></div>
+              <div class="example-labeled"><fvdr-file-icon type="txt"></fvdr-file-icon><span>txt</span></div>
+              <div class="example-labeled"><fvdr-file-icon type="code"></fvdr-file-icon><span>code</span></div>
+              <div class="example-labeled"><fvdr-file-icon type="eml"></fvdr-file-icon><span>eml</span></div>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- HEADER -->
+        <ng-container *ngSwitchCase="'header'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">Desktop header with nav</h3>
+            <fvdr-header
+              appName="FVDR"
+              [hasLogo]="true"
+              [navItems]="demoHeaderNav"
+              activeNavId="overview"
+              [actions]="demoHeaderActions"
+              userName="Alice Johnson"
+            ></fvdr-header>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">With breadcrumbs</h3>
+            <fvdr-header
+              appName="FVDR"
+              [hasLogo]="true"
+              [breadcrumbs]="demoHeaderBreadcrumbs"
+              [actions]="demoHeaderActions"
+              userName="Alice Johnson"
+            ></fvdr-header>
+          </div>
+        </ng-container>
+
+        <!-- NUMBER STEPPER -->
+        <ng-container *ngSwitchCase="'number-stepper'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">Default</h3>
+            <div class="examples-col">
+              <fvdr-number-stepper label="Quantity" [min]="0" [max]="10" [(ngModel)]="demoStepperVal"></fvdr-number-stepper>
+              <fvdr-number-stepper label="Disabled" [min]="0" [max]="10" [disabled]="true" [(ngModel)]="demoStepperVal"></fvdr-number-stepper>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- RANGE -->
+        <ng-container *ngSwitchCase="'range'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">Default</h3>
+            <div class="examples-col">
+              <fvdr-range label="Opacity" [showValue]="true" [(ngModel)]="demoRangeVal"></fvdr-range>
+              <fvdr-range label="No value label" [(ngModel)]="demoRangeVal"></fvdr-range>
+              <fvdr-range label="Disabled" [disabled]="true" [(ngModel)]="demoRangeVal"></fvdr-range>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- PROGRESS -->
+        <ng-container *ngSwitchCase="'progress'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">Variants</h3>
+            <div class="examples-col">
+              <fvdr-progress label="Default"  [value]="65"  variant="default"  [showValue]="true"></fvdr-progress>
+              <fvdr-progress label="Success"  [value]="100" variant="success"  [showValue]="true"></fvdr-progress>
+              <fvdr-progress label="Warning"  [value]="45"  variant="warning"  [showValue]="true"></fvdr-progress>
+              <fvdr-progress label="Error"    [value]="20"  variant="error"    [showValue]="true"></fvdr-progress>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Without label</h3>
+            <fvdr-progress [value]="72" variant="default"></fvdr-progress>
           </div>
         </ng-container>
 
@@ -1251,8 +1737,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
     }
 
     .token-value-cell {
-      display: flex;
-      align-items: center;
+      white-space: nowrap;
     }
 
     .color-swatch {
@@ -1360,7 +1845,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
 export class DsComponentPageComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
-  private toastSvc = inject(ToastService);
+  toastSvc = inject(ToastService);
   private sub!: Subscription;
 
   entry: ComponentDocEntry | undefined;
@@ -1414,6 +1899,236 @@ export class DsComponentPageComponent implements OnInit, OnDestroy {
     { id: 'new',       label: 'New',       icon: 'upload' as any, active: false },
     { id: 'notes',     label: 'Notes',     icon: 'note'   as any, active: false },
   ];
+
+  // ── Radio demo data ──
+  demoRadioOptions = [
+    { value: 'a', label: 'Option A' },
+    { value: 'b', label: 'Option B' },
+    { value: 'c', label: 'Option C', disabled: true },
+  ];
+  demoRadioValue = 'a';
+
+  // ── Segment demo data ──
+  demoSeg2 = [
+    { id: 'on', label: '1st option ON' },
+    { id: 'off', label: '2nd option ON' },
+  ];
+  demoSeg2Value = 'on';
+
+  demoSegmentItems = [
+    { id: 'all', label: 'All' },
+    { id: 'active', label: 'Active' },
+    { id: 'archived', label: 'Archived' },
+  ];
+  demoSegmentValue = 'all';
+
+  demoSegmentItems4 = [
+    { id: 'day', label: 'Day' },
+    { id: 'week', label: 'Week' },
+    { id: 'month', label: 'Month' },
+    { id: 'year', label: 'Year' },
+  ];
+  demoSegmentValue4 = 'week';
+
+  // ── Table segment demo data ──
+  demoTableSegIconLabel = [
+    { id: 'docs',    icon: 'documents' as any, label: 'Documents' },
+    { id: 'users',   icon: 'participants' as any, label: 'Users' },
+    { id: 'reports', icon: 'reports' as any, label: 'Reports' },
+  ];
+  demoTableSegValue  = 'docs';
+  demoTableSegValue5 = 'docs';
+  demoTableSegValue7 = 'docs';
+
+  demoTableSegLabel = [
+    { id: 'all',      label: 'All' },
+    { id: 'active',   label: 'Active' },
+    { id: 'archived', label: 'Archived' },
+  ];
+  demoTableSegValue2  = 'all';
+  demoTableSegMiddle  = 'active';
+
+  demoTableSegCounter = [
+    { id: 'all',      label: 'All',      count: 24 },
+    { id: 'active',   label: 'Active',   count: 4  },
+    { id: 'archived', label: 'Archived', count: 20 },
+  ];
+  demoTableSegValue3 = 'all';
+  demoTableSegValue6 = 'all';
+
+  demoTableSegIconOnly = [
+    { id: 'list',  icon: 'menu' as any },
+    { id: 'grid',  icon: 'folder' as any },
+    { id: 'chart', icon: 'reports' as any },
+  ];
+  demoTableSegValue4 = 'list';
+
+  // ── Multiselect demo data ──
+  demoMultiselectOptions = [
+    { value: 'ua', label: 'Ukraine' },
+    { value: 'us', label: 'United States' },
+    { value: 'gb', label: 'United Kingdom' },
+    { value: 'de', label: 'Germany' },
+    { value: 'fr', label: 'France' },
+    { value: 'pl', label: 'Poland' },
+  ];
+  demoMultiselectValues: string[] = [];
+  demoMultiselectPreselected = ['ua', 'de'];
+
+  // ── Droplist demo data ──
+  demoDroplistItems = [
+    { id: 'edit',   label: 'Edit',   icon: 'edit'  as any, rightText: '⌘E' },
+    { id: 'copy',   label: 'Copy',   icon: 'link'  as any, rightText: '⌘C' },
+    { id: 'share',  label: 'Share',  icon: 'share' as any, dividerAfter: true },
+    { id: 'delete', label: 'Delete', icon: 'trash' as any, variant: 'danger' as any },
+  ];
+
+  demoDroplistTextOnly = [
+    { id: 'newest',   label: 'Newest first' },
+    { id: 'oldest',   label: 'Oldest first' },
+    { id: 'alpha',    label: 'Alphabetical', dividerAfter: true },
+    { id: 'manual',   label: 'Manual order' },
+  ];
+
+  demoDroplistBadges = [
+    { id: 'inbox',     label: 'Inbox',     icon: 'home'      as any, badge: 12 },
+    { id: 'pending',   label: 'Pending',   icon: 'clock'     as any, badge: 4  },
+    { id: 'drafts',    label: 'Drafts',    icon: 'documents' as any, badge: 2  },
+    { id: 'archived',  label: 'Archived',  icon: 'folder'    as any },
+  ];
+
+  demoDroplistStates = [
+    { id: 'active-item', label: 'Active (selected)', icon: 'check-circle' as any },
+    { id: 'normal',      label: 'Normal item',       icon: 'edit'         as any },
+    { id: 'disabled',    label: 'Disabled item',     icon: 'lock-close'   as any, disabled: true },
+    { id: 'sep',         label: 'Separator below',   icon: 'link'         as any, dividerAfter: true },
+    { id: 'danger',      label: 'Danger / Delete',   icon: 'trash'        as any, variant: 'danger' as any },
+  ];
+
+  demoDroplistActions = [
+    { id: 'upload',   label: 'Upload file',       icon: 'upload'    as any },
+    { id: 'create',   label: 'Create folder',     icon: 'add-circle' as any },
+    { id: 'import',   label: 'Import from URL',   icon: 'link'      as any, dividerAfter: true },
+    { id: 'settings', label: 'Folder settings',   icon: 'settings'  as any },
+    { id: 'remove',   label: 'Remove folder',     icon: 'trash'     as any, variant: 'danger' as any },
+  ];
+
+  demoDroplistCascade = [
+    { id: 'move',   label: 'Move to',  icon: 'folder'  as any, children: [
+      { id: 'inbox',    label: 'Inbox',    icon: 'home'      as any },
+      { id: 'archive',  label: 'Archive',  icon: 'folder'    as any },
+      { id: 'trash',    label: 'Trash',    icon: 'trash'     as any, variant: 'danger' as any },
+    ]},
+    { id: 'assign', label: 'Assign to', icon: 'sort'   as any, children: [
+      { id: 'alice',  label: 'Alice Johnson' },
+      { id: 'bob',    label: 'Bob Smith' },
+      { id: 'carol',  label: 'Carol White' },
+    ]},
+    { id: 'label',  label: 'Add label', icon: 'edit'   as any, children: [
+      { id: 'urgent',   label: 'Urgent',   },
+      { id: 'review',   label: 'Needs review' },
+      { id: 'approved', label: 'Approved' },
+    ]},
+    { id: 'copy',   label: 'Copy link', icon: 'link'   as any, rightText: '⌘C', dividerAfter: true },
+    { id: 'delete', label: 'Delete',    icon: 'trash'  as any, variant: 'danger' as any },
+  ];
+
+  demoDroplistCheckboxItems = [
+    { id: 'design',   label: 'Design',      icon: 'edit'      as any },
+    { id: 'dev',      label: 'Development', icon: 'settings'  as any },
+    { id: 'qa',       label: 'QA',          icon: 'check-circle' as any },
+    { id: 'pm',       label: 'Management',  icon: 'sort'      as any },
+    { id: 'support',  label: 'Support',     icon: 'chat'      as any, dividerAfter: true },
+    { id: 'archived', label: 'Archived',    icon: 'folder'    as any, disabled: true },
+  ];
+  demoDroplistChecked: string[] = ['design', 'qa'];
+
+  demoDroplistDescriptions = [
+    { id: 'single', label: 'Single select item label', description: 'Lorem ipsum dolor sit amet consectetur.' },
+    { id: 'multi',  label: 'Multi select item label',  description: 'Short helper text for this option.' },
+    { id: 'active', label: 'Selected item label',      description: 'This one is currently active.',      dividerAfter: true },
+    { id: 'plain',  label: 'Plain item without description' },
+  ];
+
+  demoOptionsLong = [
+    { value: 'au', label: 'Australia' },
+    { value: 'ca', label: 'Canada' },
+    { value: 'de', label: 'Germany' },
+    { value: 'fr', label: 'France' },
+    { value: 'gb', label: 'United Kingdom' },
+    { value: 'jp', label: 'Japan' },
+    { value: 'nl', label: 'Netherlands' },
+    { value: 'pl', label: 'Poland' },
+    { value: 'us', label: 'United States' },
+    { value: 'ua', label: 'Ukraine' },
+  ];
+
+  demoOptionsGrouped = [
+    { value: 'admin',  label: 'Admin',     group: 'Management' },
+    { value: 'owner',  label: 'Owner',     group: 'Management' },
+    { value: 'editor', label: 'Editor',    group: 'Collaborators' },
+    { value: 'viewer', label: 'Viewer',    group: 'Collaborators' },
+    { value: 'guest',  label: 'Guest',     group: 'Collaborators' },
+    { value: 'none',   label: 'No access', group: 'Other' },
+  ];
+
+  // ── Table demo data ──
+  demoTableCols = [
+    { key: 'name',   label: 'Name',   sortable: true },
+    { key: 'role',   label: 'Role',   sortable: true },
+    { key: 'status', label: 'Status' },
+    { key: 'date',   label: 'Date',   sortable: true, align: 'right' as any },
+  ];
+  demoTableData = [
+    { name: 'Alice Johnson', role: 'Admin',  status: 'Active',   date: '2026-01-15' },
+    { name: 'Bob Smith',     role: 'Editor', status: 'Pending',  date: '2026-02-01' },
+    { name: 'Carol White',   role: 'Viewer', status: 'Inactive', date: '2026-03-10' },
+    { name: 'Dan Brown',     role: 'Editor', status: 'Active',   date: '2026-03-12' },
+  ];
+
+  // ── Tree demo data ──
+  demoTreeNodes = [
+    {
+      id: 'docs', label: 'Documents', icon: 'folder' as any,
+      children: [
+        { id: 'contracts', label: 'Contracts', icon: 'folder' as any,
+          children: [
+            { id: 'c1', label: 'Contract_2026.pdf' },
+            { id: 'c2', label: 'NDA_signed.pdf' },
+          ]
+        },
+        { id: 'reports', label: 'Reports', icon: 'folder' as any,
+          children: [{ id: 'r1', label: 'Q1_report.xlsx' }]
+        },
+      ]
+    },
+    { id: 'settings', label: 'Settings', icon: 'settings' as any },
+  ];
+
+  // ── Stepper / Range bindings ──
+  demoStepperVal = 3;
+  demoRangeVal = 40;
+
+  // ── Header demo data ──
+  demoHeaderNav = [
+    { id: 'overview', label: 'Overview', icon: 'nav-overview' as any },
+    { id: 'documents', label: 'Documents', icon: 'documents' as any },
+    { id: 'settings',  label: 'Settings',  icon: 'nav-settings' as any },
+  ];
+  demoHeaderActions = [
+    { id: 'bell',   icon: 'bell' as any,   badge: 3 },
+    { id: 'search', icon: 'search' as any },
+  ];
+  demoHeaderBreadcrumbs = [
+    { id: 'settings', label: 'Settings' },
+    { id: 'api-keys', label: 'API Keys' },
+  ];
+
+  // ── Search binding ──
+  demoSearchValue = '';
+
+  // ── Datepicker binding ──
+  demoDate: Date | undefined;
 
   get componentId(): string { return this.entry?.id ?? ''; }
 

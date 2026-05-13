@@ -244,3 +244,39 @@ ToastService           inject(ToastService).show({ variant: 'success'|'error'|'w
 **FVDR sidebar:** active/hover — тільки bold text + зміна іконки, без background.
 
 CSS-класи: `.shell`, `.sidebar`, `.sidebar--collapsed`, `.account-switcher`, `.nav-list`, `.nav-item`, `.nav-item--active`, `.nav-item--open`, `.icon-default`, `.icon-active`, `.nav-icon-zone`, `.nav-subitems`, `.nav-subitem`, `.sidebar-bottom`, `.collapse-btn`
+
+---
+
+## Sidebar Nav — Responsive Behavior
+
+Компонент `<fvdr-sidebar-nav>` має три адаптивні режими (breakpoints у `sidebar-nav.component.ts`):
+
+### DESKTOP (≥ 1440px)
+- Sidebar **відкритий за замовчуванням** (280px)
+- Зхлопується/розгортається кнопкою-стрілкою внизу (поруч з лого)
+- При зхлопуванні — іконки-only (72px), залишається в потоці layout
+- Two-way binding: `[(collapsed)]="sidebarCollapsed"`
+
+### TABLET (1024–1439px)
+- Sidebar **зхлопнутий за замовчуванням** (72px, іконки-only) — залишається в потоці
+- При **ховері** — розгортається до 280px як **overlay** поверх контенту (`position: fixed`, `z-index: 200`) — layout **не рухається**
+- При кліку на стрілку — sidebar **пінується** (залишається відкритим, повертається в потік layout)
+- Повторний клік стрілки — анпін (back to hover-only mode)
+
+### MOBILE (< 1024px)
+- Sidebar **повністю прихований**, замість нього — кнопка-бургер `☰`
+- Клік бургера — відкриває sidebar як fixed overlay (280px) + напівпрозорий backdrop
+- Клік по backdrop або кнопці `✕` — закриває overlay
+
+### Лого в sidebar
+- **Expanded**: повний wordmark `ideals.` (SVG, `width=85, viewBox 0 0 117 24`, `fill=currentColor`)
+- **Collapsed**: іконка-кружечок (SVG `24×24`, градієнтна кулька фірмових зелених кольорів)
+- Лого в `sidebar-bottom`, ліворуч від кнопки стрілки
+
+### Breakpoint-константи (змінюй тільки тут)
+```typescript
+// sidebar-nav.component.ts
+const BP_DESKTOP = 1440;  // ≥ → desktop mode
+const BP_TABLET  = 1024;  // ≥ && < BP_DESKTOP → tablet mode
+                          // < BP_TABLET → mobile mode
+```

@@ -72,6 +72,18 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./prototypes/permission-search/permission-search.component').then(m => m.PermissionSearchComponent),
   },
+  {
+    path: 'view-as-mode',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./prototypes/view-as-mode/view-as-mode.component').then(m => m.ViewAsModeComponent),
+  },
+  {
+    path: 'terms-of-use-create',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./prototypes/terms-of-use-create/terms-of-use-create.component').then(m => m.TermsOfUseCreateComponent),
+  },
   // PROTO_ROUTES_PLACEHOLDER
   {
     path: '**',

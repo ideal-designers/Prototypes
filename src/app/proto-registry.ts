@@ -9,6 +9,18 @@ export interface ProtoMeta {
 // This array is managed by scripts/new-proto.js
 // DO NOT edit manually — run the script to add entries
 export const PROTO_REGISTRY: ProtoMeta[] = [
+  {
+    slug: 'deal-room',
+    title: 'Deal Room',
+    status: 'wip',
+    description: 'Deal room workspace prototype',
+  },
+  {
+    slug: 'project-archive-creation-flow-testing',
+    title: 'Project Archive Creation Flow',
+    status: 'wip',
+    description: 'Project archive creation and flow testing',
+  },
     {
     slug: 'ca-settings-integrations',
     title: 'CA Settings — Integrations',
@@ -50,6 +62,20 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
     figma: 'https://www.figma.com/design/E2LJ0seWC3c1bJrgenukSS/Permissions-%F0%9F%94%90?node-id=1479-27778',
     status: 'wip',
     description: 'Search filters the folder/document tree in real time with match highlighting',
+  },
+  {
+    slug: 'terms-of-use-create',
+    title: 'Terms of Use — Create/Edit',
+    figma: 'https://www.figma.com/design/h9MR3O7N3kLV2xl2MGQDxs/Documents?node-id=22587-34046',
+    status: 'wip',
+    description: 'Create and edit Terms of Use with file-level targeting, group warnings, and content upload/paste modes',
+  },
+  {
+    slug: 'view-as-mode',
+    title: 'View as mode',
+    figma: 'https://www.figma.com/design/h9MR3O7N3kLV2xl2MGQDxs/Documents',
+    status: 'wip',
+    description: 'Preview the Documents page as a specific bidder — green banner, highlighted rows, and an auto-dismissing Download popover with a pie timer',
   },
   // REGISTRY_PLACEHOLDER
 ];

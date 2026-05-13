@@ -22,9 +22,11 @@
     "@angular/router": "^17.0.0",
     "@supabase/supabase-js": "^2.39.0",
     "@tailwindcss/postcss": "^4.2.2",
+    "@tinymce/tinymce-angular": "^9.1.1",
     "@vercel/analytics": "^1.6.1",
     "posthog-js": "^1.363.3",
     "rxjs": "~7.8.0",
+    "tinymce": "^8.4.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.14.2"
   },
