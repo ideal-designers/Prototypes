@@ -73,10 +73,15 @@ export class PrototypeService {
       return PROTO_REGISTRY.map(p => ({ ...p, hasComponent: true })) as PrototypeDef[];
     }
 
-    const supabaseEntries: PrototypeDef[] = (data ?? []).map((row: any) => ({
-      ...row,
-      hasComponent: this.localSlugs.has(row.slug),
-    }));
+    const supabaseEntries: PrototypeDef[] = (data ?? []).map((row: any) => {
+      const local = PROTO_REGISTRY.find(p => p.slug === row.slug);
+      return {
+        ...row,
+        // Local registry is source of truth for status when component exists
+        status: local ? local.status : row.status,
+        hasComponent: !!local,
+      };
+    });
 
     // Append local-only entries not yet in Supabase
     const supabaseSlugs = new Set(supabaseEntries.map(p => p.slug));
