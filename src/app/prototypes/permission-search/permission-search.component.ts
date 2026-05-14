@@ -19,13 +19,13 @@ interface TreeItem {
 }
 
 const PERM_COLS = [
-  { label: 'Fence',     icon: 'lock-close'  },
-  { label: 'View',      icon: 'overview'    },
-  { label: 'Encrypted', icon: 'lock-open'   },
-  { label: 'PDF',       icon: 'download'    },
-  { label: 'Original',  icon: 'storage'     },
-  { label: 'Upload',    icon: 'upload'      },
-  { label: 'Manage',    icon: 'settings'    },
+  { label: 'Fence',     icon: 'perm-fence'     },
+  { label: 'View',      icon: 'perm-view'      },
+  { label: 'Encrypted', icon: 'perm-encrypted' },
+  { label: 'PDF',       icon: 'perm-pdf'       },
+  { label: 'Original',  icon: 'perm-original'  },
+  { label: 'Upload',    icon: 'perm-upload'    },
+  { label: 'Manage',    icon: 'perm-manage'    },
 ] as const;
 
 @Component({
@@ -232,7 +232,7 @@ const PERM_COLS = [
       background: none; border: none; cursor: pointer;
       width: 24px; height: 24px; padding: 0;
       display: flex; align-items: center; justify-content: center;
-      color: var(--color-stone-600); font-size: 20px;
+      color: var(--color-text-secondary); font-size: 20px;
       border-radius: var(--radius-sm); transition: color 0.12s;
     }
     .ic-btn:hover { color: var(--color-text-primary); }
@@ -274,7 +274,7 @@ const PERM_COLS = [
       transition: border-color 0.12s;
       font-size: 14px;
     }
-    .tool-btn fvdr-icon { font-size: 16px; color: var(--color-stone-600); }
+    .tool-btn fvdr-icon { font-size: 16px; color: var(--color-text-secondary); }
     .tool-btn:hover { border-color: var(--color-primary-500); }
 
     .tool-link {
@@ -429,7 +429,7 @@ const PERM_COLS = [
       width: 32px; height: 40px;
       display: flex; align-items: center;
       padding-left: var(--space-4);
-      color: var(--color-stone-600);
+      color: var(--color-text-secondary);
       font-size: 16px;
     }
 
@@ -461,7 +461,7 @@ const PERM_COLS = [
       color: var(--color-text-primary);
       white-space: nowrap;
     }
-    .td-group fvdr-icon { font-size: 16px; color: var(--color-stone-600); flex-shrink: 0; }
+    .td-group fvdr-icon { font-size: 16px; color: var(--color-text-secondary); flex-shrink: 0; }
 
     /* Sliders col */
     .col-sliders {
