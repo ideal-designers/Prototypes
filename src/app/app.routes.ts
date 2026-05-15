@@ -9,6 +9,7 @@ export const routes: Routes = [
   },
   {
     path: '',
+    pathMatch: 'full',
     canActivate: [authGuard],
     loadComponent: () =>
       import('./components/home/home.component').then(m => m.HomeComponent),
@@ -83,6 +84,11 @@ export const routes: Routes = [
     canActivate: [authGuard],
     loadComponent: () =>
       import('./prototypes/terms-of-use-create/terms-of-use-create.component').then(m => m.TermsOfUseCreateComponent),
+  },
+  {
+    path: 'timezone-picker',
+    loadComponent: () =>
+      import('./prototypes/timezone-picker/timezone-picker.component').then(m => m.TimezonePickerComponent),
   },
   // PROTO_ROUTES_PLACEHOLDER
   {

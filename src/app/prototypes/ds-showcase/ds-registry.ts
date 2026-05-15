@@ -13,6 +13,11 @@ export interface AnatomyPart {
 export type ComponentCategory = 'controls' | 'display' | 'layout' | 'navigation' | 'feedback' | 'data';
 export type ComponentStatus   = 'stable' | 'beta' | 'deprecated';
 
+export interface StateDoc {
+  name: string;
+  description: string;
+}
+
 export interface ComponentDocEntry {
   id: string;
   name: string;
@@ -24,8 +29,10 @@ export interface ComponentDocEntry {
   whenToUse: string[];
   whenNotToUse: string[];
   anatomy: AnatomyPart[];
+  states?: StateDoc[];
   tokens: TokenDoc[];
   usedIn: string[];
+  relatedComponents?: string[];
   codeSnippet: string;
   claudePrompt: string;
 }
@@ -77,7 +84,16 @@ const button: ComponentDocEntry = {
     { token: '--font-size-base',            value: '14px',    usage: 'Label font-size (medium)' },
     { token: '--font-size-md',              value: '15px',    usage: 'Label font-size (large)' },
   ],
+  states: [
+    { name: 'Default',        description: 'The resting, interactive state. Background color matches the chosen variant; cursor is pointer.' },
+    { name: 'Hover',          description: 'Background shifts one step darker (--color-interactive-hover). Smooth 120ms transition signals interactivity.' },
+    { name: 'Active / Pressed', description: 'Slight scale-down (0.97) and deeper background. Gives tactile click feedback on mouse-down.' },
+    { name: 'Focused',        description: 'A visible 2px outline ring is shown for keyboard navigation. Never removed — required for accessibility (WCAG 2.4.7).' },
+    { name: 'Disabled',       description: 'Opacity drops to 0.4, cursor becomes not-allowed, pointer events are removed. Cannot be activated.' },
+    { name: 'Loading',        description: 'A 16px spinner replaces the leading icon; the label remains visible. Button stays disabled until the action resolves.' },
+  ],
   usedIn: ['API Keys', 'Delete Account', 'Settings Integrations', 'Activity Log', 'Modals'],
+  relatedComponents: ['toggle', 'chip', 'dropdown'],
   codeSnippet: `<!-- Primary button (medium, default) -->
 <fvdr-btn variant="primary" size="m">Save changes</fvdr-btn>
 
@@ -157,6 +173,11 @@ const badge: ComponentDocEntry = {
     { token: '--radius-full',               value: '9999px',  usage: 'Pill shape border-radius' },
     { token: '--font-size-xs',              value: '12px',    usage: 'Badge label font-size' },
   ],
+  states: [
+    { name: 'Default',  description: 'Static display element — not interactive. Always visible with its background color and label.' },
+    { name: 'Truncated', description: 'When label text is too long, it truncates with ellipsis. Tooltip may show full text on hover.' },
+  ],
+  relatedComponents: ['chip', 'counter', 'status'],
   usedIn: ['Activity Log (user role)', 'Settings (status labels)', 'DS Showcase'],
   codeSnippet: `<!-- Default (primary/green) -->
 <fvdr-badge variant="primary">Active</fvdr-badge>
@@ -221,6 +242,12 @@ const avatar: ComponentDocEntry = {
     { token: '--color-text-inverse',      value: '#ffffff', usage: 'Initials text color on colored background' },
     { token: '--radius-full',             value: '9999px',  usage: 'Circle border-radius' },
   ],
+  states: [
+    { name: 'Default',  description: 'Shows initials or image in a colored circle. Size (sm/md/lg) controls dimensions.' },
+    { name: 'Image loaded', description: 'When imgSrc resolves, the photo replaces the initials background.' },
+    { name: 'Image error', description: 'Falls back gracefully to initials if the image URL fails to load.' },
+  ],
+  relatedComponents: ['badge', 'chip'],
   usedIn: ['Activity Log', 'Settings (team members)', 'Deal Room'],
   codeSnippet: `<!-- Initials only (medium, default) -->
 <fvdr-avatar name="John Doe" size="md"></fvdr-avatar>
@@ -290,6 +317,15 @@ const input: ComponentDocEntry = {
     { token: '--font-size-base',        value: '14px',    usage: 'Value text size (medium input)' },
     { token: '--radius-sm',             value: '4px',     usage: 'Input border-radius' },
   ],
+  states: [
+    { name: 'Default',  description: 'Idle field with placeholder text. Border is --color-border-input.' },
+    { name: 'Focus',    description: 'Border changes to --color-interactive-primary (green). Keyboard caret visible.' },
+    { name: 'Filled',   description: 'User has entered value. Text uses --color-text-primary.' },
+    { name: 'Error',    description: 'Border turns --color-danger (red). Helper text appears in red below the field.' },
+    { name: 'Success',  description: 'Border turns green. Check icon may appear. Helper text confirms validity.' },
+    { name: 'Disabled', description: 'Background dims, cursor is not-allowed, typing is blocked. opacity ~0.5.' },
+  ],
+  relatedComponents: ['textarea', 'search', 'dropdown'],
   usedIn: ['API Keys (key name)', 'Settings (profile fields)', 'Deal Room (form fields)'],
   codeSnippet: `<!-- Basic labeled input -->
 <fvdr-input
@@ -380,6 +416,15 @@ const dropdown: ComponentDocEntry = {
     { token: '--radius-md',                 value: '8px',     usage: 'Floating panel border-radius' },
     { token: '--radius-sm',                 value: '4px',     usage: 'Trigger border-radius' },
   ],
+  states: [
+    { name: 'Default (closed)', description: 'Shows selected value (or placeholder). Chevron points down.' },
+    { name: 'Open',    description: 'Dropdown panel appears below (or above if near viewport edge). Chevron flips up.' },
+    { name: 'Hover',   description: 'Option row highlights with --color-hover-bg on mouse-over.' },
+    { name: 'Selected', description: 'Active option shown with checkmark and --color-primary-500 text.' },
+    { name: 'Disabled', description: 'Trigger field dims. Panel cannot be opened.' },
+    { name: 'Search',  description: 'When searchable=true, a text input filters options in real time.' },
+  ],
+  relatedComponents: ['multiselect', 'droplist', 'input'],
   usedIn: ['Settings Integrations (provider select)', 'Activity Log (filter bar)', 'API Keys (scope select)'],
   codeSnippet: `<!-- Basic dropdown -->
 <fvdr-dropdown
@@ -461,6 +506,14 @@ const toggle: ComponentDocEntry = {
     { token: '--color-text-disabled',       value: '#9b9da6', usage: 'Label color when disabled' },
     { token: '--radius-full',               value: '9999px',  usage: 'Track and thumb border-radius' },
   ],
+  states: [
+    { name: 'Off (default)', description: 'Track is grey (--color-stone-400). Thumb sits on the left.' },
+    { name: 'On',           description: 'Track fills with --color-interactive-primary. Thumb slides right with a smooth 200ms transition.' },
+    { name: 'Hover',        description: 'A subtle shadow ring appears around the thumb, signalling interactivity.' },
+    { name: 'Focused',      description: 'Keyboard focus ring shown around the entire control for accessibility.' },
+    { name: 'Disabled',     description: 'Opacity drops to 0.4; the toggle cannot be changed.' },
+  ],
+  relatedComponents: ['checkbox', 'radio'],
   usedIn: ['Settings Integrations (enable toggle)', 'Settings (notification toggles)'],
   codeSnippet: `<!-- Basic toggle -->
 <fvdr-toggle label="Enable notifications" formControlName="notifications"></fvdr-toggle>
@@ -521,6 +574,15 @@ const checkbox: ComponentDocEntry = {
     { token: '--color-text-disabled',       value: '#9b9da6', usage: 'Label and box color when disabled' },
     { token: '--radius-sm',                 value: '4px',     usage: 'Box border-radius' },
   ],
+  states: [
+    { name: 'Unchecked', description: 'Empty box with --color-border-input border. Default resting state.' },
+    { name: 'Checked',   description: 'Box fills with --color-interactive-primary. White checkmark icon appears inside.' },
+    { name: 'Indeterminate', description: 'Partial selection state — dash icon instead of checkmark. Used in parent rows of trees or select-all.' },
+    { name: 'Hover',     description: 'Border darkens slightly and background tints on mouse-over.' },
+    { name: 'Focused',   description: 'Outline ring visible for keyboard navigation.' },
+    { name: 'Disabled',  description: 'Box dims; cannot be toggled. Checked/unchecked state is preserved visually.' },
+  ],
+  relatedComponents: ['toggle', 'radio'],
   usedIn: ['Activity Log (bulk select)', 'Settings (permission checkboxes)', 'Deal Room (item selection)'],
   codeSnippet: `<!-- Basic checkbox -->
 <fvdr-checkbox label="I agree to the Terms of Service" formControlName="agree"></fvdr-checkbox>
@@ -583,6 +645,13 @@ const tabs: ComponentDocEntry = {
     { token: '--color-hover-bg',            value: '#eef0f8', usage: 'Tab item hover background' },
     { token: '--font-size-base',            value: '14px',    usage: 'Tab label font-size' },
   ],
+  states: [
+    { name: 'Default',  description: 'Inactive tab — label in --color-text-secondary, no underline.' },
+    { name: 'Active',   description: 'Selected tab — label turns --color-text-primary, green underline border appears.' },
+    { name: 'Hover',    description: 'Background tints with --color-hover-bg; label darkens.' },
+    { name: 'Disabled', description: 'Tab is dimmed and cannot be selected. Useful for permissions-based hiding.' },
+  ],
+  relatedComponents: ['segment'],
   usedIn: ['Settings (General / Security / Billing tabs)', 'API Keys', 'DS Showcase'],
   codeSnippet: `<!-- Declarative tabs with projected content -->
 <fvdr-tabs [activeTab]="activeTab" (tabChange)="activeTab = $event">
@@ -644,6 +713,13 @@ const status: ComponentDocEntry = {
     { token: '--font-size-sm',              value: '13px',    usage: 'Label font-size' },
     { token: '--radius-full',               value: '9999px',  usage: 'Dot border-radius' },
   ],
+  states: [
+    { name: 'Preparation', description: 'Yellow pill — item is being set up or in draft.' },
+    { name: 'Live',        description: 'Green pill — active and running.' },
+    { name: 'Locked',      description: 'Grey pill — read-only or access restricted.' },
+    { name: 'Archived',    description: 'Dark pill — no longer active; kept for record.' },
+  ],
+  relatedComponents: ['badge', 'chip'],
   usedIn: ['Settings Integrations (connection status)', 'API Keys (key status)', 'Activity Log'],
   codeSnippet: `<!-- Active -->
 <fvdr-status state="active"   label="Active"></fvdr-status>
@@ -705,6 +781,14 @@ const modal: ComponentDocEntry = {
     { token: '--space-6',               value: '24px',                usage: 'Dialog padding and footer margin-top' },
     { token: '--space-2',               value: '8px',                 usage: 'Footer gap between action buttons' },
   ],
+  states: [
+    { name: 'Closed',    description: 'Modal is not rendered. No overlay; page is fully interactive.' },
+    { name: 'Opening',   description: '150ms fade-in + slight scale-up animation for the panel.' },
+    { name: 'Open',      description: 'Overlay dims the background. Focus is trapped inside the modal.' },
+    { name: 'Loading',   description: 'Confirm button shows spinner; both buttons disabled until action resolves.' },
+    { name: 'Closing',   description: 'Reverse animation on confirm, cancel, overlay click, or Escape key.' },
+  ],
+  relatedComponents: ['button', 'dropdown'],
   usedIn: ['Delete Account', 'API Keys (revoke confirmation)', 'Settings Integrations (disconnect dialog)'],
   codeSnippet: `<!-- Confirmation modal (template-driven) -->
 <fvdr-modal

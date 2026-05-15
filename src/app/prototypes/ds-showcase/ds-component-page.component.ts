@@ -234,6 +234,160 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
             </div>
           </ng-container>
 
+          <!-- DROPDOWN -->
+          <ng-container *ngSwitchCase="'dropdown'">
+            <div class="anatomy-wrap anatomy-wrap--dropdown">
+              <!-- Trigger (closed) -->
+              <div class="mock-dropdown">
+                <div class="mock-dropdown__trigger">
+                  <span class="mock-dropdown__value">Select option</span>
+                  <fvdr-icon name="chevron-down" style="font-size:14px;color:var(--color-text-secondary)"></fvdr-icon>
+                </div>
+                <!-- Floating panel -->
+                <div class="mock-dropdown__panel">
+                  <div class="mock-dropdown__option">Option A</div>
+                  <div class="mock-dropdown__option mock-dropdown__option--selected">
+                    Option B
+                    <fvdr-icon name="check" style="font-size:14px;color:var(--color-primary-500);margin-left:auto"></fvdr-icon>
+                  </div>
+                  <div class="mock-dropdown__option">Option C</div>
+                </div>
+              </div>
+              <!-- Labels -->
+              <div class="anatomy-label anatomy-label--left"  style="left:-72px;top:10px">trigger</div>
+              <div class="anatomy-label anatomy-label--right" style="right:-64px;top:10px">chevron</div>
+              <div class="anatomy-label anatomy-label--right" style="right:-56px;top:70px">panel</div>
+              <div class="anatomy-label anatomy-label--right" style="right:-72px;top:104px">selected</div>
+              <!-- Dimensions -->
+              <div class="dim-v" style="left:-22px;top:0;height:40px">40px</div>
+              <div class="dim-v" style="left:-22px;top:52px;height:36px">36px</div>
+              <div class="dim-h" style="bottom:-28px;left:0;width:12px">12</div>
+              <div class="dim-h" style="bottom:-28px;right:0;width:12px">12</div>
+            </div>
+          </ng-container>
+
+          <!-- TOGGLE -->
+          <ng-container *ngSwitchCase="'toggle'">
+            <div class="anatomy-wrap anatomy-wrap--toggle">
+              <div class="mock-toggle-group">
+                <!-- OFF state -->
+                <div class="mock-toggle-row">
+                  <div class="mock-toggle mock-toggle--off">
+                    <div class="mock-toggle__thumb"></div>
+                  </div>
+                  <span class="mock-toggle__label">Off</span>
+                </div>
+                <!-- ON state -->
+                <div class="mock-toggle-row">
+                  <div class="mock-toggle mock-toggle--on">
+                    <div class="mock-toggle__thumb mock-toggle__thumb--on"></div>
+                  </div>
+                  <span class="mock-toggle__label">Enabled</span>
+                </div>
+              </div>
+              <!-- Labels -->
+              <div class="anatomy-label anatomy-label--top"  style="top:-42px;left:8px">track</div>
+              <div class="anatomy-label anatomy-label--top"  style="top:-42px;left:4px;margin-left:24px">thumb</div>
+              <div class="anatomy-label anatomy-label--right" style="right:-56px;top:50%;transform:translateY(-50%)">label</div>
+              <!-- Dimensions -->
+              <div class="dim-h" style="bottom:-28px;left:0;width:36px">36px</div>
+              <div class="dim-v" style="right:-36px;top:8px;height:20px">20px</div>
+              <div class="dim-label" style="top:10px;left:12px">16px</div>
+            </div>
+          </ng-container>
+
+          <!-- CHECKBOX -->
+          <ng-container *ngSwitchCase="'checkbox'">
+            <div class="anatomy-wrap anatomy-wrap--checkbox">
+              <div class="mock-checkbox-group">
+                <div class="mock-checkbox-row">
+                  <div class="mock-checkbox mock-checkbox--unchecked"></div>
+                  <span class="mock-checkbox-label">Unchecked</span>
+                </div>
+                <div class="mock-checkbox-row">
+                  <div class="mock-checkbox mock-checkbox--checked">
+                    <fvdr-icon name="check" style="font-size:11px;color:#fff"></fvdr-icon>
+                  </div>
+                  <span class="mock-checkbox-label">Checked</span>
+                </div>
+                <div class="mock-checkbox-row">
+                  <div class="mock-checkbox mock-checkbox--indeterminate">
+                    <fvdr-icon name="minus" style="font-size:11px;color:#fff"></fvdr-icon>
+                  </div>
+                  <span class="mock-checkbox-label">Indeterminate</span>
+                </div>
+              </div>
+              <!-- Labels -->
+              <div class="anatomy-label anatomy-label--left"  style="left:-48px;top:50%;transform:translateY(-50%)">box</div>
+              <div class="anatomy-label anatomy-label--right" style="right:-56px;top:50%;transform:translateY(-50%)">label</div>
+              <!-- Dimensions -->
+              <div class="dim-v" style="left:-18px;top:8px;height:18px">18px</div>
+              <div class="dim-h" style="bottom:-28px;left:0;width:18px">18px</div>
+              <div class="dim-h" style="bottom:-28px;left:26px;width:8px">8</div>
+            </div>
+          </ng-container>
+
+          <!-- TABS -->
+          <ng-container *ngSwitchCase="'tabs'">
+            <div class="anatomy-wrap anatomy-wrap--tabs">
+              <div class="mock-tabs">
+                <div class="mock-tabs__bar">
+                  <div class="mock-tab">General</div>
+                  <div class="mock-tab mock-tab--active">Security</div>
+                  <div class="mock-tab">Billing</div>
+                </div>
+                <div class="mock-tabs__indicator" style="left:88px;width:72px"></div>
+                <div class="mock-tabs__content">
+                  <div class="mock-tabs__body">Tab content goes here</div>
+                </div>
+              </div>
+              <!-- Labels -->
+              <div class="anatomy-label anatomy-label--top"  style="top:-42px;left:8px">container</div>
+              <div class="anatomy-label anatomy-label--top"  style="top:-42px;right:8px">tab item</div>
+              <div class="anatomy-label anatomy-label--left"  style="left:-80px;top:36px">indicator</div>
+              <div class="anatomy-label anatomy-label--bottom" style="bottom:-42px;left:50%;transform:translateX(-50%)">content</div>
+              <!-- Dimensions -->
+              <div class="dim-v" style="left:-18px;top:0;height:40px">40px</div>
+              <div class="dim-v" style="right:-36px;top:40px;height:80px">content</div>
+              <div class="dim-h" style="bottom:-28px;left:88px;width:72px">active tab</div>
+            </div>
+          </ng-container>
+
+          <!-- STATUS -->
+          <ng-container *ngSwitchCase="'status'">
+            <div class="anatomy-wrap anatomy-wrap--status">
+              <div class="mock-status-group">
+                <div class="mock-status-row">
+                  <div class="mock-status-pill mock-status-pill--preparation">
+                    <span class="mock-status-dot"></span> Preparation
+                  </div>
+                </div>
+                <div class="mock-status-row">
+                  <div class="mock-status-pill mock-status-pill--live">
+                    <span class="mock-status-dot mock-status-dot--live"></span> Live
+                  </div>
+                </div>
+                <div class="mock-status-row">
+                  <div class="mock-status-pill mock-status-pill--locked">
+                    <span class="mock-status-dot mock-status-dot--locked"></span> Locked
+                  </div>
+                </div>
+                <div class="mock-status-row">
+                  <div class="mock-status-pill mock-status-pill--archived">
+                    <span class="mock-status-dot mock-status-dot--archived"></span> Archived
+                  </div>
+                </div>
+              </div>
+              <!-- Labels -->
+              <div class="anatomy-label anatomy-label--left"  style="left:-48px;top:50%;transform:translateY(-50%)">dot</div>
+              <div class="anatomy-label anatomy-label--right" style="right:-56px;top:50%;transform:translateY(-50%)">label</div>
+              <!-- Dimensions -->
+              <div class="dim-h" style="bottom:-28px;left:0;width:8px">8</div>
+              <div class="dim-h" style="bottom:-28px;right:0;width:8px">8</div>
+              <div class="dim-v" style="left:-18px;top:10px;height:24px">24px</div>
+            </div>
+          </ng-container>
+
           <ng-container *ngSwitchDefault>
             <div class="anatomy-preview-empty">Live anatomy preview coming soon for this component.</div>
           </ng-container>
@@ -1014,6 +1168,17 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
       </ng-container>
     </section>
 
+    <!-- 6.5 STATES -->
+    <section class="doc-section" *ngIf="entry.states?.length">
+      <h2 class="doc-section__title">States</h2>
+      <div class="states-grid">
+        <div class="state-card" *ngFor="let s of entry.states">
+          <div class="state-card__name">{{ s.name }}</div>
+          <div class="state-card__desc">{{ s.description }}</div>
+        </div>
+      </div>
+    </section>
+
     <!-- 7. DESIGN TOKENS -->
     <section class="doc-section" *ngIf="entry.tokens.length">
       <h2 class="doc-section__title">Design Tokens</h2>
@@ -1042,7 +1207,33 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
       </div>
     </section>
 
-    <!-- 9. CODE -->
+    <!-- 9. AI PROMPT -->
+    <section class="doc-section ai-prompt-section">
+      <h2 class="doc-section__title">AI Prompt</h2>
+      <p class="ai-prompt-hint">Copy this prompt into Claude Code to implement the component correctly.</p>
+      <div class="ai-prompt-block">
+        <button class="ai-prompt-copy" (click)="copy(entry.claudePrompt)">Copy</button>
+        <pre class="ai-prompt-body">{{ entry.claudePrompt }}</pre>
+      </div>
+    </section>
+
+    <!-- 10. RELATED COMPONENTS -->
+    <section class="doc-section" *ngIf="entry.relatedComponents?.length">
+      <h2 class="doc-section__title">Related components</h2>
+      <div class="related-grid">
+        <a
+          *ngFor="let relId of entry.relatedComponents"
+          class="related-card"
+          [routerLink]="['/ds', relId]"
+        >
+          <div class="related-card__name">{{ getEntryById(relId)?.name ?? relId }}</div>
+          <code class="related-card__selector">{{ getEntryById(relId)?.selector ?? '' }}</code>
+          <div class="related-card__desc">{{ getEntryById(relId)?.description ?? '' }}</div>
+        </a>
+      </div>
+    </section>
+
+    <!-- 11. CODE -->
     <section class="doc-section">
       <h2 class="doc-section__title">Code</h2>
       <div class="code-panels">
@@ -1052,13 +1243,6 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
             <button class="code-panel__copy" (click)="copy(entry.codeSnippet)">Copy</button>
           </div>
           <pre class="code-panel__body">{{ entry.codeSnippet }}</pre>
-        </div>
-        <div class="code-panel">
-          <div class="code-panel__header">
-            <span>Claude Code Prompt</span>
-            <button class="code-panel__copy" (click)="copy(entry.claudePrompt)">Copy</button>
-          </div>
-          <pre class="code-panel__body">{{ entry.claudePrompt }}</pre>
         </div>
       </div>
     </section>
@@ -1583,6 +1767,99 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
     .mock-qa-menu__item--active .mock-qa-menu__icon { color: #2c9c74; }
     .anatomy-wrap--qa-menu { min-height: 200px; }
 
+    /* ── DROPDOWN anatomy ── */
+    .anatomy-wrap--dropdown { width: 220px; }
+    .mock-dropdown { width: 100%; position: relative; }
+    .mock-dropdown__trigger {
+      display: flex; align-items: center; justify-content: space-between;
+      height: 40px; padding: 0 12px;
+      border: 1px solid #bbbdc8; border-radius: 4px;
+      background: #fff; cursor: pointer;
+    }
+    .mock-dropdown__value { font-size: 13px; color: #9c9ea8; }
+    .mock-dropdown__panel {
+      margin-top: 4px; border: 1px solid #dee0eb; border-radius: 8px;
+      background: #fff; overflow: hidden;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    }
+    .mock-dropdown__option {
+      display: flex; align-items: center;
+      height: 36px; padding: 0 12px;
+      font-size: 13px; color: #40424b; cursor: pointer;
+    }
+    .mock-dropdown__option--selected { background: #ebf8ef; color: #2c9c74; font-weight: 500; }
+
+    /* ── TOGGLE anatomy ── */
+    .anatomy-wrap--toggle { width: 160px; }
+    .mock-toggle-group { display: flex; flex-direction: column; gap: 16px; }
+    .mock-toggle-row { display: flex; align-items: center; gap: 10px; }
+    .mock-toggle {
+      width: 36px; height: 20px; border-radius: 9999px;
+      background: #dee0eb; position: relative; flex-shrink: 0;
+      transition: background 0.2s;
+    }
+    .mock-toggle--on { background: #2c9c74; }
+    .mock-toggle__thumb {
+      position: absolute; width: 16px; height: 16px; border-radius: 9999px;
+      background: #fff; top: 2px; left: 2px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2); transition: left 0.2s;
+    }
+    .mock-toggle__thumb--on { left: 18px; }
+    .mock-toggle__label { font-size: 13px; color: #40424b; }
+
+    /* ── CHECKBOX anatomy ── */
+    .anatomy-wrap--checkbox { width: 200px; }
+    .mock-checkbox-group { display: flex; flex-direction: column; gap: 14px; }
+    .mock-checkbox-row { display: flex; align-items: center; gap: 10px; }
+    .mock-checkbox {
+      width: 18px; height: 18px; border-radius: 4px;
+      border: 1.5px solid #bbbdc8; background: #fff;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .mock-checkbox--checked, .mock-checkbox--indeterminate {
+      background: #2c9c74; border-color: #2c9c74;
+    }
+    .mock-checkbox-label { font-size: 13px; color: #40424b; }
+
+    /* ── TABS anatomy ── */
+    .anatomy-wrap--tabs { width: 280px; }
+    .mock-tabs { width: 100%; }
+    .mock-tabs__bar {
+      display: flex; border-bottom: 1px solid #dee0eb; position: relative;
+    }
+    .mock-tab {
+      padding: 0 16px; height: 40px; display: flex; align-items: center;
+      font-size: 13px; color: #73757f; cursor: pointer; position: relative;
+    }
+    .mock-tab--active { color: #1f2129; font-weight: 500; }
+    .mock-tab--active::after {
+      content: ''; position: absolute; bottom: -1px; left: 0; right: 0;
+      height: 2px; background: #2c9c74; border-radius: 1px;
+    }
+    .mock-tabs__content {
+      padding: 16px; background: #fafafa; border-radius: 0 0 8px 8px;
+      min-height: 60px;
+    }
+    .mock-tabs__body { font-size: 12px; color: #9c9ea8; }
+
+    /* ── STATUS anatomy ── */
+    .anatomy-wrap--status { width: 160px; }
+    .mock-status-group { display: flex; flex-direction: column; gap: 10px; }
+    .mock-status-row { display: flex; }
+    .mock-status-pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 4px 10px; border-radius: 9999px;
+      font-size: 12px; font-weight: 500;
+    }
+    .mock-status-pill--preparation { background: #fff8cc; color: #a07800; }
+    .mock-status-pill--live        { background: #ebf8ef; color: #1c8269; }
+    .mock-status-pill--locked      { background: #f0f0f3; color: #5f616a; }
+    .mock-status-pill--archived    { background: #eceef9; color: #40424b; }
+    .mock-status-dot {
+      width: 7px; height: 7px; border-radius: 9999px; background: currentColor;
+      flex-shrink: 0;
+    }
+
     /* ── Navigation example frame — sidebar at natural height ── */
     .nav-example-frame {
       display: flex;
@@ -1829,6 +2106,111 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
       margin: 0;
     }
 
+    /* ── States grid ── */
+    .states-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: var(--space-3);
+    }
+    .state-card {
+      border: 1px solid var(--color-divider);
+      border-radius: var(--radius-md);
+      padding: var(--space-4);
+      background: var(--color-stone-100);
+    }
+    .state-card__name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--color-text-primary);
+      margin-bottom: var(--space-2);
+    }
+    .state-card__desc {
+      font-size: 13px;
+      color: var(--color-text-secondary);
+      line-height: 1.55;
+    }
+
+    /* ── AI Prompt ── */
+    .ai-prompt-hint {
+      font-size: 13px;
+      color: var(--color-text-secondary);
+      margin: 0 0 var(--space-3);
+    }
+    .ai-prompt-block {
+      position: relative;
+      background: #1a1d21;
+      border-radius: var(--radius-md);
+      overflow: hidden;
+    }
+    .ai-prompt-copy {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: rgba(255,255,255,0.12);
+      color: #e5e7eb;
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: var(--radius-sm);
+      padding: 4px 12px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .ai-prompt-copy:hover { background: rgba(255,255,255,0.22); }
+    .ai-prompt-body {
+      background: transparent;
+      color: #e5e7eb;
+      font-family: 'Menlo', 'Courier New', monospace;
+      font-size: 12px;
+      line-height: 1.6;
+      padding: 44px 16px 16px;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+      margin: 0;
+    }
+
+    /* ── Related components ── */
+    .related-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: var(--space-3);
+    }
+    .related-card {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      border: 1px solid var(--color-divider);
+      border-radius: var(--radius-md);
+      padding: var(--space-4);
+      text-decoration: none;
+      background: var(--color-stone-0);
+      transition: border-color 0.15s, box-shadow 0.15s;
+      cursor: pointer;
+    }
+    .related-card:hover {
+      border-color: var(--color-primary-500);
+      box-shadow: 0 2px 8px rgba(44,156,116,0.1);
+    }
+    .related-card__name {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--color-text-primary);
+    }
+    .related-card__selector {
+      font-size: 11px;
+      color: var(--color-primary-500);
+      font-family: monospace;
+    }
+    .related-card__desc {
+      font-size: 12px;
+      color: var(--color-text-secondary);
+      line-height: 1.5;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
     @media (max-width: 768px) {
       .code-panels {
         grid-template-columns: 1fr;
@@ -1837,6 +2219,9 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
         grid-template-columns: 1fr;
       }
       .anatomy-container {
+        grid-template-columns: 1fr;
+      }
+      .states-grid, .related-grid {
         grid-template-columns: 1fr;
       }
     }
@@ -2177,5 +2562,9 @@ export class DsComponentPageComponent implements OnInit, OnDestroy {
 
   isColorToken(value: string): boolean {
     return value.startsWith('#') || value.startsWith('rgb');
+  }
+
+  getEntryById(id: string): ComponentDocEntry | undefined {
+    return DS_REGISTRY.find(e => e.id === id);
   }
 }

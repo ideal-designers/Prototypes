@@ -28,7 +28,14 @@ import type { ComponentDocEntry } from './ds-registry';
       <!-- Sidebar nav -->
       <nav class="showcase__nav">
         <div class="showcase__nav-logo">DS Components</div>
-        <a *ngFor="let s of sections" class="showcase__nav-link" href="javascript:void(0)" (click)="scrollTo(s.id)">{{ s.label }}</a>
+        <ng-container *ngFor="let cat of catalogGroups">
+          <div class="showcase__nav-category">{{ cat.label }}</div>
+          <a
+            *ngFor="let item of cat.items"
+            class="showcase__nav-link"
+            [routerLink]="['/ds', item.id]"
+          >{{ item.name }}</a>
+        </ng-container>
       </nav>
 
       <!-- Content -->
@@ -648,6 +655,16 @@ import type { ComponentDocEntry } from './ds-registry';
       transition: background 0.1s, color 0.1s;
     }
     .showcase__nav-link:hover { background: var(--color-hover-bg); color: var(--color-text-primary); }
+    .showcase__nav-category {
+      padding: var(--space-3) var(--space-4) var(--space-1);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--color-text-placeholder);
+      margin-top: var(--space-2);
+    }
+    .showcase__nav-category:first-of-type { margin-top: 0; }
 
     /* ── Main ── */
     .showcase__main {

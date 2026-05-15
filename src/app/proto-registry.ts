@@ -77,5 +77,11 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
     status: 'wip',
     description: 'Preview the Documents page as a specific bidder — green banner, highlighted rows, and an auto-dismissing Download popover with a pie timer',
   },
+  {
+    slug: 'timezone-picker',
+    title: 'Timezone Picker',
+    status: 'live',
+    description: 'Timezone selector built on fvdr-dropdown — auto-detect, live clock, alias search, UTC offsets',
+  },
   // REGISTRY_PLACEHOLDER
 ];

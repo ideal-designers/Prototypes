@@ -15,7 +15,20 @@ interface TreeItem {
   index: string;
   name: string;
   type: 'folder' | 'xlsx' | 'pdf' | 'doc';
-  perms: number[]; // index = group, value = level 0–7
+  perms: number[]; // index = groupIdx (0–5), value = level 0–7
+}
+
+interface GroupUser {
+  id: number;
+  name: string;
+  initials: string;
+}
+
+interface Group {
+  id: number;       // matches perms[] index
+  name: string;
+  color: string | null;
+  users: GroupUser[];
 }
 
 const PERM_COLS = [
@@ -27,6 +40,31 @@ const PERM_COLS = [
   { label: 'Upload',    icon: 'perm-upload'    },
   { label: 'Manage',    icon: 'perm-manage'    },
 ] as const;
+
+const GROUPS: Group[] = [
+  { id: 0, name: 'All groups', color: null, users: [] },
+  { id: 1, name: 'White Co.',  color: '#EB5DB0', users: [
+    { id: 101, name: 'Nina Ross',   initials: 'NR' },
+    { id: 102, name: 'Ryan Cook',   initials: 'RC' },
+  ]},
+  { id: 2, name: 'Yellow Co.', color: '#D1B200', users: [
+    { id: 201, name: 'Anna Miller', initials: 'AM' },
+    { id: 202, name: 'John Smith',  initials: 'JS' },
+    { id: 203, name: 'Kate Brown',  initials: 'KB' },
+  ]},
+  { id: 3, name: 'Red Co.',    color: '#E54430', users: [
+    { id: 301, name: 'Mark Davis',  initials: 'MD' },
+    { id: 302, name: 'Sarah Wilson',initials: 'SW' },
+  ]},
+  { id: 4, name: 'Green Co.',  color: '#2C9C74', users: [
+    { id: 401, name: 'Tom Clark',   initials: 'TC' },
+    { id: 402, name: 'Lisa Lee',    initials: 'LL' },
+  ]},
+  { id: 5, name: 'Blue co.',   color: '#358CEB', users: [
+    { id: 501, name: 'Peter Hall',  initials: 'PH' },
+    { id: 502, name: 'Chris Tan',   initials: 'CT' },
+  ]},
+];
 
 @Component({
   selector: 'fvdr-permission-search',
@@ -84,105 +122,200 @@ const PERM_COLS = [
           <!-- Panels -->
           <div class="panels">
 
-            <!-- Tree panel -->
+            <!-- ── LEFT PANEL ───────────────────────────────── -->
             <div class="tree-panel">
               <div class="tree-hdr">
-                <span class="tree-hdr-title">Documents</span>
-                <button class="tool-link tool-link--sm">
-                  <fvdr-icon name="share" />
-                  By groups
+                <span class="tree-hdr-title">{{ leftPanelTitle }}</span>
+                <button class="tool-link tool-link--sm" (click)="toggleViewMode()">
+                  <fvdr-icon [name]="viewMode === 'by-groups' ? 'users-groups' : 'documents'" />
+                  {{ viewMode === 'by-groups' ? 'By groups' : 'By documents' }}
                 </button>
               </div>
 
-              <div class="search-wrap">
-                <fvdr-search [(ngModel)]="searchQuery" placeholder="Search" />
-              </div>
-
-              <div class="tree-list">
-                <!-- Pinned item (selected with unsaved changes while searching) -->
-                <ng-container *ngIf="pinnedItem">
-                  <div class="tree-item tree-item--selected"
-                       (click)="selectItem(pinnedItem!.id)">
-                    <div class="tree-item-body">
-                      <fvdr-file-icon [type]="fileType(pinnedItem!.type)" />
-                      <span class="item-idx">{{ pinnedItem!.index }}</span>
-                      <span class="item-name"
-                            [innerHTML]="highlight(pinnedItem!.name)"></span>
-                      <span class="item-dot"></span>
+              <!-- By groups: document search + tree -->
+              <ng-container *ngIf="viewMode === 'by-groups'">
+                <div class="search-wrap">
+                  <fvdr-search [(ngModel)]="searchQuery" placeholder="Search" />
+                </div>
+                <div class="tree-list">
+                  <ng-container *ngIf="pinnedItem">
+                    <div class="tree-item tree-item--selected"
+                         (click)="selectItem(pinnedItem!.id)">
+                      <div class="tree-item-body">
+                        <fvdr-file-icon [type]="fileType(pinnedItem!.type)" />
+                        <span class="item-idx">{{ pinnedItem!.index }}</span>
+                        <span class="item-name"
+                              [innerHTML]="highlight(pinnedItem!.name)"></span>
+                        <span class="item-dot"></span>
+                      </div>
                     </div>
-                  </div>
-                  <div class="tree-divider"></div>
-                </ng-container>
-
-                <!-- Filtered items -->
-                <ng-container *ngIf="filteredItems.length; else emptyTpl">
-                  <div *ngFor="let item of filteredItems"
-                       class="tree-item"
-                       [class.tree-item--selected]="item.id === selectedId"
-                       (click)="selectItem(item.id)">
-                    <div class="tree-item-body">
-                      <fvdr-file-icon [type]="fileType(item.type)" />
-                      <span class="item-idx">{{ item.index }}</span>
-                      <span class="item-name"
-                            [innerHTML]="highlight(item.name)"></span>
-                      <span *ngIf="pendingPerms[item.id]" class="item-dot"></span>
+                    <div class="tree-divider"></div>
+                  </ng-container>
+                  <ng-container *ngIf="filteredItems.length; else emptyTpl">
+                    <div *ngFor="let item of filteredItems"
+                         class="tree-item"
+                         [class.tree-item--selected]="item.id === selectedDocId"
+                         (click)="selectItem(item.id)">
+                      <div class="tree-item-body">
+                        <fvdr-file-icon [type]="fileType(item.type)" />
+                        <span class="item-idx">{{ item.index }}</span>
+                        <span class="item-name"
+                              [innerHTML]="highlight(item.name)"></span>
+                        <span *ngIf="pendingPerms[item.id]" class="item-dot"></span>
+                      </div>
                     </div>
-                  </div>
-                </ng-container>
+                  </ng-container>
+                  <ng-template #emptyTpl>
+                    <div class="tree-empty">
+                      {{ pinnedItem ? 'No other matches found' : 'No matches found' }}
+                    </div>
+                  </ng-template>
+                </div>
+              </ng-container>
 
-                <ng-template #emptyTpl>
-                  <div *ngIf="!pinnedItem" class="tree-empty">No matches found</div>
-                  <div *ngIf="pinnedItem" class="tree-empty">No other matches found</div>
-                </ng-template>
-              </div>
+              <!-- By documents: groups list with colors + expand -->
+              <ng-container *ngIf="viewMode === 'by-documents'">
+                <div class="tree-list">
+                  <ng-container *ngFor="let g of groupsForPanel">
+                    <!-- Group row -->
+                    <div class="tree-item group-item"
+                         [class.tree-item--selected]="selectedGroupIdx === g.id"
+                         (click)="selectGroup(g.id)">
+                      <button *ngIf="g.users.length"
+                              class="expand-btn"
+                              (click)="$event.stopPropagation(); toggleGroupExpand(g.id)">
+                        <fvdr-icon name="chevron-right"
+                                   [class.chevron-open]="isGroupExpanded(g.id)" />
+                      </button>
+                      <span *ngIf="!g.users.length" class="expand-gap"></span>
+                      <fvdr-icon name="participants"
+                                 [style.color]="g.color ?? 'var(--color-text-secondary)'" />
+                      <span class="item-name">{{ g.name }}</span>
+                    </div>
+                    <!-- User sub-rows -->
+                    <ng-container *ngIf="isGroupExpanded(g.id)">
+                      <div *ngFor="let u of g.users"
+                           class="tree-item tree-item--user"
+                           [class.tree-item--selected]="selectedGroupIdx === g.id">
+                        <span class="expand-gap"></span>
+                        <fvdr-avatar [initials]="u.initials" size="sm"
+                                     [color]="g.color ?? '#9C9EA8'"
+                                     textColor="#fff" />
+                        <span class="item-name">{{ u.name }}</span>
+                      </div>
+                    </ng-container>
+                  </ng-container>
+                </div>
+              </ng-container>
             </div>
 
-            <!-- Permission table -->
+            <!-- ── RIGHT PANEL: row-based permission table ─── -->
             <div class="perm-table">
 
-              <!-- Expand col -->
-              <div class="col-expand">
-                <div class="th-expand"></div>
-                <div *ngFor="let g of groups; let gi = index" class="td-expand">
-                  <fvdr-icon *ngIf="gi > 0" name="chevron-right" />
+              <!-- Header row -->
+              <div class="pt-header">
+                <div class="pt-expand-cell"></div>
+                <div class="pt-entity-cell pt-entity-hdr">
+                  {{ viewMode === 'by-groups' ? 'Groups' : 'Documents' }}
                 </div>
-              </div>
-
-              <!-- Groups col -->
-              <div class="col-groups">
-                <div class="th-groups">Groups</div>
-                <div *ngFor="let g of groups; let gi = index" class="td-group">
-                  <fvdr-icon name="participants" />
-                  <span>{{ g }}</span>
-                </div>
-              </div>
-
-              <!-- Permission slider col -->
-              <div class="col-sliders">
-                <!-- Header -->
-                <div class="perm-header">
+                <div class="pt-perm-hdr">
                   <div class="perm-spacer"></div>
                   <div *ngFor="let col of permCols" class="perm-th">
                     <fvdr-icon [name]="col.icon" />
                     <span>{{ col.label }}</span>
                   </div>
                 </div>
-
-                <!-- Rows -->
-                <div *ngFor="let g of groups; let gi = index" class="perm-row">
-                  <div class="slider-track">
-                    <div *ngFor="let pos of sliderRange"
-                         class="slider-block"
-                         [class.s-light]="sliderCls(currentPerms(selectedId)[gi], pos) === 'light'"
-                         [class.s-active]="sliderCls(currentPerms(selectedId)[gi], pos) === 'active'"
-                         [class.s-none]="sliderCls(currentPerms(selectedId)[gi], pos) === 'none'"
-                         (click)="setLevel(gi, pos)">
-                    </div>
-                  </div>
-                </div>
               </div>
 
+              <!-- Scrollable rows -->
+              <div class="pt-rows">
+
+                <!-- ── By groups: group rows + expandable users ── -->
+                <ng-container *ngIf="viewMode === 'by-groups'">
+                  <ng-container *ngFor="let g of groups; let gi = index">
+                    <!-- Group row -->
+                    <div class="pt-row">
+                      <div class="pt-expand-cell">
+                        <button *ngIf="g.users.length"
+                                class="expand-btn"
+                                (click)="toggleGroupExpand(g.id)">
+                          <fvdr-icon name="chevron-right"
+                                     [class.chevron-open]="isGroupExpanded(g.id)" />
+                        </button>
+                      </div>
+                      <div class="pt-entity-cell">
+                        <fvdr-icon name="participants"
+                                   [style.color]="g.color ?? 'var(--color-text-secondary)'" />
+                        <span class="pt-entity-name">{{ g.name }}</span>
+                      </div>
+                      <div class="pt-perm-cell">
+                        <div class="slider-track">
+                          <div *ngFor="let pos of sliderRange"
+                               class="slider-block"
+                               [class.s-light]="sliderCls(getLevel(selectedDocId, gi), pos) === 'light'"
+                               [class.s-active]="sliderCls(getLevel(selectedDocId, gi), pos) === 'active'"
+                               [class.s-none]="sliderCls(getLevel(selectedDocId, gi), pos) === 'none'"
+                               (click)="setLevelByGroup(gi, pos)">
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <!-- User sub-rows (expanded) -->
+                    <ng-container *ngIf="isGroupExpanded(g.id)">
+                      <div *ngFor="let u of g.users" class="pt-row pt-row--user">
+                        <div class="pt-expand-cell"></div>
+                        <div class="pt-entity-cell pt-entity-cell--user">
+                          <fvdr-avatar [initials]="u.initials" size="sm"
+                                       [color]="g.color ?? '#9C9EA8'"
+                                       textColor="#fff" />
+                          <span class="pt-entity-name">{{ u.name }}</span>
+                        </div>
+                        <div class="pt-perm-cell">
+                          <div class="slider-track slider-track--ro">
+                            <div *ngFor="let pos of sliderRange"
+                                 class="slider-block"
+                                 [class.s-light]="sliderCls(getLevel(selectedDocId, gi), pos) === 'light'"
+                                 [class.s-active]="sliderCls(getLevel(selectedDocId, gi), pos) === 'active'"
+                                 [class.s-none]="sliderCls(getLevel(selectedDocId, gi), pos) === 'none'">
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </ng-container>
+                  </ng-container>
+                </ng-container>
+
+                <!-- ── By documents: document rows ── -->
+                <ng-container *ngIf="viewMode === 'by-documents'">
+                  <div *ngFor="let item of treeItems" class="pt-row">
+                    <div class="pt-expand-cell">
+                      <fvdr-icon *ngIf="item.type === 'folder'"
+                                 name="chevron-right"
+                                 style="color: var(--color-text-secondary); font-size: 16px;" />
+                    </div>
+                    <div class="pt-entity-cell">
+                      <fvdr-file-icon [type]="fileType(item.type)" />
+                      <span class="item-idx">{{ item.index }}</span>
+                      <span class="pt-entity-name">{{ item.name }}</span>
+                      <span *ngIf="hasDocPending(item.id)" class="item-dot"></span>
+                    </div>
+                    <div class="pt-perm-cell">
+                      <div class="slider-track">
+                        <div *ngFor="let pos of sliderRange"
+                             class="slider-block"
+                             [class.s-light]="sliderCls(getLevel(item.id, selectedGroupIdx), pos) === 'light'"
+                             [class.s-active]="sliderCls(getLevel(item.id, selectedGroupIdx), pos) === 'active'"
+                             [class.s-none]="sliderCls(getLevel(item.id, selectedGroupIdx), pos) === 'none'"
+                             (click)="setLevelByDoc(item.id, pos)">
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </ng-container>
+
+              </div><!-- /pt-rows -->
             </div><!-- /perm-table -->
+
           </div><!-- /panels -->
         </div><!-- /content -->
       </div><!-- /main -->
@@ -255,7 +388,6 @@ const PERM_COLS = [
       gap: var(--space-4);
       flex-shrink: 0;
     }
-
     .tool-btn {
       display: inline-flex;
       align-items: center;
@@ -266,17 +398,14 @@ const PERM_COLS = [
       border-radius: var(--radius-sm);
       background: var(--color-stone-0);
       font-family: var(--font-family);
-      font-size: var(--text-base-m-size);
-      font-weight: var(--text-base-m-weight);
+      font-size: 14px;
       color: var(--color-text-primary);
       cursor: pointer;
       white-space: nowrap;
       transition: border-color 0.12s;
-      font-size: 14px;
     }
     .tool-btn fvdr-icon { font-size: 16px; color: var(--color-text-secondary); }
     .tool-btn:hover { border-color: var(--color-primary-500); }
-
     .tool-link {
       display: inline-flex;
       align-items: center;
@@ -290,7 +419,7 @@ const PERM_COLS = [
       padding: 0;
     }
     .tool-link fvdr-icon { font-size: 16px; }
-    .tool-link--sm { font-size: var(--text-base-s-size, 13px); }
+    .tool-link--sm { font-size: 13px; }
 
     /* ── Panels ── */
     .panels {
@@ -301,7 +430,7 @@ const PERM_COLS = [
       overflow: hidden;
     }
 
-    /* ── Tree panel ── */
+    /* ── Left / tree panel ── */
     .tree-panel {
       width: 320px;
       flex-shrink: 0;
@@ -310,7 +439,6 @@ const PERM_COLS = [
       gap: var(--space-2);
       overflow: hidden;
     }
-
     .tree-hdr {
       height: 48px;
       background: var(--color-stone-200);
@@ -322,17 +450,15 @@ const PERM_COLS = [
       flex-shrink: 0;
     }
     .tree-hdr-title {
-      font-size: var(--text-label-m-size, 14px);
-      font-weight: var(--text-label-m-weight, 600);
+      font-size: 14px;
+      font-weight: 600;
       color: var(--color-text-primary);
     }
-
     .search-wrap {
       padding: 0 0 var(--space-2);
       flex-shrink: 0;
     }
     .search-wrap fvdr-search { display: block; }
-
     .tree-list {
       flex: 1;
       overflow-y: auto;
@@ -344,9 +470,11 @@ const PERM_COLS = [
       border-radius: 2px;
     }
 
+    /* Tree items (docs + groups) */
     .tree-item {
       display: flex;
       align-items: center;
+      gap: var(--space-2);
       height: 40px;
       padding: 0 var(--space-4);
       border-radius: var(--radius-sm);
@@ -356,7 +484,9 @@ const PERM_COLS = [
     .tree-item:hover { background: var(--color-stone-200); }
     .tree-item--selected { background: var(--color-primary-50); }
     .tree-item--selected:hover { background: var(--color-primary-50); }
+    .tree-item--user { padding-left: calc(var(--space-4) + 16px + var(--space-2)); height: 36px; }
 
+    /* Doc tree items layout */
     .tree-item-body {
       display: flex;
       align-items: center;
@@ -365,18 +495,19 @@ const PERM_COLS = [
       min-width: 0;
     }
     .item-idx {
-      font-size: var(--text-base-m-size);
+      font-size: 14px;
       color: var(--color-text-primary);
       white-space: nowrap;
       flex-shrink: 0;
     }
     .item-name {
-      font-size: var(--text-base-m-size);
+      font-size: 14px;
       color: var(--color-text-primary);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
       flex: 1;
+      min-width: 0;
     }
     :host ::ng-deep .item-name mark {
       background: rgba(44,156,116,0.18);
@@ -387,7 +518,7 @@ const PERM_COLS = [
     }
     .item-dot {
       width: 8px; height: 8px;
-      border-radius: var(--radius-full, 50%);
+      border-radius: 50%;
       background: #f4640c;
       flex-shrink: 0;
       margin-left: auto;
@@ -401,86 +532,133 @@ const PERM_COLS = [
       padding: var(--space-6) var(--space-4);
       text-align: center;
       color: var(--color-text-placeholder);
-      font-size: var(--text-base-m-size);
+      font-size: 14px;
     }
 
-    /* ── Permission table ── */
+    /* Groups in left panel */
+    .group-item { gap: var(--space-1); }
+    .group-item fvdr-icon { font-size: 16px; flex-shrink: 0; }
+    .expand-gap { width: 20px; flex-shrink: 0; }
+
+    /* ── Expand button (chevron) ── */
+    .expand-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+      background: none;
+      border: none;
+      cursor: pointer;
+      border-radius: var(--radius-sm);
+      color: var(--color-text-secondary);
+      font-size: 14px;
+      padding: 0;
+      transition: background 0.1s;
+    }
+    .expand-btn:hover { background: var(--color-stone-300); }
+    .expand-btn fvdr-icon { transition: transform 0.18s ease; }
+    .expand-btn fvdr-icon.chevron-open { transform: rotate(90deg); }
+
+    /* ── Permission table (row-based) ── */
     .perm-table {
       flex: 1;
       min-width: 0;
       display: flex;
+      flex-direction: column;
       overflow: hidden;
-      align-self: flex-start;
     }
 
-    /* Expand col */
-    .col-expand {
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-2);
-      flex-shrink: 0;
-    }
-    .th-expand {
-      width: 32px; height: 48px;
-      background: var(--color-stone-200);
-      border-radius: var(--radius-sm) 0 0 var(--radius-sm);
-    }
-    .td-expand {
-      width: 32px; height: 40px;
-      display: flex; align-items: center;
-      padding-left: var(--space-4);
-      color: var(--color-text-secondary);
-      font-size: 16px;
-    }
-
-    /* Groups col */
-    .col-groups {
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-2);
-      flex-shrink: 0;
-    }
-    .th-groups {
+    /* Header row */
+    .pt-header {
       height: 48px;
+      min-height: 48px;
       background: var(--color-stone-200);
-      display: flex;
-      align-items: center;
-      padding: 0 var(--space-4);
-      font-size: var(--text-label-m-size, 14px);
-      font-weight: var(--text-label-m-weight, 600);
-      color: var(--color-text-primary);
-      white-space: nowrap;
-    }
-    .td-group {
-      height: 40px;
-      display: flex;
-      align-items: center;
-      gap: var(--space-2);
-      padding: 0 var(--space-4);
-      font-size: var(--text-base-m-size);
-      color: var(--color-text-primary);
-      white-space: nowrap;
-    }
-    .td-group fvdr-icon { font-size: 16px; color: var(--color-text-secondary); flex-shrink: 0; }
-
-    /* Sliders col */
-    .col-sliders {
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-2);
-      flex-shrink: 0;
-    }
-    .perm-header {
-      height: 48px;
-      background: var(--color-stone-200);
+      border-radius: var(--radius-sm);
       display: flex;
       align-items: stretch;
-      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      flex-shrink: 0;
+    }
+
+    /* Scrollable rows wrapper */
+    .pt-rows {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+    .pt-rows::-webkit-scrollbar { width: 4px; }
+    .pt-rows::-webkit-scrollbar-track { background: transparent; }
+    .pt-rows::-webkit-scrollbar-thumb {
+      background: var(--color-divider);
+      border-radius: 2px;
+    }
+
+    /* Data row */
+    .pt-row {
+      display: flex;
+      align-items: center;
+      height: 40px;
+      min-height: 40px;
+      transition: background 0.1s;
+    }
+    .pt-row:hover { background: var(--color-stone-100); }
+    .pt-row--user {
+      height: 36px;
+      min-height: 36px;
+      background: var(--color-stone-100);
+    }
+    .pt-row--user:hover { background: var(--color-stone-200); }
+
+    /* Expand cell */
+    .pt-expand-cell {
+      width: 32px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Entity cell (groups name / doc name) */
+    .pt-entity-cell {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      padding: 0 var(--space-3);
+      overflow: hidden;
+    }
+    .pt-entity-cell fvdr-icon { font-size: 16px; flex-shrink: 0; }
+    .pt-entity-hdr {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--color-text-primary);
+      padding: 0 var(--space-4);
+    }
+    .pt-entity-cell--user {
+      padding-left: calc(var(--space-3) + 8px);
+    }
+    .pt-entity-name {
+      font-size: 14px;
+      color: var(--color-text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      flex: 1;
+      min-width: 0;
+    }
+
+    /* Perm header (icons + labels) */
+    .pt-perm-hdr {
+      display: flex;
+      align-items: stretch;
+      flex-shrink: 0;
     }
     .perm-spacer {
-      width: var(--space-4);
+      width: var(--space-2);
       flex-shrink: 0;
-      background: var(--color-stone-200);
     }
     .perm-th {
       width: 62px;
@@ -490,6 +668,7 @@ const PERM_COLS = [
       justify-content: center;
       gap: 2px;
       padding: var(--space-1) 0;
+      flex-shrink: 0;
     }
     .perm-th fvdr-icon { font-size: 16px; color: var(--color-text-primary); }
     .perm-th span {
@@ -499,11 +678,12 @@ const PERM_COLS = [
       white-space: nowrap;
     }
 
-    .perm-row {
-      height: 40px;
+    /* Perm cell (slider) */
+    .pt-perm-cell {
+      flex-shrink: 0;
       display: flex;
       align-items: center;
-      padding: 0 var(--space-1);
+      padding: 0 var(--space-2);
     }
     .slider-track {
       height: 16px;
@@ -511,6 +691,7 @@ const PERM_COLS = [
       border-radius: var(--radius-sm);
       overflow: hidden;
     }
+    .slider-track--ro { opacity: 0.55; pointer-events: none; }
     .slider-block {
       width: 62px; height: 16px;
       border: 1px solid var(--color-stone-500);
@@ -525,7 +706,6 @@ const PERM_COLS = [
     }
     .slider-block:last-child { border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
     .slider-block:hover { filter: brightness(0.88); }
-
     .s-light  { background: #7fdea5; }
     .s-active { background: var(--color-primary-500); }
     .s-none   { background: var(--color-stone-300); }
@@ -533,9 +713,7 @@ const PERM_COLS = [
     /* ── Save bar ── */
     .save-bar {
       position: fixed;
-      bottom: 0;
-      right: 0;
-      left: 72px;
+      bottom: 0; right: 0; left: 72px;
       background: var(--color-stone-0);
       border-top: 1px solid var(--color-divider);
       display: none;
@@ -552,8 +730,11 @@ export class PermissionSearchComponent implements OnInit, OnDestroy {
 
   sidebarCollapsed = true;
   searchQuery = '';
-  selectedId = 1;
+  selectedDocId = 1;
+  selectedGroupIdx = 2; // Yellow Co. selected by default in "By documents" mode
+  viewMode: 'by-groups' | 'by-documents' = 'by-groups';
   pendingPerms: Record<number, number[]> = {};
+  private expandedGroupIds = new Set<number>();
 
   readonly navItems: SidebarNavItem[] = [
     { id: 'documents',   label: 'Documents',   icon: 'documents',       iconActive: 'documents-active'       },
@@ -574,31 +755,90 @@ export class PermissionSearchComponent implements OnInit, OnDestroy {
     { id: 8, index: '8',   name: 'Registration with tax authorities',   type: 'doc',    perms: [6,7,5,4,3,6] },
   ];
 
-  readonly groups = ['All groups', 'White Co.', 'Yellow Co.', 'Red Co.', 'Green Co.', 'Blue co.'];
+  readonly groups = GROUPS;
   readonly permCols = PERM_COLS;
   readonly sliderRange = Array.from({ length: 7 }, (_, i) => i + 1);
 
-  get selectedItem(): TreeItem { return this.treeItems.find(t => t.id === this.selectedId)!; }
+  /** Groups shown in "By documents" left panel (skip "All groups") */
+  get groupsForPanel(): Group[] {
+    return GROUPS.filter(g => g.id !== 0);
+  }
+
+  get leftPanelTitle(): string {
+    return this.viewMode === 'by-groups' ? 'Documents' : 'Groups';
+  }
+
+  get selectedDocItem(): TreeItem {
+    return this.treeItems.find(t => t.id === this.selectedDocId)!;
+  }
+
+  get selectedGroup(): Group {
+    return GROUPS.find(g => g.id === this.selectedGroupIdx) ?? GROUPS[0];
+  }
 
   get breadcrumbs() {
-    return [
-      { id: 'permissions', label: 'Permissions' },
-      { id: 'item', label: this.selectedItem?.name ?? '' },
-    ];
+    if (this.viewMode === 'by-groups') {
+      return [
+        { id: 'permissions', label: 'Permissions' },
+        { id: 'item', label: this.selectedDocItem?.name ?? '' },
+      ];
+    } else {
+      return [
+        { id: 'permissions', label: 'Permissions' },
+        { id: 'item', label: 'Documents' },
+      ];
+    }
   }
 
-  get hasUnsavedChanges(): boolean { return Object.keys(this.pendingPerms).length > 0; }
-
-  currentPerms(id: number): number[] {
-    return this.pendingPerms[id] ?? this.treeItems.find(t => t.id === id)!.perms.slice();
+  get hasUnsavedChanges(): boolean {
+    return Object.keys(this.pendingPerms).length > 0;
   }
+
+  /** Returns current permission level for docId + groupIdx */
+  getLevel(docId: number, groupIdx: number): number {
+    const base = this.treeItems.find(t => t.id === docId)!.perms;
+    const overrides = this.pendingPerms[docId] ?? base;
+    return overrides[groupIdx] ?? 0;
+  }
+
+  hasDocPending(docId: number): boolean {
+    return !!this.pendingPerms[docId];
+  }
+
+  /** Group expand/collapse */
+  toggleGroupExpand(groupId: number): void {
+    if (this.expandedGroupIds.has(groupId)) {
+      this.expandedGroupIds.delete(groupId);
+    } else {
+      this.expandedGroupIds.add(groupId);
+    }
+    // trigger change detection
+    this.expandedGroupIds = new Set(this.expandedGroupIds);
+  }
+
+  isGroupExpanded(groupId: number): boolean {
+    return this.expandedGroupIds.has(groupId);
+  }
+
+  /** Mode toggle */
+  toggleViewMode(): void {
+    this.viewMode = this.viewMode === 'by-groups' ? 'by-documents' : 'by-groups';
+    this.expandedGroupIds = new Set();
+  }
+
+  /** "By documents" left panel: select a group */
+  selectGroup(groupId: number): void {
+    this.selectedGroupIdx = groupId;
+  }
+
+  // ── Filtered tree (By groups mode) ───────────────────────
 
   get filteredItems(): TreeItem[] {
     const q = this.searchQuery.trim().toLowerCase();
-    const hasDirty = !!this.pendingPerms[this.selectedId];
+    const hasDirty = !!this.pendingPerms[this.selectedDocId];
     const shouldPin = q && hasDirty;
     return this.treeItems.filter(item => {
-      if (shouldPin && item.id === this.selectedId) return false;
+      if (shouldPin && item.id === this.selectedDocId) return false;
       return !q
         || item.name.toLowerCase().includes(q)
         || item.index.toLowerCase().includes(q);
@@ -607,7 +847,7 @@ export class PermissionSearchComponent implements OnInit, OnDestroy {
 
   get pinnedItem(): TreeItem | null {
     const q = this.searchQuery.trim();
-    return (q && !!this.pendingPerms[this.selectedId]) ? this.selectedItem : null;
+    return (q && !!this.pendingPerms[this.selectedDocId]) ? this.selectedDocItem : null;
   }
 
   highlight(text: string): string {
@@ -619,11 +859,13 @@ export class PermissionSearchComponent implements OnInit, OnDestroy {
   }
 
   fileType(type: string): FvdrFileType {
-    const map: Record<string, FvdrFileType> = { folder: 'folder', xlsx: 'xls', pdf: 'pdf', doc: 'doc' };
+    const map: Record<string, FvdrFileType> = {
+      folder: 'folder', xlsx: 'xls', pdf: 'pdf', doc: 'doc',
+    };
     return map[type] ?? 'placeholder';
   }
 
-  selectItem(id: number): void { this.selectedId = id; }
+  selectItem(id: number): void { this.selectedDocId = id; }
 
   sliderCls(level: number, pos: number): 'light' | 'active' | 'none' {
     if (level === 0) return 'none';
@@ -632,16 +874,31 @@ export class PermissionSearchComponent implements OnInit, OnDestroy {
     return 'none';
   }
 
-  setLevel(groupIndex: number, newLevel: number): void {
-    if (!this.pendingPerms[this.selectedId]) {
+  /** "By groups" mode: set level for a group on the selected document */
+  setLevelByGroup(groupIdx: number, newLevel: number): void {
+    const docId = this.selectedDocId;
+    if (!this.pendingPerms[docId]) {
       this.pendingPerms = {
         ...this.pendingPerms,
-        [this.selectedId]: this.currentPerms(this.selectedId),
+        [docId]: this.treeItems.find(t => t.id === docId)!.perms.slice(),
       };
     }
-    const updated = [...this.pendingPerms[this.selectedId]];
-    updated[groupIndex] = newLevel;
-    this.pendingPerms = { ...this.pendingPerms, [this.selectedId]: updated };
+    const updated = [...this.pendingPerms[docId]];
+    updated[groupIdx] = newLevel;
+    this.pendingPerms = { ...this.pendingPerms, [docId]: updated };
+  }
+
+  /** "By documents" mode: set level for a document on the selected group */
+  setLevelByDoc(docId: number, newLevel: number): void {
+    if (!this.pendingPerms[docId]) {
+      this.pendingPerms = {
+        ...this.pendingPerms,
+        [docId]: this.treeItems.find(t => t.id === docId)!.perms.slice(),
+      };
+    }
+    const updated = [...this.pendingPerms[docId]];
+    updated[this.selectedGroupIdx] = newLevel;
+    this.pendingPerms = { ...this.pendingPerms, [docId]: updated };
   }
 
   save(): void {
