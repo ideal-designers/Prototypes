@@ -123,7 +123,7 @@ export type SegmentSize = 'sm' | 'md' | 'mobile';
     .seg-primary__item--active {
       background: var(--color-primary-500);
       border-color: var(--color-primary-500);
-      color: #ffffff;
+      color: var(--color-stone-0, #ffffff);
     }
 
     /* Hover on inactive */

@@ -470,9 +470,9 @@ function deepCloneTree(nodes: TreeNode[]): TreeNode[] {
       background: var(--color-stone-0);
       font-size: 13px; color: var(--color-text-primary);
     }
-    .file-chip--warning { border-color: #FFDA07; background: #FFFDE7; }
+    .file-chip--warning { border-color: var(--color-warning-600, #FFDA07); background: var(--color-warning-50, #FFFDE7); }
     .chip-name { max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .chip-warn-icon { font-size: 14px; color: #B45309; flex-shrink: 0; }
+    .chip-warn-icon { font-size: 14px; color: var(--color-warning-700, #B45309); flex-shrink: 0; }
     .chip-remove {
       display: flex; align-items: center; justify-content: center;
       width: 16px; height: 16px;
@@ -496,7 +496,7 @@ function deepCloneTree(nodes: TreeNode[]): TreeNode[] {
       background: transparent; border: none; cursor: pointer;
       color: var(--color-primary-500); font-size: 12px; font-family: var(--font-family); padding: 0;
     }
-    .tooltip-link:hover { color: #5EC99A; }
+    .tooltip-link:hover { color: var(--color-primary-300, #5EC99A); }
     .tooltip-link-icon { font-size: 12px; }
 
     .chips-more {

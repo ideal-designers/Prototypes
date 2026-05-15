@@ -519,7 +519,7 @@ const GROUPS: Group[] = [
     .item-dot {
       width: 8px; height: 8px;
       border-radius: 50%;
-      background: #f4640c;
+      background: var(--color-warning-600);
       flex-shrink: 0;
       margin-left: auto;
     }
@@ -706,7 +706,7 @@ const GROUPS: Group[] = [
     }
     .slider-block:last-child { border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
     .slider-block:hover { filter: brightness(0.88); }
-    .s-light  { background: #7fdea5; }
+    .s-light  { background: var(--color-primary-50); filter: saturate(1.8); }
     .s-active { background: var(--color-primary-500); }
     .s-none   { background: var(--color-stone-300); }
 

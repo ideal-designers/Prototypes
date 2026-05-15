@@ -125,6 +125,11 @@ const REGEXES = {
 const SKIP_LINE_PATTERNS = [
   /fill="[^"]*#/,                   // SVG fill attribute
   /stroke="[^"]*#/,                 // SVG stroke attribute
+  /stop-color=/,                    // SVG gradient stop colors (logo/illustration SVGs)
+  /stop-opacity=/,                  // SVG gradient stop opacity
+  /<stop\s/,                        // SVG gradient stop element
+  /<linearGradient/,                // SVG gradient definition
+  /<radialGradient/,                // SVG radial gradient definition
   /<path\s/,                        // SVG path element
   /<rect\s/,                        // SVG rect element
   /<circle\s/,                      // SVG circle element

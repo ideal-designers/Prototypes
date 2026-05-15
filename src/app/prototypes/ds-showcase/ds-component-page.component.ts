@@ -1412,7 +1412,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
       color: #4862d3;
     }
     .status--deprecated {
-      background: #fff5f4;
+      background: var(--color-danger-surface, #fff5f4);
       color: var(--color-danger, #e54430);
     }
 
@@ -1489,7 +1489,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
 
     /* ── Anatomy ── */
     .anatomy-preview {
-      background: #1e2125;
+      background: var(--color-stone-900, #1e2125);
       border-radius: 8px;
       padding: 56px 96px;
       display: flex;
@@ -1518,7 +1518,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
       position: absolute;
       font-size: 11px;
       font-family: monospace;
-      color: #8a9baa;
+      color: var(--color-stone-600, #8a9baa);
       white-space: nowrap;
       letter-spacing: 0.3px;
     }
@@ -1571,8 +1571,8 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
       justify-content: center;
       font-size: 10px;
       font-family: monospace;
-      color: #e8933a;
-      border-left: 1px solid rgba(232,147,58,0.5);
+      color: var(--color-warning-500, #e8933a);
+      border-left: 1px solid var(--color-warning-500a, rgba(232,147,58,0.5));
       padding-left: 5px;
       min-width: 32px;
       box-sizing: border-box;
@@ -1583,7 +1583,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
       left: -3px;
       width: 5px;
       height: 1px;
-      background: rgba(232,147,58,0.5);
+      background: var(--color-warning-500a, rgba(232,147,58,0.5));
     }
     .dim-v::before { top: 0; }
     .dim-v::after  { bottom: 0; }
@@ -1595,8 +1595,8 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
       justify-content: center;
       font-size: 10px;
       font-family: monospace;
-      color: #e8933a;
-      border-top: 1px solid rgba(232,147,58,0.5);
+      color: var(--color-warning-500, #e8933a);
+      border-top: 1px solid var(--color-warning-500a, rgba(232,147,58,0.5));
       padding-top: 4px;
       min-height: 20px;
       box-sizing: border-box;
@@ -1607,7 +1607,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
       top: -3px;
       width: 1px;
       height: 5px;
-      background: rgba(232,147,58,0.5);
+      background: var(--color-warning-500a, rgba(232,147,58,0.5));
     }
     .dim-h::before { left: 0; }
     .dim-h::after  { right: 0; }
@@ -1616,7 +1616,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
       position: absolute;
       font-size: 10px;
       font-family: monospace;
-      color: #e8933a;
+      color: var(--color-warning-500, #e8933a);
       white-space: nowrap;
     }
 
@@ -1652,9 +1652,9 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
     .mock-sidebar {
       width: 220px;
       height: 100%;
-      background: #f7f7f7;
+      background: var(--color-stone-200, #f7f7f7);
       border-radius: 6px;
-      border: 1px solid #dee0eb;
+      border: 1px solid var(--color-divider, #dee0eb);
       display: flex;
       flex-direction: column;
       overflow: hidden;
@@ -1665,14 +1665,14 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
       align-items: center;
       gap: 10px;
       padding: 0 14px;
-      border-bottom: 1px solid #dee0eb;
+      border-bottom: 1px solid var(--color-divider, #dee0eb);
       flex-shrink: 0;
     }
     .mock-sidebar__badge {
       width: 32px;
       height: 32px;
       border-radius: 4px;
-      background: #f4640c;
+      background: var(--color-brand-orange, #f4640c);
       color: #fff;
       font-size: 10px;
       font-weight: 700;
@@ -1684,7 +1684,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
     .mock-sidebar__name {
       font-size: 13px;
       font-weight: 600;
-      color: #1f2129;
+      color: var(--color-text-primary, #1f2129);
     }
     .mock-sidebar__item {
       display: flex;
@@ -1693,13 +1693,13 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
       padding: 0 10px;
       gap: 10px;
       font-size: 13px;
-      color: #40424b;
+      color: var(--color-stone-900, #40424b);
       cursor: default;
     }
     .mock-sidebar__item--active {
-      background: #ebf8ef;
+      background: var(--color-primary-50, #ebf8ef);
       font-weight: 600;
-      color: #1f2129;
+      color: var(--color-text-primary, #1f2129);
     }
     .mock-sidebar__icon {
       font-size: 14px;
@@ -1715,12 +1715,12 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
       display: flex;
       align-items: center;
       padding: 0 14px;
-      border-top: 1px solid #dee0eb;
+      border-top: 1px solid var(--color-divider, #dee0eb);
     }
     .mock-sidebar__logo {
       font-size: 13px;
       font-weight: 700;
-      color: #5f616a;
+      color: var(--color-text-secondary, #5f616a);
       letter-spacing: -0.3px;
     }
     .anatomy-wrap--sidebar-nav { min-height: 260px; }
@@ -1730,12 +1730,12 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
       width: 260px;
       background: #fff;
       border-radius: 4px;
-      border: 1px solid #dee0eb;
+      border: 1px solid var(--color-divider, #dee0eb);
       overflow: hidden;
     }
     .mock-qa-menu__header {
       height: 40px;
-      background: #f7f7f7;
+      background: var(--color-stone-200, #f7f7f7);
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -1745,11 +1745,11 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
     .mock-qa-menu__title {
       font-size: 13px;
       font-weight: 600;
-      color: #1f2129;
+      color: var(--color-text-primary, #1f2129);
     }
     .mock-qa-menu__actions {
       font-size: 11px;
-      color: #5f616a;
+      color: var(--color-text-secondary, #5f616a);
       letter-spacing: 2px;
     }
     .mock-qa-menu__item {
@@ -1759,12 +1759,12 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
       padding: 0 12px;
       gap: 12px;
       font-size: 13px;
-      color: #1f2129;
+      color: var(--color-text-primary, #1f2129);
       cursor: default;
     }
-    .mock-qa-menu__item--active { background: #ebf8ef; }
-    .mock-qa-menu__icon { font-size: 13px; color: #5f616a; flex-shrink: 0; }
-    .mock-qa-menu__item--active .mock-qa-menu__icon { color: #2c9c74; }
+    .mock-qa-menu__item--active { background: var(--color-primary-50, #ebf8ef); }
+    .mock-qa-menu__icon { font-size: 13px; color: var(--color-text-secondary, #5f616a); flex-shrink: 0; }
+    .mock-qa-menu__item--active .mock-qa-menu__icon { color: var(--color-primary-500, #2c9c74); }
     .anatomy-wrap--qa-menu { min-height: 200px; }
 
     /* ── DROPDOWN anatomy ── */
@@ -1773,21 +1773,21 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
     .mock-dropdown__trigger {
       display: flex; align-items: center; justify-content: space-between;
       height: 40px; padding: 0 12px;
-      border: 1px solid #bbbdc8; border-radius: 4px;
+      border: 1px solid var(--color-stone-500, #bbbdc8); border-radius: 4px;
       background: #fff; cursor: pointer;
     }
-    .mock-dropdown__value { font-size: 13px; color: #9c9ea8; }
+    .mock-dropdown__value { font-size: 13px; color: var(--color-stone-600, #9c9ea8); }
     .mock-dropdown__panel {
-      margin-top: 4px; border: 1px solid #dee0eb; border-radius: 8px;
+      margin-top: 4px; border: 1px solid var(--color-divider, #dee0eb); border-radius: 8px;
       background: #fff; overflow: hidden;
       box-shadow: 0 4px 16px rgba(0,0,0,0.1);
     }
     .mock-dropdown__option {
       display: flex; align-items: center;
       height: 36px; padding: 0 12px;
-      font-size: 13px; color: #40424b; cursor: pointer;
+      font-size: 13px; color: var(--color-stone-900, #40424b); cursor: pointer;
     }
-    .mock-dropdown__option--selected { background: #ebf8ef; color: #2c9c74; font-weight: 500; }
+    .mock-dropdown__option--selected { background: var(--color-primary-50, #ebf8ef); color: #2c9c74; font-weight: 500; }
 
     /* ── TOGGLE anatomy ── */
     .anatomy-wrap--toggle { width: 160px; }
@@ -1795,17 +1795,17 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
     .mock-toggle-row { display: flex; align-items: center; gap: 10px; }
     .mock-toggle {
       width: 36px; height: 20px; border-radius: 9999px;
-      background: #dee0eb; position: relative; flex-shrink: 0;
+      background: var(--color-divider, #dee0eb); position: relative; flex-shrink: 0;
       transition: background 0.2s;
     }
-    .mock-toggle--on { background: #2c9c74; }
+    .mock-toggle--on { background: var(--color-primary-500, #2c9c74); }
     .mock-toggle__thumb {
       position: absolute; width: 16px; height: 16px; border-radius: 9999px;
       background: #fff; top: 2px; left: 2px;
       box-shadow: 0 1px 3px rgba(0,0,0,0.2); transition: left 0.2s;
     }
     .mock-toggle__thumb--on { left: 18px; }
-    .mock-toggle__label { font-size: 13px; color: #40424b; }
+    .mock-toggle__label { font-size: 13px; color: var(--color-stone-900, #40424b); }
 
     /* ── CHECKBOX anatomy ── */
     .anatomy-wrap--checkbox { width: 200px; }
@@ -1813,34 +1813,34 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
     .mock-checkbox-row { display: flex; align-items: center; gap: 10px; }
     .mock-checkbox {
       width: 18px; height: 18px; border-radius: 4px;
-      border: 1.5px solid #bbbdc8; background: #fff;
+      border: 1.5px solid var(--color-stone-500, #bbbdc8); background: #fff;
       display: flex; align-items: center; justify-content: center; flex-shrink: 0;
     }
     .mock-checkbox--checked, .mock-checkbox--indeterminate {
-      background: #2c9c74; border-color: #2c9c74;
+      background: var(--color-primary-500, #2c9c74); border-color: #2c9c74;
     }
-    .mock-checkbox-label { font-size: 13px; color: #40424b; }
+    .mock-checkbox-label { font-size: 13px; color: var(--color-stone-900, #40424b); }
 
     /* ── TABS anatomy ── */
     .anatomy-wrap--tabs { width: 280px; }
     .mock-tabs { width: 100%; }
     .mock-tabs__bar {
-      display: flex; border-bottom: 1px solid #dee0eb; position: relative;
+      display: flex; border-bottom: 1px solid var(--color-divider, #dee0eb); position: relative;
     }
     .mock-tab {
       padding: 0 16px; height: 40px; display: flex; align-items: center;
-      font-size: 13px; color: #73757f; cursor: pointer; position: relative;
+      font-size: 13px; color: var(--color-stone-700, #73757f); cursor: pointer; position: relative;
     }
-    .mock-tab--active { color: #1f2129; font-weight: 500; }
+    .mock-tab--active { color: var(--color-text-primary, #1f2129); font-weight: 500; }
     .mock-tab--active::after {
       content: ''; position: absolute; bottom: -1px; left: 0; right: 0;
-      height: 2px; background: #2c9c74; border-radius: 1px;
+      height: 2px; background: var(--color-primary-500, #2c9c74); border-radius: 1px;
     }
     .mock-tabs__content {
-      padding: 16px; background: #fafafa; border-radius: 0 0 8px 8px;
+      padding: 16px; background: var(--color-stone-100, #fafafa); border-radius: 0 0 8px 8px;
       min-height: 60px;
     }
-    .mock-tabs__body { font-size: 12px; color: #9c9ea8; }
+    .mock-tabs__body { font-size: 12px; color: var(--color-stone-600, #9c9ea8); }
 
     /* ── STATUS anatomy ── */
     .anatomy-wrap--status { width: 160px; }
@@ -1851,10 +1851,10 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
       padding: 4px 10px; border-radius: 9999px;
       font-size: 12px; font-weight: 500;
     }
-    .mock-status-pill--preparation { background: #fff8cc; color: #a07800; }
-    .mock-status-pill--live        { background: #ebf8ef; color: #1c8269; }
-    .mock-status-pill--locked      { background: #f0f0f3; color: #5f616a; }
-    .mock-status-pill--archived    { background: #eceef9; color: #40424b; }
+    .mock-status-pill--preparation { background: var(--color-warning-50, #fff8cc); color: var(--color-warning-700, #a07800); }
+    .mock-status-pill--live        { background: var(--color-primary-50, #ebf8ef); color: #1c8269; }
+    .mock-status-pill--locked      { background: var(--color-stone-200, #f0f0f3); color: var(--color-text-secondary, #5f616a); }
+    .mock-status-pill--archived    { background: var(--color-stone-300, #eceef9); color: var(--color-stone-900, #40424b); }
     .mock-status-dot {
       width: 7px; height: 7px; border-radius: 9999px; background: currentColor;
       flex-shrink: 0;
@@ -1866,7 +1866,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
       align-items: flex-start;
       gap: 16px;
       padding: 0;
-      background: #e9ebf0;
+      background: var(--color-stone-300, #e9ebf0);
       border-radius: 8px;
       overflow: visible;
     }

@@ -288,8 +288,8 @@ interface NavItem {
       color: var(--color-text-primary);
       height: 100vh;
       overflow: hidden;
-      --color-dodger-blue-50: #ebf4fd;
-      --color-locked-chip: #ececec;
+      --color-dodger-blue-50: var(--color-feature-bg, #ebf4fd);
+      --color-locked-chip: var(--color-stone-300, #ececec);
     }
 
     /* ──────────────────────────────────────────

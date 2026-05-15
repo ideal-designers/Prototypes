@@ -415,7 +415,7 @@ interface FileRow {
     }
     .vam-qa__header {
       height: 48px;
-      background: #f7f7f7;
+      background: var(--color-stone-200, #f7f7f7);
       border-radius: 4px;
       display: flex;
       align-items: center;
@@ -426,7 +426,7 @@ interface FileRow {
     .vam-qa__title {
       font-size: 14px;
       font-weight: 600;
-      color: #1f2129;
+      color: var(--color-text-primary, #1f2129);
     }
     .vam-qa__actions {
       display: flex;
@@ -442,10 +442,10 @@ interface FileRow {
       justify-content: center;
       border-radius: 4px;
       cursor: pointer;
-      color: #5f616a;
+      color: var(--color-text-secondary, #5f616a);
       font-size: 16px;
     }
-    .vam-icon-btn-sm:hover { background: #dee0eb; }
+    .vam-icon-btn-sm:hover { background: var(--color-divider, #dee0eb); }
     .vam-qa__list {
       background: #fff;
       border-radius: 4px;
@@ -457,12 +457,12 @@ interface FileRow {
       gap: 16px;
       padding: 10px 16px;
       font-size: 14px;
-      color: #1f2129;
+      color: var(--color-text-primary, #1f2129);
       cursor: pointer;
       border-radius: 4px;
     }
-    .vam-qa__item:hover { background: #f7f7f7; }
-    .vam-qa__item fvdr-icon { font-size: 16px; color: #5f616a; flex-shrink: 0; }
+    .vam-qa__item:hover { background: var(--color-stone-200, #f7f7f7); }
+    .vam-qa__item fvdr-icon { font-size: 16px; color: var(--color-text-secondary, #5f616a); flex-shrink: 0; }
 
     /* Folder tree */
     .vam-tree {
@@ -476,11 +476,11 @@ interface FileRow {
       height: 40px;
       padding: 0 16px;
       font-size: 14px;
-      color: #1f2129;
+      color: var(--color-text-primary, #1f2129);
       cursor: pointer;
       border-radius: 4px;
     }
-    .vam-tree__item:hover { background: #f7f7f7; }
+    .vam-tree__item:hover { background: var(--color-stone-200, #f7f7f7); }
     .vam-tree__item--active { background: var(--color-primary-50, #ebf8ef); }
     .vam-tree__item--project {
       cursor: default;
@@ -499,9 +499,9 @@ interface FileRow {
       flex-shrink: 0;
     }
     .vam-tree__item--indent { padding-left: 32px; }
-    .vam-tree__file-icon { font-size: 16px; color: #5f616a; flex-shrink: 0; }
+    .vam-tree__file-icon { font-size: 16px; color: var(--color-text-secondary, #5f616a); flex-shrink: 0; }
     .vam-tree__index {
-      color: #5f616a;
+      color: var(--color-text-secondary, #5f616a);
       min-width: 16px;
       flex-shrink: 0;
     }
@@ -525,26 +525,26 @@ interface FileRow {
       font-size: 14px;
     }
     .vam-th {
-      background: #f7f7f7;
+      background: var(--color-stone-200, #f7f7f7);
       padding: 0 16px;
       height: 48px;
       text-align: left;
       font-size: 14px;
       font-weight: 600;
-      color: #1f2129;
+      color: var(--color-text-primary, #1f2129);
       white-space: nowrap;
-      border-bottom: 1px solid #dee0eb;
+      border-bottom: 1px solid var(--color-divider, #dee0eb);
     }
     .vam-th--check { width: 48px; }
     .vam-th--name { width: 100%; }
-    .vam-tr { border-bottom: 1px solid #dee0eb; transition: background 0.2s; }
-    .vam-tr:hover .vam-td { background: #f7f7f7; }
+    .vam-tr { border-bottom: 1px solid var(--color-divider, #dee0eb); transition: background 0.2s; }
+    .vam-tr:hover .vam-td { background: var(--color-stone-200, #f7f7f7); }
     .vam-tr--highlighted .vam-td { background: var(--color-primary-50, #ebf8ef); }
-    .vam-tr--highlighted:hover .vam-td { background: #d8f2e4; }
+    .vam-tr--highlighted:hover .vam-td { background: var(--color-primary-50, #d8f2e4); }
     .vam-td {
       padding: 0 16px;
       height: 44px;
-      color: #1f2129;
+      color: var(--color-text-primary, #1f2129);
       white-space: nowrap;
     }
     .vam-td--check { width: 48px; }
@@ -552,18 +552,18 @@ interface FileRow {
       display: flex;
       align-items: center;
       gap: 8px;
-      color: #5f616a;
+      color: var(--color-text-secondary, #5f616a);
     }
     .vam-td__file-icon { font-size: 16px; flex-shrink: 0; }
     .vam-td--name { max-width: 200px; overflow: hidden; text-overflow: ellipsis; }
-    .vam-td--size { color: #5f616a; }
+    .vam-td--size { color: var(--color-text-secondary, #5f616a); }
 
     /* Checkbox */
     .vam-checkbox {
       display: inline-block;
       width: 16px;
       height: 16px;
-      border: 1.5px solid #dee0eb;
+      border: 1.5px solid var(--color-divider, #dee0eb);
       border-radius: 1px;
       background: #fff;
       transition: border-color 0.15s, background 0.15s;
@@ -593,16 +593,16 @@ interface FileRow {
       min-width: 20px;
       height: 20px;
       padding: 0 7.5px;
-      background: #eceef9;
+      background: var(--color-stone-300, #eceef9);
       border-radius: 16px;
       font-size: 14px;
-      color: #1f2129;
+      color: var(--color-text-primary, #1f2129);
     }
 
     /* Size cell */
     .vam-td--size { vertical-align: middle; }
-    .vam-size__main { display: block; font-size: 12px; color: #1f2129; }
-    .vam-size__sub  { display: block; font-size: 12px; color: #5f616a; }
+    .vam-size__main { display: block; font-size: 12px; color: var(--color-text-primary, #1f2129); }
+    .vam-size__sub  { display: block; font-size: 12px; color: var(--color-text-secondary, #5f616a); }
   `],
 })
 export class ViewAsModeComponent implements OnDestroy {
