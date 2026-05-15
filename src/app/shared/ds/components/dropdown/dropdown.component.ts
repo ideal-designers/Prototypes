@@ -136,8 +136,11 @@ export type DropdownSize = 's' | 'm' | 'l';
               <fvdr-icon *ngIf="opt.icon" [name]="$any(opt.icon)" class="dropdown__opt-icon" />
               <span class="dropdown__opt-label">{{ opt.label }}</span>
               <span *ngIf="opt.badge" class="dropdown__opt-badge">{{ opt.badge }}</span>
-              <span class="dropdown__opt-sublabel">
-                {{ showCurrentTime && liveTimes[opt.value] ? liveTimes[opt.value] : opt.sublabel }}
+              <span class="dropdown__opt-meta">
+                <span *ngIf="opt.sublabel" class="dropdown__opt-sublabel">{{ opt.sublabel }}</span>
+                <span *ngIf="showCurrentTime && liveTimes[opt.value]" class="dropdown__opt-time">
+                  <fvdr-icon name="clock" />{{ liveTimes[opt.value] }}
+                </span>
               </span>
             </button>
           </ng-container>
@@ -340,11 +343,22 @@ export type DropdownSize = 's' | 'm' | 'l';
     .dropdown__option:disabled { opacity: 0.45; cursor: not-allowed; }
     .dropdown__opt-icon { font-size: 16px; color: var(--color-text-secondary); flex-shrink: 0; }
     .dropdown__opt-label { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .dropdown__opt-meta {
+      display: flex; align-items: center; gap: var(--space-2);
+      flex-shrink: 0; margin-left: auto; padding-left: var(--space-2);
+    }
     .dropdown__opt-sublabel {
       font-size: var(--text-caption1-size); color: var(--color-text-secondary);
-      white-space: nowrap; flex-shrink: 0; font-variant-numeric: tabular-nums;
+      white-space: nowrap; font-variant-numeric: tabular-nums;
     }
-    .dropdown__option--selected .dropdown__opt-sublabel { color: var(--color-primary-500); opacity: 0.8; }
+    .dropdown__opt-time {
+      display: flex; align-items: center; gap: 3px;
+      font-size: var(--text-caption1-size); color: var(--color-text-secondary);
+      white-space: nowrap; font-variant-numeric: tabular-nums;
+    }
+    .dropdown__opt-time fvdr-icon { font-size: 11px; }
+    .dropdown__option--selected .dropdown__opt-sublabel,
+    .dropdown__option--selected .dropdown__opt-time { color: var(--color-primary-500); opacity: 0.8; }
     .dropdown__opt-badge {
       display: inline-flex; align-items: center; height: 18px; padding: 0 6px;
       border-radius: 9px; background: var(--color-primary-50); color: var(--color-primary-500);
