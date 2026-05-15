@@ -66,6 +66,12 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./prototypes/quick-access-panel/quick-access-panel.component').then(m => m.QuickAccessPanelComponent),
   },
+  {
+    path: 'terms-of-use-create',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./prototypes/terms-of-use-create/terms-of-use-create.component').then(m => m.TermsOfUseCreateComponent),
+  },
   // PROTO_ROUTES_PLACEHOLDER
   {
     path: '**',

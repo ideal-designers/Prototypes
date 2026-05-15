@@ -86,11 +86,7 @@ interface NavItem {
 
         <!-- ── Header 64px ── -->
         <header class="page-header">
-          <nav class="breadcrumb">
-            <span class="bc-item bc-item--link">Documents</span>
-            <fvdr-icon name="chevron-right" class="bc-sep"></fvdr-icon>
-            <span class="bc-item bc-item--current">All</span>
-          </nav>
+          <fvdr-breadcrumbs [items]="breadcrumbItems" />
           <div class="header-actions">
             <button class="icon-btn" title="Dark mode">
               <fvdr-icon name="theme-dark"></fvdr-icon>
@@ -426,15 +422,6 @@ interface NavItem {
       flex-shrink: 0;
     }
 
-    .breadcrumb {
-      display: flex;
-      align-items: center;
-      gap: var(--space-1);
-    }
-    .bc-item { font-size: var(--font-size-base); line-height: 1; }
-    .bc-item--link { color: var(--color-text-secondary); }
-    .bc-item--current { color: var(--color-text-primary); font-weight: 600; }
-    .bc-sep { font-size: 14px; color: var(--color-text-secondary); }
 
     .header-actions {
       display: flex;
@@ -811,6 +798,11 @@ interface NavItem {
 })
 export class QuickAccessPanelComponent implements OnInit, OnDestroy {
   private tracker = inject(TrackerService);
+
+  breadcrumbItems = [
+    { id: 'docs', label: 'Documents' },
+    { id: 'all', label: 'All' },
+  ];
 
   panelWidth = 320;
   isResizing = false;
