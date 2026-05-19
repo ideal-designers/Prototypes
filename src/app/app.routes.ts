@@ -45,7 +45,7 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./components/docs/docs.component').then(m => m.DocsComponent),
   },
-    {
+  {
     path: 'project-archive-creation-flow-testing',
     loadComponent: () =>
       import('./prototypes/project-archive-creation-flow-testing/project-archive-creation-flow-testing.component').then(m => m.ProjectArchiveCreationFlowTestingComponent),
@@ -62,7 +62,7 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./prototypes/ca-create-api-key/ca-create-api-key.component').then(m => m.CaCreateApiKeyComponent),
   },
-    {
+  {
     path: 'quick-access-panel',
     loadComponent: () =>
       import('./prototypes/quick-access-panel/quick-access-panel.component').then(m => m.QuickAccessPanelComponent),
@@ -89,6 +89,36 @@ export const routes: Routes = [
     path: 'timezone-picker',
     loadComponent: () =>
       import('./prototypes/timezone-picker/timezone-picker.component').then(m => m.TimezonePickerComponent),
+  },
+  {
+    path: 'q-a-drag-and-drop',
+    loadComponent: () =>
+      import('./prototypes/q-a-drag-and-drop/q-a-drag-and-drop.component').then(m => m.QADragAndDropComponent),
+  },
+  {
+    path: 'search-results-pagination',
+    loadComponent: () =>
+      import('./prototypes/search-results-pagination/search-results-intro.component').then(m => m.SearchResultsIntroComponent),
+  },
+  {
+    path: 'search-results-pagination/view',
+    loadComponent: () =>
+      import('./prototypes/search-results-pagination/search-results-pagination.component').then(m => m.SearchResultsPaginationComponent),
+  },
+  {
+    path: 'search-results-pagination/large',
+    loadComponent: () =>
+      import('./prototypes/search-results-pagination/search-results-large.component').then(m => m.SearchResultsLargeComponent),
+  },
+  {
+    path: 'search-results-pagination/option2',
+    loadComponent: () =>
+      import('./prototypes/search-results-pagination/search-results-option2.component').then(m => m.SearchResultsOption2Component),
+  },
+  {
+    path: 'search-results-pagination/option3',
+    loadComponent: () =>
+      import('./prototypes/search-results-pagination/search-results-option3.component').then(m => m.SearchResultsOption3Component),
   },
   // PROTO_ROUTES_PLACEHOLDER
   {

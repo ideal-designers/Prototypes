@@ -21,7 +21,7 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
     status: 'wip',
     description: 'Project archive creation and flow testing',
   },
-    {
+  {
     slug: 'ca-settings-integrations',
     title: 'CA Settings — Integrations',
     figma: 'https://www.figma.com/design/PITzEfwRA26GWSG2MvzmDy/CA?node-id=42295-69802',
@@ -49,7 +49,7 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
     status: 'wip',
     description: 'Multi-step flow for creating a new API key in Corporate Account',
   },
-    {
+  {
     slug: 'quick-access-panel',
     title: 'Quick access panel',
     figma: 'https://www.figma.com/design/h9MR3O7N3kLV2xl2MGQDxs/Documents?node-id=22560-22984',
@@ -82,6 +82,20 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
     title: 'Timezone Picker',
     status: 'live',
     description: 'Timezone selector built on fvdr-dropdown — auto-detect, live clock, alias search, UTC offsets',
+  },
+  {
+    slug: 'q-a-drag-and-drop',
+    title: 'Q&A drag and drop ',
+    figma: 'https://www.figma.com/design/Ozvxv10oZM9KwGlCcjmOFO/Q-A-set-up?node-id=3821-143160&t=ue7S1bnRG1WwE5Ti-11',
+    status: 'wip',
+    description: 'Coach Marks',
+  },
+  {
+    slug: 'search-results-pagination',
+    title: 'Search results — Pagination',
+    figma: 'https://www.figma.com/design/h9MR3O7N3kLV2xl2MGQDxs/Documents?node-id=24530-287050',
+    status: 'live',
+    description: 'Search results with lazy loading, bulk selection, and large result set scenarios',
   },
   // REGISTRY_PLACEHOLDER
 ];
