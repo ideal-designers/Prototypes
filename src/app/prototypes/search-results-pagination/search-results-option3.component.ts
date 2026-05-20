@@ -215,20 +215,21 @@ function makeOption3Rows(): SearchRow[] {
                   </button>
                 </div>
               </div>
-            </div>
-            <div class="toolbar-results">
-              <span class="results-count">Results: {{ totalResults }}</span>
-              <ng-container *ngIf="isSelecting">
-                <span class="results-sep">|</span>
-                <span class="selecting-indicator">
-                  <span class="spinner"></span>
-                  Selecting {{ totalResults }} items…
-                </span>
-              </ng-container>
-              <ng-container *ngIf="!isSelecting && (someSelected || allSelected)">
-                <span class="results-sep">|</span>
-                <span class="selected-count">Selected: {{ selectedCount }}</span>
-              </ng-container>
+              <div class="toolbar-divider"></div>
+              <div class="toolbar-results">
+                <span class="results-count">Results: {{ totalResults }}</span>
+                <ng-container *ngIf="isSelecting">
+                  <span class="results-sep">|</span>
+                  <span class="selecting-indicator">
+                    <span class="spinner"></span>
+                    Selecting {{ totalResults }} items…
+                  </span>
+                </ng-container>
+                <ng-container *ngIf="!isSelecting && (someSelected || allSelected)">
+                  <span class="results-sep">|</span>
+                  <span class="selected-count">Selected: {{ selectedCount }}</span>
+                </ng-container>
+              </div>
             </div>
           </div>
 
@@ -407,8 +408,9 @@ function makeOption3Rows(): SearchRow[] {
     .search-input { flex: 1; border: none; outline: none; font-family: var(--font-family); font-size: 15px; color: var(--color-text-primary); background: transparent; }
     .search-divider { width: 1px; height: 20px; background: var(--color-divider); flex-shrink: 0; margin: 0 var(--space-1); }
 
-    .toolbar { display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; height: 40px; }
+    .toolbar { display: flex; align-items: center; flex-shrink: 0; height: 40px; }
     .toolbar-left { display: flex; align-items: center; gap: var(--space-3); }
+    .toolbar-divider { width: 1px; height: 20px; background: var(--color-divider); flex-shrink: 0; }
     .toolbar-results { display: flex; align-items: center; gap: var(--space-3); }
     .results-count { font-size: var(--font-size-base); color: var(--color-text-secondary); }
     .results-sep { color: var(--color-divider); }
@@ -476,7 +478,7 @@ function makeOption3Rows(): SearchRow[] {
     .sentinel { height: 1px; }
 
     .float-notice {
-      position: fixed; top: 20px; right: 24px; z-index: 300;
+      position: fixed; top: 20px; left: 24px; z-index: 300;
       display: flex; align-items: flex-start; gap: var(--space-3);
       max-width: 340px; padding: var(--space-3) var(--space-4);
       background: #FFFBE6; border: 1px solid #FFE566;

@@ -215,13 +215,14 @@ function makeLargeRows(): SearchRow[] {
                   </button>
                 </div>
               </div>
-            </div>
-            <div class="toolbar-results">
-              <span class="results-count">Results: {{ displayCount }}</span>
-              <ng-container *ngIf="someSelected || allSelected">
-                <span class="results-sep">|</span>
-                <span class="selected-count">Selected: {{ displaySelectedCount }}</span>
-              </ng-container>
+              <div class="toolbar-divider"></div>
+              <div class="toolbar-results">
+                <span class="results-count">Results: {{ displayCount }}</span>
+                <ng-container *ngIf="someSelected || allSelected">
+                  <span class="results-sep">|</span>
+                  <span class="selected-count">Selected: {{ displaySelectedCount }}</span>
+                </ng-container>
+              </div>
             </div>
           </div>
 
@@ -408,7 +409,7 @@ function makeLargeRows(): SearchRow[] {
     .float-notice {
       position: fixed;
       top: 20px;
-      right: 24px;
+      left: 24px;
       z-index: 300;
       display: flex;
       align-items: flex-start;
@@ -435,8 +436,9 @@ function makeLargeRows(): SearchRow[] {
     .notice-close:hover { background: rgba(200,139,0,0.12); }
 
     /* Toolbar */
-    .toolbar { display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; height: 40px; }
+    .toolbar { display: flex; align-items: center; flex-shrink: 0; height: 40px; }
     .toolbar-left { display: flex; align-items: center; gap: var(--space-3); }
+    .toolbar-divider { width: 1px; height: 20px; background: var(--color-divider); flex-shrink: 0; }
     .toolbar-results { display: flex; align-items: center; gap: var(--space-3); }
     .results-count { font-size: var(--font-size-base); color: var(--color-text-secondary); }
     .results-sep { color: var(--color-divider); }

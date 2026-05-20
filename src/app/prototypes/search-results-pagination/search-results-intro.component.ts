@@ -147,8 +147,8 @@ interface ScenarioCard {
       font-size: 0.7rem; font-weight: 600;
       text-transform: uppercase; letter-spacing: 0.08em;
       padding: 2px 8px; border-radius: 20px;
-      background: rgba(44,156,116,.15);
-      color: #2C9C74;
+      background: color-mix(in srgb, var(--accent) 14%, transparent);
+      color: var(--accent);
     }
     .card__tag--soon {
       background: rgba(155,191,176,.08);
@@ -205,34 +205,34 @@ export class SearchResultsIntroComponent {
     {
       title: '< 200 files/folders found',
       description: 'Search returns 187 results — mix of folders and documents with highlighted matches, lazy loading (20 per batch), bulk checkbox selection and contextual actions.',
-      tag: 'scenario',
+      tag: 'few results',
       pill: '187 results',
       route: '/search-results-pagination/view',
       accent: '#2C9C74',
     },
     {
-      title: '> 200 files/folders found — Option 1',
-      description: 'Large result set: 345 items found. Scroll to load more.',
-      tag: 'scenario',
+      title: '> 200+ files/folders found — Option 1',
+      description: 'Results show 200+. Select all to act on the complete 345 — lazy-loaded batches appear pre-selected.',
+      tag: '200+',
       pill: '345 results',
       route: '/search-results-pagination/large',
       accent: '#C88B00',
     },
     {
-      title: '> 200 files/folders found — Option 2',
-      description: 'Large result set: 345 items found. Scroll to load more.',
-      tag: 'scenario',
+      title: '> 200+ files/folders found — Option 2',
+      description: 'Gmail approach — bulk select picks first 50. Inline prompt to extend selection to all 200+.',
+      tag: '200+ gmail',
       pill: '345 results',
       route: '/search-results-pagination/option2',
-      accent: '#C88B00',
+      accent: '#358CEB',
     },
     {
       title: '> 200 files/folders found — Option 3',
       description: 'Large result set: 345 items found. Scroll to load more.',
-      tag: 'scenario',
+      tag: "Max's fav",
       pill: '345 results',
       route: '/search-results-pagination/option3',
-      accent: '#C88B00',
+      accent: '#B06FD8',
     },
     {
       title: 'No results found',
