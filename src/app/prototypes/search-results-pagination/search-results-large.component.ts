@@ -319,7 +319,10 @@ function makeLargeRows(): SearchRow[] {
     <!-- Floating warning notice -->
     <div class="float-notice" *ngIf="noticeVisible">
       <fvdr-icon name="warning" class="notice-ico"></fvdr-icon>
-      <span><strong>Large result set:</strong> {{ totalResults }} items found. Scroll to load more — select all to act on the complete {{ totalResults }} results.</span>
+      <div class="notice-body">
+        <span class="notice-label">For testing only — not part of the UI for users</span>
+        <span><strong>Large result set:</strong> {{ totalResults }} items found. Scroll to load more — select all to act on the complete {{ totalResults }} results.</span>
+      </div>
       <button class="notice-close" (click)="noticeVisible = false"><fvdr-icon name="close"></fvdr-icon></button>
     </div>
 
@@ -420,8 +423,9 @@ function makeLargeRows(): SearchRow[] {
       color: #7A5C00;
       line-height: 1.45;
     }
-    .notice-ico { font-size: 18px; color: #C88B00; flex-shrink: 0; margin-top: 1px; }
-    .float-notice span { flex: 1; }
+    .notice-ico { font-size: 18px; color: #C88B00; flex-shrink: 0; margin-top: 2px; }
+    .notice-body { flex: 1; display: flex; flex-direction: column; gap: 3px; }
+    .notice-label { font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: #C88B00; opacity: 0.8; }
     .notice-close {
       display: flex; align-items: center; justify-content: center;
       width: 20px; height: 20px; flex-shrink: 0;
