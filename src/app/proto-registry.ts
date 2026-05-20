@@ -92,7 +92,7 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
   },
   {
     slug: 'search-results-pagination',
-    title: 'Search results — Pagination',
+    title: 'Pagination in the search results',
     figma: 'https://www.figma.com/design/h9MR3O7N3kLV2xl2MGQDxs/Documents?node-id=24530-287050',
     status: 'live',
     description: 'Search results with lazy loading, bulk selection, and large result set scenarios',
