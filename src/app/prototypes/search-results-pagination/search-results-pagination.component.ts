@@ -1,12 +1,13 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, AfterViewInit, OnDestroy, ElementRef, ViewChild, HostListener, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { DS_COMPONENTS } from '../../shared/ds';
 import { FvdrIconName } from '../../shared/ds/icons/icons';
+import type { FvdrFileType } from '../../shared/ds';
 import { TrackerService } from '../../services/tracker.service';
 
-type FileType = 'folder' | 'pdf' | 'doc' | 'img' | 'xls' | 'txt';
+type FileType = FvdrFileType;
 
 interface SearchRow {
   id: number;
@@ -41,7 +42,7 @@ function makeRows(): SearchRow[] {
     { id: 7,  type: 'doc',    index: '12.2.1',                name: 'Q3 Tax report',                           snippet: 'Detailed marketing strategies of our main competitors, focusing on their target audience and market share.',    location: '2 Project Alpha',   notes: 2, labels: 0, selected: false },
     { id: 8,  type: 'doc',    index: '12.2.2',                name: 'Y2022 Tax report',                        snippet: 'Effective sales tactics employed by our competitors, with a focus on closing techniques and retention.',        location: '2 Project Alpha',   notes: 2, labels: 0, selected: false },
     { id: 9,  type: 'pdf',    index: '12.2.3',                name: 'Q2 Tax report',                           snippet: 'Innovative product development plans of our competitors, including their research and development roadmap.',    location: '3 Project Beta',    notes: 0, labels: 0, selected: false },
-    { id: 10, type: 'img',    index: '12.2.4',                name: 'Detailed Y2021 Tax report',               snippet: 'Successful customer acquisition strategies of our competitors, with a focus on lead generation tactics.',      location: '4 Project Gamma',   notes: 0, labels: 0, selected: false },
+    { id: 10, type: 'image',    index: '12.2.4',                name: 'Detailed Y2021 Tax report',               snippet: 'Successful customer acquisition strategies of our competitors, with a focus on lead generation tactics.',      location: '4 Project Gamma',   notes: 0, labels: 0, selected: false },
     { id: 11, type: 'pdf',    index: '12.2.5',                name: 'Accurate Q1 Tax report, outlining all income', snippet: 'Competitive pricing models used by our competitors, including their pricing strategies and margins.',   location: '5 Project Delta',   notes: 0, labels: 0, selected: false },
     { id: 12, type: 'doc',    index: '12.2.6',                name: 'Final Y2020 Tax report',                  snippet: 'Efficient supply chain management of our competitors, focusing on logistics and inventory control.',          location: '6 Project Epsilon', notes: 0, labels: 0, selected: false },
     { id: 13, type: 'pdf',    index: '12.2.7',                name: 'Final Q4 Tax report',                     snippet: 'Groundbreaking innovation and R&D efforts of our competitors, including their patent portfolio.',             location: '7 Project Zeta',    notes: 0, labels: 0, selected: false },
@@ -50,7 +51,7 @@ function makeRows(): SearchRow[] {
     { id: 16, type: 'xls',    index: '13.1.1',                name: 'Competitors analysis matrix',             snippet: 'Comprehensive matrix comparing competitors across price, quality, and market reach dimensions.',             location: '2 Project Alpha',   notes: 0, labels: 2, selected: false },
     { id: 17, type: 'doc',    index: '13.1.2',                name: 'Competitive landscape report',            snippet: 'Detailed report on the competitive landscape, highlighting key competitors and their strategies.',           location: '3 FY 2023',         notes: 3, labels: 0, selected: false },
     { id: 18, type: 'pdf',    index: '13.2.1',                name: 'Market competitors overview',             snippet: 'Overview of market competitors with emphasis on emerging players and disruptive technologies.',              location: '6 Finance',         notes: 0, labels: 1, selected: false },
-    { id: 19, type: 'img',    index: '13.2.2',                name: 'Competitors infographic FY2022',          snippet: 'Visual representation of competitors market share and growth trajectory over the past three years.',         location: '9 FY 2020',         notes: 0, labels: 0, selected: false },
+    { id: 19, type: 'image',    index: '13.2.2',                name: 'Competitors infographic FY2022',          snippet: 'Visual representation of competitors market share and growth trajectory over the past three years.',         location: '9 FY 2020',         notes: 0, labels: 0, selected: false },
     { id: 20, type: 'doc',    index: '13.3.1',                name: 'Strategic response to competitors',       snippet: 'Strategic framework for responding to competitor moves in key market segments.',                            location: '10 Accounting',     notes: 1, labels: 0, selected: false },
     { id: 21, type: 'pdf',    index: '14.1',                  name: 'Benchmark report — competitors',          snippet: 'Benchmark analysis comparing our performance against top five competitors on key KPIs.',                    location: '1 Finance',         notes: 2, labels: 0, selected: false },
     { id: 22, type: 'doc',    index: '14.2',                  name: 'SWOT: top competitors',                   snippet: 'SWOT analysis for the three leading competitors in our primary market segment.',                            location: '2 Project Alpha',   notes: 0, labels: 0, selected: false },
@@ -61,7 +62,7 @@ function makeRows(): SearchRow[] {
     { id: 27, type: 'txt',    index: '15.1.2',                name: 'Competitors technology stack notes',      snippet: 'Internal notes on the technology choices made by competitors and their potential impact on us.',            location: '7 Project Zeta',    notes: 0, labels: 0, selected: false },
     { id: 28, type: 'doc',    index: '15.2',                  name: 'Competitors talent strategy',             snippet: 'Overview of how top competitors attract, retain, and develop talent in the engineering domain.',            location: '8 Project Eta',     notes: 1, labels: 0, selected: false },
     { id: 29, type: 'pdf',    index: '15.3',                  name: 'Investor relations: competitor analysis', snippet: 'Competitor analysis prepared for investor relations presentations and roadshow materials.',                 location: '9 FY 2020',         notes: 0, labels: 2, selected: false },
-    { id: 30, type: 'img',    index: '15.4',                  name: 'Competitors brand positioning map',       snippet: 'Visual map of competitors brand positioning relative to our brand across key consumer dimensions.',         location: '10 Accounting',     notes: 0, labels: 0, selected: false },
+    { id: 30, type: 'image',    index: '15.4',                  name: 'Competitors brand positioning map',       snippet: 'Visual map of competitors brand positioning relative to our brand across key consumer dimensions.',         location: '10 Accounting',     notes: 0, labels: 0, selected: false },
     { id: 31, type: 'doc',    index: '16.1',                  name: 'Patent landscape: competitors',           snippet: 'Analysis of patent filings by competitors and areas of potential IP conflict.',                           location: '1 Finance',         notes: 0, labels: 0, selected: false },
     { id: 32, type: 'xls',    index: '16.2.1',                name: 'Competitors revenue model tracker',       snippet: 'Tracker comparing revenue models of competitors across subscription, licensing and services segments.',     location: '2 Project Alpha',   notes: 1, labels: 0, selected: false },
     { id: 33, type: 'pdf',    index: '16.2.2',                name: 'M&A activity among competitors',         snippet: 'Overview of merger and acquisition activity among competitors and strategic implications.',                 location: '3 FY 2023',         notes: 2, labels: 1, selected: false },
@@ -71,7 +72,7 @@ function makeRows(): SearchRow[] {
     { id: 37, type: 'doc',    index: '17.3.1',                name: 'Digital marketing by competitors',        snippet: 'Detailed analysis of digital marketing campaigns run by competitors in the past 12 months.',               location: '2 Project Alpha',   notes: 0, labels: 2, selected: false },
     { id: 38, type: 'pdf',    index: '17.3.2',                name: 'SEO performance vs competitors',          snippet: 'Comparison of our SEO performance against competitors across target keywords and domains.',                location: '3 Project Beta',    notes: 1, labels: 0, selected: false },
     { id: 39, type: 'xls',    index: '17.4',                  name: 'Competitors ad spend tracker',            snippet: 'Estimated ad spend data for top five competitors segmented by channel and quarter.',                      location: '4 Project Gamma',   notes: 0, labels: 0, selected: false },
-    { id: 40, type: 'img',    index: '17.5',                  name: 'Competitors social media benchmarks',     snippet: 'Benchmark report on social media engagement rates of competitors versus our accounts.',                    location: '5 Project Delta',   notes: 0, labels: 1, selected: false },
+    { id: 40, type: 'image',    index: '17.5',                  name: 'Competitors social media benchmarks',     snippet: 'Benchmark report on social media engagement rates of competitors versus our accounts.',                    location: '5 Project Delta',   notes: 0, labels: 1, selected: false },
     { id: 41, type: 'doc',    index: '18.1',                  name: 'Competitive win/loss analysis',           snippet: 'Structured win/loss analysis based on sales team feedback about encounters with competitors.',             location: '6 Finance',         notes: 3, labels: 0, selected: false },
     { id: 42, type: 'pdf',    index: '18.2.1',                name: 'Product gaps vs competitors',             snippet: 'Internal analysis of feature and capability gaps relative to top competitors in the enterprise segment.',  location: '7 Project Zeta',    notes: 0, labels: 0, selected: false },
     { id: 43, type: 'doc',    index: '18.2.2',                name: 'UX comparison with competitors',          snippet: 'Usability study comparing our UX with three leading competitors across key user journeys.',               location: '8 Project Eta',     notes: 1, labels: 2, selected: false },
@@ -81,7 +82,7 @@ function makeRows(): SearchRow[] {
     { id: 47, type: 'pdf',    index: '19.3.1',                name: 'Litigation history of competitors',       snippet: 'Overview of litigation history of competitors and ongoing legal proceedings of note.',                   location: '3 FY 2023',         notes: 0, labels: 1, selected: false },
     { id: 48, type: 'txt',    index: '19.3.2',                name: 'Competitors ESG disclosures',             snippet: 'Summary of ESG disclosures published by competitors and alignment with investor expectations.',          location: '6 Finance',         notes: 1, labels: 0, selected: false },
     { id: 49, type: 'doc',    index: '19.4',                  name: 'Board profiles of top competitors',       snippet: 'Profiles of board members at top competitors and their industry connections.',                           location: '2 Project Alpha',   notes: 0, labels: 0, selected: false },
-    { id: 50, type: 'img',    index: '20.1',                  name: 'Global footprint of competitors',         snippet: 'Map visualization of global office and operations footprint of top five competitors.',                    location: '4 Project Gamma',   notes: 0, labels: 2, selected: false },
+    { id: 50, type: 'image',    index: '20.1',                  name: 'Global footprint of competitors',         snippet: 'Map visualization of global office and operations footprint of top five competitors.',                    location: '4 Project Gamma',   notes: 0, labels: 2, selected: false },
     { id: 51, type: 'pdf',    index: '20.2',                  name: 'Customer retention vs competitors',       snippet: 'Study of customer retention strategies used by competitors and their measured outcomes.',                 location: '5 Project Delta',   notes: 1, labels: 0, selected: false },
     { id: 52, type: 'xls',    index: '20.3.1',                name: 'Competitors gross margin model',          snippet: 'Estimated gross margin breakdown for competitors based on public filings and industry data.',             location: '6 Project Epsilon', notes: 0, labels: 0, selected: false },
     { id: 53, type: 'doc',    index: '20.3.2',                name: 'Competitors cloud infrastructure',        snippet: 'Assessment of cloud infrastructure investments made by competitors and associated capabilities.',         location: '7 Project Zeta',    notes: 2, labels: 0, selected: false },
@@ -90,7 +91,7 @@ function makeRows(): SearchRow[] {
     { id: 56, type: 'doc',    index: '21.2',                  name: 'Competitors support model comparison',    snippet: 'Comparison of customer support models across competitors including SLAs and satisfaction scores.',        location: '10 Accounting',     notes: 1, labels: 0, selected: false },
     { id: 57, type: 'pdf',    index: '21.3',                  name: 'Competitors analyst ratings',             snippet: 'Collection of analyst ratings and reviews for top competitors across major analyst firms.',               location: '1 Finance',         notes: 0, labels: 2, selected: false },
     { id: 58, type: 'xls',    index: '21.4.1',                name: 'Competitors NPS benchmarks',              snippet: 'Net Promoter Score benchmarks gathered for competitors through third-party research.',                   location: '3 FY 2023',         notes: 0, labels: 0, selected: false },
-    { id: 59, type: 'img',    index: '21.4.2',                name: 'Competitors UI pattern library',          snippet: 'Visual collection of UI patterns and design trends observed across competitors products.',                location: '6 Finance',         notes: 2, labels: 0, selected: false },
+    { id: 59, type: 'image',    index: '21.4.2',                name: 'Competitors UI pattern library',          snippet: 'Visual collection of UI patterns and design trends observed across competitors products.',                location: '6 Finance',         notes: 2, labels: 0, selected: false },
     { id: 60, type: 'doc',    index: '22.1',                  name: 'Competitors hiring pages analysis',       snippet: 'Analysis of hiring pages and job descriptions at competitors as signals of strategic direction.',        location: '2 Project Alpha',   notes: 0, labels: 1, selected: false },
     { id: 61, type: 'pdf',    index: '22.2',                  name: 'Market entry by new competitors',         snippet: 'Assessment of new market entrants and potential competitors in the next 12–24 month horizon.',            location: '3 Project Beta',    notes: 1, labels: 0, selected: false },
     { id: 62, type: 'txt',    index: '22.3',                  name: 'Indirect competitors mapping',            snippet: 'Mapping of indirect competitors and substitute products that could disrupt our core market.',            location: '4 Project Gamma',   notes: 0, labels: 0, selected: false },
@@ -99,7 +100,7 @@ function makeRows(): SearchRow[] {
     { id: 65, type: 'xls',    index: '22.5.2',                name: 'Competitors content output tracker',      snippet: 'Tracker monitoring volume and topics of content published by competitors across blogs and media.',       location: '7 Project Zeta',    notes: 0, labels: 0, selected: false },
     { id: 66, type: 'doc',    index: '23.1',                  name: 'Feedback from churned: competitors',      snippet: 'Feedback collected from churned customers who moved to competitors, with themes and quotes.',            location: '8 Project Eta',     notes: 2, labels: 1, selected: false },
     { id: 67, type: 'pdf',    index: '23.2',                  name: 'Competitive differentiation deck',        snippet: 'Sales enablement deck highlighting our competitive differentiation from top three competitors.',         location: '9 FY 2020',         notes: 0, labels: 0, selected: false },
-    { id: 68, type: 'img',    index: '23.3',                  name: 'Competitors growth rate chart',           snippet: 'Visual chart of year-over-year growth rates for competitors compared to industry average.',              location: '10 Accounting',     notes: 1, labels: 0, selected: false },
+    { id: 68, type: 'image',    index: '23.3',                  name: 'Competitors growth rate chart',           snippet: 'Visual chart of year-over-year growth rates for competitors compared to industry average.',              location: '10 Accounting',     notes: 1, labels: 0, selected: false },
     { id: 69, type: 'doc',    index: '23.4',                  name: 'Competitors geographic expansion plan',   snippet: 'Known or inferred geographic expansion plans of competitors based on public signals.',                   location: '2 Project Alpha',   notes: 0, labels: 0, selected: false },
     { id: 70, type: 'pdf',    index: '24.1',                  name: 'AI capabilities of competitors',          snippet: 'Assessment of AI and machine learning capabilities deployed by competitors in their products.',         location: '3 FY 2023',         notes: 0, labels: 2, selected: false },
     { id: 71, type: 'txt',    index: '24.2',                  name: 'Competitors security posture notes',      snippet: 'Notes on publicly known security incidents and certifications held by competitors.',                    location: '6 Finance',         notes: 0, labels: 0, selected: false },
@@ -108,7 +109,7 @@ function makeRows(): SearchRow[] {
     { id: 74, type: 'pdf',    index: '24.4',                  name: 'Contract terms analysis: competitors',    snippet: 'Comparison of standard contract terms offered by competitors including SLAs and penalties.',           location: '6 Project Epsilon', notes: 2, labels: 1, selected: false },
     { id: 75, type: 'doc',    index: '25.1',                  name: 'Competitors ecosystem strategy',          snippet: 'Analysis of partner ecosystem and marketplace strategies deployed by leading competitors.',             location: '1 Finance',         notes: 0, labels: 0, selected: false },
     { id: 76, type: 'pdf',    index: '25.2',                  name: 'Legacy vs modern competitors',            snippet: 'Comparison of legacy incumbents versus newer disruptive competitors in our primary market.',            location: '3 FY 2023',         notes: 1, labels: 0, selected: false },
-    { id: 77, type: 'img',    index: '25.3',                  name: 'Competitors product screenshots library', snippet: 'Curated library of product screenshots from competitors for UX and benchmarking purposes.',            location: '7 Project Zeta',    notes: 0, labels: 2, selected: false },
+    { id: 77, type: 'image',    index: '25.3',                  name: 'Competitors product screenshots library', snippet: 'Curated library of product screenshots from competitors for UX and benchmarking purposes.',            location: '7 Project Zeta',    notes: 0, labels: 2, selected: false },
     { id: 78, type: 'doc',    index: '25.4',                  name: 'Competitors CX investment signals',       snippet: 'Signals of customer experience investment by competitors including new hires and tooling.',             location: '8 Project Eta',     notes: 0, labels: 0, selected: false },
     { id: 79, type: 'xls',    index: '26.1',                  name: 'Competitors ARR estimates',               snippet: 'Annual Recurring Revenue estimates for private and public competitors based on available data.',        location: '9 FY 2020',         notes: 1, labels: 0, selected: false },
     { id: 80, type: 'pdf',    index: '26.2.1',                name: 'Competitors board game theory analysis',  snippet: 'Game theory analysis of strategic moves available to competitors in current market conditions.',        location: '10 Accounting',     notes: 0, labels: 1, selected: false },
@@ -118,7 +119,7 @@ function makeRows(): SearchRow[] {
     { id: 84, type: 'doc',    index: '27.1',                  name: 'Churn reasons linked to competitors',     snippet: 'Root cause analysis of customer churn cases where competitors were a primary factor.',                  location: '5 Project Delta',   notes: 0, labels: 2, selected: false },
     { id: 85, type: 'xls',    index: '27.2',                  name: 'Competitors feature velocity tracker',    snippet: 'Tracker measuring speed of feature releases by competitors to assess their product momentum.',          location: '6 Finance',         notes: 0, labels: 0, selected: false },
     { id: 86, type: 'pdf',    index: '27.3',                  name: 'Competitors customer case studies',       snippet: 'Collection of customer case studies published by competitors with notes on positioning claims.',        location: '7 Project Zeta',    notes: 1, labels: 0, selected: false },
-    { id: 87, type: 'img',    index: '27.4',                  name: 'Competitors acquisition funnel map',      snippet: 'Mapped acquisition funnels of top three competitors based on observed digital behaviour.',             location: '8 Project Eta',     notes: 0, labels: 1, selected: false },
+    { id: 87, type: 'image',    index: '27.4',                  name: 'Competitors acquisition funnel map',      snippet: 'Mapped acquisition funnels of top three competitors based on observed digital behaviour.',             location: '8 Project Eta',     notes: 0, labels: 1, selected: false },
     { id: 88, type: 'doc',    index: '28.1',                  name: 'Competitive response playbook',           snippet: 'Internal playbook for responding to competitive moves including scripts and counter-messaging.',        location: '9 FY 2020',         notes: 2, labels: 0, selected: false },
     { id: 89, type: 'pdf',    index: '28.2',                  name: 'Competitors product launch history',      snippet: 'Timeline of major product launches by competitors over the past five years with market impact notes.',  location: '10 Accounting',     notes: 0, labels: 0, selected: false },
     { id: 90, type: 'txt',    index: '28.3',                  name: 'Competitors community strategy notes',    snippet: 'Notes on community building initiatives run by competitors and their engagement levels.',              location: '1 Finance',         notes: 0, labels: 0, selected: false },
@@ -126,8 +127,78 @@ function makeRows(): SearchRow[] {
     { id: 92, type: 'xls',    index: '29.1',                  name: 'Competitors language localisation data',  snippet: 'Data on number of languages and regional variants supported by competitors products.',                 location: '6 Finance',         notes: 0, labels: 0, selected: false },
     { id: 93, type: 'pdf',    index: '29.2',                  name: 'Competitors training offering',           snippet: 'Overview of training and certification programs offered by competitors to drive product adoption.',     location: '2 Project Alpha',   notes: 0, labels: 0, selected: false },
     { id: 94, type: 'doc',    index: '29.3',                  name: 'Competitors mobile strategy',             snippet: 'Assessment of mobile product strategy and app quality for key competitors in the market.',             location: '4 Project Gamma',   notes: 1, labels: 1, selected: false },
-    { id: 95, type: 'img',    index: '29.4',                  name: 'Competitors final strategy overview',     snippet: 'Final consolidated overview of competitor strategies compiled from all available sources.',             location: '5 Project Delta',   notes: 0, labels: 0, selected: false },
+    { id: 95, type: 'image',    index: '29.4',                  name: 'Competitors final strategy overview',     snippet: 'Final consolidated overview of competitor strategies compiled from all available sources.',             location: '5 Project Delta',   notes: 0, labels: 0, selected: false },
   ];
+
+  const types: FvdrFileType[]  = ['pdf', 'doc', 'xls', 'image', 'txt', 'ppt', 'zip', 'eml'];
+  const locations = ['1 Finance', '2 Project Alpha', '3 FY 2023', '4 Project Gamma', '5 Project Delta', '6 Finance', '7 Project Zeta', '8 Project Eta', '9 FY 2020', '10 Accounting', '11 Project Iota'];
+  const names = [
+    'Competitors pricing intelligence', 'Competitive analysis deck', 'Market share competitors report',
+    'Competitors SWOT deep dive', 'Industry competitors overview', 'Competitors go-to-market analysis',
+    'Strategic competitors benchmark', 'Competitors product gap analysis', 'Customer churn to competitors',
+    'Competitors feature comparison', 'Regional competitors mapping', 'Competitors investment rounds',
+    'Competitors acquisition targets', 'Competitors distribution channels', 'Competitors retention study',
+    'Win-loss competitors review', 'Competitors brand tracking', 'Competitors media coverage',
+    'Competitors hiring velocity', 'Competitors patent filings tracker', 'Competitors developer relations',
+    'Competitors platform strategy', 'Competitors pricing page analysis', 'Global competitors expansion',
+    'Competitors NPS deep dive', 'Competitors support ticket themes', 'Competitors trial conversion data',
+    'Competitors API documentation review', 'Competitors security certifications', 'Competitors compliance profile',
+    'Competitors data privacy overview', 'Competitors white-label programs', 'Competitors influencer strategy',
+    'Competitors affiliate network', 'Competitors press release tracker', 'Competitors conference presence',
+    'Competitors analyst briefings', 'Competitors advisory board intel', 'Competitors CTO profiles',
+    'Competitors founding team bios', 'Competitors culture and values', 'Competitors glassdoor analysis',
+    'Competitors office locations', 'Competitors cloud cost estimates', 'Competitors downtime history',
+    'Competitors SLA commitments', 'Competitors free trial analysis', 'Competitors demo flow review',
+    'Competitors onboarding emails', 'Competitors in-app messaging', 'Competitors notification strategy',
+    'Competitors mobile app store reviews', 'Competitors desktop app reviews', 'Competitors chrome extension audit',
+    'Competitors open source contributions', 'Competitors engineering blog topics', 'Competitors podcast appearances',
+    'Competitors webinar schedule', 'Competitors co-marketing deals', 'Competitors reseller agreements',
+    'Competitors OEM integrations', 'Competitors marketplace listings', 'Competitors template library',
+    'Competitors community forum analysis', 'Competitors Slack community intel', 'Competitors Discord presence',
+    'Competitors Reddit mentions tracker', 'Competitors Twitter/X share of voice', 'Competitors LinkedIn follower growth',
+    'Competitors YouTube channel audit', 'Competitors newsletter analysis', 'Competitors email frequency study',
+    'Competitors landing page A/B data', 'Competitors conversion optimisation', 'Competitors checkout flow audit',
+    'Competitors upsell modal study', 'Competitors cross-sell strategy', 'Competitors bundling approach',
+    'Competitors annual plan discounts', 'Competitors seat-based pricing', 'Competitors usage-based pricing',
+    'Competitors enterprise tier breakdown', 'Competitors startup program', 'Competitors academic licensing',
+    'Competitors non-profit pricing', 'Competitors government contracts', 'Competitors healthcare vertical',
+    'Competitors fintech vertical', 'Competitors edtech vertical', 'Competitors legaltech vertical',
+    'Competitors retail vertical', 'Competitors manufacturing vertical', 'Competitors logistics vertical',
+  ];
+  const snippets = [
+    'Detailed analysis showing how competitors position against our core value proposition in key markets.',
+    'Internal research on competitors product launches and their measured impact on our pipeline.',
+    'Aggregated competitor intelligence gathered from sales calls, trials, and customer interviews.',
+    'Benchmarking competitors key metrics against our own across retention, NPS, and revenue growth.',
+    'Strategic notes on how competitors are evolving their pricing and packaging for enterprise buyers.',
+    'Competitor activity tracked across Q1–Q4 with annotations on market share implications.',
+    'Summary of all competitors mentions in analyst reports and industry publications this quarter.',
+    'Competitive win/loss data segmented by region, deal size, and vertical for the past 12 months.',
+    'Assessment of competitors strengths and weaknesses based on publicly available data and customer feedback.',
+    'Overview of competitors recent fundraising activity and how it signals their strategic priorities.',
+  ];
+
+  for (let i = 96; i <= 187; i++) {
+    const ti = (i - 96) % types.length;
+    const ni = (i - 96) % names.length;
+    const si = (i - 96) % snippets.length;
+    const li = (i - 96) % locations.length;
+    const maj = Math.floor((i - 1) / 5) + 1;
+    const min = ((i - 1) % 5) + 1;
+    base.push({
+      id: i,
+      type: types[ti],
+      index: `${maj}.${min}`,
+      name: names[ni],
+      snippet: snippets[si],
+      location: locations[li],
+      notes: i % 4 === 0 ? Math.ceil(i % 5) : 0,
+      labels: i % 7 === 0 ? 1 : 0,
+      selected: false,
+    });
+  }
+
+  base.forEach((row, i) => { row.index = String(i + 1); });
   return base;
 }
 
@@ -248,7 +319,34 @@ function makeRows(): SearchRow[] {
             <div class="toolbar-left">
               <fvdr-btn label="Download" variant="secondary" size="m"></fvdr-btn>
               <fvdr-btn label="View as"  variant="secondary" size="m"></fvdr-btn>
-              <button class="more-btn"><fvdr-icon name="more"></fvdr-icon></button>
+              <div class="more-wrap">
+                <button class="more-btn" (click)="togglePopover($event)"><fvdr-icon name="more"></fvdr-icon></button>
+                <div *ngIf="popoverOpen" class="popover">
+                  <button class="pop-item">
+                    <span class="pop-ico"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.5"/><circle cx="8" cy="8" r="2.5" fill="currentColor"/></svg></span>
+                    <span>Publish</span>
+                  </button>
+                  <button class="pop-item">
+                    <span class="pop-ico"><fvdr-icon name="plus"></fvdr-icon></span>
+                    <span>Add</span>
+                    <fvdr-icon name="chevron-right" class="pop-chevron"></fvdr-icon>
+                  </button>
+                  <button class="pop-item">
+                    <span class="pop-ico"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1.5" y="3.5" width="9" height="11" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="5.5" y="1.5" width="9" height="11" rx="1" fill="var(--color-stone-0)" stroke="currentColor" stroke-width="1.5"/></svg></span>
+                    <span>Copy to...</span>
+                    <fvdr-icon name="chevron-right" class="pop-chevron"></fvdr-icon>
+                  </button>
+                  <button class="pop-item">
+                    <span class="pop-ico"><fvdr-icon name="move"></fvdr-icon></span>
+                    <span>Move</span>
+                  </button>
+                  <div class="pop-divider"></div>
+                  <button class="pop-item pop-item--danger" (click)="openConfirm()">
+                    <span class="pop-ico"><fvdr-icon name="trash"></fvdr-icon></span>
+                    <span>Delete</span>
+                  </button>
+                </div>
+              </div>
             </div>
             <div class="toolbar-results">
               <ng-container *ngIf="!allSelected">
@@ -291,7 +389,7 @@ function makeRows(): SearchRow[] {
               </div>
 
               <!-- Data rows -->
-              <div *ngFor="let row of paginatedRows"
+              <div *ngFor="let row of visibleRows"
                 class="tbl-row tbl-row--data"
                 [class.tbl-row--selected]="row.selected">
 
@@ -309,12 +407,7 @@ function makeRows(): SearchRow[] {
 
                 <!-- Index + icon -->
                 <div class="col-index">
-                  <span *ngIf="row.type === 'folder'" class="file-icon file-icon--folder">
-                    <fvdr-icon name="folder"></fvdr-icon>
-                  </span>
-                  <span *ngIf="row.type !== 'folder'" class="file-icon" [ngClass]="'file-icon--' + row.type">
-                    {{ row.type.toUpperCase() }}
-                  </span>
+                  <fvdr-file-icon [type]="row.type === 'folder' ? 'folder-colored' : row.type"></fvdr-file-icon>
                   <span class="td-index">{{ row.index }}</span>
                 </div>
 
@@ -328,7 +421,7 @@ function makeRows(): SearchRow[] {
 
                 <!-- Location -->
                 <div class="col-loc">
-                  <fvdr-icon name="folder" class="loc-folder-icon"></fvdr-icon>
+                  <fvdr-file-icon type="folder"></fvdr-file-icon>
                   <span class="td-loc">{{ row.location }}</span>
                 </div>
 
@@ -348,35 +441,47 @@ function makeRows(): SearchRow[] {
                 </div>
               </div>
 
+              <!-- Skeleton rows -->
+              <div *ngFor="let s of skeletonRows" class="tbl-row tbl-row--skeleton">
+                <div class="col-check"><span class="sk sk--sm"></span></div>
+                <div class="col-index"><span class="sk sk--icon"></span><span class="sk sk--md"></span></div>
+                <div class="col-name">
+                  <div class="name-block">
+                    <span class="sk sk--lg"></span>
+                    <span class="sk sk--xl"></span>
+                  </div>
+                </div>
+                <div class="col-loc"><span class="sk sk--md"></span></div>
+                <div class="col-notes"><span class="sk sk--sm"></span></div>
+                <div class="col-labels"><span class="sk sk--sm"></span></div>
+                <div class="col-act"></div>
+              </div>
+
+              <!-- Sentinel -->
+              <div #sentinel class="sentinel"></div>
+
             </div>
-          </div>
-
-          <!-- Pagination -->
-          <div class="pagination">
-            <button class="pg-btn pg-btn--nav"
-              [disabled]="currentPage === 1"
-              (click)="goTo(currentPage - 1)">
-              <fvdr-icon name="chevron-left"></fvdr-icon>
-            </button>
-
-            <ng-container *ngFor="let p of pageNumbers">
-              <button *ngIf="p !== -1"
-                class="pg-btn"
-                [class.pg-btn--active]="p === currentPage"
-                (click)="goTo(p)">{{ p }}</button>
-              <span *ngIf="p === -1" class="pg-ellipsis">…</span>
-            </ng-container>
-
-            <button class="pg-btn pg-btn--nav"
-              [disabled]="currentPage === totalPages"
-              (click)="goTo(currentPage + 1)">
-              <fvdr-icon name="chevron-right"></fvdr-icon>
-            </button>
           </div>
 
         </div><!-- /content -->
       </div><!-- /main-area -->
     </div><!-- /shell -->
+
+    <!-- Confirmation modal -->
+    <fvdr-modal
+      [visible]="confirmOpen"
+      [title]="'Delete ' + totalResults + ' items'"
+      confirmLabel="Delete"
+      cancelLabel="Cancel"
+      confirmVariant="danger"
+      size="s"
+      (confirmed)="onConfirmDelete()"
+      (cancelled)="confirmOpen = false"
+      (closed)="confirmOpen = false">
+      <p style="margin:0; font-size:14px; color:var(--color-text-primary); line-height:1.5">
+        You can recover them later if necessary. Delete selected items?
+      </p>
+    </fvdr-modal>
   `,
   styles: [`
     :host {
@@ -611,6 +716,7 @@ function makeRows(): SearchRow[] {
     .results-count  { font-size: var(--font-size-base); color: var(--color-text-secondary); }
     .results-sep    { color: var(--color-divider); }
     .selected-count { font-size: var(--font-size-base); color: var(--color-text-secondary); }
+    .more-wrap { position: relative; }
     .more-btn {
       display: flex; align-items: center; justify-content: center;
       width: 40px; height: 40px;
@@ -620,13 +726,42 @@ function makeRows(): SearchRow[] {
     }
     .more-btn:hover { background: var(--color-hover-bg); }
 
+    /* ── Popover ── */
+    .popover {
+      position: absolute;
+      top: calc(100% + 6px);
+      left: 0;
+      z-index: 100;
+      background: var(--color-stone-0);
+      border: 1px solid var(--color-divider);
+      border-radius: var(--radius-md);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+      min-width: 200px;
+      padding: var(--space-2) 0;
+    }
+    .pop-item {
+      display: flex; align-items: center; gap: var(--space-3);
+      width: 100%; padding: 0 var(--space-4);
+      height: 40px; border: none; background: transparent;
+      cursor: pointer; font-family: var(--font-family);
+      font-size: var(--font-size-base); color: var(--color-text-primary);
+      text-align: left; white-space: nowrap;
+    }
+    .pop-item:hover { background: var(--color-hover-bg); }
+    .pop-item--danger { color: var(--color-error-600); }
+    .pop-item--danger:hover { background: #fff2f0; }
+    .pop-ico {
+      display: flex; align-items: center; justify-content: center;
+      width: 16px; height: 16px; font-size: 16px; flex-shrink: 0;
+    }
+    .pop-chevron { margin-left: auto; font-size: 14px; color: var(--color-text-secondary); }
+    .pop-divider { height: 1px; background: var(--color-divider); margin: var(--space-2) 0; }
+
     /* ── Table ── */
     .tbl-scroll {
       flex: 1;
       overflow-y: auto;
       overflow-x: auto;
-      border: 1px solid var(--color-divider);
-      border-radius: var(--radius-md);
     }
     .tbl { display: flex; flex-direction: column; min-width: 900px; }
 
@@ -634,9 +769,7 @@ function makeRows(): SearchRow[] {
       display: grid;
       grid-template-columns: 40px 160px 1fr 180px 72px 80px 48px;
       align-items: center;
-      border-bottom: 1px solid var(--color-divider);
     }
-    .tbl-row:last-child { border-bottom: none; }
 
     .tbl-row--head {
       background: var(--color-stone-200);
@@ -685,27 +818,7 @@ function makeRows(): SearchRow[] {
     }
     .check-wrap:hover .check-box { border-color: var(--color-primary-500); }
 
-    /* File icon */
-    .file-icon {
-      width: 22px; height: 26px;
-      border-radius: 2px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 7px; font-weight: 700; color: white;
-      flex-shrink: 0; margin-right: var(--space-2);
-    }
-    .file-icon--folder {
-      background: transparent;
-      color: var(--color-primary-500);
-      font-size: 20px;
-      width: 22px; height: 22px;
-    }
-    .file-icon--pdf { background: #E54430; }
-    .file-icon--doc { background: #358CEB; }
-    .file-icon--img { background: #9B59B6; }
-    .file-icon--xls { background: #2C9C74; }
-    .file-icon--txt { background: #73757F; }
-
-    .col-index { gap: 0; overflow: hidden; }
+    .col-index { gap: var(--space-2); overflow: hidden; }
     .td-index {
       font-size: var(--text-caption1-size);
       color: var(--color-text-secondary);
@@ -744,7 +857,6 @@ function makeRows(): SearchRow[] {
 
     /* Location */
     .col-loc { gap: var(--space-2); overflow: hidden; }
-    .loc-folder-icon { font-size: 14px; color: var(--color-text-secondary); flex-shrink: 0; }
     .td-loc {
       font-size: var(--font-size-base);
       color: var(--color-text-primary);
@@ -782,62 +894,54 @@ function makeRows(): SearchRow[] {
     .row-more { opacity: 0; }
     .tbl-row--data:hover .row-more { opacity: 1; }
 
-    /* ── Pagination ── */
-    .pagination {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: var(--space-1);
-      flex-shrink: 0;
-      padding: var(--space-2) 0;
+    /* ── Skeleton ── */
+    @keyframes shimmer {
+      0%   { background-position: -400px 0; }
+      100% { background-position: 400px 0; }
     }
-    .pg-btn {
-      display: flex; align-items: center; justify-content: center;
-      min-width: 32px; height: 32px;
-      padding: 0 var(--space-2);
-      border: 1.5px solid var(--color-divider);
-      border-radius: var(--radius-sm);
-      background: var(--color-stone-0);
-      cursor: pointer;
-      font-size: var(--font-size-base);
-      color: var(--color-text-primary);
-      font-family: var(--font-family);
-      transition: background 0.12s, border-color 0.12s;
+    .tbl-row--skeleton { min-height: 52px; pointer-events: none; }
+    .tbl-row--skeleton > div { padding: 0 var(--space-3); }
+    .tbl-row--skeleton .col-name { padding: var(--space-2) var(--space-3); }
+    .sk {
+      display: block;
+      border-radius: 4px;
+      background: linear-gradient(90deg, var(--color-stone-300) 25%, var(--color-stone-200) 50%, var(--color-stone-300) 75%);
+      background-size: 800px 100%;
+      animation: shimmer 1.4s infinite linear;
     }
-    .pg-btn:hover:not(:disabled) {
-      background: var(--color-hover-bg);
-      border-color: var(--color-stone-500);
-    }
-    .pg-btn--active {
-      background: var(--color-primary-500);
-      border-color: var(--color-primary-500);
-      color: white;
-      font-weight: 600;
-    }
-    .pg-btn--active:hover { background: var(--color-primary-600); border-color: var(--color-primary-600); }
-    .pg-btn--nav { color: var(--color-text-secondary); }
-    .pg-btn:disabled { opacity: 0.35; cursor: default; }
-    .pg-ellipsis {
-      display: flex; align-items: center; justify-content: center;
-      width: 32px; height: 32px;
-      color: var(--color-text-secondary);
-      font-size: var(--font-size-base);
-      user-select: none;
-    }
+    .sk--sm  { width: 16px;  height: 16px; border-radius: 3px; }
+    .sk--icon{ width: 22px;  height: 22px; border-radius: 2px; margin-right: var(--space-2); flex-shrink: 0; }
+    .sk--md  { width: 90px;  height: 12px; }
+    .sk--lg  { width: 160px; height: 13px; }
+    .sk--xl  { width: 260px; height: 11px; margin-top: 4px; opacity: .7; }
+
+    /* Sentinel */
+    .sentinel { height: 1px; }
   `],
 })
-export class SearchResultsPaginationComponent implements OnInit {
-  private tracker = inject(TrackerService);
+export class SearchResultsPaginationComponent implements OnInit, AfterViewInit, OnDestroy {
+  private tracker  = inject(TrackerService);
   private sanitizer = inject(DomSanitizer);
+
+  @ViewChild('sentinel') private sentinel!: ElementRef<HTMLDivElement>;
+  private observer!: IntersectionObserver;
 
   sidebarCollapsed = false;
   searchTerm = 'Competitors';
-  totalResults = 95;
-  selectedCount = 105;
-  currentPage = 1;
-  readonly pageSize = 10;
+  get selectedCount(): number {
+    return this.allRows.filter(r => r.selected).length;
+  }
 
-  allRows: SearchRow[] = makeRows();
+  popoverOpen = false;
+  confirmOpen = false;
+
+  readonly BATCH = 50;
+  readonly SKELETON_COUNT = 5;
+
+  allRows: SearchRow[]     = makeRows();
+  visibleRows: SearchRow[] = [];
+  skeletonRows: number[]   = [];
+  private isLoading = false;
 
   navItems: NavItem[] = [
     { id: 'overview',     icon: 'nav-overview',      iconActive: 'nav-overview-active',     label: 'Dashboard',         active: false },
@@ -853,63 +957,75 @@ export class SearchResultsPaginationComponent implements OnInit {
     { id: 'recycle',      icon: 'trash',              iconActive: 'trash',                   label: 'Recycle bin',       active: false },
   ];
 
-  get totalPages(): number {
-    return Math.ceil(this.totalResults / this.pageSize);
-  }
-
-  get paginatedRows(): SearchRow[] {
-    const start = (this.currentPage - 1) * this.pageSize;
-    return this.allRows.slice(start, start + this.pageSize);
-  }
+  get totalResults(): number { return this.allRows.length; }
 
   get allSelected(): boolean {
-    const page = this.paginatedRows;
-    return page.length > 0 && page.every(r => r.selected);
+    return this.allRows.length > 0 && this.allRows.every(r => r.selected);
   }
-
   get someSelected(): boolean {
-    return this.paginatedRows.some(r => r.selected);
+    return this.allRows.some(r => r.selected) && !this.allSelected;
   }
 
-  get pageNumbers(): number[] {
-    const total = this.totalPages;
-    const current = this.currentPage;
-    const pages: number[] = [];
+  ngOnInit(): void {
+    this.tracker.trackPageView('search-results-pagination');
+    this.visibleRows = this.allRows.slice(0, this.BATCH);
+  }
 
-    if (total <= 7) {
-      for (let i = 1; i <= total; i++) pages.push(i);
-      return pages;
-    }
+  ngAfterViewInit(): void {
+    this.observer = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting) this.loadMore();
+    }, { threshold: 0.1 });
+    this.observer.observe(this.sentinel.nativeElement);
+  }
 
-    pages.push(1);
-    if (current > 3) pages.push(-1);
-    const start = Math.max(2, current - 1);
-    const end   = Math.min(total - 1, current + 1);
-    for (let i = start; i <= end; i++) pages.push(i);
-    if (current < total - 2) pages.push(-1);
-    pages.push(total);
-    return pages;
+  ngOnDestroy(): void {
+    this.observer?.disconnect();
+  }
+
+  private loadMore(): void {
+    const loaded = this.visibleRows.length;
+    if (this.isLoading || loaded >= this.allRows.length) return;
+    this.isLoading = true;
+    this.skeletonRows = Array.from({ length: this.SKELETON_COUNT }, (_, i) => i);
+
+    setTimeout(() => {
+      const next = this.allRows.slice(loaded, loaded + this.BATCH);
+      this.visibleRows = [...this.visibleRows, ...next];
+      this.skeletonRows = [];
+      this.isLoading = false;
+    }, 1200);
   }
 
   toggleAll(event: Event): void {
     const checked = (event.target as HTMLInputElement).checked;
-    this.paginatedRows.forEach(r => r.selected = checked);
+    this.allRows.forEach(r => r.selected = checked);
   }
 
   toggleRow(row: SearchRow, event: Event): void {
     row.selected = (event.target as HTMLInputElement).checked;
   }
 
-  goTo(page: number): void {
-    if (page < 1 || page > this.totalPages) return;
-    this.currentPage = page;
-    this.paginatedRows.forEach(r => r.selected = false);
+  togglePopover(e: Event): void {
+    e.stopPropagation();
+    this.popoverOpen = !this.popoverOpen;
+  }
+
+  openConfirm(): void {
+    this.popoverOpen = false;
+    this.confirmOpen = true;
+  }
+
+  onConfirmDelete(): void {
+    this.confirmOpen = false;
+  }
+
+  @HostListener('document:click')
+  closePopover(): void {
+    this.popoverOpen = false;
   }
 
   toggleNav(item: NavItem): void {
-    if (item.children) {
-      item.open = !item.open;
-    }
+    if (item.children) item.open = !item.open;
     this.navItems.forEach(n => n.active = false);
     item.active = true;
   }
@@ -918,11 +1034,6 @@ export class SearchResultsPaginationComponent implements OnInit {
     if (!this.searchTerm) return text;
     const escaped = this.searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const re = new RegExp(`(${escaped})`, 'gi');
-    const html = text.replace(re, '<mark>$1</mark>');
-    return this.sanitizer.bypassSecurityTrustHtml(html);
-  }
-
-  ngOnInit(): void {
-    this.tracker.trackPageView('search-results-pagination');
+    return this.sanitizer.bypassSecurityTrustHtml(text.replace(re, '<mark>$1</mark>'));
   }
 }
