@@ -91,11 +91,6 @@ export const routes: Routes = [
       import('./prototypes/timezone-picker/timezone-picker.component').then(m => m.TimezonePickerComponent),
   },
   {
-    path: 'q-a-drag-and-drop',
-    loadComponent: () =>
-      import('./prototypes/q-a-drag-and-drop/q-a-drag-and-drop.component').then(m => m.QADragAndDropComponent),
-  },
-  {
     path: 'search-results-pagination',
     loadComponent: () =>
       import('./prototypes/search-results-pagination/search-results-intro.component').then(m => m.SearchResultsIntroComponent),

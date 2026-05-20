@@ -98,11 +98,19 @@ node scripts/token-audit.js
 
 ## Git Push
 
-- `origin` (local proxy) — push тільки у `claude/*` гілки
-- Для `main` — використовуй remote `gitlab`:
+Працюємо **виключно з GitHub** (`origin` = `github.com/ideal-designers/Prototypes`). GitLab більше не використовується.
+
+- Робочі гілки — `claude/*`, пушити в `origin`:
   ```bash
-  git push gitlab merge-to-main:main
+  git push origin claude/<branch-name>
   ```
+- Мердж у `main` — або через GitHub PR, або локально fast-forward з пушем у `origin/main`:
+  ```bash
+  git checkout main
+  git merge --ff-only claude/<branch-name>
+  git push origin main
+  ```
+- Дизайнерські коміти приходять прямо в `main` через PR від `ideal-designers/*` — підтягуй через `git fetch origin && git pull --ff-only`.
 
 ---
 
