@@ -212,7 +212,7 @@ export class SearchResultsIntroComponent {
     },
     {
       title: '> 200 files/folders found — Option 1',
-      description: 'Large result set of 345 items — select all to act on all 345, lazy-loaded batches appear pre-selected, warning banner highlights scale.',
+      description: 'Large result set: 345 items found. Scroll to load more.',
       tag: 'scenario',
       pill: '345 results',
       route: '/search-results-pagination/large',
@@ -220,7 +220,7 @@ export class SearchResultsIntroComponent {
     },
     {
       title: '> 200 files/folders found — Option 2',
-      description: 'First 50 results pre-selected. Lazy-loaded batches appear unselected. Inline prompt lets the user extend selection to all 200+ items.',
+      description: 'Large result set: 345 items found. Scroll to load more.',
       tag: 'scenario',
       pill: '345 results',
       route: '/search-results-pagination/option2',
@@ -228,7 +228,7 @@ export class SearchResultsIntroComponent {
     },
     {
       title: '> 200 files/folders found — Option 3',
-      description: 'All 345 results shown from the start. Select all selects 345, lazy-loaded batches appear pre-selected. Actions apply to all 345.',
+      description: 'Large result set: 345 items found. Scroll to load more.',
       tag: 'scenario',
       pill: '345 results',
       route: '/search-results-pagination/option3',
