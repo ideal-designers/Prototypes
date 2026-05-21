@@ -1,8 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { PrototypeService, PrototypeDef } from '../../services/prototype.service';
+
+type ViewMode = 'cards' | 'table';
+const VIEW_MODE_STORAGE_KEY = 'fvdr-home-view-mode';
 
 @Component({
   selector: 'fvdr-home',
@@ -21,10 +24,48 @@ import { PrototypeService, PrototypeDef } from '../../services/prototype.service
             <span class="btn-new__icon">+</span> New prototype
           </button>
         </div>
+
+        <div class="home__toolbar">
+          <div class="home__search">
+            <span class="home__search-ico" aria-hidden="true">⌕</span>
+            <input
+              type="text"
+              class="home__search-input"
+              [(ngModel)]="searchQuery"
+              placeholder="Search by title, description, slug…"
+              autocomplete="off" />
+            <button
+              *ngIf="searchQuery"
+              class="home__search-clear"
+              (click)="searchQuery = ''"
+              title="Clear">✕</button>
+          </div>
+
+          <div class="home__view-toggle" role="tablist" aria-label="View mode">
+            <button
+              type="button"
+              role="tab"
+              [attr.aria-selected]="viewMode === 'cards'"
+              [class.is-active]="viewMode === 'cards'"
+              (click)="setViewMode('cards')"
+              title="Cards view">
+              <span class="home__view-ico" aria-hidden="true">▦</span> Cards
+            </button>
+            <button
+              type="button"
+              role="tab"
+              [attr.aria-selected]="viewMode === 'table'"
+              [class.is-active]="viewMode === 'table'"
+              (click)="setViewMode('table')"
+              title="Table view">
+              <span class="home__view-ico" aria-hidden="true">≡</span> Table
+            </button>
+          </div>
+        </div>
       </header>
 
-      <!-- ── Grid ── -->
-      <div class="home__grid">
+      <!-- ── Grid (Cards view) ── -->
+      <div class="home__grid" *ngIf="viewMode === 'cards'">
 
         <!-- DS Card — pinned -->
         <a routerLink="/ds" class="proto-card proto-card--ds">
@@ -56,7 +97,7 @@ import { PrototypeService, PrototypeDef } from '../../services/prototype.service
           <div class="proto-card__slug">/docs</div>
         </a>
 
-        <ng-container *ngFor="let proto of protos">
+        <ng-container *ngFor="let proto of filteredProtos">
           <!-- Clickable card (component exists) -->
           <a
             *ngIf="proto.hasComponent"
@@ -67,7 +108,13 @@ import { PrototypeService, PrototypeDef } from '../../services/prototype.service
             [class.proto-card--archived]="proto.status === 'archived'"
           >
             <div class="proto-card__top">
-              <span class="proto-card__status">{{ proto.status }}</span>
+              <button
+                type="button"
+                class="proto-card__status proto-card__status--toggle"
+                [class.is-saving]="statusSaving.has(proto.slug)"
+                [disabled]="!canToggleStatus(proto) || statusSaving.has(proto.slug)"
+                [title]="canToggleStatus(proto) ? 'Click to toggle WIP ↔ Live' : ''"
+                (click)="toggleStatus($event, proto)">{{ proto.status }}</button>
               <button class="proto-card__archive" (click)="confirmArchive($event, proto)" title="Archive">✕</button>
             </div>
             <h2 class="proto-card__title">{{ proto.title }}</h2>
@@ -93,11 +140,90 @@ import { PrototypeService, PrototypeDef } from '../../services/prototype.service
           </div>
         </ng-container>
 
-        <div *ngIf="protos.length === 0 && !loading" class="home__empty">
+        <div *ngIf="filteredProtos.length === 0 && !loading && !searchQuery" class="home__empty">
           <p>No prototypes yet.</p>
           <code>node scripts/new-proto.js --slug my-flow --title "My Flow"</code>
         </div>
 
+        <div *ngIf="filteredProtos.length === 0 && !loading && searchQuery" class="home__empty">
+          <p>No prototypes match <strong>"{{ searchQuery }}"</strong>.</p>
+          <button class="btn-cancel" (click)="searchQuery = ''" style="margin-top: 12px;">Clear search</button>
+        </div>
+
+        <div *ngIf="loading" class="home__loading">Loading…</div>
+      </div>
+
+      <!-- ── Table (Table view) ── -->
+      <div class="home__table-wrap" *ngIf="viewMode === 'table'">
+        <table class="home__table">
+          <thead>
+            <tr>
+              <th class="th-status">Status</th>
+              <th class="th-title">Title</th>
+              <th class="th-desc">Description</th>
+              <th class="th-slug">Slug</th>
+              <th class="th-links">Links</th>
+              <th class="th-act"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              *ngFor="let proto of filteredProtos"
+              class="row"
+              [class.row--pending]="!proto.hasComponent"
+              [class.row--clickable]="proto.hasComponent"
+              (click)="proto.hasComponent && navigateTo(proto)"
+            >
+              <td>
+                <button
+                  type="button"
+                  class="pill pill--toggle"
+                  [class.pill--wip]="proto.status === 'wip' && proto.hasComponent"
+                  [class.pill--live]="proto.status === 'live' && proto.hasComponent"
+                  [class.pill--archived]="proto.status === 'archived' && proto.hasComponent"
+                  [class.pill--pending]="!proto.hasComponent"
+                  [class.is-saving]="statusSaving.has(proto.slug)"
+                  [disabled]="!canToggleStatus(proto) || statusSaving.has(proto.slug)"
+                  [title]="canToggleStatus(proto) ? 'Click to toggle WIP ↔ Live' : ''"
+                  (click)="toggleStatus($event, proto)"
+                >{{ proto.hasComponent ? proto.status : 'pending' }}</button>
+              </td>
+              <td class="td-title">{{ proto.title }}</td>
+              <td class="td-desc">{{ proto.description || '—' }}</td>
+              <td class="td-slug">/{{ proto.slug }}</td>
+              <td class="td-links">
+                <a
+                  *ngIf="proto.figma"
+                  [href]="proto.figma"
+                  target="_blank"
+                  rel="noopener"
+                  class="link-chip"
+                  (click)="$event.stopPropagation()"
+                  title="Open Figma">Figma ↗</a>
+                <button
+                  *ngIf="!proto.hasComponent"
+                  type="button"
+                  class="link-chip link-chip--scaffold"
+                  (click)="$event.stopPropagation(); showScaffold(proto)"
+                  title="Show scaffold command">Scaffold</button>
+              </td>
+              <td class="td-act">
+                <button
+                  class="row-archive"
+                  (click)="confirmArchive($event, proto)"
+                  title="Archive">✕</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div *ngIf="filteredProtos.length === 0 && !loading && !searchQuery" class="home__empty home__empty--in-table">
+          <p>No prototypes yet.</p>
+        </div>
+        <div *ngIf="filteredProtos.length === 0 && !loading && searchQuery" class="home__empty home__empty--in-table">
+          <p>No prototypes match <strong>"{{ searchQuery }}"</strong>.</p>
+          <button class="btn-cancel" (click)="searchQuery = ''" style="margin-top: 12px;">Clear search</button>
+        </div>
         <div *ngIf="loading" class="home__loading">Loading…</div>
       </div>
 
@@ -215,8 +341,73 @@ import { PrototypeService, PrototypeDef } from '../../services/prototype.service
       font-family: 'Open Sans', sans-serif;
       padding: 48px 24px;
     }
-    .home__header { max-width: 960px; margin: 0 auto 40px; }
+    .home__header { max-width: 960px; margin: 0 auto 28px; }
     .home__header-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+
+    /* ── Toolbar (search + view toggle) ── */
+    .home__toolbar {
+      display: flex; align-items: center; gap: 12px; margin-top: 20px;
+      flex-wrap: wrap;
+    }
+    .home__search {
+      position: relative;
+      display: flex; align-items: center;
+      flex: 1; min-width: 240px;
+      background: #101A16;
+      border: 1px solid #1e2e28;
+      border-radius: 8px;
+      transition: border-color 0.15s;
+    }
+    .home__search:focus-within { border-color: var(--color-interactive-primary); }
+    .home__search-ico {
+      padding: 0 4px 0 12px;
+      color: #3a5a50;
+      font-size: 1rem;
+      line-height: 1;
+      pointer-events: none;
+    }
+    .home__search-input {
+      flex: 1;
+      height: 40px;
+      background: transparent; border: none; outline: none;
+      color: #e8f5f0;
+      font-size: 0.9rem; font-family: inherit;
+      padding: 0 12px;
+    }
+    .home__search-input::placeholder { color: #3a5a50; }
+    .home__search-clear {
+      width: 28px; height: 28px;
+      margin-right: 6px;
+      background: transparent; border: none;
+      color: #6f7980; font-size: 0.85rem;
+      cursor: pointer; border-radius: 4px;
+      display: flex; align-items: center; justify-content: center;
+      transition: color 0.12s, background 0.12s;
+    }
+    .home__search-clear:hover { color: #e8f5f0; background: rgba(255,255,255,0.05); }
+
+    .home__view-toggle {
+      display: inline-flex;
+      background: #101A16;
+      border: 1px solid #1e2e28;
+      border-radius: 8px;
+      padding: 3px;
+      gap: 2px;
+    }
+    .home__view-toggle button {
+      display: inline-flex; align-items: center; gap: 6px;
+      height: 34px; padding: 0 14px;
+      background: transparent; border: none;
+      color: #9bbfb0; font-family: inherit; font-size: 0.85rem; font-weight: 500;
+      cursor: pointer; border-radius: 6px;
+      transition: background 0.15s, color 0.15s;
+    }
+    .home__view-toggle button:hover:not(.is-active) { color: #e8f5f0; }
+    .home__view-toggle button.is-active {
+      background: var(--color-interactive-primary);
+      color: #fff;
+    }
+    .home__view-ico { font-size: 0.95rem; line-height: 1; }
     h1 { font-size: 2rem; font-weight: 700; color: var(--color-interactive-primary); margin: 0 0 8px; }
     .home__subtitle { color: #9bbfb0; margin: 0; }
     .home__grid {
@@ -270,6 +461,17 @@ import { PrototypeService, PrototypeDef } from '../../services/prototype.service
     .proto-card--live    .proto-card__status { background: rgba(44,156,116,.15); color: var(--color-interactive-primary); }
     .proto-card--archived .proto-card__status { background: rgba(155,191,176,.1); color: #9bbfb0; }
     .proto-card--pending  .proto-card__status { background: rgba(53,140,235,.12); color: #358CEB; }
+
+    /* Status pill as toggle button (Cards view) */
+    .proto-card__status--toggle {
+      border: none; font-family: inherit; line-height: inherit;
+      cursor: pointer;
+      transition: filter 0.12s, transform 0.12s;
+    }
+    .proto-card__status--toggle:disabled { cursor: default; }
+    .proto-card__status--toggle:not(:disabled):hover { filter: brightness(1.25); }
+    .proto-card__status--toggle:not(:disabled):active { transform: translateY(1px); }
+    .proto-card__status--toggle.is-saving { opacity: 0.6; }
 
     .proto-card__archive {
       width: 22px; height: 22px;
@@ -464,11 +666,135 @@ import { PrototypeService, PrototypeDef } from '../../services/prototype.service
     }
     .btn-danger:hover:not(:disabled) { background: #c62c19; }
     .btn-danger:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* ── Table view ── */
+    .home__table-wrap {
+      max-width: 960px; margin: 0 auto;
+      background: #101A16;
+      border: 1px solid #1e2e28;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .home__table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+    .home__table thead th {
+      text-align: left;
+      font-size: 0.7rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      color: #6f7980;
+      padding: 12px 16px;
+      background: #0f201a;
+      border-bottom: 1px solid #1e2e28;
+      white-space: nowrap;
+    }
+    .home__table .th-status { width: 96px; }
+    .home__table .th-title  { width: 22%; }
+    .home__table .th-slug   { width: 18%; }
+    .home__table .th-links  { width: 130px; }
+    .home__table .th-act    { width: 40px; }
+
+    .home__table tbody tr {
+      border-bottom: 1px solid #1e2e28;
+      transition: background 0.12s;
+    }
+    .home__table tbody tr:last-child { border-bottom: none; }
+    .home__table .row--clickable { cursor: pointer; }
+    .home__table .row--clickable:hover { background: #0f201a; }
+    .home__table .row--pending { opacity: 0.85; }
+    .home__table .row--pending .td-title { color: #9bbfb0; }
+
+    .home__table td {
+      padding: 12px 16px;
+      color: #e8f5f0;
+      vertical-align: middle;
+    }
+    .home__table .td-title {
+      font-weight: 600;
+      max-width: 0;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .home__table .td-desc {
+      color: #9bbfb0; font-size: 0.85rem;
+      max-width: 0;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .home__table .td-slug {
+      color: #358CEB;
+      font-family: monospace; font-size: 0.8rem;
+      max-width: 0;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .home__table .td-links { white-space: nowrap; }
+    .home__table .td-act   { text-align: right; }
+
+    .pill {
+      display: inline-block;
+      font-size: 0.7rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      padding: 2px 8px; border-radius: 20px;
+      white-space: nowrap;
+    }
+    .pill--wip      { background: rgba(244,100,12,.15); color: var(--color-brand-orange); }
+    .pill--live     { background: rgba(44,156,116,.15); color: var(--color-interactive-primary); }
+    .pill--archived { background: rgba(155,191,176,.1); color: #9bbfb0; }
+    .pill--pending  { background: rgba(53,140,235,.12); color: #358CEB; }
+
+    .pill--toggle {
+      border: none; font-family: inherit; line-height: inherit;
+      cursor: pointer;
+      transition: filter 0.12s, transform 0.12s;
+    }
+    .pill--toggle:disabled { cursor: default; }
+    .pill--toggle:not(:disabled):hover { filter: brightness(1.25); }
+    .pill--toggle:not(:disabled):active { transform: translateY(1px); }
+    .pill--toggle.is-saving { opacity: 0.6; }
+
+    .link-chip {
+      display: inline-block;
+      padding: 3px 10px;
+      margin-right: 6px;
+      font-size: 0.75rem; font-family: inherit;
+      background: transparent;
+      border: 1px solid #1e2e28;
+      border-radius: 6px;
+      color: #9bbfb0;
+      text-decoration: none;
+      cursor: pointer;
+      transition: border-color 0.12s, color 0.12s;
+    }
+    .link-chip:hover { border-color: var(--color-interactive-primary); color: var(--color-interactive-primary); }
+    .link-chip--scaffold:hover { border-color: #358CEB; color: #358CEB; }
+
+    .row-archive {
+      width: 24px; height: 24px;
+      background: transparent; border: none;
+      color: #3a5a50; font-size: 0.8rem;
+      cursor: pointer; border-radius: 4px;
+      display: inline-flex; align-items: center; justify-content: center;
+      transition: color 0.12s, background 0.12s;
+    }
+    .row-archive:hover { color: var(--color-danger); background: rgba(229,68,48,.1); }
+
+    .home__empty--in-table { padding: 32px 16px; border: none; }
+
+    @media (max-width: 700px) {
+      .home__table .th-desc, .home__table .td-desc { display: none; }
+      .home__table .th-links, .home__table .td-links { display: none; }
+    }
   `],
 })
 export class HomeComponent implements OnInit {
   protos: PrototypeDef[] = [];
   loading = false;
+
+  // View mode (Cards | Table) — persisted in localStorage
+  viewMode: ViewMode = 'cards';
+
+  // Search query — filters by title, description, slug
+  searchQuery = '';
 
   // Create modal
   createOpen = false;
@@ -484,12 +810,81 @@ export class HomeComponent implements OnInit {
   // Scaffold command for pending cards
   scaffoldTarget: PrototypeDef | null = null;
 
-  constructor(readonly svc: PrototypeService) {}
+  // Slugs currently saving a status change (disables the toggle + shows opacity)
+  statusSaving = new Set<string>();
+
+  constructor(readonly svc: PrototypeService, private router: Router) {}
 
   async ngOnInit(): Promise<void> {
+    this.viewMode = this.readViewMode();
     this.loading = true;
     this.protos = await this.svc.list();
     this.loading = false;
+  }
+
+  // ── View mode ──────────────────────────────────────────────────────────────
+
+  setViewMode(mode: ViewMode): void {
+    if (this.viewMode === mode) return;
+    this.viewMode = mode;
+    try { localStorage.setItem(VIEW_MODE_STORAGE_KEY, mode); } catch {}
+  }
+
+  private readViewMode(): ViewMode {
+    try {
+      const v = localStorage.getItem(VIEW_MODE_STORAGE_KEY);
+      return v === 'table' ? 'table' : 'cards';
+    } catch {
+      return 'cards';
+    }
+  }
+
+  // ── Filter ─────────────────────────────────────────────────────────────────
+
+  get filteredProtos(): PrototypeDef[] {
+    const q = this.searchQuery.trim().toLowerCase();
+    if (!q) return this.protos;
+    return this.protos.filter(p =>
+      p.title.toLowerCase().includes(q) ||
+      (p.description ?? '').toLowerCase().includes(q) ||
+      p.slug.toLowerCase().includes(q) ||
+      p.status.toLowerCase().includes(q)
+    );
+  }
+
+  // ── Navigation (table row click) ───────────────────────────────────────────
+
+  navigateTo(proto: PrototypeDef): void {
+    this.router.navigate(['/', proto.slug]);
+  }
+
+  // ── Status toggle (WIP ↔ Live) ─────────────────────────────────────────────
+
+  canToggleStatus(proto: PrototypeDef): boolean {
+    return (
+      this.svc.hasSupabase &&
+      proto.hasComponent &&
+      (proto.status === 'wip' || proto.status === 'live')
+    );
+  }
+
+  async toggleStatus(event: Event, proto: PrototypeDef): Promise<void> {
+    event.preventDefault();
+    event.stopPropagation();
+    if (!this.canToggleStatus(proto)) return;
+    if (this.statusSaving.has(proto.slug)) return;
+
+    const next: PrototypeDef['status'] = proto.status === 'wip' ? 'live' : 'wip';
+    this.statusSaving.add(proto.slug);
+    try {
+      const updated = await this.svc.setStatus(proto, next);
+      this.protos = this.protos.map(p => p.slug === proto.slug ? { ...p, ...updated } : p);
+    } catch (err: any) {
+      console.error('[toggleStatus]', err);
+      alert(`Failed to update status: ${err?.message ?? err}`);
+    } finally {
+      this.statusSaving.delete(proto.slug);
+    }
   }
 
   // ── Create ──────────────────────────────────────────────────────────────────
