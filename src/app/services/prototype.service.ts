@@ -77,8 +77,10 @@ export class PrototypeService {
       const local = PROTO_REGISTRY.find(p => p.slug === row.slug);
       return {
         ...row,
-        // Local registry is source of truth for status when component exists
-        status: local ? local.status : row.status,
+        // Supabase status wins once a user explicitly sets one (wip/live/archived).
+        // When Supabase still has the default 'pending' but a local component exists,
+        // fall back to local registry status so existing prototypes don't regress.
+        status: row.status === 'pending' && local ? local.status : row.status,
         hasComponent: !!local,
       };
     });
@@ -104,6 +106,37 @@ export class PrototypeService {
 
     if (error) throw error;
     return { ...data, hasComponent: false };
+  }
+
+  /** Updates the status of a prototype. UPSERTs into Supabase so that
+   *  local-registry-only prototypes (no row yet) get a row on first toggle. */
+  async setStatus(proto: PrototypeDef, status: PrototypeDef['status']): Promise<PrototypeDef> {
+    if (!this.supabase) throw new Error('Supabase is not configured.');
+
+    if (proto.id) {
+      const { data, error } = await this.supabase
+        .from('prototypes')
+        .update({ status })
+        .eq('id', proto.id)
+        .select()
+        .single();
+      if (error) throw error;
+      return { ...proto, ...data, hasComponent: proto.hasComponent };
+    }
+
+    const { data, error } = await this.supabase
+      .from('prototypes')
+      .insert({
+        slug: proto.slug,
+        title: proto.title,
+        description: proto.description ?? '',
+        figma: proto.figma ?? '',
+        status,
+      })
+      .select()
+      .single();
+    if (error) throw error;
+    return { ...proto, ...data, hasComponent: proto.hasComponent };
   }
 
   /** Soft-deletes a prototype by setting status = 'archived'. */
