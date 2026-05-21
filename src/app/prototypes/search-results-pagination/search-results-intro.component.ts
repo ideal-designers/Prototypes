@@ -10,6 +10,8 @@ interface ScenarioCard {
   accent: string;
   pill?: string;
   comingSoon?: boolean;
+  dividerBefore?: boolean;
+  externalLink?: string;
 }
 
 @Component({
@@ -33,8 +35,11 @@ interface ScenarioCard {
       <div class="grid">
         <ng-container *ngFor="let card of cards">
 
-          <!-- Active card -->
-          <a *ngIf="!card.comingSoon"
+          <!-- Divider -->
+          <div *ngIf="card.dividerBefore" class="grid-divider"></div>
+
+          <!-- Internal route card -->
+          <a *ngIf="!card.comingSoon && !card.externalLink"
              [routerLink]="card.route"
              class="card"
              [style.--accent]="card.accent">
@@ -48,6 +53,19 @@ interface ScenarioCard {
               <span class="card__route">{{ card.route }}</span>
               <svg class="card__arrow" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </div>
+          </a>
+
+          <!-- External link CTA -->
+          <a *ngIf="card.externalLink"
+             [href]="card.externalLink"
+             target="_blank"
+             rel="noopener"
+             class="cta-banner">
+            <div class="cta-banner__icon">
+              <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M11 2C6.03 2 2 6.03 2 11s4.03 9 9 9 9-4.03 9-9-4.03-9-9-9Zm.75 13.5h-1.5v-5.25h1.5v5.25Zm0-7.5h-1.5V6.5h1.5V8Z" fill="currentColor" opacity=".25"/><path d="M11 2C6.03 2 2 6.03 2 11s4.03 9 9 9 9-4.03 9-9-4.03-9-9-9Zm.75 13.5h-1.5v-5.25h1.5v5.25Zm0-7.5h-1.5V6.5h1.5V8Z" stroke="currentColor" stroke-width="0"/><circle cx="11" cy="11" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M11 7v.5M11 10v5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </div>
+            <span class="cta-banner__text">{{ card.title }}</span>
+            <svg class="cta-banner__arrow" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </a>
 
           <!-- Coming soon card -->
@@ -102,6 +120,12 @@ interface ScenarioCard {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
       gap: 16px;
+    }
+    .grid-divider {
+      grid-column: 1 / -1;
+      height: 1px;
+      background: #1e2e28;
+      margin: 8px 0;
     }
 
     /* ── Card ── */
@@ -198,6 +222,46 @@ interface ScenarioCard {
       opacity: 1;
       transform: translateX(3px);
     }
+
+    /* ── CTA Banner (external link) ── */
+    .cta-banner {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 16px 20px;
+      background: transparent;
+      border: 1px dashed #2C9C74;
+      border-radius: 10px;
+      text-decoration: none;
+      color: #9bbfb0;
+      margin-top: 8px;
+      transition: background 0.15s, color 0.15s;
+    }
+    .cta-banner:hover {
+      background: color-mix(in srgb, #2C9C74 8%, transparent);
+      color: #e8f5f0;
+    }
+    .cta-banner__icon {
+      color: #2C9C74;
+      opacity: 0.7;
+      flex-shrink: 0;
+      display: flex;
+    }
+    .cta-banner__text {
+      flex: 1;
+      font-size: 0.9rem;
+    }
+    .cta-banner__arrow {
+      color: #2C9C74;
+      opacity: 0.5;
+      flex-shrink: 0;
+      transition: opacity 0.15s, transform 0.15s;
+    }
+    .cta-banner:hover .cta-banner__arrow {
+      opacity: 1;
+      transform: translateX(3px);
+    }
   `],
 })
 export class SearchResultsIntroComponent {
@@ -217,31 +281,24 @@ export class SearchResultsIntroComponent {
       pill: '345 results',
       route: '/search-results-pagination/large',
       accent: '#C88B00',
-    },
-    {
-      title: '> 200+ files/folders found — Option 2',
-      description: 'Gmail approach — bulk select picks first 50. Inline prompt to extend selection to all 200+.',
-      tag: '200+ gmail',
-      pill: '345 results',
-      route: '/search-results-pagination/option2',
-      accent: '#358CEB',
+      dividerBefore: true,
     },
     {
       title: '> 200 files/folders found — Option 3',
       description: 'Large result set: 345 items found. Scroll to load more.',
-      tag: "Max's fav",
+      tag: 'exact number',
       pill: '345 results',
       route: '/search-results-pagination/option3',
       accent: '#B06FD8',
     },
     {
-      title: 'No results found',
-      description: 'Empty state when the search query returns zero matches — illustration, suggested actions.',
-      tag: 'scenario',
-      pill: '0 results',
-      route: '/search-results-pagination/empty',
-      accent: '#F4640C',
-      comingSoon: true,
+      title: 'А тепер дайте пару відповідей на питання про ваш досвід',
+      description: 'Spreadsheet with questions, answers and notes collected during prototype testing sessions.',
+      tag: 'Q&A',
+      pill: 'spreadsheet',
+      route: '',
+      externalLink: 'https://docs.google.com/spreadsheets/d/1K1Is-HNzRZN3iTsfrDKCoMZ8-FLLBy-9X9P7ZlxEbEU/edit?gid=0#gid=0',
+      accent: '#4CAF8A',
     },
   ];
 }
