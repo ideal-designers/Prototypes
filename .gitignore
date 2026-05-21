@@ -32,4 +32,6 @@ src/environments/environment.prod.ts
 .env.local
 
 # Claude Code local config (may contain API keys)
-.claude/
+.claude/*
+# …but share team-wide subagent prompts with the design team
+!.claude/agents/
