@@ -287,7 +287,7 @@ export class SearchResultsIntroComponent {
       dividerBefore: true,
     },
     {
-      title: '> 200 files/folders found — Option 3',
+      title: '> 200 files/folders found — Option 2',
       description: 'Large result set: 345 items found. Scroll to load more.',
       tag: 'exact number',
       pill: '345 results',
@@ -295,7 +295,7 @@ export class SearchResultsIntroComponent {
       accent: '#B06FD8',
     },
     {
-      title: 'А тепер дайте пару відповідей на питання про ваш досвід',
+      title: 'Share a few thoughts about your experience',
       description: 'Spreadsheet with questions, answers and notes collected during prototype testing sessions.',
       tag: 'Q&A',
       pill: 'spreadsheet',
