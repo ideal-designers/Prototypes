@@ -11,6 +11,7 @@ interface ScenarioCard {
   pill?: string;
   comingSoon?: boolean;
   dividerBefore?: boolean;
+  sectionTitle?: string;
   externalLink?: string;
 }
 
@@ -35,8 +36,11 @@ interface ScenarioCard {
       <div class="grid">
         <ng-container *ngFor="let card of cards">
 
-          <!-- Divider -->
-          <div *ngIf="card.dividerBefore" class="grid-divider"></div>
+          <!-- Section header -->
+          <div *ngIf="card.sectionTitle" class="section-header">
+            <span class="section-header__label">{{ card.sectionTitle }}</span>
+            <div class="section-header__line"></div>
+          </div>
 
           <!-- Internal route card -->
           <a *ngIf="!card.comingSoon && !card.externalLink"
@@ -120,11 +124,25 @@ interface ScenarioCard {
       grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
       gap: 16px;
     }
-    .grid-divider {
+    .section-header {
       grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 8px 0 4px;
+    }
+    .section-header__label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #4a7a68;
+      white-space: nowrap;
+    }
+    .section-header__line {
+      flex: 1;
       height: 1px;
       background: #1e2e28;
-      margin: 8px 0;
     }
 
     /* ── Card ── */
@@ -276,6 +294,7 @@ export class SearchResultsIntroComponent {
       pill: '187 results',
       route: '/search-results-pagination/view',
       accent: '#2C9C74',
+      sectionTitle: 'Small number of files — up to 200',
     },
     {
       title: '> 200+ files/folders found — Option 1',
@@ -284,7 +303,7 @@ export class SearchResultsIntroComponent {
       pill: '345 results',
       route: '/search-results-pagination/large',
       accent: '#C88B00',
-      dividerBefore: true,
+      sectionTitle: 'Large number of files — more than 200',
     },
     {
       title: '> 200 files/folders found — Option 2',
