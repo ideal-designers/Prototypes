@@ -55,18 +55,17 @@ interface ScenarioCard {
             </div>
           </a>
 
-          <!-- External link CTA -->
-          <a *ngIf="card.externalLink"
-             [href]="card.externalLink"
-             target="_blank"
-             rel="noopener"
-             class="cta-banner">
-            <div class="cta-banner__icon">
-              <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M11 2C6.03 2 2 6.03 2 11s4.03 9 9 9 9-4.03 9-9-4.03-9-9-9Zm.75 13.5h-1.5v-5.25h1.5v5.25Zm0-7.5h-1.5V6.5h1.5V8Z" fill="currentColor" opacity=".25"/><path d="M11 2C6.03 2 2 6.03 2 11s4.03 9 9 9 9-4.03 9-9-4.03-9-9-9Zm.75 13.5h-1.5v-5.25h1.5v5.25Zm0-7.5h-1.5V6.5h1.5V8Z" stroke="currentColor" stroke-width="0"/><circle cx="11" cy="11" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M11 7v.5M11 10v5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-            </div>
-            <span class="cta-banner__text">{{ card.title }}</span>
-            <svg class="cta-banner__arrow" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </a>
+          <!-- External link widget -->
+          <div *ngIf="card.externalLink" class="cta-widget-wrap">
+            <a [href]="card.externalLink"
+               target="_blank"
+               rel="noopener"
+               class="cta-widget">
+              <svg class="cta-widget__icon" width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.3"/><path d="M8 5v.4M8 7.5v4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+              <span class="cta-widget__text">{{ card.title }}</span>
+              <svg class="cta-widget__ext" width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 9.5 9.5 2.5M5 2.5h4.5V7" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </a>
+          </div>
 
           <!-- Coming soon card -->
           <div *ngIf="card.comingSoon"
@@ -223,44 +222,48 @@ interface ScenarioCard {
       transform: translateX(3px);
     }
 
-    /* ── CTA Banner (external link) ── */
-    .cta-banner {
+    /* ── CTA Widget (external link) ── */
+    .cta-widget-wrap {
       grid-column: 1 / -1;
       display: flex;
+      justify-content: center;
+      padding: 16px 0 4px;
+    }
+    .cta-widget {
+      display: inline-flex;
       align-items: center;
-      gap: 14px;
-      padding: 16px 20px;
-      background: transparent;
-      border: 1px dashed #2C9C74;
-      border-radius: 10px;
+      gap: 8px;
+      padding: 10px 20px;
+      background: color-mix(in srgb, #2C9C74 10%, transparent);
+      border: 1px solid color-mix(in srgb, #2C9C74 35%, transparent);
+      border-radius: 40px;
       text-decoration: none;
       color: #9bbfb0;
-      margin-top: 8px;
-      transition: background 0.15s, color 0.15s;
+      font-size: 0.875rem;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
     }
-    .cta-banner:hover {
-      background: color-mix(in srgb, #2C9C74 8%, transparent);
+    .cta-widget:hover {
+      background: color-mix(in srgb, #2C9C74 18%, transparent);
+      border-color: #2C9C74;
       color: #e8f5f0;
     }
-    .cta-banner__icon {
+    .cta-widget__icon {
       color: #2C9C74;
-      opacity: 0.7;
       flex-shrink: 0;
-      display: flex;
+      opacity: 0.75;
     }
-    .cta-banner__text {
+    .cta-widget__text {
       flex: 1;
-      font-size: 0.9rem;
     }
-    .cta-banner__arrow {
+    .cta-widget__ext {
       color: #2C9C74;
-      opacity: 0.5;
+      opacity: 0.55;
       flex-shrink: 0;
       transition: opacity 0.15s, transform 0.15s;
     }
-    .cta-banner:hover .cta-banner__arrow {
+    .cta-widget:hover .cta-widget__ext {
       opacity: 1;
-      transform: translateX(3px);
+      transform: translate(2px, -2px);
     }
   `],
 })
