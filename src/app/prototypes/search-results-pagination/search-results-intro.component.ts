@@ -319,7 +319,7 @@ export class SearchResultsIntroComponent {
       tag: 'Q&A',
       pill: 'spreadsheet',
       route: '',
-      externalLink: 'https://docs.google.com/spreadsheets/d/1K1Is-HNzRZN3iTsfrDKCoMZ8-FLLBy-9X9P7ZlxEbEU/edit?gid=0#gid=0',
+      externalLink: 'https://docs.google.com/forms/d/e/1FAIpQLSe6AYgY3RlkGDYUiOz0PiXzoky7Rbi47Vi2foUT_0iqWCYzSA/viewform',
       accent: '#4CAF8A',
     },
   ];
