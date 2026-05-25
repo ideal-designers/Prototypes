@@ -42,9 +42,7 @@
  *   <fvdr-number-stepper>   → Number input with +/- buttons
  *   <fvdr-progress>         → Progress bar
  *   <fvdr-range>            → Range slider
- *   <fvdr-sidebar-nav>         → App sidebar (VDR/CA/Internal, collapsible, with sub-nav)
- *   <fvdr-file-icon>           → File/folder icon (folder, pdf, doc, xls, image, video, zip…)
- *   <fvdr-quick-access-menu>   → Quick access shortcuts panel (collapsible, active state)
+ *   <fvdr-page-header>      → Page header (breadcrumb + right icons + avatar)
  *
  * Usage in prototype:
  *   import { DS_COMPONENTS } from '../../shared/ds';
@@ -78,21 +76,18 @@ import { SegmentComponent } from './components/segment/segment.component';
 import { ChipComponent } from './components/chip/chip.component';
 import { DropdownComponent } from './components/dropdown/dropdown.component';
 import { DroplistComponent } from './components/droplist/droplist.component';
-import { StatusComponent, StatusButtonComponent } from './components/status/status.component';
-import { MultiselectComponent } from './components/multiselect/multiselect.component';
+import { StatusComponent } from './components/status/status.component';
 import { CounterComponent } from './components/counter/counter.component';
 import { InlineMessageComponent } from './components/inline-message/inline-message.component';
 import { ToastComponent, ToastHostComponent, ToastService } from './components/toast/toast.component';
 import { ModalComponent, BottomSheetComponent } from './components/modal/modal.component';
-import { TableComponent, FvdrTableCellDirective } from './components/table/table.component';
+import { TableComponent } from './components/table/table.component';
 import { TreeComponent } from './components/tree/tree.component';
 import { DropAreaComponent } from './components/drop-area/drop-area.component';
 import { HeaderComponent, MobileHeaderComponent } from './components/header/header.component';
 import { NumberStepperComponent, ProgressComponent, RangeComponent } from './components/special-controls/special-controls.component';
 import { SidebarNavComponent } from './components/sidebar-nav/sidebar-nav.component';
-import { FileIconComponent } from './components/file-icon/file-icon.component';
-import { QuickAccessMenuComponent } from './components/quick-access-menu/quick-access-menu.component';
-import { BreadcrumbsComponent } from './components/breadcrumbs/breadcrumbs.component';
+import { PageHeaderComponent } from './components/page-header/page-header.component';
 
 // ─── Re-exports ───────────────────────────────────────────────────────────────
 
@@ -127,10 +122,10 @@ export { TextareaComponent } from './components/textarea/textarea.component';
 export type { TextareaState } from './components/textarea/textarea.component';
 
 export { SearchComponent } from './components/search/search.component';
+export type { SearchFilter } from './components/search/search.component';
 
 export { DatepickerComponent } from './components/datepicker/datepicker.component';
 export { TimepickerComponent } from './components/timepicker/timepicker.component';
-export type { TimeValue } from './components/timepicker/timepicker.component';
 
 export { PhoneInputComponent } from './components/phone-input/phone-input.component';
 export type { PhoneCountry } from './components/phone-input/phone-input.component';
@@ -155,11 +150,8 @@ export type { DropdownOption, DropdownSize } from './components/dropdown/dropdow
 export { DroplistComponent } from './components/droplist/droplist.component';
 export type { DroplistItem } from './components/droplist/droplist.component';
 
-export { StatusComponent, StatusButtonComponent } from './components/status/status.component';
-export type { StatusVariant, StatusBtnVariant } from './components/status/status.component';
-
-export { MultiselectComponent } from './components/multiselect/multiselect.component';
-export type { MultiselectOption } from './components/multiselect/multiselect.component';
+export { StatusComponent } from './components/status/status.component';
+export type { StatusVariant } from './components/status/status.component';
 
 export { CounterComponent } from './components/counter/counter.component';
 export type { CounterVariant, CounterSize } from './components/counter/counter.component';
@@ -173,7 +165,7 @@ export type { ToastVariant, ToastData } from './components/toast/toast.component
 export { ModalComponent, BottomSheetComponent } from './components/modal/modal.component';
 export type { ModalSize, ModalConfig } from './components/modal/modal.component';
 
-export { TableComponent, FvdrTableCellDirective } from './components/table/table.component';
+export { TableComponent } from './components/table/table.component';
 export type { TableColumn, SortState, SortDirection } from './components/table/table.component';
 
 export { TreeComponent } from './components/tree/tree.component';
@@ -182,20 +174,14 @@ export type { TreeNode } from './components/tree/tree.component';
 export { DropAreaComponent } from './components/drop-area/drop-area.component';
 
 export { HeaderComponent, MobileHeaderComponent } from './components/header/header.component';
-export type { HeaderNavItem, HeaderAction, BreadcrumbItem } from './components/header/header.component';
+export type { HeaderNavItem, HeaderAction } from './components/header/header.component';
 
 export { NumberStepperComponent, ProgressComponent, RangeComponent } from './components/special-controls/special-controls.component';
 
 export { SidebarNavComponent } from './components/sidebar-nav/sidebar-nav.component';
-export type { SidebarNavItem, SidebarNavSubItem, SidebarNavVariant } from './components/sidebar-nav/sidebar-nav.component';
+export type { SidebarNavItem, SidebarNavSubItem } from './components/sidebar-nav/sidebar-nav.component';
 
-export { FileIconComponent } from './components/file-icon/file-icon.component';
-export type { FvdrFileType } from './components/file-icon/file-icon.component';
-
-export { QuickAccessMenuComponent } from './components/quick-access-menu/quick-access-menu.component';
-export type { QuickAccessItem } from './components/quick-access-menu/quick-access-menu.component';
-
-export { BreadcrumbsComponent } from './components/breadcrumbs/breadcrumbs.component';
+export { PageHeaderComponent } from './components/page-header/page-header.component';
 
 /** Convenience array — spread into component imports[] */
 export const DS_COMPONENTS = [
@@ -225,8 +211,6 @@ export const DS_COMPONENTS = [
   DropdownComponent,
   DroplistComponent,
   StatusComponent,
-  StatusButtonComponent,
-  MultiselectComponent,
   CounterComponent,
   InlineMessageComponent,
   ToastComponent,
@@ -234,7 +218,6 @@ export const DS_COMPONENTS = [
   ModalComponent,
   BottomSheetComponent,
   TableComponent,
-  FvdrTableCellDirective,
   TreeComponent,
   DropAreaComponent,
   HeaderComponent,
@@ -243,7 +226,5 @@ export const DS_COMPONENTS = [
   ProgressComponent,
   RangeComponent,
   SidebarNavComponent,
-  FileIconComponent,
-  QuickAccessMenuComponent,
-  BreadcrumbsComponent,
+  PageHeaderComponent,
 ];

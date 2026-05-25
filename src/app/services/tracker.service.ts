@@ -26,7 +26,11 @@ export class TrackerService {
 
   constructor() {
     if (environment.supabaseUrl && environment.supabaseAnonKey) {
-      this.supabase = createClient(environment.supabaseUrl, environment.supabaseAnonKey);
+      try {
+        this.supabase = createClient(environment.supabaseUrl, environment.supabaseAnonKey);
+      } catch {
+        // supabaseUrl is a placeholder — tracking disabled in dev
+      }
     }
   }
 

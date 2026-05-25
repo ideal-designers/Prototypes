@@ -34,7 +34,12 @@
             "assets": [
               "src/favicon.ico",
               "src/favicon.svg",
-              "src/assets"
+              "src/assets",
+              {
+                "glob": "tokens.css",
+                "input": "src",
+                "output": "/"
+              }
             ],
             "styles": [
               "src/styles.css",
@@ -107,6 +112,6 @@
     }
   },
   "cli": {
-    "analytics": "484584b7-b2d3-446a-94ce-4004c74e2c23"
+    "analytics": "f8230fde-a710-4c7f-898a-125948d408c9"
   }
 }

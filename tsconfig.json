@@ -1,6 +1,10 @@
 {
   "compileOnSave": false,
   "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@fvdr/ui/*": ["src/app/shared/ui/*"]
+    },
     "outDir": "./dist/out-tsc",
     "forceConsistentCasingInFileNames": true,
     "strict": true,

@@ -1,11 +1,12 @@
 import { bootstrapApplication } from '@angular/platform-browser';
 import { appConfig } from './app/app.config';
 import { AppComponent } from './app/app.component';
-import { inject } from '@vercel/analytics';
 import posthog from 'posthog-js';
 import { environment } from './environments/environment';
 
-inject();
+if (environment.production) {
+  import('@vercel/analytics').then(({ inject }) => inject());
+}
 
 if (environment.posthogKey) {
   posthog.init(environment.posthogKey, {
