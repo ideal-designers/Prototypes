@@ -93,7 +93,7 @@ const CREATED_ROWS: Record<string, string>[] = [
               [breadcrumbs]="docsBreadcrumbs"
               [actions]="headerActions"
               [showMenu]="false"
-              userName="IR"
+              userName="TN"
               (actionClick)="onHeaderAction($event)"
             ></fvdr-header>
 
@@ -181,44 +181,38 @@ const CREATED_ROWS: Record<string, string>[] = [
           </div>
         </div>
 
-        <!-- Import modal (DS fvdr-modal) -->
+        <!-- Import modal (DS fvdr-modal) — Figma: "Import folder structure" -->
         <fvdr-modal
           [visible]="showModal"
-          title="Create folder structure"
+          title="Import folder structure"
           size="l"
-          confirmLabel="Next"
-          cancelLabel="Cancel"
-          [confirmDisabled]="selectedOption !== 'ai'"
-          (confirmed)="goToWizard()"
-          (cancelled)="closeModal()"
           (closed)="closeModal()"
         >
-          <p class="modal-desc">Choose how you want to create the folder structure</p>
+          <p class="modal-desc">Select the method of import. <a class="modal-learn" href="#" (click)="$event.preventDefault()">Learn more</a></p>
 
           <div class="modal-options">
-            <button class="opt-card" [class.opt-card--active]="selectedOption === 'ai'"
-              (click)="selectedOption = 'ai'" data-track="opt-ai">
+            <button class="opt-card" (click)="selectMethod('ai')" data-track="opt-ai">
               <img src="/assets/illustrations/ai-assistant.svg" class="opt-card-img" alt="" aria-hidden="true">
-              <span class="opt-card-title">Use AI assistant</span>
-              <span class="opt-card-desc">Describe your need to generate structure</span>
+              <span class="opt-card-titlerow">
+                <span class="opt-card-title">AI assistant</span>
+                <span class="opt-card-badge">New</span>
+              </span>
+              <span class="opt-card-desc">Upload a file or describe folder structure</span>
             </button>
-            <button class="opt-card" [class.opt-card--active]="selectedOption === 'xlsx'"
-              (click)="selectedOption = 'xlsx'" data-track="opt-xlsx">
+            <button class="opt-card" (click)="selectMethod('xlsx')" data-track="opt-xlsx">
               <img src="/assets/illustrations/xlsx-template.svg" class="opt-card-img" alt="" aria-hidden="true">
-              <span class="opt-card-title">Import XLSX template</span>
-              <span class="opt-card-desc">Use spreadsheet to define structure</span>
+              <span class="opt-card-title">XLSX template</span>
+              <span class="opt-card-desc">Create folder structure using our template</span>
             </button>
-            <button class="opt-card" [class.opt-card--active]="selectedOption === 'copy'"
-              (click)="selectedOption = 'copy'" data-track="opt-copy">
-              <img src="/assets/illustrations/copy-from-project.svg" class="opt-card-img" alt="" aria-hidden="true">
-              <span class="opt-card-title">Copy from project</span>
-              <span class="opt-card-desc">Reuse structure from another project</span>
-            </button>
-            <button class="opt-card" [class.opt-card--active]="selectedOption === 'info'"
-              (click)="selectedOption = 'info'" data-track="opt-info">
+            <button class="opt-card" (click)="selectMethod('info')" data-track="opt-info">
               <img src="/assets/illustrations/info-request-list.svg" class="opt-card-img" alt="" aria-hidden="true">
               <span class="opt-card-title">Info request list</span>
-              <span class="opt-card-desc">Build from an info request template</span>
+              <span class="opt-card-desc">Convert info request list to the folder structure</span>
+            </button>
+            <button class="opt-card" (click)="selectMethod('copy')" data-track="opt-copy">
+              <img src="/assets/illustrations/copy-from-project.svg" class="opt-card-img" alt="" aria-hidden="true">
+              <span class="opt-card-title">Another project</span>
+              <span class="opt-card-desc">Copy folder structure from existing project</span>
             </button>
           </div>
         </fvdr-modal>
@@ -247,7 +241,7 @@ const CREATED_ROWS: Record<string, string>[] = [
               [breadcrumbs]="wizardBreadcrumbs"
               [actions]="headerActions"
               [showMenu]="false"
-              userName="IR"
+              userName="TN"
               (actionClick)="onHeaderAction($event)"
             ></fvdr-header>
 
@@ -360,8 +354,8 @@ const CREATED_ROWS: Record<string, string>[] = [
             <!-- ── Step 1: Loading (Lottie) ── -->
             <div *ngIf="state === 'loading'" class="wiz-body wiz-body--loading">
               <div #lottieContainer class="lottie-wrap"></div>
-              <p class="loading-title">Building your folder structure with AI…</p>
-              <p class="loading-sub">This usually takes a few seconds</p>
+              <p class="loading-title">Building your folder structure with AI</p>
+              <p class="loading-sub">This can take a few moments…</p>
             </div>
 
             <!-- ── Step 2: Generated ── -->
@@ -397,7 +391,7 @@ const CREATED_ROWS: Record<string, string>[] = [
               <ng-container *ngIf="state === 'generated'">
                 <fvdr-btn label="Back" variant="ghost" (clicked)="onBack()" data-track="back"></fvdr-btn>
                 <fvdr-btn label="Create" variant="primary" (clicked)="onCreate()" data-track="create"></fvdr-btn>
-                <fvdr-inline-message variant="info" text="20 new folders"></fvdr-inline-message>
+                <fvdr-inline-message variant="info" text="14 new folders"></fvdr-inline-message>
                 <div class="footer-spacer"></div>
               </ng-container>
             </div>
@@ -426,7 +420,7 @@ const CREATED_ROWS: Record<string, string>[] = [
               [breadcrumbs]="docsBreadcrumbs"
               [actions]="headerActions"
               [showMenu]="false"
-              userName="IR"
+              userName="TN"
               (actionClick)="onHeaderAction($event)"
             ></fvdr-header>
 
@@ -512,26 +506,20 @@ const CREATED_ROWS: Record<string, string>[] = [
                   </div>
                 </ng-container>
                 <ng-container *ngIf="state === 'created'">
-                  <!-- Table style — match /search-results-pagination/view (без search state, без snippets) -->
+                  <!-- Figma: Documents > 2 Intellectual property table.
+                       Колонки Name | Notes | Labels | Pages | Created on + settings. -->
                   <div class="docs-tbl-scroll">
                     <div class="docs-tbl">
                       <!-- Header -->
                       <div class="docs-tbl-row docs-tbl-row--head">
-                        <div class="docs-col-check">
-                          <label class="docs-check-wrap">
-                            <input type="checkbox" class="docs-native-check"
-                              [checked]="docsAllSelected"
-                              [indeterminate]="docsSomeSelected && !docsAllSelected"
-                              (change)="toggleAllDocs($event)" />
-                            <span class="docs-check-box"
-                              [class.docs-check-box--checked]="docsAllSelected"
-                              [class.docs-check-box--indeterminate]="docsSomeSelected && !docsAllSelected">
-                              <svg *ngIf="docsAllSelected" width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                              <svg *ngIf="docsSomeSelected && !docsAllSelected" width="10" height="2" viewBox="0 0 10 2" fill="none"><path d="M1 1H9" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>
-                            </span>
-                          </label>
-                        </div>
                         <div class="docs-col-name"><span class="docs-th">Name</span></div>
+                        <div class="docs-col-notes"><span class="docs-th">Notes</span></div>
+                        <div class="docs-col-labels"><span class="docs-th">Labels</span></div>
+                        <div class="docs-col-pages"><span class="docs-th">Pages</span></div>
+                        <div class="docs-col-created">
+                          <span class="docs-th">Created on</span>
+                          <fvdr-icon name="sort" class="docs-th-sort"></fvdr-icon>
+                        </div>
                         <div class="docs-col-act">
                           <button class="docs-hdr-btn"><fvdr-icon name="settings"></fvdr-icon></button>
                         </div>
@@ -539,22 +527,15 @@ const CREATED_ROWS: Record<string, string>[] = [
 
                       <!-- Data rows -->
                       <div *ngFor="let row of createdDocsRows"
-                        class="docs-tbl-row docs-tbl-row--data"
-                        [class.docs-tbl-row--selected]="row.selected">
-                        <div class="docs-col-check">
-                          <label class="docs-check-wrap">
-                            <input type="checkbox" class="docs-native-check"
-                              [checked]="row.selected"
-                              (change)="toggleDocRow(row, $event)" />
-                            <span class="docs-check-box" [class.docs-check-box--checked]="row.selected">
-                              <svg *ngIf="row.selected" width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                            </span>
-                          </label>
-                        </div>
+                        class="docs-tbl-row docs-tbl-row--data">
                         <div class="docs-col-name">
                           <fvdr-file-icon [type]="row.type"></fvdr-file-icon>
                           <span class="docs-td-name">{{ row.name }}</span>
                         </div>
+                        <div class="docs-col-notes"><span class="docs-td-empty">—</span></div>
+                        <div class="docs-col-labels"><span class="docs-td-empty">—</span></div>
+                        <div class="docs-col-pages"><span class="docs-td-empty">—</span></div>
+                        <div class="docs-col-created"><span class="docs-td-name">{{ row.createdOn }}</span></div>
                         <div class="docs-col-act">
                           <button class="docs-hdr-btn docs-row-more"><fvdr-icon name="more"></fvdr-icon></button>
                         </div>
@@ -694,6 +675,29 @@ const CREATED_ROWS: Record<string, string>[] = [
       margin: 0 0 var(--space-4);
       font-size: var(--font-size-sm);
       color: var(--color-text-secondary);
+    }
+    .modal-learn {
+      color: var(--color-primary-500);
+      text-decoration: none;
+      font-weight: var(--font-weight-semi);
+    }
+    .modal-learn:hover { text-decoration: underline; }
+
+    .opt-card-titlerow {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+    .opt-card-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px var(--space-2);
+      background: var(--color-primary-50);
+      color: var(--color-primary-700);
+      border-radius: var(--radius-sm);
+      font-size: var(--text-caption1-size);
+      font-weight: var(--font-weight-semi);
+      line-height: 1;
     }
 
     .modal-options {
@@ -1079,7 +1083,7 @@ const CREATED_ROWS: Record<string, string>[] = [
 
     .docs-tbl-row {
       display: grid;
-      grid-template-columns: 40px 1fr 48px;
+      grid-template-columns: 1fr 80px 80px 80px 160px 48px;
       align-items: center;
     }
     .docs-tbl-row--head {
@@ -1137,6 +1141,24 @@ const CREATED_ROWS: Record<string, string>[] = [
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+    }
+
+    .docs-col-notes,
+    .docs-col-labels,
+    .docs-col-pages { justify-content: flex-start; color: var(--color-text-secondary); }
+    .docs-col-created {
+      gap: var(--space-2);
+      overflow: hidden;
+      color: var(--color-text-primary);
+      font-size: var(--font-size-base);
+    }
+    .docs-th-sort {
+      color: var(--color-text-secondary);
+      font-size: var(--font-size-base, 14px);
+    }
+    .docs-td-empty {
+      font-size: var(--font-size-base);
+      color: var(--color-text-secondary);
     }
 
     .docs-col-act { justify-content: center; }
@@ -1273,12 +1295,13 @@ export class IfsAiComponent implements OnInit, OnDestroy {
   ];
   wizardBreadcrumbs: BreadcrumbItem[] = [
     { id: 'documents', label: 'Documents' },
-    { id: 'create', label: 'Create folder structure' },
+    { id: 'create', label: 'Import folder structure' },
   ];
   get headerActions(): HeaderAction[] {
     return [
       { id: 'theme', icon: this.isDark ? 'theme-light' : 'theme-dark' },
       { id: 'help', icon: 'help' },
+      { id: 'notifications', icon: 'bell' },
     ];
   }
   onHeaderAction(id: string): void {
@@ -1310,25 +1333,15 @@ export class IfsAiComponent implements OnInit, OnDestroy {
   createdTableColumns = CREATED_COLUMNS;
   createdTableRows = CREATED_ROWS;
 
-  /** Created folders — table model in /search-results-pagination/view style */
-  createdDocsRows: { name: string; type: 'folder-colored'; selected: boolean }[] = CREATED_ROWS.map(r => ({
-    name: r['name'],
-    type: 'folder-colored',
-    selected: false,
-  }));
-  get docsAllSelected(): boolean {
-    return this.createdDocsRows.length > 0 && this.createdDocsRows.every(r => r.selected);
-  }
-  get docsSomeSelected(): boolean {
-    return this.createdDocsRows.some(r => r.selected);
-  }
-  toggleAllDocs(ev: Event): void {
-    const checked = (ev.target as HTMLInputElement).checked;
-    this.createdDocsRows.forEach(r => r.selected = checked);
-  }
-  toggleDocRow(row: { selected: boolean }, ev: Event): void {
-    row.selected = (ev.target as HTMLInputElement).checked;
-  }
+  /** Created folders — Figma: без номерів у назвах, з датами Created on. */
+  createdDocsRows: { name: string; type: 'folder-colored'; createdOn: string }[] = [
+    { name: 'Corporate Structure',  type: 'folder-colored', createdOn: 'Nov 16, 2025' },
+    { name: 'Financial Information', type: 'folder-colored', createdOn: 'Nov 16, 2025' },
+    { name: 'Legal & Compliance',   type: 'folder-colored', createdOn: 'Nov 16, 2025' },
+    { name: 'Intellectual Property', type: 'folder-colored', createdOn: 'Nov 16, 2025' },
+    { name: 'Human Resources',      type: 'folder-colored', createdOn: 'Nov 16, 2021' },
+    { name: 'Tax',                  type: 'folder-colored', createdOn: 'Nov 16, 2021' },
+  ];
 
   segmentItems: SegmentItem[] = [
     { id: 'upload',   label: 'Upload file' },
@@ -1394,6 +1407,13 @@ export class IfsAiComponent implements OnInit, OnDestroy {
     this.activeSegment = 'upload';
   }
 
+  /** Figma: вибір картки в модалці одразу запускає flow (без Cancel/Next). */
+  selectMethod(method: 'ai' | 'xlsx' | 'info' | 'copy'): void {
+    this.selectedOption = method;
+    // Поки що тільки AI flow реалізовано — інші опції теж ведуть туди як placeholder.
+    this.goToWizard();
+  }
+
   onSegmentChange(id: string): void {
     this.activeSegment = id;
   }
@@ -1447,7 +1467,7 @@ export class IfsAiComponent implements OnInit, OnDestroy {
 
     const creatingId = this.toastService.show({
       variant: 'info',
-      message: 'Creating 20 new folders...',
+      message: 'Creating 14 new folders...',
       duration: 0,
     });
 
@@ -1457,7 +1477,7 @@ export class IfsAiComponent implements OnInit, OnDestroy {
         this.toastService.remove(creatingId);
         this.toastService.show({
           variant: 'success',
-          message: '20 folders created',
+          message: '14 folders created',
           duration: 5000,
         });
       });
