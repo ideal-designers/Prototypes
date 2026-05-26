@@ -115,6 +115,11 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./prototypes/search-results-pagination/search-results-option3.component').then(m => m.SearchResultsOption3Component),
   },
+    {
+    path: 'ifs-ai',
+    loadComponent: () =>
+      import('./prototypes/ifs-ai/ifs-ai.component').then(m => m.IfsAiComponent),
+  },
   // PROTO_ROUTES_PLACEHOLDER
   {
     path: '**',

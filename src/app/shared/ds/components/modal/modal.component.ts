@@ -58,7 +58,7 @@ export interface ModalConfig {
         </div>
         <div *ngIf="confirmLabel || cancelLabel" class="modal__footer">
           <fvdr-btn *ngIf="cancelLabel" [label]="cancelLabel" variant="ghost" (clicked)="cancel()" />
-          <fvdr-btn *ngIf="confirmLabel" [label]="confirmLabel" [variant]="confirmVariant || 'primary'" (clicked)="confirm()" />
+          <fvdr-btn *ngIf="confirmLabel" [label]="confirmLabel" [variant]="confirmVariant || 'primary'" [disabled]="confirmDisabled" (clicked)="confirm()" />
         </div>
       </div>
     </div>
@@ -155,6 +155,7 @@ export class ModalComponent {
   @Input() confirmLabel = '';
   @Input() cancelLabel = '';
   @Input() confirmVariant: 'primary' | 'danger' = 'primary';
+  @Input() confirmDisabled = false;
   @Input() closeOnOverlay = true;
   @Output() closed = new EventEmitter<void>();
   @Output() confirmed = new EventEmitter<void>();

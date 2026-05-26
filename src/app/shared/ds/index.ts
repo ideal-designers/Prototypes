@@ -93,6 +93,7 @@ import { SidebarNavComponent } from './components/sidebar-nav/sidebar-nav.compon
 import { FileIconComponent } from './components/file-icon/file-icon.component';
 import { QuickAccessMenuComponent } from './components/quick-access-menu/quick-access-menu.component';
 import { BreadcrumbsComponent } from './components/breadcrumbs/breadcrumbs.component';
+import { PageHeaderComponent } from './components/page-header/page-header.component';
 
 // ─── Re-exports ───────────────────────────────────────────────────────────────
 
@@ -197,6 +198,8 @@ export type { QuickAccessItem } from './components/quick-access-menu/quick-acces
 
 export { BreadcrumbsComponent } from './components/breadcrumbs/breadcrumbs.component';
 
+export { PageHeaderComponent } from './components/page-header/page-header.component';
+
 /** Convenience array — spread into component imports[] */
 export const DS_COMPONENTS = [
   // Original
@@ -246,4 +249,5 @@ export const DS_COMPONENTS = [
   FileIconComponent,
   QuickAccessMenuComponent,
   BreadcrumbsComponent,
+  PageHeaderComponent,
 ];

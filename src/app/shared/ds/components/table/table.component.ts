@@ -199,6 +199,7 @@ export interface SortState {
 export class TableComponent implements AfterContentInit {
   @Input() columns: TableColumn[] = [];
   @Input() data: Record<string, any>[] = [];
+  @Input() set rows(v: Record<string, any>[]) { this.data = v; }
   @Input() selectable = false;
   @Input() bordered = false;
   @Input() stickyHeader = false;
