@@ -512,18 +512,52 @@ const CREATED_ROWS: Record<string, string>[] = [
                   </div>
                 </ng-container>
                 <ng-container *ngIf="state === 'created'">
-                  <div class="created-tree-wrap">
-                    <!-- Root row -->
-                    <div class="tree-root-item">
-                      <div class="tree-root-badge">PA</div>
-                      <span class="tree-root-name">Project Alpha</span>
-                    </div>
-                    <!-- Folder rows -->
-                    <div class="tree-folder-item" *ngFor="let row of createdTableRows">
-                      <div class="tree-ghost"></div>
-                      <div class="tree-folder-info">
-                        <fvdr-icon name="folder" class="tree-folder-icon"></fvdr-icon>
-                        <span class="tree-folder-name">{{ row['name'] }}</span>
+                  <!-- Table style — match /search-results-pagination/view (без search state, без snippets) -->
+                  <div class="docs-tbl-scroll">
+                    <div class="docs-tbl">
+                      <!-- Header -->
+                      <div class="docs-tbl-row docs-tbl-row--head">
+                        <div class="docs-col-check">
+                          <label class="docs-check-wrap">
+                            <input type="checkbox" class="docs-native-check"
+                              [checked]="docsAllSelected"
+                              [indeterminate]="docsSomeSelected && !docsAllSelected"
+                              (change)="toggleAllDocs($event)" />
+                            <span class="docs-check-box"
+                              [class.docs-check-box--checked]="docsAllSelected"
+                              [class.docs-check-box--indeterminate]="docsSomeSelected && !docsAllSelected">
+                              <svg *ngIf="docsAllSelected" width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                              <svg *ngIf="docsSomeSelected && !docsAllSelected" width="10" height="2" viewBox="0 0 10 2" fill="none"><path d="M1 1H9" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>
+                            </span>
+                          </label>
+                        </div>
+                        <div class="docs-col-name"><span class="docs-th">Name</span></div>
+                        <div class="docs-col-act">
+                          <button class="docs-hdr-btn"><fvdr-icon name="settings"></fvdr-icon></button>
+                        </div>
+                      </div>
+
+                      <!-- Data rows -->
+                      <div *ngFor="let row of createdDocsRows"
+                        class="docs-tbl-row docs-tbl-row--data"
+                        [class.docs-tbl-row--selected]="row.selected">
+                        <div class="docs-col-check">
+                          <label class="docs-check-wrap">
+                            <input type="checkbox" class="docs-native-check"
+                              [checked]="row.selected"
+                              (change)="toggleDocRow(row, $event)" />
+                            <span class="docs-check-box" [class.docs-check-box--checked]="row.selected">
+                              <svg *ngIf="row.selected" width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            </span>
+                          </label>
+                        </div>
+                        <div class="docs-col-name">
+                          <fvdr-file-icon [type]="row.type"></fvdr-file-icon>
+                          <span class="docs-td-name">{{ row.name }}</span>
+                        </div>
+                        <div class="docs-col-act">
+                          <button class="docs-hdr-btn docs-row-more"><fvdr-icon name="more"></fvdr-icon></button>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -1036,79 +1070,87 @@ const CREATED_ROWS: Record<string, string>[] = [
       overflow: hidden;
     }
 
-    /* ─── Created folders tree ─── */
-    .created-tree-wrap {
-      padding: var(--space-4) var(--space-6);
-      display: flex;
-      flex-direction: column;
-    }
-
-    .tree-root-item {
-      display: flex;
-      align-items: center;
-      gap: var(--space-4);
-      height: 40px;
-      padding: var(--space-2) var(--space-4);
-      background: var(--color-primary-50);
-      border-radius: var(--radius-sm);
-      flex-shrink: 0;
-    }
-
-    .tree-root-badge {
-      width: 24px;
-      height: 24px;
-      border-radius: var(--radius-sm);
-      background: var(--color-primary-500);
-      color: var(--color-stone-0);
-      font-size: 12px;
-      font-weight: var(--font-weight-semi);
-      font-family: var(--font-family);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-    }
-
-    .tree-root-name {
-      font-size: 14px;
-      font-weight: var(--font-weight-semi);
-      color: var(--color-text-primary);
-    }
-
-    .tree-folder-item {
-      display: flex;
-      align-items: center;
-      height: 40px;
-      padding: var(--space-2) var(--space-4);
-      background: var(--color-stone-0);
-      flex-shrink: 0;
-    }
-
-    .tree-ghost {
-      width: 16px;
-      height: 16px;
-      flex-shrink: 0;
-      margin-right: var(--space-4);
-    }
-
-    .tree-folder-info {
-      display: flex;
-      align-items: center;
-      gap: var(--space-2);
+    /* ─── Created folders table (style: /search-results-pagination/view) ─── */
+    .docs-tbl-scroll {
       flex: 1;
+      overflow: auto;
     }
+    .docs-tbl { display: flex; flex-direction: column; min-width: 480px; }
 
-    .tree-folder-icon {
-      color: var(--color-primary-500);
-      font-size: 20px;
-      flex-shrink: 0;
+    .docs-tbl-row {
+      display: grid;
+      grid-template-columns: 40px 1fr 48px;
+      align-items: center;
     }
+    .docs-tbl-row--head {
+      background: var(--color-stone-200);
+      position: sticky; top: 0; z-index: 2;
+      min-height: 48px;
+    }
+    .docs-tbl-row--data {
+      min-height: 52px;
+      cursor: pointer;
+      border-bottom: 1px solid var(--color-divider);
+    }
+    .docs-tbl-row--data:hover    { background: var(--color-hover-bg); }
+    .docs-tbl-row--selected      { background: var(--color-primary-50) !important; }
 
-    .tree-folder-name {
-      font-size: 14px;
-      font-weight: 400;
+    .docs-tbl-row--head > div,
+    .docs-tbl-row--data > div {
+      display: flex;
+      align-items: center;
+      padding: 0 var(--space-3);
+    }
+    .docs-th {
+      font-size: var(--font-size-base);
+      font-weight: 600;
       color: var(--color-text-primary);
+      white-space: nowrap;
     }
+
+    .docs-col-check { justify-content: center; }
+    .docs-check-wrap { display: flex; align-items: center; cursor: pointer; }
+    .docs-native-check { position: absolute; opacity: 0; width: 0; height: 0; }
+    .docs-check-box {
+      width: 16px; height: 16px;
+      border: 1.5px solid var(--color-stone-500);
+      border-radius: 3px;
+      background: var(--color-stone-0);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .docs-check-box--checked,
+    .docs-check-box--indeterminate {
+      background: var(--color-primary-500);
+      border-color: var(--color-primary-500);
+    }
+    .docs-check-wrap:hover .docs-check-box { border-color: var(--color-primary-500); }
+
+    .docs-col-name {
+      gap: var(--space-2);
+      overflow: hidden;
+    }
+    .docs-td-name {
+      font-size: var(--font-size-base);
+      color: var(--color-text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .docs-col-act { justify-content: center; }
+    .docs-hdr-btn {
+      width: 32px; height: 32px;
+      border: none; background: transparent; cursor: pointer;
+      border-radius: var(--radius-sm);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--color-text-secondary);
+      font-size: var(--font-size-lg, 16px);
+    }
+    .docs-hdr-btn:hover { background: var(--color-hover-bg); color: var(--color-text-primary); }
+    .docs-row-more { opacity: 0; }
+    .docs-tbl-row--data:hover .docs-row-more { opacity: 1; }
 
     /* ─── Wizard footer ─── */
     .wiz-footer {
@@ -1267,6 +1309,26 @@ export class IfsAiComponent implements OnInit, OnDestroy {
   folderTreeNodes = FOLDER_TREE_NODES;
   createdTableColumns = CREATED_COLUMNS;
   createdTableRows = CREATED_ROWS;
+
+  /** Created folders — table model in /search-results-pagination/view style */
+  createdDocsRows: { name: string; type: 'folder-colored'; selected: boolean }[] = CREATED_ROWS.map(r => ({
+    name: r['name'],
+    type: 'folder-colored',
+    selected: false,
+  }));
+  get docsAllSelected(): boolean {
+    return this.createdDocsRows.length > 0 && this.createdDocsRows.every(r => r.selected);
+  }
+  get docsSomeSelected(): boolean {
+    return this.createdDocsRows.some(r => r.selected);
+  }
+  toggleAllDocs(ev: Event): void {
+    const checked = (ev.target as HTMLInputElement).checked;
+    this.createdDocsRows.forEach(r => r.selected = checked);
+  }
+  toggleDocRow(row: { selected: boolean }, ev: Event): void {
+    row.selected = (ev.target as HTMLInputElement).checked;
+  }
 
   segmentItems: SegmentItem[] = [
     { id: 'upload',   label: 'Upload file' },
