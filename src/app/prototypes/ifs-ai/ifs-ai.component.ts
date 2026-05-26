@@ -515,11 +515,26 @@ const CREATED_ROWS: Record<string, string>[] = [
                 </ng-container>
                 <ng-container *ngIf="state === 'created'">
                   <!-- Figma: Documents > 2 Intellectual property table.
-                       Колонки Name | Notes | Labels | Pages | Created on + settings. -->
+                       Колонки checkbox(hover) | Name | Notes | Labels | Pages | Created on + settings. -->
                   <div class="docs-tbl-scroll">
                     <div class="docs-tbl">
                       <!-- Header -->
-                      <div class="docs-tbl-row docs-tbl-row--head">
+                      <div class="docs-tbl-row docs-tbl-row--head"
+                        [class.docs-tbl-row--has-selection]="docsSomeSelected">
+                        <div class="docs-col-check">
+                          <label class="docs-check-wrap">
+                            <input type="checkbox" class="docs-native-check"
+                              [checked]="docsAllSelected"
+                              [indeterminate]="docsSomeSelected && !docsAllSelected"
+                              (change)="toggleAllDocs($event)" />
+                            <span class="docs-check-box"
+                              [class.docs-check-box--checked]="docsAllSelected"
+                              [class.docs-check-box--indeterminate]="docsSomeSelected && !docsAllSelected">
+                              <svg *ngIf="docsAllSelected" width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                              <svg *ngIf="docsSomeSelected && !docsAllSelected" width="10" height="2" viewBox="0 0 10 2" fill="none"><path d="M1 1H9" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>
+                            </span>
+                          </label>
+                        </div>
                         <div class="docs-col-name"><span class="docs-th">Name</span></div>
                         <div class="docs-col-notes"><span class="docs-th">Notes</span></div>
                         <div class="docs-col-labels"><span class="docs-th">Labels</span></div>
@@ -535,7 +550,18 @@ const CREATED_ROWS: Record<string, string>[] = [
 
                       <!-- Data rows -->
                       <div *ngFor="let row of createdDocsRows"
-                        class="docs-tbl-row docs-tbl-row--data">
+                        class="docs-tbl-row docs-tbl-row--data"
+                        [class.docs-tbl-row--selected]="row.selected">
+                        <div class="docs-col-check">
+                          <label class="docs-check-wrap">
+                            <input type="checkbox" class="docs-native-check"
+                              [checked]="row.selected"
+                              (change)="toggleDocRow(row, $event)" />
+                            <span class="docs-check-box" [class.docs-check-box--checked]="row.selected">
+                              <svg *ngIf="row.selected" width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            </span>
+                          </label>
+                        </div>
                         <div class="docs-col-name">
                           <fvdr-file-icon [type]="row.type"></fvdr-file-icon>
                           <span class="docs-td-name">{{ row.name }}</span>
@@ -1113,9 +1139,37 @@ const CREATED_ROWS: Record<string, string>[] = [
 
     .docs-tbl-row {
       display: grid;
-      grid-template-columns: 1fr 80px 80px 80px 160px 48px;
+      grid-template-columns: 40px 1fr 80px 80px 80px 160px 48px;
       align-items: center;
     }
+
+    /* Checkbox column — hidden by default, visible on row hover or when row selected.
+       Header checkbox visible тільки коли є selection (some/all). */
+    .docs-col-check { justify-content: center; }
+    .docs-check-wrap { display: flex; align-items: center; cursor: pointer; position: relative; }
+    .docs-native-check { position: absolute; opacity: 0; width: 0; height: 0; }
+    .docs-check-box {
+      width: 16px; height: 16px;
+      border: 1.5px solid var(--color-stone-500);
+      border-radius: 3px;
+      background: var(--color-stone-0);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      opacity: 0;
+      transition: opacity 0.12s, border-color 0.15s, background 0.15s;
+    }
+    .docs-tbl-row--data:hover .docs-check-box,
+    .docs-tbl-row--data.docs-tbl-row--selected .docs-check-box,
+    .docs-tbl-row--head.docs-tbl-row--has-selection .docs-check-box {
+      opacity: 1;
+    }
+    .docs-check-box--checked,
+    .docs-check-box--indeterminate {
+      background: var(--color-primary-500);
+      border-color: var(--color-primary-500);
+      opacity: 1;
+    }
+    .docs-check-wrap:hover .docs-check-box { border-color: var(--color-primary-500); }
     .docs-tbl-row--head {
       min-height: 48px;
       border-bottom: 1px solid var(--color-divider);
@@ -1363,14 +1417,27 @@ export class IfsAiComponent implements OnInit, OnDestroy {
   createdTableRows = CREATED_ROWS;
 
   /** Created folders — Figma: без номерів у назвах, з датами Created on. */
-  createdDocsRows: { name: string; type: 'folder-colored'; createdOn: string }[] = [
-    { name: 'Corporate Structure',  type: 'folder-colored', createdOn: 'Nov 16, 2025' },
-    { name: 'Financial Information', type: 'folder-colored', createdOn: 'Nov 16, 2025' },
-    { name: 'Legal & Compliance',   type: 'folder-colored', createdOn: 'Nov 16, 2025' },
-    { name: 'Intellectual Property', type: 'folder-colored', createdOn: 'Nov 16, 2025' },
-    { name: 'Human Resources',      type: 'folder-colored', createdOn: 'Nov 16, 2021' },
-    { name: 'Tax',                  type: 'folder-colored', createdOn: 'Nov 16, 2021' },
+  createdDocsRows: { name: string; type: 'folder-colored'; createdOn: string; selected: boolean }[] = [
+    { name: 'Corporate Structure',  type: 'folder-colored', createdOn: 'Nov 16, 2025', selected: false },
+    { name: 'Financial Information', type: 'folder-colored', createdOn: 'Nov 16, 2025', selected: false },
+    { name: 'Legal & Compliance',   type: 'folder-colored', createdOn: 'Nov 16, 2025', selected: false },
+    { name: 'Intellectual Property', type: 'folder-colored', createdOn: 'Nov 16, 2025', selected: false },
+    { name: 'Human Resources',      type: 'folder-colored', createdOn: 'Nov 16, 2021', selected: false },
+    { name: 'Tax',                  type: 'folder-colored', createdOn: 'Nov 16, 2021', selected: false },
   ];
+  get docsAllSelected(): boolean {
+    return this.createdDocsRows.length > 0 && this.createdDocsRows.every(r => r.selected);
+  }
+  get docsSomeSelected(): boolean {
+    return this.createdDocsRows.some(r => r.selected);
+  }
+  toggleAllDocs(ev: Event): void {
+    const checked = (ev.target as HTMLInputElement).checked;
+    this.createdDocsRows.forEach(r => r.selected = checked);
+  }
+  toggleDocRow(row: { selected: boolean }, ev: Event): void {
+    row.selected = (ev.target as HTMLInputElement).checked;
+  }
 
   segmentItems: SegmentItem[] = [
     { id: 'upload',   label: 'Upload file' },
