@@ -392,7 +392,7 @@ const CREATED_ROWS: Record<string, string>[] = [
             <!-- Footer -->
             <div class="wiz-footer">
               <ng-container *ngIf="state === 'upload'">
-                <fvdr-btn label="Cancel" variant="ghost" (clicked)="onCancel()" data-track="cancel"></fvdr-btn>
+                <fvdr-btn label="Cancel" variant="secondary" (clicked)="onCancel()" data-track="cancel"></fvdr-btn>
                 <fvdr-btn label="Continue" variant="primary" [disabled]="!canProceed" (clicked)="onNext()" data-track="continue"></fvdr-btn>
               </ng-container>
 
@@ -614,11 +614,14 @@ const CREATED_ROWS: Record<string, string>[] = [
       flex-shrink: 0;
     }
 
-    /* Icon-only secondary button — square 40×40 (Дмитро: more-кнопка має бути 40×40) */
+    /* Icon-only secondary button — square 40×40 з icon по центру.
+       Порожній .btn__label span збиває центрування через gap, тож обнуляємо gap. */
     .btn-icon-square ::ng-deep .btn--m {
       width: 40px;
       padding: 0;
+      gap: 0;
     }
+    .btn-icon-square ::ng-deep .btn__label:empty { display: none; }
 
     /* ─── Docs area (quick access + content) ─── */
     .docs-area {
@@ -799,7 +802,6 @@ const CREATED_ROWS: Record<string, string>[] = [
       align-items: center;
       justify-content: space-between;
       padding: var(--space-4) var(--space-8);
-      border-bottom: 1px solid var(--color-border);
       flex-shrink: 0;
     }
 
@@ -913,6 +915,9 @@ const CREATED_ROWS: Record<string, string>[] = [
       max-width: 480px;
       margin-bottom: var(--space-5);
     }
+    /* Figma: half-and-half equal width (240px each) — flex stretch */
+    .segment-wrap ::ng-deep .seg-primary { display: flex; width: 100%; }
+    .segment-wrap ::ng-deep .seg-primary__item { flex: 1; }
 
     /* ─── Destination folder picker ─── */
     .dest-field {
