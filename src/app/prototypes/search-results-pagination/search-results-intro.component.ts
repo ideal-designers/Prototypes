@@ -109,10 +109,10 @@ interface ScenarioCard {
       text-decoration: none; margin-bottom: 24px;
       transition: color 0.12s;
     }
-    .back-link:hover { color: #2C9C74; }
+    .back-link:hover { color: var(--color-interactive-primary, #2C9C74); }
     .heading-block h1 {
       font-size: 2rem; font-weight: 700;
-      color: #2C9C74; margin: 0 0 8px;
+      color: var(--color-interactive-primary, #2C9C74); margin: 0 0 8px;
     }
     .subtitle { color: #9bbfb0; margin: 0; font-size: 0.95rem; }
 
@@ -136,7 +136,7 @@ interface ScenarioCard {
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.1em;
-      color: #4a7a68;
+      color: var(--color-text-section-label, #4a7a68);
       white-space: nowrap;
     }
     .section-header__line {
@@ -252,8 +252,8 @@ interface ScenarioCard {
       align-items: center;
       gap: 8px;
       padding: 10px 20px;
-      background: color-mix(in srgb, #2C9C74 10%, transparent);
-      border: 1px solid color-mix(in srgb, #2C9C74 35%, transparent);
+      background: color-mix(in srgb, var(--color-interactive-primary, #2C9C74) 10%, transparent);
+      border: 1px solid color-mix(in srgb, var(--color-interactive-primary, #2C9C74) 35%, transparent);
       border-radius: 40px;
       text-decoration: none;
       color: #9bbfb0;
@@ -261,12 +261,12 @@ interface ScenarioCard {
       transition: background 0.15s, color 0.15s, border-color 0.15s;
     }
     .cta-widget:hover {
-      background: color-mix(in srgb, #2C9C74 18%, transparent);
-      border-color: #2C9C74;
+      background: color-mix(in srgb, var(--color-interactive-primary, #2C9C74) 18%, transparent);
+      border-color: var(--color-interactive-primary, #2C9C74);
       color: #e8f5f0;
     }
     .cta-widget__icon {
-      color: #2C9C74;
+      color: var(--color-interactive-primary, #2C9C74);
       flex-shrink: 0;
       opacity: 0.75;
     }
@@ -274,7 +274,7 @@ interface ScenarioCard {
       flex: 1;
     }
     .cta-widget__ext {
-      color: #2C9C74;
+      color: var(--color-interactive-primary, #2C9C74);
       opacity: 0.55;
       flex-shrink: 0;
       transition: opacity 0.15s, transform 0.15s;

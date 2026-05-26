@@ -86,6 +86,36 @@ const COLOR_TOKEN_MAP = {
   '#FFF5F4': '--color-danger-surface',
   '#ebf4fd': '--color-feature-bg',
   '#EBF4FD': '--color-feature-bg',
+  // ── Notice / Q&A warning palette ──
+  '#fffbe6': '--color-notice-bg',
+  '#FFFBE6': '--color-notice-bg',
+  '#ffe566': '--color-notice-border',
+  '#FFE566': '--color-notice-border',
+  '#7a5c00': '--color-notice-text',
+  '#7A5C00': '--color-notice-text',
+  '#c88b00': '--color-notice-icon',
+  '#C88B00': '--color-notice-icon',
+  // ── Search highlight mark ──
+  '#ffda07': '--color-highlight-mark',
+  '#FFDA07': '--color-highlight-mark',
+  // ── Danger surface hover (menu items) ──
+  '#fff2f0': '--color-danger-surface-hover',
+  '#FFF2F0': '--color-danger-surface-hover',
+  // ── Chip avatar backgrounds ──
+  '#ffe1de': '--color-chip-avatar-danger',
+  '#FFE1DE': '--color-chip-avatar-danger',
+  '#ffe5b0': '--color-chip-avatar-yellow',
+  '#FFE5B0': '--color-chip-avatar-yellow',
+  // ── Status badges ──
+  '#eaf6ed': '--color-status-stable-bg',
+  '#EAF6ED': '--color-status-stable-bg',
+  '#eef0ff': '--color-status-beta-bg',
+  '#EEF0FF': '--color-status-beta-bg',
+  '#fff0ee': '--color-status-deprecated-bg',
+  '#FFF0EE': '--color-status-deprecated-bg',
+  // ── Section label muted dark-green ──
+  '#4a7a68': '--color-text-section-label',
+  '#4A7A68': '--color-text-section-label',
 };
 
 // Font-size → token mapping

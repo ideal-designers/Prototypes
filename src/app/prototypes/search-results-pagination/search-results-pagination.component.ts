@@ -750,7 +750,7 @@ function makeRows(): SearchRow[] {
     }
     .pop-item:hover { background: var(--color-hover-bg); }
     .pop-item--danger { color: var(--color-error-600); }
-    .pop-item--danger:hover { background: #fff2f0; }
+    .pop-item--danger:hover { background: var(--color-danger-surface-hover, #fff2f0); }
     .pop-ico {
       display: flex; align-items: center; justify-content: center;
       width: 16px; height: 16px; font-size: 16px; flex-shrink: 0;
@@ -850,7 +850,7 @@ function makeRows(): SearchRow[] {
       line-height: 1.4;
     }
     :host ::ng-deep mark {
-      background: #FFDA07;
+      background: var(--color-highlight-mark, #FFDA07);
       color: inherit;
       padding: 0 1px;
       border-radius: 1px;

@@ -37,14 +37,12 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
 
     <!-- 1. HERO -->
     <section class="doc-hero">
-      <div class="doc-hero__top">
-        <h1 class="doc-hero__title">{{ entry.name }}</h1>
-        <div class="doc-hero__meta">
-          <span class="doc-hero__selector">{{ entry.selector }}</span>
-          <span class="doc-hero__status" [ngClass]="statusClass(entry.status)">{{ entry.status }}</span>
-          <span class="doc-hero__category">{{ categoryLabel(entry.category) }}</span>
-          <a *ngIf="entry.figmaNode" class="doc-hero__figma" [href]="'https://www.figma.com/design/liyNDiFf1piO8SQmHNKoeU/FVDR---Design-System?node-id=' + entry.figmaNode" target="_blank">Figma ↗</a>
-        </div>
+      <h1 class="doc-hero__title">{{ entry.name }}</h1>
+      <div class="doc-hero__meta">
+        <span class="doc-hero__tag doc-hero__selector">{{ entry.selector }}</span>
+        <span class="doc-hero__tag doc-hero__status" [ngClass]="statusClass(entry.status)">{{ entry.status }}</span>
+        <span class="doc-hero__tag doc-hero__category">{{ categoryLabel(entry.category) }}</span>
+        <a *ngIf="entry.figmaNode" class="doc-hero__tag doc-hero__figma" [href]="'https://www.figma.com/design/liyNDiFf1piO8SQmHNKoeU/FVDR---Design-System?node-id=' + entry.figmaNode" target="_blank">Figma ↗</a>
       </div>
       <p class="doc-hero__desc">{{ entry.description }}</p>
     </section>
@@ -385,6 +383,22 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
               <div class="dim-h" style="bottom:-28px;left:0;width:8px">8</div>
               <div class="dim-h" style="bottom:-28px;right:0;width:8px">8</div>
               <div class="dim-v" style="left:-18px;top:10px;height:24px">24px</div>
+            </div>
+          </ng-container>
+
+          <!-- CHIP -->
+          <ng-container *ngSwitchCase="'chip'">
+            <div class="anatomy-wrap anatomy-wrap--chip">
+              <fvdr-chip label="Category" variant="blue" size="m"></fvdr-chip>
+              <!-- Part labels — top -->
+              <div class="anatomy-label anatomy-label--top" style="top:-48px;left:50%;transform:translateX(-50%)">label</div>
+              <!-- Height — right side bracket -->
+              <div class="dim-v" style="right:-56px;top:0;height:28px">28px</div>
+              <!-- Padding — bottom brackets, clearly separated -->
+              <div class="dim-h" style="bottom:-40px;left:0;width:8px">8px</div>
+              <div class="dim-h" style="bottom:-40px;right:0;width:8px">8px</div>
+              <!-- Property note — left side -->
+              <div class="anatomy-label anatomy-label--left" style="left:-108px;top:50%;transform:translateY(-50%)">bg · no border</div>
             </div>
           </ng-container>
 
@@ -876,24 +890,324 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
 
         <!-- CHIP -->
         <ng-container *ngSwitchCase="'chip'">
+
+          <!-- ── Rect: sizes × colors ── -->
           <div class="examples-group">
-            <h3 class="examples-group__title">Variants</h3>
-            <div class="examples-row examples-row--wrap">
-              <fvdr-chip label="Default"></fvdr-chip>
-              <fvdr-chip label="Primary"  variant="primary"></fvdr-chip>
-              <fvdr-chip label="Success"  variant="success"></fvdr-chip>
-              <fvdr-chip label="Warning"  variant="warning"></fvdr-chip>
-              <fvdr-chip label="Error"    variant="error"></fvdr-chip>
+            <h3 class="examples-group__title">Rect — all sizes × colors</h3>
+            <div class="chip-matrix">
+              <!-- header row -->
+              <div class="chip-matrix__size-label"></div>
+              <div class="chip-matrix__header-row">
+                <span class="chip-matrix__col-label">default</span>
+                <span class="chip-matrix__col-label">green</span>
+                <span class="chip-matrix__col-label">yellow</span>
+                <span class="chip-matrix__col-label">orange</span>
+                <span class="chip-matrix__col-label">lime</span>
+                <span class="chip-matrix__col-label">teal</span>
+                <span class="chip-matrix__col-label">danger</span>
+                <span class="chip-matrix__col-label">blue</span>
+                <span class="chip-matrix__col-label">indigo</span>
+                <span class="chip-matrix__col-label">purple</span>
+                <span class="chip-matrix__col-label">magenta</span>
+                <span class="chip-matrix__col-label">grey</span>
+                <span class="chip-matrix__col-label">coffee</span>
+              </div>
+              <!-- xl -->
+              <div class="chip-matrix__size-label">XL<span class="chip-matrix__px">36px</span></div>
+              <div class="chip-matrix__row">
+                <fvdr-chip label="Label" variant="default" size="xl"></fvdr-chip>
+                <fvdr-chip label="Label" variant="green"   size="xl"></fvdr-chip>
+                <fvdr-chip label="Label" variant="yellow"  size="xl"></fvdr-chip>
+                <fvdr-chip label="Label" variant="orange"  size="xl"></fvdr-chip>
+                <fvdr-chip label="Label" variant="lime"    size="xl"></fvdr-chip>
+                <fvdr-chip label="Label" variant="teal"    size="xl"></fvdr-chip>
+                <fvdr-chip label="Label" variant="danger"  size="xl"></fvdr-chip>
+                <fvdr-chip label="Label" variant="blue"    size="xl"></fvdr-chip>
+                <fvdr-chip label="Label" variant="indigo"  size="xl"></fvdr-chip>
+                <fvdr-chip label="Label" variant="purple"  size="xl"></fvdr-chip>
+                <fvdr-chip label="Label" variant="magenta" size="xl"></fvdr-chip>
+                <fvdr-chip label="Label" variant="grey"    size="xl"></fvdr-chip>
+                <fvdr-chip label="Label" variant="coffee"  size="xl"></fvdr-chip>
+              </div>
+              <!-- l -->
+              <div class="chip-matrix__size-label">L<span class="chip-matrix__px">32px</span></div>
+              <div class="chip-matrix__row">
+                <fvdr-chip label="Label" variant="default" size="l"></fvdr-chip>
+                <fvdr-chip label="Label" variant="green"   size="l"></fvdr-chip>
+                <fvdr-chip label="Label" variant="yellow"  size="l"></fvdr-chip>
+                <fvdr-chip label="Label" variant="orange"  size="l"></fvdr-chip>
+                <fvdr-chip label="Label" variant="lime"    size="l"></fvdr-chip>
+                <fvdr-chip label="Label" variant="teal"    size="l"></fvdr-chip>
+                <fvdr-chip label="Label" variant="danger"  size="l"></fvdr-chip>
+                <fvdr-chip label="Label" variant="blue"    size="l"></fvdr-chip>
+                <fvdr-chip label="Label" variant="indigo"  size="l"></fvdr-chip>
+                <fvdr-chip label="Label" variant="purple"  size="l"></fvdr-chip>
+                <fvdr-chip label="Label" variant="magenta" size="l"></fvdr-chip>
+                <fvdr-chip label="Label" variant="grey"    size="l"></fvdr-chip>
+                <fvdr-chip label="Label" variant="coffee"  size="l"></fvdr-chip>
+              </div>
+              <!-- m -->
+              <div class="chip-matrix__size-label">M<span class="chip-matrix__px">28px</span></div>
+              <div class="chip-matrix__row">
+                <fvdr-chip label="Label" variant="default" size="m"></fvdr-chip>
+                <fvdr-chip label="Label" variant="green"   size="m"></fvdr-chip>
+                <fvdr-chip label="Label" variant="yellow"  size="m"></fvdr-chip>
+                <fvdr-chip label="Label" variant="orange"  size="m"></fvdr-chip>
+                <fvdr-chip label="Label" variant="lime"    size="m"></fvdr-chip>
+                <fvdr-chip label="Label" variant="teal"    size="m"></fvdr-chip>
+                <fvdr-chip label="Label" variant="danger"  size="m"></fvdr-chip>
+                <fvdr-chip label="Label" variant="blue"    size="m"></fvdr-chip>
+                <fvdr-chip label="Label" variant="indigo"  size="m"></fvdr-chip>
+                <fvdr-chip label="Label" variant="purple"  size="m"></fvdr-chip>
+                <fvdr-chip label="Label" variant="magenta" size="m"></fvdr-chip>
+                <fvdr-chip label="Label" variant="grey"    size="m"></fvdr-chip>
+                <fvdr-chip label="Label" variant="coffee"  size="m"></fvdr-chip>
+              </div>
+              <!-- s -->
+              <div class="chip-matrix__size-label">S<span class="chip-matrix__px">24px</span></div>
+              <div class="chip-matrix__row">
+                <fvdr-chip label="Label" variant="default" size="s"></fvdr-chip>
+                <fvdr-chip label="Label" variant="green"   size="s"></fvdr-chip>
+                <fvdr-chip label="Label" variant="yellow"  size="s"></fvdr-chip>
+                <fvdr-chip label="Label" variant="orange"  size="s"></fvdr-chip>
+                <fvdr-chip label="Label" variant="lime"    size="s"></fvdr-chip>
+                <fvdr-chip label="Label" variant="teal"    size="s"></fvdr-chip>
+                <fvdr-chip label="Label" variant="danger"  size="s"></fvdr-chip>
+                <fvdr-chip label="Label" variant="blue"    size="s"></fvdr-chip>
+                <fvdr-chip label="Label" variant="indigo"  size="s"></fvdr-chip>
+                <fvdr-chip label="Label" variant="purple"  size="s"></fvdr-chip>
+                <fvdr-chip label="Label" variant="magenta" size="s"></fvdr-chip>
+                <fvdr-chip label="Label" variant="grey"    size="s"></fvdr-chip>
+                <fvdr-chip label="Label" variant="coffee"  size="s"></fvdr-chip>
+              </div>
+              <!-- xs -->
+              <div class="chip-matrix__size-label">XS<span class="chip-matrix__px">20px</span></div>
+              <div class="chip-matrix__row">
+                <fvdr-chip label="Label" variant="default" size="xs"></fvdr-chip>
+                <fvdr-chip label="Label" variant="green"   size="xs"></fvdr-chip>
+                <fvdr-chip label="Label" variant="yellow"  size="xs"></fvdr-chip>
+                <fvdr-chip label="Label" variant="orange"  size="xs"></fvdr-chip>
+                <fvdr-chip label="Label" variant="lime"    size="xs"></fvdr-chip>
+                <fvdr-chip label="Label" variant="teal"    size="xs"></fvdr-chip>
+                <fvdr-chip label="Label" variant="danger"  size="xs"></fvdr-chip>
+                <fvdr-chip label="Label" variant="blue"    size="xs"></fvdr-chip>
+                <fvdr-chip label="Label" variant="indigo"  size="xs"></fvdr-chip>
+                <fvdr-chip label="Label" variant="purple"  size="xs"></fvdr-chip>
+                <fvdr-chip label="Label" variant="magenta" size="xs"></fvdr-chip>
+                <fvdr-chip label="Label" variant="grey"    size="xs"></fvdr-chip>
+                <fvdr-chip label="Label" variant="coffee"  size="xs"></fvdr-chip>
+              </div>
             </div>
           </div>
+
+          <!-- ── Pill: sizes × colors ── -->
+          <div class="examples-group">
+            <h3 class="examples-group__title">Pill — all sizes × colors</h3>
+            <div class="chip-matrix">
+              <!-- header row -->
+              <div class="chip-matrix__size-label"></div>
+              <div class="chip-matrix__header-row">
+                <span class="chip-matrix__col-label">default</span>
+                <span class="chip-matrix__col-label">green</span>
+                <span class="chip-matrix__col-label">yellow</span>
+                <span class="chip-matrix__col-label">orange</span>
+                <span class="chip-matrix__col-label">lime</span>
+                <span class="chip-matrix__col-label">teal</span>
+                <span class="chip-matrix__col-label">danger</span>
+                <span class="chip-matrix__col-label">blue</span>
+                <span class="chip-matrix__col-label">indigo</span>
+                <span class="chip-matrix__col-label">purple</span>
+                <span class="chip-matrix__col-label">magenta</span>
+                <span class="chip-matrix__col-label">grey</span>
+                <span class="chip-matrix__col-label">coffee</span>
+              </div>
+              <!-- xl -->
+              <div class="chip-matrix__size-label">XL<span class="chip-matrix__px">36px</span></div>
+              <div class="chip-matrix__row">
+                <fvdr-chip label="Label" variant="default" size="xl" [rounded]="true"></fvdr-chip>
+                <fvdr-chip label="Label" variant="green"   size="xl" [rounded]="true"></fvdr-chip>
+                <fvdr-chip label="Label" variant="yellow"  size="xl" [rounded]="true"></fvdr-chip>
+                <fvdr-chip label="Label" variant="orange"  size="xl" [rounded]="true"></fvdr-chip>
+                <fvdr-chip label="Label" variant="lime"    size="xl" [rounded]="true"></fvdr-chip>
+                <fvdr-chip label="Label" variant="teal"    size="xl" [rounded]="true"></fvdr-chip>
+                <fvdr-chip label="Label" variant="danger"  size="xl" [rounded]="true"></fvdr-chip>
+                <fvdr-chip label="Label" variant="blue"    size="xl" [rounded]="true"></fvdr-chip>
+                <fvdr-chip label="Label" variant="indigo"  size="xl" [rounded]="true"></fvdr-chip>
+                <fvdr-chip label="Label" variant="purple"  size="xl" [rounded]="true"></fvdr-chip>
+                <fvdr-chip label="Label" variant="magenta" size="xl" [rounded]="true"></fvdr-chip>
+                <fvdr-chip label="Label" variant="grey"    size="xl" [rounded]="true"></fvdr-chip>
+                <fvdr-chip label="Label" variant="coffee"  size="xl" [rounded]="true"></fvdr-chip>
+              </div>
+              <!-- l -->
+              <div class="chip-matrix__size-label">L<span class="chip-matrix__px">32px</span></div>
+              <div class="chip-matrix__row">
+                <fvdr-chip label="Label" variant="default" size="l" [rounded]="true"></fvdr-chip>
+                <fvdr-chip label="Label" variant="green"   size="l" [rounded]="true"></fvdr-chip>
+                <fvdr-chip label="Label" variant="yellow"  size="l" [rounded]="true"></fvdr-chip>
+                <fvdr-chip label="Label" variant="orange"  size="l" [rounded]="true"></fvdr-chip>
+                <fvdr-chip label="Label" variant="lime"    size="l" [rounded]="true"></fvdr-chip>
+                <fvdr-chip label="Label" variant="teal"    size="l" [rounded]="true"></fvdr-chip>
+                <fvdr-chip label="Label" variant="danger"  size="l" [rounded]="true"></fvdr-chip>
+                <fvdr-chip label="Label" variant="blue"    size="l" [rounded]="true"></fvdr-chip>
+                <fvdr-chip label="Label" variant="indigo"  size="l" [rounded]="true"></fvdr-chip>
+                <fvdr-chip label="Label" variant="purple"  size="l" [rounded]="true"></fvdr-chip>
+                <fvdr-chip label="Label" variant="magenta" size="l" [rounded]="true"></fvdr-chip>
+                <fvdr-chip label="Label" variant="grey"    size="l" [rounded]="true"></fvdr-chip>
+                <fvdr-chip label="Label" variant="coffee"  size="l" [rounded]="true"></fvdr-chip>
+              </div>
+              <!-- m -->
+              <div class="chip-matrix__size-label">M<span class="chip-matrix__px">28px</span></div>
+              <div class="chip-matrix__row">
+                <fvdr-chip label="Label" variant="default" size="m" [rounded]="true"></fvdr-chip>
+                <fvdr-chip label="Label" variant="green"   size="m" [rounded]="true"></fvdr-chip>
+                <fvdr-chip label="Label" variant="yellow"  size="m" [rounded]="true"></fvdr-chip>
+                <fvdr-chip label="Label" variant="orange"  size="m" [rounded]="true"></fvdr-chip>
+                <fvdr-chip label="Label" variant="lime"    size="m" [rounded]="true"></fvdr-chip>
+                <fvdr-chip label="Label" variant="teal"    size="m" [rounded]="true"></fvdr-chip>
+                <fvdr-chip label="Label" variant="danger"  size="m" [rounded]="true"></fvdr-chip>
+                <fvdr-chip label="Label" variant="blue"    size="m" [rounded]="true"></fvdr-chip>
+                <fvdr-chip label="Label" variant="indigo"  size="m" [rounded]="true"></fvdr-chip>
+                <fvdr-chip label="Label" variant="purple"  size="m" [rounded]="true"></fvdr-chip>
+                <fvdr-chip label="Label" variant="magenta" size="m" [rounded]="true"></fvdr-chip>
+                <fvdr-chip label="Label" variant="grey"    size="m" [rounded]="true"></fvdr-chip>
+                <fvdr-chip label="Label" variant="coffee"  size="m" [rounded]="true"></fvdr-chip>
+              </div>
+              <!-- s -->
+              <div class="chip-matrix__size-label">S<span class="chip-matrix__px">24px</span></div>
+              <div class="chip-matrix__row">
+                <fvdr-chip label="Label" variant="default" size="s" [rounded]="true"></fvdr-chip>
+                <fvdr-chip label="Label" variant="green"   size="s" [rounded]="true"></fvdr-chip>
+                <fvdr-chip label="Label" variant="yellow"  size="s" [rounded]="true"></fvdr-chip>
+                <fvdr-chip label="Label" variant="orange"  size="s" [rounded]="true"></fvdr-chip>
+                <fvdr-chip label="Label" variant="lime"    size="s" [rounded]="true"></fvdr-chip>
+                <fvdr-chip label="Label" variant="teal"    size="s" [rounded]="true"></fvdr-chip>
+                <fvdr-chip label="Label" variant="danger"  size="s" [rounded]="true"></fvdr-chip>
+                <fvdr-chip label="Label" variant="blue"    size="s" [rounded]="true"></fvdr-chip>
+                <fvdr-chip label="Label" variant="indigo"  size="s" [rounded]="true"></fvdr-chip>
+                <fvdr-chip label="Label" variant="purple"  size="s" [rounded]="true"></fvdr-chip>
+                <fvdr-chip label="Label" variant="magenta" size="s" [rounded]="true"></fvdr-chip>
+                <fvdr-chip label="Label" variant="grey"    size="s" [rounded]="true"></fvdr-chip>
+                <fvdr-chip label="Label" variant="coffee"  size="s" [rounded]="true"></fvdr-chip>
+              </div>
+              <!-- xs -->
+              <div class="chip-matrix__size-label">XS<span class="chip-matrix__px">20px</span></div>
+              <div class="chip-matrix__row">
+                <fvdr-chip label="Label" variant="default" size="xs" [rounded]="true"></fvdr-chip>
+                <fvdr-chip label="Label" variant="green"   size="xs" [rounded]="true"></fvdr-chip>
+                <fvdr-chip label="Label" variant="yellow"  size="xs" [rounded]="true"></fvdr-chip>
+                <fvdr-chip label="Label" variant="orange"  size="xs" [rounded]="true"></fvdr-chip>
+                <fvdr-chip label="Label" variant="lime"    size="xs" [rounded]="true"></fvdr-chip>
+                <fvdr-chip label="Label" variant="teal"    size="xs" [rounded]="true"></fvdr-chip>
+                <fvdr-chip label="Label" variant="danger"  size="xs" [rounded]="true"></fvdr-chip>
+                <fvdr-chip label="Label" variant="blue"    size="xs" [rounded]="true"></fvdr-chip>
+                <fvdr-chip label="Label" variant="indigo"  size="xs" [rounded]="true"></fvdr-chip>
+                <fvdr-chip label="Label" variant="purple"  size="xs" [rounded]="true"></fvdr-chip>
+                <fvdr-chip label="Label" variant="magenta" size="xs" [rounded]="true"></fvdr-chip>
+                <fvdr-chip label="Label" variant="grey"    size="xs" [rounded]="true"></fvdr-chip>
+                <fvdr-chip label="Label" variant="coffee"  size="xs" [rounded]="true"></fvdr-chip>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── States ── -->
           <div class="examples-group">
             <h3 class="examples-group__title">States</h3>
-            <div class="examples-row examples-row--wrap">
-              <fvdr-chip label="Removable" [removable]="true"></fvdr-chip>
-              <fvdr-chip label="Selected"  [selected]="true"></fvdr-chip>
-              <fvdr-chip label="Clickable" [clickable]="true" icon="edit"></fvdr-chip>
+            <div class="examples-row examples-row--wrap" style="align-items:center">
+              <div class="example-labeled"><fvdr-chip label="Default"   variant="green"></fvdr-chip><span class="example-label">default</span></div>
+              <div class="example-labeled"><fvdr-chip label="Selected"  variant="green" [selected]="true"></fvdr-chip><span class="example-label">selected</span></div>
+              <div class="example-labeled"><fvdr-chip label="Removable" variant="green" [removable]="true"></fvdr-chip><span class="example-label">removable</span></div>
+              <div class="example-labeled"><fvdr-chip label="Clickable" variant="green" [clickable]="true"></fvdr-chip><span class="example-label">clickable</span></div>
             </div>
           </div>
+
+          <!-- ── Anatomy ── -->
+          <div class="examples-group">
+            <h3 class="examples-group__title">With icon &amp; counter</h3>
+            <div class="examples-row examples-row--wrap" style="align-items:center">
+              <div class="example-labeled"><fvdr-chip label="Reports" variant="indigo" icon="reports"></fvdr-chip><span class="example-label">icon left</span></div>
+              <div class="example-labeled"><fvdr-chip label="Status"  variant="teal"   statusColor="#2C9C74"></fvdr-chip><span class="example-label">status dot</span></div>
+              <div class="example-labeled"><fvdr-chip label="Alerts"  variant="danger"  [counter]="5"></fvdr-chip><span class="example-label">counter</span></div>
+              <div class="example-labeled"><fvdr-chip label="Tag"     variant="purple"  icon="filter" [counter]="12" [removable]="true"></fvdr-chip><span class="example-label">icon + counter + remove</span></div>
+            </div>
+          </div>
+
+          <!-- ── User chips (with avatar) ── -->
+          <div class="examples-group">
+            <h3 class="examples-group__title">With avatar — initials</h3>
+            <div class="chip-matrix">
+              <!-- header -->
+              <div class="chip-matrix__size-label"></div>
+              <div class="chip-matrix__header-row">
+                <span class="chip-matrix__col-label">default</span>
+                <span class="chip-matrix__col-label">danger</span>
+                <span class="chip-matrix__col-label">yellow</span>
+                <span class="chip-matrix__col-label">disabled</span>
+              </div>
+              <!-- xl = L 36px -->
+              <div class="chip-matrix__size-label">L<span class="chip-matrix__px">36px</span></div>
+              <div class="chip-matrix__row chip-matrix__row--user">
+                <fvdr-chip label="Abner Sheldon" variant="default" size="xl" [rounded]="true" [removable]="true" avatarInitials="AS"></fvdr-chip>
+                <fvdr-chip label="Abner Sheldon" variant="danger"  size="xl" [rounded]="true" [removable]="true" avatarInitials="AS"></fvdr-chip>
+                <fvdr-chip label="Abner Sheldon" variant="yellow"  size="xl" [rounded]="true" [removable]="true" avatarInitials="AS"></fvdr-chip>
+                <fvdr-chip label="Abner Sheldon" variant="default" size="xl" [rounded]="true" [removable]="true" avatarInitials="AS" style="opacity:.4;pointer-events:none"></fvdr-chip>
+              </div>
+              <!-- l = M 32px -->
+              <div class="chip-matrix__size-label">M<span class="chip-matrix__px">32px</span></div>
+              <div class="chip-matrix__row chip-matrix__row--user">
+                <fvdr-chip label="Abner Sheldon" variant="default" size="l" [rounded]="true" [removable]="true" avatarInitials="AS"></fvdr-chip>
+                <fvdr-chip label="Abner Sheldon" variant="danger"  size="l" [rounded]="true" [removable]="true" avatarInitials="AS"></fvdr-chip>
+                <fvdr-chip label="Abner Sheldon" variant="yellow"  size="l" [rounded]="true" [removable]="true" avatarInitials="AS"></fvdr-chip>
+                <fvdr-chip label="Abner Sheldon" variant="default" size="l" [rounded]="true" [removable]="true" avatarInitials="AS" style="opacity:.4;pointer-events:none"></fvdr-chip>
+              </div>
+              <!-- m = S 28px -->
+              <div class="chip-matrix__size-label">S<span class="chip-matrix__px">28px</span></div>
+              <div class="chip-matrix__row chip-matrix__row--user">
+                <fvdr-chip label="Abner Sheldon" variant="default" size="m" [rounded]="true" [removable]="true" avatarInitials="AS"></fvdr-chip>
+                <fvdr-chip label="Abner Sheldon" variant="danger"  size="m" [rounded]="true" [removable]="true" avatarInitials="AS"></fvdr-chip>
+                <fvdr-chip label="Abner Sheldon" variant="yellow"  size="m" [rounded]="true" [removable]="true" avatarInitials="AS"></fvdr-chip>
+                <fvdr-chip label="Abner Sheldon" variant="default" size="m" [rounded]="true" [removable]="true" avatarInitials="AS" style="opacity:.4;pointer-events:none"></fvdr-chip>
+              </div>
+            </div>
+          </div>
+
+          <div class="examples-group">
+            <h3 class="examples-group__title">With avatar — photo</h3>
+            <div class="chip-matrix">
+              <!-- header -->
+              <div class="chip-matrix__size-label"></div>
+              <div class="chip-matrix__header-row">
+                <span class="chip-matrix__col-label">default</span>
+                <span class="chip-matrix__col-label">danger</span>
+                <span class="chip-matrix__col-label">yellow</span>
+                <span class="chip-matrix__col-label">disabled</span>
+              </div>
+              <!-- xl = L 36px -->
+              <div class="chip-matrix__size-label">L<span class="chip-matrix__px">36px</span></div>
+              <div class="chip-matrix__row chip-matrix__row--user">
+                <fvdr-chip label="Abner Sheldon" variant="default" size="xl" [rounded]="true" [removable]="true" avatarSrc="https://i.pravatar.cc/36?img=12"></fvdr-chip>
+                <fvdr-chip label="Abner Sheldon" variant="danger"  size="xl" [rounded]="true" [removable]="true" avatarSrc="https://i.pravatar.cc/36?img=12"></fvdr-chip>
+                <fvdr-chip label="Abner Sheldon" variant="yellow"  size="xl" [rounded]="true" [removable]="true" avatarSrc="https://i.pravatar.cc/36?img=12"></fvdr-chip>
+                <fvdr-chip label="Abner Sheldon" variant="default" size="xl" [rounded]="true" [removable]="true" avatarSrc="https://i.pravatar.cc/36?img=12" style="opacity:.4;pointer-events:none"></fvdr-chip>
+              </div>
+              <!-- l = M 32px -->
+              <div class="chip-matrix__size-label">M<span class="chip-matrix__px">32px</span></div>
+              <div class="chip-matrix__row chip-matrix__row--user">
+                <fvdr-chip label="Abner Sheldon" variant="default" size="l" [rounded]="true" [removable]="true" avatarSrc="https://i.pravatar.cc/32?img=12"></fvdr-chip>
+                <fvdr-chip label="Abner Sheldon" variant="danger"  size="l" [rounded]="true" [removable]="true" avatarSrc="https://i.pravatar.cc/32?img=12"></fvdr-chip>
+                <fvdr-chip label="Abner Sheldon" variant="yellow"  size="l" [rounded]="true" [removable]="true" avatarSrc="https://i.pravatar.cc/32?img=12"></fvdr-chip>
+                <fvdr-chip label="Abner Sheldon" variant="default" size="l" [rounded]="true" [removable]="true" avatarSrc="https://i.pravatar.cc/32?img=12" style="opacity:.4;pointer-events:none"></fvdr-chip>
+              </div>
+              <!-- m = S 28px -->
+              <div class="chip-matrix__size-label">S<span class="chip-matrix__px">28px</span></div>
+              <div class="chip-matrix__row chip-matrix__row--user">
+                <fvdr-chip label="Abner Sheldon" variant="default" size="m" [rounded]="true" [removable]="true" avatarSrc="https://i.pravatar.cc/28?img=12"></fvdr-chip>
+                <fvdr-chip label="Abner Sheldon" variant="danger"  size="m" [rounded]="true" [removable]="true" avatarSrc="https://i.pravatar.cc/28?img=12"></fvdr-chip>
+                <fvdr-chip label="Abner Sheldon" variant="yellow"  size="m" [rounded]="true" [removable]="true" avatarSrc="https://i.pravatar.cc/28?img=12"></fvdr-chip>
+                <fvdr-chip label="Abner Sheldon" variant="default" size="m" [rounded]="true" [removable]="true" avatarSrc="https://i.pravatar.cc/28?img=12" style="opacity:.4;pointer-events:none"></fvdr-chip>
+              </div>
+            </div>
+          </div>
+
         </ng-container>
 
         <!-- MULTISELECT -->
@@ -1352,30 +1666,23 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
     /* ── Main ── */
     .doc-main {
       flex: 1;
+      min-width: 0;
       overflow-y: auto;
       padding: 40px 48px;
-      max-width: 900px;
     }
 
     /* ── Hero ── */
     .doc-hero {
-      margin-bottom: 16px;
-      padding-bottom: 16px;
-    }
-
-    .doc-hero__top {
-      display: flex;
-      align-items: baseline;
-      flex-wrap: wrap;
-      gap: 12px;
-      margin-bottom: 12px;
+      margin-bottom: 24px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--color-divider, #dee0eb);
     }
 
     .doc-hero__title {
       font-size: 28px;
       font-weight: 700;
       color: var(--color-text-primary, #1f2129);
-      margin: 0;
+      margin: 0 0 10px;
       line-height: 1.2;
     }
 
@@ -1383,56 +1690,65 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
       display: flex;
       align-items: center;
       flex-wrap: wrap;
-      gap: 8px;
+      gap: 6px;
+      margin-bottom: 14px;
     }
 
+    /* ── Unified tag base ── */
+    .doc-hero__tag {
+      display: inline-flex;
+      align-items: center;
+      height: 22px;
+      padding: 0 10px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 500;
+      line-height: 1;
+      white-space: nowrap;
+      text-decoration: none;
+    }
+
+    /* Selector — monospace, neutral */
     .doc-hero__selector {
       font-family: 'Menlo', 'Courier New', monospace;
-      font-size: 13px;
-      background: var(--color-bg-surface, #f7f7f7);
-      border-radius: 4px;
-      padding: 2px 8px;
-      color: var(--color-text-secondary, #73757f);
-      border: 1px solid var(--color-border, #dee0eb);
-    }
-
-    .doc-hero__status {
-      padding: 2px 8px;
-      border-radius: 9999px;
       font-size: 11px;
-      font-weight: 600;
+      background: var(--color-stone-200, #f7f7f7);
+      color: var(--color-text-secondary, #5f616a);
+      border: 1px solid var(--color-divider, #dee0eb);
     }
 
+    /* Status */
     .status--stable {
-      background: var(--color-selected-row, #edf7f3);
+      background: var(--color-status-stable-bg, #eaf6ed);
       color: var(--color-interactive-primary, #2c9c74);
     }
     .status--beta {
-      background: var(--color-feature-bg, #ebf4fd);
+      background: var(--color-status-beta-bg, #eef0ff);
       color: #4862d3;
     }
     .status--deprecated {
-      background: var(--color-danger-surface, #fff5f4);
-      color: var(--color-danger, #e54430);
+      background: var(--color-status-deprecated-bg, #fff0ee);
+      color: var(--color-error-600, #e54430);
     }
 
+    /* Category — uppercase small caps */
     .doc-hero__category {
       font-size: 11px;
-      font-weight: 500;
+      letter-spacing: 0.04em;
       text-transform: uppercase;
-      background: var(--color-hover-bg, #f0f2f5);
-      border-radius: 4px;
-      padding: 2px 8px;
-      color: var(--color-text-secondary, #73757f);
+      background: var(--color-stone-300, #eceef9);
+      color: var(--color-text-secondary, #5f616a);
     }
 
+    /* Figma link — green outline */
     .doc-hero__figma {
-      font-size: 12px;
+      background: transparent;
       color: var(--color-interactive-primary, #2c9c74);
-      text-decoration: none;
-      font-weight: 500;
+      border: 1px solid currentColor;
     }
-    .doc-hero__figma:hover { text-decoration: underline; }
+    .doc-hero__figma:hover {
+      background: var(--color-status-stable-bg, #eaf6ed);
+    }
 
     .doc-hero__desc {
       font-size: 15px;
@@ -1491,11 +1807,11 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
     .anatomy-preview {
       background: var(--color-stone-900, #1e2125);
       border-radius: 8px;
-      padding: 56px 96px;
+      padding: 72px 140px;
       display: flex;
       justify-content: center;
       align-items: center;
-      min-height: 180px;
+      min-height: 200px;
     }
 
     .anatomy-preview-empty {
@@ -1841,6 +2157,60 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
       min-height: 60px;
     }
     .mock-tabs__body { font-size: 12px; color: var(--color-stone-600, #9c9ea8); }
+
+    /* ── CHIP anatomy ── */
+    .anatomy-wrap--chip { width: auto; }
+
+    /* ── CHIP matrix (size × color grid) ── */
+    .chip-matrix {
+      display: grid;
+      grid-template-columns: 52px 1fr;
+      row-gap: 10px;
+      align-items: center;
+    }
+    .chip-matrix__size-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--color-text-secondary);
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      line-height: 1;
+    }
+    .chip-matrix__px {
+      font-size: 10px;
+      font-weight: 400;
+      color: var(--color-text-placeholder);
+    }
+    .chip-matrix__header-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .chip-matrix__col-label {
+      font-size: 10px;
+      color: var(--color-text-placeholder);
+      width: 60px;
+      text-align: center;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .chip-matrix__row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+    .chip-matrix__row fvdr-chip {
+      width: 60px;
+      justify-content: center;
+    }
+    /* User chip rows — wider columns since chips contain names */
+    .chip-matrix__row--user fvdr-chip {
+      width: auto;
+      min-width: 160px;
+    }
 
     /* ── STATUS anatomy ── */
     .anatomy-wrap--status { width: 160px; }
@@ -2295,58 +2665,58 @@ export class DsComponentPageComponent implements OnInit, OnDestroy {
 
   // ── Segment demo data ──
   demoSeg2 = [
-    { id: 'on', label: '1st option ON' },
-    { id: 'off', label: '2nd option ON' },
+    { id: '1', label: 'Label' },
+    { id: '2', label: 'Label' },
   ];
-  demoSeg2Value = 'on';
+  demoSeg2Value = '1';
 
   demoSegmentItems = [
-    { id: 'all', label: 'All' },
-    { id: 'active', label: 'Active' },
-    { id: 'archived', label: 'Archived' },
+    { id: '1', label: 'Label' },
+    { id: '2', label: 'Label' },
+    { id: '3', label: 'Label' },
   ];
-  demoSegmentValue = 'all';
+  demoSegmentValue = '1';
 
   demoSegmentItems4 = [
-    { id: 'day', label: 'Day' },
-    { id: 'week', label: 'Week' },
-    { id: 'month', label: 'Month' },
-    { id: 'year', label: 'Year' },
+    { id: '1', label: 'Label' },
+    { id: '2', label: 'Label' },
+    { id: '3', label: 'Label' },
+    { id: '4', label: 'Label' },
   ];
-  demoSegmentValue4 = 'week';
+  demoSegmentValue4 = '1';
 
   // ── Table segment demo data ──
   demoTableSegIconLabel = [
-    { id: 'docs',    icon: 'documents' as any, label: 'Documents' },
-    { id: 'users',   icon: 'participants' as any, label: 'Users' },
-    { id: 'reports', icon: 'reports' as any, label: 'Reports' },
+    { id: '1', icon: 'overview'  as const, label: 'Label' },
+    { id: '2', icon: 'filter'    as const, label: 'Label' },
+    { id: '3', icon: 'folder'    as const, label: 'Label' },
   ];
-  demoTableSegValue  = 'docs';
-  demoTableSegValue5 = 'docs';
-  demoTableSegValue7 = 'docs';
+  demoTableSegValue  = '1';
+  demoTableSegValue5 = '1';
+  demoTableSegValue7 = '1';
 
   demoTableSegLabel = [
-    { id: 'all',      label: 'All' },
-    { id: 'active',   label: 'Active' },
-    { id: 'archived', label: 'Archived' },
+    { id: '1', label: 'Label' },
+    { id: '2', label: 'Label' },
+    { id: '3', label: 'Label' },
   ];
-  demoTableSegValue2  = 'all';
-  demoTableSegMiddle  = 'active';
+  demoTableSegValue2  = '1';
+  demoTableSegMiddle  = '2';
 
   demoTableSegCounter = [
-    { id: 'all',      label: 'All',      count: 24 },
-    { id: 'active',   label: 'Active',   count: 4  },
-    { id: 'archived', label: 'Archived', count: 20 },
+    { id: '1', label: 'Label', count: 24 },
+    { id: '2', label: 'Label', count: 4  },
+    { id: '3', label: 'Label', count: 20 },
   ];
-  demoTableSegValue3 = 'all';
-  demoTableSegValue6 = 'all';
+  demoTableSegValue3 = '1';
+  demoTableSegValue6 = '1';
 
   demoTableSegIconOnly = [
-    { id: 'list',  icon: 'menu' as any },
-    { id: 'grid',  icon: 'folder' as any },
-    { id: 'chart', icon: 'reports' as any },
+    { id: '1', icon: 'sort'     as const },
+    { id: '2', icon: 'filter'   as const },
+    { id: '3', icon: 'edit'     as const },
   ];
-  demoTableSegValue4 = 'list';
+  demoTableSegValue4 = '1';
 
   // ── Multiselect demo data ──
   demoMultiselectOptions = [

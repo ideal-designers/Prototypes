@@ -76,10 +76,40 @@
   --primitive-orange-600:  #ff4a00;
 
   /* ── Yellow / Warning ── */
+  --primitive-yellow-25:   #fffbe6;
   --primitive-yellow-50:   #fffae0;
+  --primitive-yellow-300:  #ffe566;
   --primitive-yellow-500:  #ffe448;
   --primitive-yellow-600:  #ffda07;
   --primitive-yellow-700:  #d1b200;
+  --primitive-yellow-800:  #7a5c00;
+  --primitive-yellow-900:  #c88b00;
+
+  /* ── Extra warm primitives (chip avatar bgs, hover wash) ── */
+  --primitive-red-25:      #fff2f0;
+  --primitive-red-75:      #ffe1de;
+  --primitive-orange-100:  #ffe5b0;
+
+  /* ── Indigo / Beta status ── */
+  --primitive-indigo-50:   #eef0ff;
+
+  /* ── Muted dark-green (section labels on dark hero) ── */
+  --primitive-green-muted-dark: #4a7a68;
+
+  /* ── Chip / Category Backgrounds — exact Figma values ── */
+  --chip-bg-default:  #eceef9;
+  --chip-bg-green:    #eaf6ed;
+  --chip-bg-yellow:   #fff5e0;
+  --chip-bg-orange:   #ffede1;
+  --chip-bg-lime:     #eef6e3;
+  --chip-bg-teal:     #e8fafa;
+  --chip-bg-danger:   #fff0ee;
+  --chip-bg-blue:     #eaf2fa;
+  --chip-bg-indigo:   #f0f0ff;
+  --chip-bg-purple:   #f9f1ff;
+  --chip-bg-magenta:  #feeff9;
+  --chip-bg-grey:     #f7f7f7;
+  --chip-bg-coffee:   #f0edea;
 
   /* ── Spacing Scale (4px grid) ── */
   --primitive-space-1:   4px;
@@ -202,6 +232,30 @@
   /* ── Info / Blue ── */
   --color-info-primary: var(--primitive-blue-500, #358ceb);
   --color-feature-bg:   var(--primitive-blue-100, #ebf4fd);
+
+  /* ── Notice / Q&A warning (light yellow callout) ── */
+  --color-notice-bg:      var(--primitive-yellow-25,  #fffbe6);
+  --color-notice-border:  var(--primitive-yellow-300, #ffe566);
+  --color-notice-text:    var(--primitive-yellow-800, #7a5c00);
+  --color-notice-icon:    var(--primitive-yellow-900, #c88b00);
+
+  /* ── Search highlight (mark element) ── */
+  --color-highlight-mark: var(--primitive-yellow-600, #ffda07);
+
+  /* ── Danger surface (hover wash on danger menu items) ── */
+  --color-danger-surface-hover: var(--primitive-red-25, #fff2f0);
+
+  /* ── Chip avatar backgrounds (per variant) ── */
+  --color-chip-avatar-danger: var(--primitive-red-75,    #ffe1de);
+  --color-chip-avatar-yellow: var(--primitive-orange-100, #ffe5b0);
+
+  /* ── Status badges (DS component page) ── */
+  --color-status-stable-bg:     var(--chip-bg-green,         #eaf6ed);
+  --color-status-beta-bg:       var(--primitive-indigo-50,   #eef0ff);
+  --color-status-deprecated-bg: var(--chip-bg-danger,        #fff0ee);
+
+  /* ── Muted section label (dark green on dark hero) ── */
+  --color-text-section-label: var(--primitive-green-muted-dark, #4a7a68);
 
   /* ── Overlay ── */
   --color-overlay-light: rgba(0, 0, 0, 0.45);
