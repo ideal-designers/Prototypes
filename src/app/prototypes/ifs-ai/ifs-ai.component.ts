@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy, inject, ElementRef, ViewChild, ChangeDetectorRef, NgZone, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { DS_COMPONENTS, SegmentItem, TreeNode, TableColumn, SidebarNavItem, QuickAccessItem, ToastService } from '../../shared/ds';
+import { DS_COMPONENTS, SegmentItem, TreeNode, TableColumn, SidebarNavItem, QuickAccessItem, ToastService, HeaderAction, BreadcrumbItem } from '../../shared/ds';
 import { TrackerService } from '../../services/tracker.service';
 import lottie, { AnimationItem } from 'lottie-web';
 
@@ -89,7 +89,13 @@ const CREATED_ROWS: Record<string, string>[] = [
           ></fvdr-sidebar-nav>
 
           <div class="bg-main">
-            <fvdr-page-header title="2 Intellectual property" [parentItems]="['Documents']"></fvdr-page-header>
+            <fvdr-header
+              [breadcrumbs]="docsBreadcrumbs"
+              [actions]="headerActions"
+              [showMenu]="false"
+              userName="IR"
+              (actionClick)="onHeaderAction($event)"
+            ></fvdr-header>
 
             <div class="docs-toolbar">
               <div class="add-btn-wrap" (click)="$event.stopPropagation()">
@@ -128,7 +134,7 @@ const CREATED_ROWS: Record<string, string>[] = [
               </div>
               <fvdr-btn label="Download" variant="secondary" size="m" [iconName]="'download'"></fvdr-btn>
               <fvdr-btn label="Project index" variant="secondary" size="m" [iconName]="'action-list'"></fvdr-btn>
-              <fvdr-btn [iconName]="'more'" variant="ghost" size="m"></fvdr-btn>
+              <fvdr-btn [iconName]="'more'" variant="secondary" size="m" class="btn-icon-square"></fvdr-btn>
               <fvdr-search [(ngModel)]="searchText" placeholder="Search" size="m" class="toolbar-search"></fvdr-search>
             </div>
 
@@ -237,10 +243,13 @@ const CREATED_ROWS: Record<string, string>[] = [
 
           <div class="wiz-main">
             <!-- Page header -->
-            <fvdr-page-header
-              title="Create folder structure"
-              [parentItems]="['Documents']"
-            ></fvdr-page-header>
+            <fvdr-header
+              [breadcrumbs]="wizardBreadcrumbs"
+              [actions]="headerActions"
+              [showMenu]="false"
+              userName="IR"
+              (actionClick)="onHeaderAction($event)"
+            ></fvdr-header>
 
             <!-- Stepper -->
             <div class="stepper">
@@ -413,7 +422,13 @@ const CREATED_ROWS: Record<string, string>[] = [
           ></fvdr-sidebar-nav>
 
           <div class="bg-main">
-            <fvdr-page-header title="2 Intellectual property" [parentItems]="['Documents']"></fvdr-page-header>
+            <fvdr-header
+              [breadcrumbs]="docsBreadcrumbs"
+              [actions]="headerActions"
+              [showMenu]="false"
+              userName="IR"
+              (actionClick)="onHeaderAction($event)"
+            ></fvdr-header>
 
             <div class="docs-toolbar">
               <div class="add-btn-wrap" (click)="$event.stopPropagation()">
@@ -452,7 +467,7 @@ const CREATED_ROWS: Record<string, string>[] = [
               </div>
               <fvdr-btn label="Download" variant="secondary" size="m" [iconName]="'download'"></fvdr-btn>
               <fvdr-btn label="Project index" variant="secondary" size="m" [iconName]="'action-list'"></fvdr-btn>
-              <fvdr-btn [iconName]="'more'" variant="ghost" size="m"></fvdr-btn>
+              <fvdr-btn [iconName]="'more'" variant="secondary" size="m" class="btn-icon-square"></fvdr-btn>
               <fvdr-search [(ngModel)]="searchText" placeholder="Search" size="m" class="toolbar-search"></fvdr-search>
             </div>
 
@@ -574,6 +589,12 @@ const CREATED_ROWS: Record<string, string>[] = [
       gap: var(--space-2);
       padding: var(--space-3) var(--space-6);
       flex-shrink: 0;
+    }
+
+    /* Icon-only secondary button — square 40×40 (Дмитро: more-кнопка має бути 40×40) */
+    .btn-icon-square ::ng-deep .btn--m {
+      width: 40px;
+      padding: 0;
     }
 
     /* ─── Docs area (quick access + content) ─── */
@@ -1201,6 +1222,26 @@ export class IfsAiComponent implements OnInit, OnDestroy {
 
   /** Search text */
   searchText = '';
+
+  /** Header breadcrumbs — match canonical fvdr-header usage from other prototypes */
+  isDark = false;
+  docsBreadcrumbs: BreadcrumbItem[] = [
+    { id: 'documents', label: 'Documents' },
+    { id: 'ip', label: '2 Intellectual property' },
+  ];
+  wizardBreadcrumbs: BreadcrumbItem[] = [
+    { id: 'documents', label: 'Documents' },
+    { id: 'create', label: 'Create folder structure' },
+  ];
+  get headerActions(): HeaderAction[] {
+    return [
+      { id: 'theme', icon: this.isDark ? 'theme-light' : 'theme-dark' },
+      { id: 'help', icon: 'help' },
+    ];
+  }
+  onHeaderAction(id: string): void {
+    if (id === 'theme') this.isDark = !this.isDark;
+  }
 
   navItems: SidebarNavItem[] = [
     { id: 'overview',     label: 'Overview',     icon: 'nav-overview',     iconActive: 'nav-overview-active' },

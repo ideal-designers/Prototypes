@@ -36,11 +36,8 @@ export interface QuickAccessItem {
         <ng-container *ngIf="!collapsed; else collapsedHeader">
           <span class="qa-header__title">Quick access</span>
           <div class="qa-header__actions">
-            <button class="qa-icon-btn" title="Expand/Collapse" (click)="toggleCollapse()">
+            <button class="qa-icon-btn" title="Collapse" (click)="toggleCollapse()">
               <fvdr-icon name="angle-double-left" />
-            </button>
-            <button class="qa-icon-btn" title="Close" (click)="closed.emit()">
-              <fvdr-icon name="chevron-left" />
             </button>
           </div>
         </ng-container>
