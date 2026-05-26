@@ -479,7 +479,7 @@ function makeRows(): SearchRow[] {
       (confirmed)="onConfirmDelete()"
       (cancelled)="confirmOpen = false"
       (closed)="confirmOpen = false">
-      <p style="margin:0; font-size:14px; color:var(--color-text-primary); line-height:1.5">
+      <p style="margin:0; font-size:var(--font-size-base, 14px); color:var(--color-text-primary); line-height:1.5">
         You can recover them later if necessary. Delete selected items?
       </p>
     </fvdr-modal>
@@ -534,7 +534,7 @@ function makeRows(): SearchRow[] {
       overflow: hidden;
       text-overflow: ellipsis;
     }
-    .account-chevron { font-size: 14px; color: var(--color-text-secondary); flex-shrink: 0; }
+    .account-chevron { font-size: var(--font-size-base, 14px); color: var(--color-text-secondary); flex-shrink: 0; }
 
     .nav-list {
       flex: 1;
@@ -568,7 +568,7 @@ function makeRows(): SearchRow[] {
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
-      font-size: 20px;
+      font-size: var(--font-size-2xl, 20px);
       position: relative;
     }
     .icon-default, .icon-active { position: absolute; display: flex; }
@@ -583,7 +583,7 @@ function makeRows(): SearchRow[] {
     }
 
     .nav-chevron {
-      font-size: 14px;
+      font-size: var(--font-size-base, 14px);
       margin-right: var(--space-4);
       flex-shrink: 0;
       transition: transform 0.18s ease;
@@ -646,7 +646,7 @@ function makeRows(): SearchRow[] {
     .breadcrumb { display: flex; align-items: center; gap: var(--space-1); }
     .bc-link { color: var(--color-text-secondary); font-size: var(--font-size-base); cursor: pointer; }
     .bc-link:hover { color: var(--color-text-primary); }
-    .bc-sep { font-size: 14px; color: var(--color-text-secondary); }
+    .bc-sep { font-size: var(--font-size-base, 14px); color: var(--color-text-secondary); }
     .bc-current { font-size: var(--font-size-base); font-weight: 600; color: var(--color-text-primary); }
     .header-actions { display: flex; align-items: center; gap: var(--space-2); }
     .avatar {
@@ -660,7 +660,7 @@ function makeRows(): SearchRow[] {
       width: 32px; height: 32px;
       border: none; background: transparent; cursor: pointer;
       color: var(--color-text-secondary); border-radius: var(--radius-sm);
-      font-size: 16px; padding: 0; flex-shrink: 0;
+      font-size: var(--font-size-lg, 16px); padding: 0; flex-shrink: 0;
     }
     .hdr-btn:hover { background: var(--color-hover-bg); color: var(--color-text-primary); }
 
@@ -688,13 +688,13 @@ function makeRows(): SearchRow[] {
       flex-shrink: 0;
     }
     .search-bar:focus-within { border-color: var(--color-primary-500); }
-    .search-ico { font-size: 18px; color: var(--color-text-secondary); flex-shrink: 0; }
+    .search-ico { font-size: var(--font-size-xl, 18px); color: var(--color-text-secondary); flex-shrink: 0; }
     .search-input {
       flex: 1;
       border: none;
       outline: none;
       font-family: var(--font-family);
-      font-size: 15px;
+      font-size: var(--font-size-md, 15px);
       color: var(--color-text-primary);
       background: transparent;
     }
@@ -723,7 +723,7 @@ function makeRows(): SearchRow[] {
       width: 40px; height: 40px;
       border: 1.5px solid var(--color-divider); border-radius: var(--radius-sm);
       background: transparent; cursor: pointer; color: var(--color-text-secondary);
-      font-size: 16px;
+      font-size: var(--font-size-lg, 16px);
     }
     .more-btn:hover { background: var(--color-hover-bg); }
 
@@ -753,9 +753,9 @@ function makeRows(): SearchRow[] {
     .pop-item--danger:hover { background: var(--color-danger-surface-hover, #fff2f0); }
     .pop-ico {
       display: flex; align-items: center; justify-content: center;
-      width: 16px; height: 16px; font-size: 16px; flex-shrink: 0;
+      width: 16px; height: 16px; font-size: var(--font-size-lg, 16px); flex-shrink: 0;
     }
-    .pop-chevron { margin-left: auto; font-size: 14px; color: var(--color-text-secondary); }
+    .pop-chevron { margin-left: auto; font-size: var(--font-size-base, 14px); color: var(--color-text-secondary); }
     .pop-divider { height: 1px; background: var(--color-divider); margin: var(--space-2) 0; }
 
     /* ── Table ── */

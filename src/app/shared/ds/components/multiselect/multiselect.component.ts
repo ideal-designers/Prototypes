@@ -63,7 +63,7 @@ export interface MultiselectOption {
         <span *ngFor="let v of selected.slice(0, maxChips)" class="ms-chip">
           {{ labelOf(v) }}
           <button class="ms-chip__remove" type="button" (click)="removeChip($event, v)" aria-label="Remove">
-            <fvdr-icon name="close" style="font-size:14px" />
+            <fvdr-icon name="close" style="font-size:var(--font-size-base, 14px)" />
           </button>
         </span>
         <span *ngIf="selected.length > maxChips" class="ms-chip ms-chip--more">+{{ selected.length - maxChips }}</span>
@@ -76,7 +76,7 @@ export interface MultiselectOption {
         (click)="clearAll($event)"
         aria-label="Clear all"
       >
-        <fvdr-icon name="cross-solid" style="font-size:14px" />
+        <fvdr-icon name="cross-solid" style="font-size:var(--font-size-base, 14px)" />
       </button>
       <fvdr-icon name="chevron-down" class="ms-trigger__chevron" [class.ms-trigger__chevron--up]="open" />
     </button>
@@ -211,7 +211,7 @@ export interface MultiselectOption {
       padding: 4px 8px 4px 12px;
       background: var(--color-hover-bg, #eceef9);
       border-radius: var(--radius-md, 8px);
-      font-size: 14px;
+      font-size: var(--font-size-base, 14px);
       color: var(--color-text-primary, #1f2129);
       white-space: nowrap;
     }
@@ -232,7 +232,7 @@ export interface MultiselectOption {
       background: transparent;
       cursor: pointer;
       color: var(--color-text-secondary, #5f616a);
-      font-size: 10px;
+      font-size: var(--font-size-3xs, 10px);
       border-radius: 2px;
       line-height: 1;
     }
@@ -256,15 +256,15 @@ export interface MultiselectOption {
 
     .ms-trigger__chevron {
       flex-shrink: 0;
-      font-size: 16px;
+      font-size: var(--font-size-lg, 16px);
       color: var(--color-text-secondary);
       transition: transform 0.2s;
     }
     .ms-trigger__chevron--up { transform: rotate(180deg); }
 
     /* ── Hint / Error ── */
-    .ms-hint { font-size: 12px; color: var(--color-text-secondary); margin: 4px 0 0; }
-    .ms-error { font-size: 12px; color: var(--color-error-600, #e54430); margin: 4px 0 0; }
+    .ms-hint { font-size: var(--font-size-xs, 12px); color: var(--color-text-secondary); margin: 4px 0 0; }
+    .ms-error { font-size: var(--font-size-xs, 12px); color: var(--color-error-600, #e54430); margin: 4px 0 0; }
 
     /* ── Panel ── */
     .ms-panel {
@@ -341,14 +341,14 @@ export interface MultiselectOption {
       padding: 0 10px;
       height: 32px;
     }
-    .ms-search__icon { font-size: 14px; color: var(--color-text-secondary); flex-shrink: 0; }
+    .ms-search__icon { font-size: var(--font-size-base, 14px); color: var(--color-text-secondary); flex-shrink: 0; }
     .ms-search {
       flex: 1;
       border: none;
       outline: none;
       background: transparent;
       font-family: var(--font-family);
-      font-size: 14px;
+      font-size: var(--font-size-base, 14px);
       color: var(--color-text-primary);
       min-width: 0;
     }
@@ -361,7 +361,7 @@ export interface MultiselectOption {
       display: flex;
       align-items: center;
       color: var(--color-text-secondary);
-      font-size: 12px;
+      font-size: var(--font-size-xs, 12px);
       flex-shrink: 0;
     }
 
@@ -387,7 +387,7 @@ export interface MultiselectOption {
     .ms-item--disabled { opacity: 0.4; cursor: default; }
     .ms-item--empty {
       color: var(--color-text-secondary);
-      font-size: 14px;
+      font-size: var(--font-size-base, 14px);
       cursor: default;
       justify-content: center;
       height: 48px;
@@ -424,7 +424,7 @@ export interface MultiselectOption {
 
     .ms-item__label {
       flex: 1;
-      font-size: 15px;
+      font-size: var(--font-size-md, 15px);
       color: var(--color-text-secondary, #5f616a);
       white-space: nowrap;
       overflow: hidden;

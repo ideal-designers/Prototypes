@@ -120,6 +120,9 @@ const COLOR_TOKEN_MAP = {
 
 // Font-size → token mapping
 const FONT_SIZE_TOKEN_MAP = {
+  '9px':  '--font-size-micro',
+  '10px': '--font-size-3xs',
+  '11px': '--font-size-2xs',
   '12px': '--font-size-xs',
   '13px': '--font-size-sm',
   '14px': '--font-size-base',
@@ -127,6 +130,9 @@ const FONT_SIZE_TOKEN_MAP = {
   '16px': '--font-size-lg',
   '18px': '--font-size-xl',
   '20px': '--font-size-2xl',
+  '22px': '--font-size-3xl',
+  '24px': '--font-size-4xl',
+  '28px': '--font-size-5xl',
 };
 
 // ─── Regexes ──────────────────────────────────────────────────────────────────

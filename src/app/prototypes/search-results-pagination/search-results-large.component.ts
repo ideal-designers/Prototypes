@@ -338,7 +338,7 @@ function makeLargeRows(): SearchRow[] {
       (confirmed)="onConfirmDelete()"
       (cancelled)="confirmOpen = false"
       (closed)="confirmOpen = false">
-      <p style="margin:0; font-size:14px; color:var(--color-text-primary); line-height:1.5">
+      <p style="margin:0; font-size:var(--font-size-base, 14px); color:var(--color-text-primary); line-height:1.5">
         You can recover them later if necessary. Delete selected items?
       </p>
     </fvdr-modal>
@@ -360,18 +360,18 @@ function makeLargeRows(): SearchRow[] {
     .account-switcher { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3) var(--space-4); height: 64px; flex-shrink: 0; border-bottom: 1px solid var(--color-divider); cursor: pointer; }
     .account-logo { flex-shrink: 0; display: flex; align-items: center; }
     .account-name { flex: 1; font-size: var(--font-size-base); font-weight: 600; color: var(--color-text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .account-chevron { font-size: 14px; color: var(--color-text-secondary); flex-shrink: 0; }
+    .account-chevron { font-size: var(--font-size-base, 14px); color: var(--color-text-secondary); flex-shrink: 0; }
     .nav-list { flex: 1; display: flex; flex-direction: column; padding: var(--space-4) 0; overflow-y: auto; overflow-x: hidden; }
     .nav-item { display: flex; align-items: center; height: 40px; border: none; background: transparent; cursor: pointer; padding: 0; width: 100%; color: var(--color-text-secondary); text-align: left; }
     .nav-item:hover { color: var(--color-text-primary); background: var(--color-stone-300); }
     .nav-item--active { color: var(--color-text-primary); font-weight: 700; }
     .nav-item--active .icon-default { display: none; }
     .nav-item--active .icon-active { display: flex; }
-    .nav-icon-zone { width: 72px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 20px; position: relative; }
+    .nav-icon-zone { width: 72px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: var(--font-size-2xl, 20px); position: relative; }
     .icon-default, .icon-active { position: absolute; display: flex; }
     .icon-active { display: none; }
     .nav-label { flex: 1; font-size: var(--font-size-base); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .nav-chevron { font-size: 14px; margin-right: var(--space-4); flex-shrink: 0; transition: transform 0.18s ease; }
+    .nav-chevron { font-size: var(--font-size-base, 14px); margin-right: var(--space-4); flex-shrink: 0; transition: transform 0.18s ease; }
     .nav-chevron--up { transform: rotate(180deg); }
     .nav-subitems { display: flex; flex-direction: column; }
     .nav-subitem { height: 36px; padding: 0 var(--space-4) 0 72px; border: none; background: transparent; cursor: pointer; text-align: left; font-size: var(--font-size-base); color: var(--color-text-secondary); }
@@ -389,11 +389,11 @@ function makeLargeRows(): SearchRow[] {
     .breadcrumb { display: flex; align-items: center; gap: var(--space-1); }
     .bc-link { color: var(--color-text-secondary); font-size: var(--font-size-base); cursor: pointer; }
     .bc-link:hover { color: var(--color-text-primary); }
-    .bc-sep { font-size: 14px; color: var(--color-text-secondary); }
+    .bc-sep { font-size: var(--font-size-base, 14px); color: var(--color-text-secondary); }
     .bc-current { font-size: var(--font-size-base); font-weight: 600; color: var(--color-text-primary); }
     .header-actions { display: flex; align-items: center; gap: var(--space-2); }
     .avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--color-primary-500); color: white; font-size: var(--text-caption1-size); font-weight: 600; display: flex; align-items: center; justify-content: center; }
-    .hdr-btn { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border: none; background: transparent; cursor: pointer; color: var(--color-text-secondary); border-radius: var(--radius-sm); font-size: 16px; padding: 0; flex-shrink: 0; }
+    .hdr-btn { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border: none; background: transparent; cursor: pointer; color: var(--color-text-secondary); border-radius: var(--radius-sm); font-size: var(--font-size-lg, 16px); padding: 0; flex-shrink: 0; }
     .hdr-btn:hover { background: var(--color-hover-bg); color: var(--color-text-primary); }
 
     /* Content */
@@ -401,8 +401,8 @@ function makeLargeRows(): SearchRow[] {
 
     /* Search bar */
     .search-bar { display: flex; align-items: center; gap: var(--space-2); height: 48px; border: 1.5px solid var(--color-divider); border-radius: var(--radius-md); padding: 0 var(--space-3); background: var(--color-stone-0); flex-shrink: 0; }
-    .search-ico { font-size: 18px; color: var(--color-text-secondary); flex-shrink: 0; }
-    .search-input { flex: 1; border: none; outline: none; font-family: var(--font-family); font-size: 15px; color: var(--color-text-primary); background: transparent; }
+    .search-ico { font-size: var(--font-size-xl, 18px); color: var(--color-text-secondary); flex-shrink: 0; }
+    .search-input { flex: 1; border: none; outline: none; font-family: var(--font-family); font-size: var(--font-size-md, 15px); color: var(--color-text-primary); background: transparent; }
     .search-divider { width: 1px; height: 20px; background: var(--color-divider); flex-shrink: 0; margin: 0 var(--space-1); }
 
     /* Floating warning notice */
@@ -424,7 +424,7 @@ function makeLargeRows(): SearchRow[] {
       color: var(--color-notice-text, #7A5C00);
       line-height: 1.45;
     }
-    .notice-ico { font-size: 18px; color: var(--color-notice-icon, #C88B00); flex-shrink: 0; margin-top: 2px; }
+    .notice-ico { font-size: var(--font-size-xl, 18px); color: var(--color-notice-icon, #C88B00); flex-shrink: 0; margin-top: 2px; }
     .notice-body { flex: 1; display: flex; flex-direction: column; gap: 3px; }
     .notice-label { font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-notice-icon, #C88B00); opacity: 0.8; }
     .notice-close {
@@ -445,15 +445,15 @@ function makeLargeRows(): SearchRow[] {
     .loaded-count { font-size: var(--font-size-base); color: var(--color-text-secondary); }
     .selected-count { font-size: var(--font-size-base); color: var(--color-text-secondary); }
     .more-wrap { position: relative; }
-    .more-btn { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border: 1.5px solid var(--color-divider); border-radius: var(--radius-sm); background: transparent; cursor: pointer; color: var(--color-text-secondary); font-size: 16px; }
+    .more-btn { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border: 1.5px solid var(--color-divider); border-radius: var(--radius-sm); background: transparent; cursor: pointer; color: var(--color-text-secondary); font-size: var(--font-size-lg, 16px); }
     .more-btn:hover { background: var(--color-hover-bg); }
     .popover { position: absolute; top: calc(100% + 6px); left: 0; z-index: 100; background: var(--color-stone-0); border: 1px solid var(--color-divider); border-radius: var(--radius-md); box-shadow: 0 4px 16px rgba(0,0,0,0.12); min-width: 200px; padding: var(--space-2) 0; }
     .pop-item { display: flex; align-items: center; gap: var(--space-3); width: 100%; padding: 0 var(--space-4); height: 40px; border: none; background: transparent; cursor: pointer; font-family: var(--font-family); font-size: var(--font-size-base); color: var(--color-text-primary); text-align: left; white-space: nowrap; }
     .pop-item:hover { background: var(--color-hover-bg); }
     .pop-item--danger { color: var(--color-error-600); }
     .pop-item--danger:hover { background: var(--color-danger-surface-hover, #fff2f0); }
-    .pop-ico { display: flex; align-items: center; justify-content: center; width: 16px; height: 16px; font-size: 16px; flex-shrink: 0; }
-    .pop-chevron { margin-left: auto; font-size: 14px; color: var(--color-text-secondary); }
+    .pop-ico { display: flex; align-items: center; justify-content: center; width: 16px; height: 16px; font-size: var(--font-size-lg, 16px); flex-shrink: 0; }
+    .pop-chevron { margin-left: auto; font-size: var(--font-size-base, 14px); color: var(--color-text-secondary); }
     .pop-divider { height: 1px; background: var(--color-divider); margin: var(--space-2) 0; }
 
     /* Table */

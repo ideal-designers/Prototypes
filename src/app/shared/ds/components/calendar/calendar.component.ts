@@ -89,7 +89,7 @@ import { FvdrIconComponent } from '../../icons/icon.component';
       cursor: pointer;
       border-radius: var(--radius-sm);
       color: var(--color-text-secondary);
-      font-size: 14px;
+      font-size: var(--font-size-base, 14px);
     }
     .cal__nav:hover { background: var(--color-hover-bg); color: var(--color-text-primary); }
     .cal__title {

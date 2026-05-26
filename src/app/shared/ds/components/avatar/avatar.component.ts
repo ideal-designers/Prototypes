@@ -60,10 +60,10 @@ export type AvatarSize = 'sm' | 'md' | 'lg' | 'xl';
       line-height: 1;
       text-transform: uppercase;
     }
-    .avatar--sm .avatar__initials { font-size: 9px; }
-    .avatar--md .avatar__initials { font-size: 11px; }
-    .avatar--lg .avatar__initials { font-size: 16px; font-weight: 400; line-height: 24px; }
-    .avatar--xl .avatar__initials { font-size: 15px; }
+    .avatar--sm .avatar__initials { font-size: var(--font-size-micro, 9px); }
+    .avatar--md .avatar__initials { font-size: var(--font-size-2xs, 11px); }
+    .avatar--lg .avatar__initials { font-size: var(--font-size-lg, 16px); font-weight: 400; line-height: 24px; }
+    .avatar--xl .avatar__initials { font-size: var(--font-size-md, 15px); }
   `],
 })
 export class AvatarComponent {

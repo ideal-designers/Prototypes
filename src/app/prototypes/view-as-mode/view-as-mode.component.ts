@@ -237,12 +237,12 @@ interface FileRow {
       pointer-events: auto;
     }
     .vam-banner__icon {
-      font-size: 16px;
+      font-size: var(--font-size-lg, 16px);
       flex-shrink: 0;
     }
     .vam-banner__text {
       flex: 1;
-      font-size: 15px;
+      font-size: var(--font-size-md, 15px);
       font-weight: 600;
       white-space: nowrap;
     }
@@ -261,7 +261,7 @@ interface FileRow {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      font-size: 14px;
+      font-size: var(--font-size-base, 14px);
       border-radius: var(--radius-full, 9999px);
       transition: background 0.15s;
       flex-shrink: 0;
@@ -269,7 +269,7 @@ interface FileRow {
     }
     .vam-banner__close:hover { background: rgba(255, 255, 255, 0.32); }
     .vam-banner__close:active { background: rgba(255, 255, 255, 0.42); }
-    .vam-banner__close fvdr-icon { font-size: 12px; display: inline-flex; }
+    .vam-banner__close fvdr-icon { font-size: var(--font-size-xs, 12px); display: inline-flex; }
 
     /* ── Content ──────────────────────────────────────────────── */
     .vam-content {
@@ -320,7 +320,7 @@ interface FileRow {
       background: var(--color-stone-300);
     }
     .vam-icon-btn-square fvdr-icon {
-      font-size: 16px;
+      font-size: var(--font-size-lg, 16px);
       display: inline-flex;
     }
 
@@ -424,7 +424,7 @@ interface FileRow {
       flex-shrink: 0;
     }
     .vam-qa__title {
-      font-size: 14px;
+      font-size: var(--font-size-base, 14px);
       font-weight: 600;
       color: var(--color-text-primary, #1f2129);
     }
@@ -443,7 +443,7 @@ interface FileRow {
       border-radius: 4px;
       cursor: pointer;
       color: var(--color-text-secondary, #5f616a);
-      font-size: 16px;
+      font-size: var(--font-size-lg, 16px);
     }
     .vam-icon-btn-sm:hover { background: var(--color-divider, #dee0eb); }
     .vam-qa__list {
@@ -456,13 +456,13 @@ interface FileRow {
       align-items: center;
       gap: 16px;
       padding: 10px 16px;
-      font-size: 14px;
+      font-size: var(--font-size-base, 14px);
       color: var(--color-text-primary, #1f2129);
       cursor: pointer;
       border-radius: 4px;
     }
     .vam-qa__item:hover { background: var(--color-stone-200, #f7f7f7); }
-    .vam-qa__item fvdr-icon { font-size: 16px; color: var(--color-text-secondary, #5f616a); flex-shrink: 0; }
+    .vam-qa__item fvdr-icon { font-size: var(--font-size-lg, 16px); color: var(--color-text-secondary, #5f616a); flex-shrink: 0; }
 
     /* Folder tree */
     .vam-tree {
@@ -475,7 +475,7 @@ interface FileRow {
       gap: 8px;
       height: 40px;
       padding: 0 16px;
-      font-size: 14px;
+      font-size: var(--font-size-base, 14px);
       color: var(--color-text-primary, #1f2129);
       cursor: pointer;
       border-radius: 4px;
@@ -492,14 +492,14 @@ interface FileRow {
       border-radius: 4px;
       background: var(--color-primary-500, #2c9c74);
       color: white;
-      font-size: 12px;
+      font-size: var(--font-size-xs, 12px);
       display: flex;
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
     }
     .vam-tree__item--indent { padding-left: 32px; }
-    .vam-tree__file-icon { font-size: 16px; color: var(--color-text-secondary, #5f616a); flex-shrink: 0; }
+    .vam-tree__file-icon { font-size: var(--font-size-lg, 16px); color: var(--color-text-secondary, #5f616a); flex-shrink: 0; }
     .vam-tree__index {
       color: var(--color-text-secondary, #5f616a);
       min-width: 16px;
@@ -522,14 +522,14 @@ interface FileRow {
     .vam-table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 14px;
+      font-size: var(--font-size-base, 14px);
     }
     .vam-th {
       background: var(--color-stone-200, #f7f7f7);
       padding: 0 16px;
       height: 48px;
       text-align: left;
-      font-size: 14px;
+      font-size: var(--font-size-base, 14px);
       font-weight: 600;
       color: var(--color-text-primary, #1f2129);
       white-space: nowrap;
@@ -554,7 +554,7 @@ interface FileRow {
       gap: 8px;
       color: var(--color-text-secondary, #5f616a);
     }
-    .vam-td__file-icon { font-size: 16px; flex-shrink: 0; }
+    .vam-td__file-icon { font-size: var(--font-size-lg, 16px); flex-shrink: 0; }
     .vam-td--name { max-width: 200px; overflow: hidden; text-overflow: ellipsis; }
     .vam-td--size { color: var(--color-text-secondary, #5f616a); }
 
@@ -595,14 +595,14 @@ interface FileRow {
       padding: 0 7.5px;
       background: var(--color-stone-300, #eceef9);
       border-radius: 16px;
-      font-size: 14px;
+      font-size: var(--font-size-base, 14px);
       color: var(--color-text-primary, #1f2129);
     }
 
     /* Size cell */
     .vam-td--size { vertical-align: middle; }
-    .vam-size__main { display: block; font-size: 12px; color: var(--color-text-primary, #1f2129); }
-    .vam-size__sub  { display: block; font-size: 12px; color: var(--color-text-secondary, #5f616a); }
+    .vam-size__main { display: block; font-size: var(--font-size-xs, 12px); color: var(--color-text-primary, #1f2129); }
+    .vam-size__sub  { display: block; font-size: var(--font-size-xs, 12px); color: var(--color-text-secondary, #5f616a); }
   `],
 })
 export class ViewAsModeComponent implements OnDestroy {

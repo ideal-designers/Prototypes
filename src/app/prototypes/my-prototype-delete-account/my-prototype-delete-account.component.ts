@@ -321,7 +321,7 @@ import { TrackerService } from '../../services/tracker.service';
       align-items: center;
       justify-content: center;
       color: var(--color-text-secondary);
-      font-size: 20px;
+      font-size: var(--font-size-2xl, 20px);
       flex-shrink: 0;
     }
     .nav-item--active .nav-icon-wrap { color: var(--color-text-primary); }
@@ -340,7 +340,7 @@ import { TrackerService } from '../../services/tracker.service';
       width: 24px; height: 24px;
       border: none; background: transparent; cursor: pointer;
       color: var(--color-text-secondary);
-      font-size: 16px;
+      font-size: var(--font-size-lg, 16px);
     }
     .collapse-btn:hover { color: var(--color-text-primary); }
 
@@ -401,7 +401,7 @@ import { TrackerService } from '../../services/tracker.service';
       align-items: center;
       gap: var(--space-2);
     }
-    .meta-icon { font-size: 14px; color: var(--color-text-secondary); }
+    .meta-icon { font-size: var(--font-size-base, 14px); color: var(--color-text-secondary); }
     .meta-text { font-size: var(--text-body3-size); color: var(--color-text-secondary); }
 
     /* Link button */
@@ -410,7 +410,7 @@ import { TrackerService } from '../../services/tracker.service';
       align-items: center;
       gap: var(--space-2);
     }
-    .link-icon { font-size: 16px; color: var(--color-primary-500); }
+    .link-icon { font-size: var(--font-size-lg, 16px); color: var(--color-primary-500); }
     .link-btn {
       border: none; background: transparent; cursor: pointer;
       font-family: var(--font-family);

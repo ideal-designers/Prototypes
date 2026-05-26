@@ -300,7 +300,7 @@ interface CreateKeyForm {
       background: none; border: none; cursor: pointer;
       border-radius: var(--radius-sm);
       color: var(--color-text-secondary);
-      font-size: 16px;
+      font-size: var(--font-size-lg, 16px);
     }
     .modal-close:hover { background: var(--color-hover-bg); color: var(--color-text-primary); }
 
@@ -417,7 +417,7 @@ interface CreateKeyForm {
       font-size: var(--text-body3-size); font-weight: var(--text-label-s-weight);
       width: 100%;
     }
-    .success-banner__icon { color: var(--color-primary-500); font-size: 16px; }
+    .success-banner__icon { color: var(--color-primary-500); font-size: var(--font-size-lg, 16px); }
     .success-desc { font-size: var(--text-body3-size); color: var(--color-text-secondary); margin: 0; }
 
     .key-card {
@@ -439,7 +439,7 @@ interface CreateKeyForm {
       background: none; border: none; cursor: pointer;
       border-radius: var(--radius-sm);
       color: var(--color-text-secondary);
-      font-size: 16px;
+      font-size: var(--font-size-lg, 16px);
       transition: all 0.15s;
     }
     .key-copy-btn:hover { background: var(--color-hover-bg); color: var(--color-text-primary); }

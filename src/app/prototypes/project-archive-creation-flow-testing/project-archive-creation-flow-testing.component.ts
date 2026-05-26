@@ -214,7 +214,7 @@ const SLUG = 'project-archive-creation-flow-testing';
       background: #1a2e4a;
       border-radius: var(--radius-sm);
       display: flex; align-items: center; justify-content: center;
-      font-size: 12px; font-weight: 700; color: var(--color-stone-0);
+      font-size: var(--font-size-xs, 12px); font-weight: 700; color: var(--color-stone-0);
       flex-shrink: 0;
     }
     .project-name {
@@ -234,7 +234,7 @@ const SLUG = 'project-archive-creation-flow-testing';
       cursor: pointer;
       text-decoration: none;
       color: var(--color-stone-700);
-      font-size: 20px;
+      font-size: var(--font-size-2xl, 20px);
       transition: background 0.12s;
     }
     .nav-item:hover { background: var(--color-hover-bg); }
@@ -242,13 +242,13 @@ const SLUG = 'project-archive-creation-flow-testing';
       width: 72px;
       display: flex; align-items: center; justify-content: center;
       flex-shrink: 0;
-      font-size: 20px;
+      font-size: var(--font-size-2xl, 20px);
     }
     .nav-ic svg { width: 24px; height: 24px; }
     .nav-ic--active { color: var(--color-text-primary); }
     .nav-ic-sm {
       display: flex; align-items: center;
-      font-size: 16px;
+      font-size: var(--font-size-lg, 16px);
       color: var(--color-stone-600);
     }
     .nav-lbl {
@@ -282,7 +282,7 @@ const SLUG = 'project-archive-creation-flow-testing';
       width: 32px; height: 32px;
       border-radius: var(--radius-sm);
       color: var(--color-stone-600);
-      font-size: 18px;
+      font-size: var(--font-size-xl, 18px);
       transition: background 0.12s, color 0.12s;
     }
     .collapse-btn:hover {
@@ -309,7 +309,7 @@ const SLUG = 'project-archive-creation-flow-testing';
       width: 24px; height: 24px; padding: 0;
       display: flex; align-items: center; justify-content: center;
       color: var(--color-stone-600);
-      font-size: 20px;
+      font-size: var(--font-size-2xl, 20px);
       border-radius: var(--radius-sm);
       transition: color 0.12s;
     }
@@ -344,7 +344,7 @@ const SLUG = 'project-archive-creation-flow-testing';
       font-family: var(--font-family);
       padding: 0; line-height: 1;
       transition: opacity 0.12s;
-      font-size: 16px;
+      font-size: var(--font-size-lg, 16px);
     }
     .action-btn:hover { opacity: 0.75; }
     .action-btn--primary { color: var(--color-primary-500); }

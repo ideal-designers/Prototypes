@@ -168,7 +168,7 @@ export interface SortState {
     .table__th--sortable:hover { color: var(--color-text-secondary); }
 
     .table__th-content { display: inline-flex; align-items: center; gap: 4px; }
-    .table__sort-icon { font-size: 12px; color: var(--color-stone-500); }
+    .table__sort-icon { font-size: var(--font-size-xs, 12px); color: var(--color-stone-500); }
     .table__sort-icon--active { color: var(--color-primary-500); }
 
     /* Rows: zebra striping, no border lines */

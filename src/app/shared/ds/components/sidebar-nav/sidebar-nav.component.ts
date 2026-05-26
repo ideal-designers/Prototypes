@@ -238,7 +238,7 @@ const VARIANT_CONFIG: Record<SidebarNavVariant, { bg: string; label: string }> =
       border: none;
       cursor: pointer;
       color: var(--color-text-primary);
-      font-size: 24px;
+      font-size: var(--font-size-4xl, 24px);
       border-radius: var(--radius-sm);
       transition: background 0.12s;
     }
@@ -322,15 +322,15 @@ const VARIANT_CONFIG: Record<SidebarNavVariant, { bg: string; label: string }> =
       border-radius: var(--radius-sm);
       color: #fff;
       display: flex; align-items: center; justify-content: center;
-      font-size: 11px; font-weight: 700; letter-spacing: 0.5px;
+      font-size: var(--font-size-2xs, 11px); font-weight: 700; letter-spacing: 0.5px;
       flex-shrink: 0;
     }
     .account-name {
-      flex: 1; font-size: 16px; font-weight: 600;
+      flex: 1; font-size: var(--font-size-lg, 16px); font-weight: 600;
       color: var(--color-text-primary);
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
-    .account-chevron { font-size: 16px; color: var(--color-text-secondary); flex-shrink: 0; }
+    .account-chevron { font-size: var(--font-size-lg, 16px); color: var(--color-text-secondary); flex-shrink: 0; }
 
     /* ═══ Nav list ══════════════════════════════════════════════ */
     .nav-list {
@@ -348,7 +348,7 @@ const VARIANT_CONFIG: Record<SidebarNavVariant, { bg: string; label: string }> =
       padding: 0 24px 0 0;
       background: transparent; border: none; cursor: pointer;
       color: var(--color-text-primary);
-      font-size: 16px; font-weight: 400;
+      font-size: var(--font-size-lg, 16px); font-weight: 400;
       font-family: var(--font-family);
       text-align: left;
       transition: background 0.1s;
@@ -374,7 +374,7 @@ const VARIANT_CONFIG: Record<SidebarNavVariant, { bg: string; label: string }> =
     }
     .nav-icon {
       display: flex; align-items: center; justify-content: center;
-      color: var(--color-text-secondary); font-size: 24px;
+      color: var(--color-text-secondary); font-size: var(--font-size-4xl, 24px);
     }
     .nav-item--active .nav-icon,
     .nav-item--open   .nav-icon { color: var(--color-primary-500); }
@@ -382,7 +382,7 @@ const VARIANT_CONFIG: Record<SidebarNavVariant, { bg: string; label: string }> =
     .icon-default { display: flex; }
     .nav-label { flex: 1; }
     .nav-chevron {
-      font-size: 16px; color: var(--color-text-secondary);
+      font-size: var(--font-size-lg, 16px); color: var(--color-text-secondary);
       transition: transform 0.2s; flex-shrink: 0;
     }
     .nav-chevron--up { transform: rotate(180deg); }
@@ -395,7 +395,7 @@ const VARIANT_CONFIG: Record<SidebarNavVariant, { bg: string; label: string }> =
     .nav-subitem {
       height: 32px; padding: 0 16px 0 72px;
       background: none; border: none; cursor: pointer;
-      font-size: 14px; font-weight: 400;
+      font-size: var(--font-size-base, 14px); font-weight: 400;
       font-family: var(--font-family);
       color: var(--color-text-primary);
       text-align: left; transition: background 0.1s; white-space: nowrap;
@@ -427,7 +427,7 @@ const VARIANT_CONFIG: Record<SidebarNavVariant, { bg: string; label: string }> =
       display: flex; align-items: center; justify-content: center;
       background: none; border: none;
       border-radius: var(--radius-sm); cursor: pointer;
-      color: var(--color-text-secondary); font-size: 16px;
+      color: var(--color-text-secondary); font-size: var(--font-size-lg, 16px);
       flex-shrink: 0; transition: background 0.12s;
     }
     .collapse-btn:hover { background: var(--color-hover-bg); }

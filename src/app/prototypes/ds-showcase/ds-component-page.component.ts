@@ -239,14 +239,14 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
               <div class="mock-dropdown">
                 <div class="mock-dropdown__trigger">
                   <span class="mock-dropdown__value">Select option</span>
-                  <fvdr-icon name="chevron-down" style="font-size:14px;color:var(--color-text-secondary)"></fvdr-icon>
+                  <fvdr-icon name="chevron-down" style="font-size:var(--font-size-base, 14px);color:var(--color-text-secondary)"></fvdr-icon>
                 </div>
                 <!-- Floating panel -->
                 <div class="mock-dropdown__panel">
                   <div class="mock-dropdown__option">Option A</div>
                   <div class="mock-dropdown__option mock-dropdown__option--selected">
                     Option B
-                    <fvdr-icon name="check" style="font-size:14px;color:var(--color-primary-500);margin-left:auto"></fvdr-icon>
+                    <fvdr-icon name="check" style="font-size:var(--font-size-base, 14px);color:var(--color-primary-500);margin-left:auto"></fvdr-icon>
                   </div>
                   <div class="mock-dropdown__option">Option C</div>
                 </div>
@@ -304,13 +304,13 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
                 </div>
                 <div class="mock-checkbox-row">
                   <div class="mock-checkbox mock-checkbox--checked">
-                    <fvdr-icon name="check" style="font-size:11px;color:#fff"></fvdr-icon>
+                    <fvdr-icon name="check" style="font-size:var(--font-size-2xs, 11px);color:#fff"></fvdr-icon>
                   </div>
                   <span class="mock-checkbox-label">Checked</span>
                 </div>
                 <div class="mock-checkbox-row">
                   <div class="mock-checkbox mock-checkbox--indeterminate">
-                    <fvdr-icon name="minus" style="font-size:11px;color:#fff"></fvdr-icon>
+                    <fvdr-icon name="minus" style="font-size:var(--font-size-2xs, 11px);color:#fff"></fvdr-icon>
                   </div>
                   <span class="mock-checkbox-label">Indeterminate</span>
                 </div>
@@ -1588,7 +1588,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
     .sidebar-back {
       display: block;
       padding: 16px 16px 12px;
-      font-size: 13px;
+      font-size: var(--font-size-sm, 13px);
       font-weight: 500;
       color: var(--color-interactive-primary, #2c9c74);
       text-decoration: none;
@@ -1605,7 +1605,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
       border: 1px solid var(--color-border, #dee0eb);
       border-radius: 4px;
       padding: 6px 8px;
-      font-size: 13px;
+      font-size: var(--font-size-sm, 13px);
       font-family: inherit;
       background: var(--color-bg-page, #fff);
       color: var(--color-text-primary, #1f2129);
@@ -1627,7 +1627,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
 
     .sidebar-group__label {
       padding: 8px 16px 4px;
-      font-size: 11px;
+      font-size: var(--font-size-2xs, 11px);
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.6px;
@@ -1644,7 +1644,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
       padding: 0 16px;
       height: 36px;
       line-height: 36px;
-      font-size: 13px;
+      font-size: var(--font-size-sm, 13px);
       font-family: inherit;
       color: var(--color-text-primary, #1f2129);
       cursor: pointer;
@@ -1679,7 +1679,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
     }
 
     .doc-hero__title {
-      font-size: 28px;
+      font-size: var(--font-size-5xl, 28px);
       font-weight: 700;
       color: var(--color-text-primary, #1f2129);
       margin: 0 0 10px;
@@ -1701,7 +1701,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
       height: 22px;
       padding: 0 10px;
       border-radius: 9999px;
-      font-size: 12px;
+      font-size: var(--font-size-xs, 12px);
       font-weight: 500;
       line-height: 1;
       white-space: nowrap;
@@ -1711,7 +1711,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
     /* Selector — monospace, neutral */
     .doc-hero__selector {
       font-family: 'Menlo', 'Courier New', monospace;
-      font-size: 11px;
+      font-size: var(--font-size-2xs, 11px);
       background: var(--color-stone-200, #f7f7f7);
       color: var(--color-text-secondary, #5f616a);
       border: 1px solid var(--color-divider, #dee0eb);
@@ -1733,7 +1733,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
 
     /* Category — uppercase small caps */
     .doc-hero__category {
-      font-size: 11px;
+      font-size: var(--font-size-2xs, 11px);
       letter-spacing: 0.04em;
       text-transform: uppercase;
       background: var(--color-stone-300, #eceef9);
@@ -1751,7 +1751,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
     }
 
     .doc-hero__desc {
-      font-size: 15px;
+      font-size: var(--font-size-md, 15px);
       color: var(--color-text-secondary, #73757f);
       line-height: 1.6;
       margin: 0;
@@ -1764,7 +1764,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
     }
 
     .doc-section__title {
-      font-size: 18px;
+      font-size: var(--font-size-xl, 18px);
       font-weight: 600;
       color: var(--color-text-primary, #1f2129);
       margin: 0 0 20px;
@@ -1783,7 +1783,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
     }
 
     .overview-label {
-      font-size: 13px;
+      font-size: var(--font-size-sm, 13px);
       font-weight: 700;
       margin: 0 0 8px;
     }
@@ -1798,7 +1798,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
       gap: 6px;
     }
     .overview-list li {
-      font-size: 14px;
+      font-size: var(--font-size-base, 14px);
       color: var(--color-text-primary, #1f2129);
       line-height: 1.5;
     }
@@ -1815,7 +1815,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
     }
 
     .anatomy-preview-empty {
-      font-size: 13px;
+      font-size: var(--font-size-sm, 13px);
       color: rgba(255,255,255,0.35);
       font-style: italic;
       text-align: center;
@@ -1832,7 +1832,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
 
     .anatomy-label {
       position: absolute;
-      font-size: 11px;
+      font-size: var(--font-size-2xs, 11px);
       font-family: monospace;
       color: var(--color-stone-600, #8a9baa);
       white-space: nowrap;
@@ -1885,7 +1885,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 10px;
+      font-size: var(--font-size-3xs, 10px);
       font-family: monospace;
       color: var(--color-warning-500, #e8933a);
       border-left: 1px solid var(--color-warning-500a, rgba(232,147,58,0.5));
@@ -1909,7 +1909,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
       display: flex;
       align-items: flex-end;
       justify-content: center;
-      font-size: 10px;
+      font-size: var(--font-size-3xs, 10px);
       font-family: monospace;
       color: var(--color-warning-500, #e8933a);
       border-top: 1px solid var(--color-warning-500a, rgba(232,147,58,0.5));
@@ -1930,7 +1930,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
 
     .dim-label {
       position: absolute;
-      font-size: 10px;
+      font-size: var(--font-size-3xs, 10px);
       font-family: monospace;
       color: var(--color-warning-500, #e8933a);
       white-space: nowrap;
@@ -1946,7 +1946,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
       border: 1px solid var(--color-border, #dee0eb);
     }
     .mock-modal__header {
-      font-size: 15px;
+      font-size: var(--font-size-md, 15px);
       font-weight: 600;
       color: var(--color-text-primary, #1f2129);
       padding-bottom: 12px;
@@ -1954,7 +1954,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
       margin-bottom: 12px;
     }
     .mock-modal__body {
-      font-size: 13px;
+      font-size: var(--font-size-sm, 13px);
       color: var(--color-text-secondary, #73757f);
       margin-bottom: 16px;
     }
@@ -1990,7 +1990,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
       border-radius: 4px;
       background: var(--color-brand-orange, #f4640c);
       color: #fff;
-      font-size: 10px;
+      font-size: var(--font-size-3xs, 10px);
       font-weight: 700;
       display: flex;
       align-items: center;
@@ -1998,7 +1998,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
       flex-shrink: 0;
     }
     .mock-sidebar__name {
-      font-size: 13px;
+      font-size: var(--font-size-sm, 13px);
       font-weight: 600;
       color: var(--color-text-primary, #1f2129);
     }
@@ -2008,7 +2008,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
       height: 36px;
       padding: 0 10px;
       gap: 10px;
-      font-size: 13px;
+      font-size: var(--font-size-sm, 13px);
       color: var(--color-stone-900, #40424b);
       cursor: default;
     }
@@ -2018,13 +2018,13 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
       color: var(--color-text-primary, #1f2129);
     }
     .mock-sidebar__icon {
-      font-size: 14px;
+      font-size: var(--font-size-base, 14px);
       opacity: 0.6;
       width: 18px;
       text-align: center;
       flex-shrink: 0;
     }
-    .mock-sidebar__label { font-size: 13px; }
+    .mock-sidebar__label { font-size: var(--font-size-sm, 13px); }
     .mock-sidebar__footer {
       margin-top: auto;
       height: 48px;
@@ -2034,7 +2034,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
       border-top: 1px solid var(--color-divider, #dee0eb);
     }
     .mock-sidebar__logo {
-      font-size: 13px;
+      font-size: var(--font-size-sm, 13px);
       font-weight: 700;
       color: var(--color-text-secondary, #5f616a);
       letter-spacing: -0.3px;
@@ -2059,12 +2059,12 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
       flex-shrink: 0;
     }
     .mock-qa-menu__title {
-      font-size: 13px;
+      font-size: var(--font-size-sm, 13px);
       font-weight: 600;
       color: var(--color-text-primary, #1f2129);
     }
     .mock-qa-menu__actions {
-      font-size: 11px;
+      font-size: var(--font-size-2xs, 11px);
       color: var(--color-text-secondary, #5f616a);
       letter-spacing: 2px;
     }
@@ -2074,12 +2074,12 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
       height: 36px;
       padding: 0 12px;
       gap: 12px;
-      font-size: 13px;
+      font-size: var(--font-size-sm, 13px);
       color: var(--color-text-primary, #1f2129);
       cursor: default;
     }
     .mock-qa-menu__item--active { background: var(--color-primary-50, #ebf8ef); }
-    .mock-qa-menu__icon { font-size: 13px; color: var(--color-text-secondary, #5f616a); flex-shrink: 0; }
+    .mock-qa-menu__icon { font-size: var(--font-size-sm, 13px); color: var(--color-text-secondary, #5f616a); flex-shrink: 0; }
     .mock-qa-menu__item--active .mock-qa-menu__icon { color: var(--color-primary-500, #2c9c74); }
     .anatomy-wrap--qa-menu { min-height: 200px; }
 
@@ -2092,7 +2092,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
       border: 1px solid var(--color-stone-500, #bbbdc8); border-radius: 4px;
       background: #fff; cursor: pointer;
     }
-    .mock-dropdown__value { font-size: 13px; color: var(--color-stone-600, #9c9ea8); }
+    .mock-dropdown__value { font-size: var(--font-size-sm, 13px); color: var(--color-stone-600, #9c9ea8); }
     .mock-dropdown__panel {
       margin-top: 4px; border: 1px solid var(--color-divider, #dee0eb); border-radius: 8px;
       background: #fff; overflow: hidden;
@@ -2101,7 +2101,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
     .mock-dropdown__option {
       display: flex; align-items: center;
       height: 36px; padding: 0 12px;
-      font-size: 13px; color: var(--color-stone-900, #40424b); cursor: pointer;
+      font-size: var(--font-size-sm, 13px); color: var(--color-stone-900, #40424b); cursor: pointer;
     }
     .mock-dropdown__option--selected { background: var(--color-primary-50, #ebf8ef); color: #2c9c74; font-weight: 500; }
 
@@ -2121,7 +2121,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
       box-shadow: 0 1px 3px rgba(0,0,0,0.2); transition: left 0.2s;
     }
     .mock-toggle__thumb--on { left: 18px; }
-    .mock-toggle__label { font-size: 13px; color: var(--color-stone-900, #40424b); }
+    .mock-toggle__label { font-size: var(--font-size-sm, 13px); color: var(--color-stone-900, #40424b); }
 
     /* ── CHECKBOX anatomy ── */
     .anatomy-wrap--checkbox { width: 200px; }
@@ -2135,7 +2135,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
     .mock-checkbox--checked, .mock-checkbox--indeterminate {
       background: var(--color-primary-500, #2c9c74); border-color: #2c9c74;
     }
-    .mock-checkbox-label { font-size: 13px; color: var(--color-stone-900, #40424b); }
+    .mock-checkbox-label { font-size: var(--font-size-sm, 13px); color: var(--color-stone-900, #40424b); }
 
     /* ── TABS anatomy ── */
     .anatomy-wrap--tabs { width: 280px; }
@@ -2145,7 +2145,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
     }
     .mock-tab {
       padding: 0 16px; height: 40px; display: flex; align-items: center;
-      font-size: 13px; color: var(--color-stone-700, #73757f); cursor: pointer; position: relative;
+      font-size: var(--font-size-sm, 13px); color: var(--color-stone-700, #73757f); cursor: pointer; position: relative;
     }
     .mock-tab--active { color: var(--color-text-primary, #1f2129); font-weight: 500; }
     .mock-tab--active::after {
@@ -2156,7 +2156,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
       padding: 16px; background: var(--color-stone-100, #fafafa); border-radius: 0 0 8px 8px;
       min-height: 60px;
     }
-    .mock-tabs__body { font-size: 12px; color: var(--color-stone-600, #9c9ea8); }
+    .mock-tabs__body { font-size: var(--font-size-xs, 12px); color: var(--color-stone-600, #9c9ea8); }
 
     /* ── CHIP anatomy ── */
     .anatomy-wrap--chip { width: auto; }
@@ -2169,7 +2169,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
       align-items: center;
     }
     .chip-matrix__size-label {
-      font-size: 12px;
+      font-size: var(--font-size-xs, 12px);
       font-weight: 600;
       color: var(--color-text-secondary);
       display: flex;
@@ -2178,7 +2178,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
       line-height: 1;
     }
     .chip-matrix__px {
-      font-size: 10px;
+      font-size: var(--font-size-3xs, 10px);
       font-weight: 400;
       color: var(--color-text-placeholder);
     }
@@ -2188,7 +2188,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
       gap: 8px;
     }
     .chip-matrix__col-label {
-      font-size: 10px;
+      font-size: var(--font-size-3xs, 10px);
       color: var(--color-text-placeholder);
       width: 60px;
       text-align: center;
@@ -2219,7 +2219,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
     .mock-status-pill {
       display: inline-flex; align-items: center; gap: 6px;
       padding: 4px 10px; border-radius: 9999px;
-      font-size: 12px; font-weight: 500;
+      font-size: var(--font-size-xs, 12px); font-weight: 500;
     }
     .mock-status-pill--preparation { background: var(--color-warning-50, #fff8cc); color: var(--color-warning-700, #a07800); }
     .mock-status-pill--live        { background: var(--color-primary-50, #ebf8ef); color: #1c8269; }
@@ -2253,7 +2253,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
     }
 
     .examples-group__title {
-      font-size: 13px;
+      font-size: var(--font-size-sm, 13px);
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.5px;
@@ -2295,7 +2295,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
       gap: 8px;
     }
     .example-labeled span {
-      font-size: 11px;
+      font-size: var(--font-size-2xs, 11px);
       color: var(--color-text-secondary, #73757f);
     }
 
@@ -2306,7 +2306,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
       overflow: hidden;
     }
     .stub-example__label {
-      font-size: 12px;
+      font-size: var(--font-size-xs, 12px);
       font-weight: 600;
       text-transform: uppercase;
       color: var(--color-text-secondary, #73757f);
@@ -2327,13 +2327,13 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
       flex-direction: column;
       align-items: center;
       gap: 8px;
-      font-size: 14px;
+      font-size: var(--font-size-base, 14px);
       color: var(--color-text-secondary, #73757f);
       font-style: italic;
     }
     .stub-selector {
       font-family: 'Menlo', 'Courier New', monospace;
-      font-size: 12px;
+      font-size: var(--font-size-xs, 12px);
       color: var(--color-interactive-primary, #2c9c74);
       background: var(--color-selected-row, #edf7f3);
       padding: 2px 8px;
@@ -2351,7 +2351,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
     }
 
     .token-table th {
-      font-size: 12px;
+      font-size: var(--font-size-xs, 12px);
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.5px;
@@ -2365,7 +2365,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
     .token-table td {
       padding: 10px 12px;
       border-bottom: 1px solid var(--color-border, #dee0eb);
-      font-size: 14px;
+      font-size: var(--font-size-base, 14px);
       color: var(--color-text-primary, #1f2129);
       vertical-align: middle;
     }
@@ -2376,7 +2376,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
 
     .token-name {
       font-family: 'Menlo', 'Courier New', monospace;
-      font-size: 13px;
+      font-size: var(--font-size-sm, 13px);
       color: var(--color-interactive-primary, #2c9c74);
       background: var(--color-selected-row, #edf7f3);
       padding: 2px 6px;
@@ -2400,12 +2400,12 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
 
     .token-value {
       font-family: 'Menlo', 'Courier New', monospace;
-      font-size: 13px;
+      font-size: var(--font-size-sm, 13px);
       color: var(--color-text-secondary, #73757f);
     }
 
     .token-usage {
-      font-size: 13px;
+      font-size: var(--font-size-sm, 13px);
       color: var(--color-text-secondary, #73757f);
     }
 
@@ -2420,7 +2420,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
       border: 1px solid var(--color-border, #dee0eb);
       border-radius: 9999px;
       padding: 4px 12px;
-      font-size: 13px;
+      font-size: var(--font-size-sm, 13px);
       color: var(--color-text-secondary, #73757f);
     }
 
@@ -2444,7 +2444,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
       padding: 10px 16px;
       background: var(--color-bg-surface, #f7f7f7);
       border-bottom: 1px solid var(--color-border, #dee0eb);
-      font-size: 13px;
+      font-size: var(--font-size-sm, 13px);
       font-weight: 500;
       color: var(--color-text-primary, #1f2129);
     }
@@ -2454,7 +2454,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
       border: 1px solid var(--color-interactive-primary, #2c9c74);
       border-radius: 4px;
       color: var(--color-interactive-primary, #2c9c74);
-      font-size: 12px;
+      font-size: var(--font-size-xs, 12px);
       padding: 2px 10px;
       cursor: pointer;
       font-family: inherit;
@@ -2468,7 +2468,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
       background: #1a1d21;
       color: #e5e7eb;
       font-family: 'Menlo', 'Courier New', monospace;
-      font-size: 12px;
+      font-size: var(--font-size-xs, 12px);
       line-height: 1.6;
       padding: 16px;
       overflow-x: auto;
@@ -2489,20 +2489,20 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
       background: var(--color-stone-100);
     }
     .state-card__name {
-      font-size: 13px;
+      font-size: var(--font-size-sm, 13px);
       font-weight: 600;
       color: var(--color-text-primary);
       margin-bottom: var(--space-2);
     }
     .state-card__desc {
-      font-size: 13px;
+      font-size: var(--font-size-sm, 13px);
       color: var(--color-text-secondary);
       line-height: 1.55;
     }
 
     /* ── AI Prompt ── */
     .ai-prompt-hint {
-      font-size: 13px;
+      font-size: var(--font-size-sm, 13px);
       color: var(--color-text-secondary);
       margin: 0 0 var(--space-3);
     }
@@ -2521,7 +2521,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
       border: 1px solid rgba(255,255,255,0.2);
       border-radius: var(--radius-sm);
       padding: 4px 12px;
-      font-size: 12px;
+      font-size: var(--font-size-xs, 12px);
       cursor: pointer;
       transition: background 0.15s;
     }
@@ -2530,7 +2530,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
       background: transparent;
       color: #e5e7eb;
       font-family: 'Menlo', 'Courier New', monospace;
-      font-size: 12px;
+      font-size: var(--font-size-xs, 12px);
       line-height: 1.6;
       padding: 44px 16px 16px;
       overflow-x: auto;
@@ -2562,17 +2562,17 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
       box-shadow: 0 2px 8px rgba(44,156,116,0.1);
     }
     .related-card__name {
-      font-size: 14px;
+      font-size: var(--font-size-base, 14px);
       font-weight: 600;
       color: var(--color-text-primary);
     }
     .related-card__selector {
-      font-size: 11px;
+      font-size: var(--font-size-2xs, 11px);
       color: var(--color-primary-500);
       font-family: monospace;
     }
     .related-card__desc {
-      font-size: 12px;
+      font-size: var(--font-size-xs, 12px);
       color: var(--color-text-secondary);
       line-height: 1.5;
       display: -webkit-box;

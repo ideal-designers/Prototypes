@@ -78,7 +78,7 @@ import { CalendarComponent } from '../calendar/calendar.component';
 
     .dp__value { color: var(--color-text-primary); }
     .dp__value--placeholder { color: var(--color-text-placeholder); }
-    .dp__icon { font-size: 16px; color: var(--color-text-secondary); flex-shrink: 0; }
+    .dp__icon { font-size: var(--font-size-lg, 16px); color: var(--color-text-secondary); flex-shrink: 0; }
 
     .dp__panel { position: absolute; top: calc(100% + 4px); left: 0; z-index: 1000; }
   `],

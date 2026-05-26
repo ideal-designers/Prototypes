@@ -118,7 +118,7 @@ export class TextEditorComponent implements ControlValueAccessor, OnInit {
       content_style: `
         body {
           font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
-          font-size: 14px;
+          font-size: var(--font-size-base, 14px);
           color: #1F2129;
           line-height: 1.5;
           margin: 12px;

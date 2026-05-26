@@ -409,7 +409,7 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
       display: flex;
     }
     .account-name { font-size: var(--text-label-l-size); font-weight: var(--text-label-l-weight); color: var(--color-text-primary); flex: 1; white-space: nowrap; overflow: hidden; }
-    .account-chevron { flex-shrink: 0; font-size: 16px; color: var(--color-text-secondary); }
+    .account-chevron { flex-shrink: 0; font-size: var(--font-size-lg, 16px); color: var(--color-text-secondary); }
 
     /* Nav list */
     .nav-list { display: flex; flex-direction: column; flex: 1; background: var(--color-stone-200); overflow-y: auto; padding: var(--space-6) 0 var(--space-2); gap: var(--space-6); }
@@ -488,7 +488,7 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
       display: flex; align-items: center; justify-content: center;
       transition: background 0.12s;
       margin-left: auto;
-      font-size: 16px; color: var(--color-text-secondary);
+      font-size: var(--font-size-lg, 16px); color: var(--color-text-secondary);
     }
     .collapse-btn:hover { background: var(--color-hover-bg); }
 
@@ -509,10 +509,10 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
       padding: var(--space-2) var(--space-3);
       font-size: var(--text-body2-size); color: var(--color-text-primary); line-height: var(--text-body2-lh);
     }
-    .banner-icon { font-size: 16px; flex-shrink: 0; margin-top: 3px; }
+    .banner-icon { font-size: var(--font-size-lg, 16px); flex-shrink: 0; margin-top: 3px; }
     .info-link { color: var(--color-primary-500); text-decoration: none; }
     .info-link:hover { text-decoration: underline; }
-    .bc-chevron { font-size: 16px; }
+    .bc-chevron { font-size: var(--font-size-lg, 16px); }
     .bc-chevron--dim { color: var(--color-stone-500); }
 
     /* ── Cards Grid — Figma: 3 cols, gap 24px ── */
@@ -577,7 +577,7 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
       font-size: var(--text-caption1-size); font-weight: var(--text-caption1-weight); color: var(--color-text-primary);
       white-space: nowrap;
     }
-    .badge-icon { font-size: 14px; flex-shrink: 0; color: var(--color-primary-500); }
+    .badge-icon { font-size: var(--font-size-base, 14px); flex-shrink: 0; color: var(--color-primary-500); }
 
     /* Card footer — Figma: Frame 37573, pad 0/24, gap 16 HORIZONTAL */
     .int-card__footer {
@@ -585,7 +585,7 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
       display: flex; align-items: center; gap: var(--space-4);
     }
 
-    .btn-icon { font-size: 14px; flex-shrink: 0; }
+    .btn-icon { font-size: var(--font-size-base, 14px); flex-shrink: 0; }
 
     /* Forbid card button — red outline */
     /* Card buttons now use fvdr-btn DS component */
@@ -676,9 +676,9 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
       color: var(--color-text-secondary);
     }
     .trigger-clear:hover { background: var(--color-stone-300); }
-    .trigger-chevron { flex-shrink: 0; transition: transform 0.2s; font-size: 16px; color: var(--color-text-secondary); }
+    .trigger-chevron { flex-shrink: 0; transition: transform 0.2s; font-size: var(--font-size-lg, 16px); color: var(--color-text-secondary); }
     .trigger-chevron.rotated { transform: rotate(180deg); }
-    .search-icon { font-size: 16px; color: var(--color-text-placeholder); flex-shrink: 0; }
+    .search-icon { font-size: var(--font-size-lg, 16px); color: var(--color-text-placeholder); flex-shrink: 0; }
 
     /* Droplist — Figma: position below trigger, border 1px #dee0eb */
     .droplist {
@@ -787,7 +787,7 @@ const MOCK_PROJECTS = ['Project Alpha', 'Project Beta', 'Gamma Due Diligence', '
       padding: var(--space-3) var(--space-4);
       font-size: var(--text-body3-size); color: var(--color-text-primary); flex: 1;
     }
-    .toast-icon { font-size: 20px; flex-shrink: 0; }
+    .toast-icon { font-size: var(--font-size-2xl, 20px); flex-shrink: 0; }
     .toast-icon--success { color: var(--color-primary-500); }
     .toast-icon--error   { color: var(--color-error-600); }
 

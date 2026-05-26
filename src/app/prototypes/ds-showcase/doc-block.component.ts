@@ -66,20 +66,20 @@ import { ToastService } from '../../shared/ds';
       padding: 20px 24px 0;
     }
     .doc-block__name {
-      font-size: 18px;
+      font-size: var(--font-size-xl, 18px);
       font-weight: 600;
       color: var(--color-text-primary);
       margin: 0 0 6px;
     }
     .doc-block__desc {
-      font-size: 14px;
+      font-size: var(--font-size-base, 14px);
       color: var(--color-text-secondary);
       margin: 0 0 8px;
       line-height: 1.5;
     }
     .doc-block__figma {
       display: inline-block;
-      font-size: 11px;
+      font-size: var(--font-size-2xs, 11px);
       color: var(--color-text-tertiary, var(--color-text-secondary));
       opacity: 0.6;
       margin-bottom: 16px;
@@ -110,7 +110,7 @@ import { ToastService } from '../../shared/ds';
     }
     .doc-block__do { border-right: 1px solid var(--color-divider); }
     .usage-label {
-      font-size: 12px;
+      font-size: var(--font-size-xs, 12px);
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.6px;
@@ -121,7 +121,7 @@ import { ToastService } from '../../shared/ds';
     .usage-list {
       margin: 0;
       padding: 0 0 0 16px;
-      font-size: 13px;
+      font-size: var(--font-size-sm, 13px);
       color: var(--color-text-secondary);
       line-height: 1.6;
     }
@@ -139,14 +139,14 @@ import { ToastService } from '../../shared/ds';
       padding: 12px 20px 0;
     }
     .doc-block__prompt-label {
-      font-size: 12px;
+      font-size: var(--font-size-xs, 12px);
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.6px;
       color: var(--color-text-secondary);
     }
     .doc-block__copy {
-      font-size: 12px;
+      font-size: var(--font-size-xs, 12px);
       font-weight: 500;
       color: var(--color-primary-500);
       background: none;
@@ -162,7 +162,7 @@ import { ToastService } from '../../shared/ds';
       padding: 16px 20px;
       background: #1a1d21;
       color: #e5e7eb;
-      font-size: 13px;
+      font-size: var(--font-size-sm, 13px);
       font-family: 'Menlo', 'Courier New', monospace;
       line-height: 1.6;
       white-space: pre-wrap;
@@ -216,13 +216,13 @@ export class DsDocBlockComponent {
       margin-bottom: 24px;
     }
     .ds-cat__title {
-      font-size: 22px;
+      font-size: var(--font-size-3xl, 22px);
       font-weight: 700;
       color: var(--color-text-primary);
       margin: 0 0 4px;
     }
     .ds-cat__desc {
-      font-size: 14px;
+      font-size: var(--font-size-base, 14px);
       color: var(--color-text-secondary);
       margin: 0;
     }

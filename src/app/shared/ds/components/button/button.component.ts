@@ -182,7 +182,7 @@ export type ButtonSize = 's' | 'm' | 'l';
     @keyframes spin { to { transform: rotate(360deg); } }
 
     .btn__icon { flex-shrink: 0; }
-    .btn__icon-ds { flex-shrink: 0; font-size: 16px; }
+    .btn__icon-ds { flex-shrink: 0; font-size: var(--font-size-lg, 16px); }
     .btn__label { line-height: 1; }
   `],
 })

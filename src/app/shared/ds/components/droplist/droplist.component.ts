@@ -139,7 +139,7 @@ export interface DroplistItem {
 
     .droplist__checkbox { flex-shrink: 0; pointer-events: none; }
 
-    .droplist__icon { font-size: 16px; color: var(--color-stone-600); flex-shrink: 0; margin-top: 2px; }
+    .droplist__icon { font-size: var(--font-size-lg, 16px); color: var(--color-stone-600); flex-shrink: 0; margin-top: 2px; }
     .droplist__item--danger .droplist__icon { color: var(--color-error-600); }
 
     .droplist__text { flex: 1; display: flex; flex-direction: column; gap: 2px; overflow: hidden; }
@@ -168,11 +168,11 @@ export interface DroplistItem {
       border-radius: var(--radius-full);
       background: var(--color-primary-500);
       color: #fff;
-      font-size: 10px;
+      font-size: var(--font-size-3xs, 10px);
       font-weight: 600;
     }
-    .droplist__check { font-size: 14px; color: var(--color-primary-500); margin-left: auto; }
-    .droplist__cascade-arrow { font-size: 14px; color: var(--color-text-secondary); margin-left: auto; flex-shrink: 0; }
+    .droplist__check { font-size: var(--font-size-base, 14px); color: var(--color-primary-500); margin-left: auto; }
+    .droplist__cascade-arrow { font-size: var(--font-size-base, 14px); color: var(--color-text-secondary); margin-left: auto; flex-shrink: 0; }
 
     .droplist__divider {
       height: 1px;

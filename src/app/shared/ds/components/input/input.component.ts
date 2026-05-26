@@ -108,7 +108,7 @@ export type InputState = 'default' | 'error' | 'success' | 'disabled';
 
     .field__icon {
       position: absolute;
-      font-size: 16px;
+      font-size: var(--font-size-lg, 16px);
       color: var(--color-text-placeholder);
       display: flex;
       align-items: center;

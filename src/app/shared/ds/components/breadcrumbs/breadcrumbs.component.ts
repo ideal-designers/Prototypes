@@ -104,9 +104,9 @@ interface FlatBcItem {
       cursor: default;
     }
 
-    .bc-sep { font-size: 16px; color: var(--color-stone-500); flex-shrink: 0; }
-    .bc-trail { font-size: 16px; color: var(--color-text-secondary); flex-shrink: 0; }
-    .bc-more-icon { font-size: 16px; }
+    .bc-sep { font-size: var(--font-size-lg, 16px); color: var(--color-stone-500); flex-shrink: 0; }
+    .bc-trail { font-size: var(--font-size-lg, 16px); color: var(--color-text-secondary); flex-shrink: 0; }
+    .bc-more-icon { font-size: var(--font-size-lg, 16px); }
     .bc-label { max-width: 200px; overflow: hidden; text-overflow: ellipsis; }
   `],
 })

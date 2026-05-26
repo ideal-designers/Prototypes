@@ -125,13 +125,19 @@
   --primitive-space-18:  72px;
 
   /* ── Font Sizes ── */
-  --primitive-font-size-xs:   12px;
-  --primitive-font-size-sm:   13px;
-  --primitive-font-size-base: 14px;
-  --primitive-font-size-md:   15px;
-  --primitive-font-size-lg:   16px;
-  --primitive-font-size-xl:   18px;
-  --primitive-font-size-2xl:  20px;
+  --primitive-font-size-micro:  9px;
+  --primitive-font-size-3xs:   10px;
+  --primitive-font-size-2xs:   11px;
+  --primitive-font-size-xs:    12px;
+  --primitive-font-size-sm:    13px;
+  --primitive-font-size-base:  14px;
+  --primitive-font-size-md:    15px;
+  --primitive-font-size-lg:    16px;
+  --primitive-font-size-xl:    18px;
+  --primitive-font-size-2xl:   20px;
+  --primitive-font-size-3xl:   22px;
+  --primitive-font-size-4xl:   24px;
+  --primitive-font-size-5xl:   28px;
 
   /* ── Font Weights ── */
   --primitive-font-weight-regular: 400;
@@ -275,13 +281,19 @@
   --space-18:  var(--primitive-space-18, 72px);
 
   /* ── Font-size aliases ── */
-  --font-size-xs:   var(--primitive-font-size-xs,   12px);
-  --font-size-sm:   var(--primitive-font-size-sm,   13px);
-  --font-size-base: var(--primitive-font-size-base, 14px);
-  --font-size-md:   var(--primitive-font-size-md,   15px);
-  --font-size-lg:   var(--primitive-font-size-lg,   16px);
-  --font-size-xl:   var(--primitive-font-size-xl,   18px);
-  --font-size-2xl:  var(--primitive-font-size-2xl,  20px);
+  --font-size-micro: var(--primitive-font-size-micro,  9px);
+  --font-size-3xs:   var(--primitive-font-size-3xs,  10px);
+  --font-size-2xs:   var(--primitive-font-size-2xs,  11px);
+  --font-size-xs:    var(--primitive-font-size-xs,   12px);
+  --font-size-sm:    var(--primitive-font-size-sm,   13px);
+  --font-size-base:  var(--primitive-font-size-base, 14px);
+  --font-size-md:    var(--primitive-font-size-md,   15px);
+  --font-size-lg:    var(--primitive-font-size-lg,   16px);
+  --font-size-xl:    var(--primitive-font-size-xl,   18px);
+  --font-size-2xl:   var(--primitive-font-size-2xl,  20px);
+  --font-size-3xl:   var(--primitive-font-size-3xl,  22px);
+  --font-size-4xl:   var(--primitive-font-size-4xl,  24px);
+  --font-size-5xl:   var(--primitive-font-size-5xl,  28px);
 
   /* ── Font-weight aliases ── */
   --font-weight-regular: var(--primitive-font-weight-regular, 400);

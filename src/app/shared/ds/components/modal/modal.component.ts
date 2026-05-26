@@ -119,7 +119,7 @@ export interface ModalConfig {
       cursor: pointer;
       color: var(--color-text-secondary);
       border-radius: var(--radius-sm);
-      font-size: 16px;
+      font-size: var(--font-size-lg, 16px);
     }
     .modal__close:hover { background: var(--color-hover-bg); color: var(--color-text-primary); }
 
@@ -245,7 +245,7 @@ export class ModalComponent {
     .sheet__close {
       display: flex; align-items: center; justify-content: center;
       width: 32px; height: 32px; border: none; background: transparent;
-      cursor: pointer; color: var(--color-text-secondary); font-size: 16px;
+      cursor: pointer; color: var(--color-text-secondary); font-size: var(--font-size-lg, 16px);
     }
     .sheet__body { flex: 1; overflow-y: auto; padding: 0 var(--space-4) var(--space-4); }
     .sheet__footer { padding: var(--space-4); border-top: 1px solid var(--color-divider); display: flex; flex-direction: column; gap: var(--space-2); flex-shrink: 0; }

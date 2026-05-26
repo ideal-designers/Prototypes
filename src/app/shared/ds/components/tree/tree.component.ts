@@ -83,10 +83,10 @@ export interface TreeNode {
     .tree-node__toggle {
       display: flex; align-items: center; justify-content: center;
       width: 20px; height: 20px; border: none; background: transparent;
-      cursor: pointer; color: var(--color-text-secondary); font-size: 12px; flex-shrink: 0;
+      cursor: pointer; color: var(--color-text-secondary); font-size: var(--font-size-xs, 12px); flex-shrink: 0;
     }
     .tree-node__spacer { width: 20px; flex-shrink: 0; }
-    .tree-node__icon { font-size: 16px; color: var(--color-text-secondary); flex-shrink: 0; }
+    .tree-node__icon { font-size: var(--font-size-lg, 16px); color: var(--color-text-secondary); flex-shrink: 0; }
     .tree-node__label {
       flex: 1;
       font-family: var(--font-family);

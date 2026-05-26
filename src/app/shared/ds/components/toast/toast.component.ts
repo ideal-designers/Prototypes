@@ -72,7 +72,7 @@ export interface ToastData {
     .toast--info    { border-color: var(--color-info-500); }
 
     .toast__icon {
-      font-size: 20px;
+      font-size: var(--font-size-2xl, 20px);
       margin-top: 1px;
       flex-shrink: 0;
     }
@@ -91,7 +91,7 @@ export interface ToastData {
     }
     .toast__message {
       font-family: var(--font-family);
-      font-size: 13px;
+      font-size: var(--font-size-sm, 13px);
       color: var(--color-text-secondary);
       line-height: 20px;
     }
@@ -107,7 +107,7 @@ export interface ToastData {
       cursor: pointer;
       color: var(--color-text-secondary);
       flex-shrink: 0;
-      font-size: 14px;
+      font-size: var(--font-size-base, 14px);
       padding: 0;
     }
     .toast__close:hover { color: var(--color-text-primary); }

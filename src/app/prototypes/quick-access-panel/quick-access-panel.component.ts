@@ -366,7 +366,7 @@ interface NavItem {
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
-      font-size: 24px;
+      font-size: var(--font-size-4xl, 24px);
       position: relative;
     }
 
@@ -548,7 +548,7 @@ interface NavItem {
     .qa-sc-row:hover { background: var(--color-hover-bg); }
     .qa-sc-icon {
       display: flex; align-items: center;
-      font-size: 16px;
+      font-size: var(--font-size-lg, 16px);
       color: var(--color-text-secondary);
       flex-shrink: 0;
     }
@@ -594,7 +594,7 @@ interface NavItem {
       justify-content: center;
       width: 16px;
       flex-shrink: 0;
-      font-size: 14px;
+      font-size: var(--font-size-base, 14px);
       color: var(--color-text-secondary);
     }
 
@@ -615,7 +615,7 @@ interface NavItem {
     .qa-folder {
       display: flex;
       align-items: center;
-      font-size: 18px;
+      font-size: var(--font-size-xl, 18px);
       flex-shrink: 0;
       color: var(--color-primary-500);
     }
@@ -698,7 +698,7 @@ interface NavItem {
       color: var(--color-text-primary);
       white-space: nowrap;
     }
-    .th-sort { font-size: 14px; color: var(--color-text-secondary); }
+    .th-sort { font-size: var(--font-size-base, 14px); color: var(--color-text-secondary); }
 
     /* Data cells */
     .tbl-row:not(.tbl-row--header) > div {
@@ -749,8 +749,8 @@ interface NavItem {
 
     /* Publishing icon */
     .col-pub { justify-content: flex-start; }
-    .pub-yes { color: var(--color-primary-500); font-size: 16px; }
-    .pub-no  { color: var(--color-stone-500);   font-size: 16px; }
+    .pub-yes { color: var(--color-primary-500); font-size: var(--font-size-lg, 16px); }
+    .pub-no  { color: var(--color-stone-500);   font-size: var(--font-size-lg, 16px); }
 
     /* Redaction chips */
     .col-red {}
@@ -787,7 +787,7 @@ interface NavItem {
       cursor: pointer;
       color: var(--color-text-secondary);
       border-radius: var(--radius-sm);
-      font-size: 16px;
+      font-size: var(--font-size-lg, 16px);
       padding: 0;
     }
     .icon-btn:hover {

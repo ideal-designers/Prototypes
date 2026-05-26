@@ -57,14 +57,14 @@ export type ChipSize = 'xs' | 's' | 'm' | 'l' | 'xl'; // 20 / 24 / 28 / 32 / 36 
       color: var(--color-text-primary);
       white-space: nowrap;
       user-select: none;
-      transition: filter 150ms ease;
+      transition: filter var(--duration-base, 150ms) var(--ease, ease);
     }
 
     /* ── Sizes — exact Figma specs (node 4069-19936) ── */
     /* xs=20px: gap 4px, icon 14px, font 12px/16px, pad 0 6px */
-    .chip--xs { height: 20px; min-width: 20px; padding: 0 6px;                gap: 4px; font-size: 12px; line-height: 16px; }
+    .chip--xs { height: 20px; min-width: 20px; padding: 0 6px;                gap: 4px; font-size: var(--font-size-xs, 12px); line-height: 16px; }
     /* s=24px:  gap 4px, icon 14px, font 12px/16px, pad 0 8px */
-    .chip--s  { height: 24px; min-width: 24px; padding: 0 var(--space-2, 8px); gap: 4px; font-size: 12px; line-height: 16px; }
+    .chip--s  { height: 24px; min-width: 24px; padding: 0 var(--space-2, 8px); gap: 4px; font-size: var(--font-size-xs, 12px); line-height: 16px; }
     /* m=28px:  gap 8px, icon 16px, font 14px/20px, pad 0 8px */
     .chip--m  { height: 28px; min-width: 28px; padding: 0 var(--space-2, 8px); gap: var(--space-2, 8px); font-size: var(--text-base-s-size, 14px); line-height: 20px; }
     /* l=32px:  gap 8px, icon 16px, font 15px/24px, pad 0 12px */
@@ -120,12 +120,12 @@ export type ChipSize = 'xs' | 's' | 'm' | 'l' | 'xl'; // 20 / 24 / 28 / 32 / 36 
     }
 
     /* ── Elements ── */
-    .chip__icon    { font-size: 16px; flex-shrink: 0; }
+    .chip__icon    { font-size: var(--font-size-lg, 16px); flex-shrink: 0; }
     .chip__label   { flex-shrink: 0; }
     .chip__counter { opacity: 0.65; flex-shrink: 0; }
 
     /* xs/s: smaller icons to match Figma size-[14px] */
-    .chip--xs .chip__icon, .chip--s .chip__icon { font-size: 14px; }
+    .chip--xs .chip__icon, .chip--s .chip__icon { font-size: var(--font-size-base, 14px); }
 
     .chip__dot {
       width: 8px; height: 8px;
@@ -173,10 +173,10 @@ export type ChipSize = 'xs' | 's' | 'm' | 'l' | 'xl'; // 20 / 24 / 28 / 32 / 36 
 
     /* Initials font-size per chip size */
     .chip--xs .chip__avatar-initials,
-    .chip--s  .chip__avatar-initials { font-size: 10px; }
-    .chip--m  .chip__avatar-initials { font-size: 12px; }
+    .chip--s  .chip__avatar-initials { font-size: var(--font-size-3xs, 10px); }
+    .chip--m  .chip__avatar-initials { font-size: var(--font-size-xs, 12px); }
     .chip--l  .chip__avatar-initials,
-    .chip--xl .chip__avatar-initials { font-size: 14px; }
+    .chip--xl .chip__avatar-initials { font-size: var(--font-size-base, 14px); }
 
     /* Close button: icon-main color (#5F616A = --color-text-secondary), regardless of variant */
     .chip__remove {
@@ -190,10 +190,10 @@ export type ChipSize = 'xs' | 's' | 'm' | 'l' | 'xl'; // 20 / 24 / 28 / 32 / 36 
       padding: 0;
       color: var(--color-text-secondary, #5F616A);
       opacity: 1;
-      font-size: 12px;
+      font-size: var(--font-size-xs, 12px);
       flex-shrink: 0;
     }
-    .chip--xs .chip__remove, .chip--s .chip__remove { width: 14px; height: 14px; font-size: 10px; }
+    .chip--xs .chip__remove, .chip--s .chip__remove { width: 14px; height: 14px; font-size: var(--font-size-3xs, 10px); }
     .chip__remove:hover { opacity: 0.65; }
   `],
 })

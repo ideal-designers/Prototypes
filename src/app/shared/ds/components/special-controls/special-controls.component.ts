@@ -64,7 +64,7 @@ import { FvdrIconComponent } from '../../icons/icon.component';
       display: flex; align-items: center; justify-content: center;
       width: 36px; height: 100%; border: none;
       background: transparent; cursor: pointer;
-      color: var(--color-text-secondary); font-size: 14px;
+      color: var(--color-text-secondary); font-size: var(--font-size-base, 14px);
       transition: background 0.1s;
     }
     .stepper__btn:hover:not(:disabled) { background: var(--color-hover-bg); color: var(--color-text-primary); }

@@ -144,9 +144,9 @@ export interface TimeValue { hours: number; minutes: number; }
 
     /* ── Clock icon ── */
     .tp__icon { color: var(--color-text-secondary); flex-shrink: 0; margin-left: var(--space-2); }
-    .tp__icon--l { font-size: 16px; }
-    .tp__icon--m { font-size: 16px; }
-    .tp__icon--s { font-size: 14px; }
+    .tp__icon--l { font-size: var(--font-size-lg, 16px); }
+    .tp__icon--m { font-size: var(--font-size-lg, 16px); }
+    .tp__icon--s { font-size: var(--font-size-base, 14px); }
 
     /* ── Hint ── */
     .tp__hint {

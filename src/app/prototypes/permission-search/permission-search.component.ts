@@ -291,7 +291,7 @@ const GROUPS: Group[] = [
                     <div class="pt-expand-cell">
                       <fvdr-icon *ngIf="item.type === 'folder'"
                                  name="chevron-right"
-                                 style="color: var(--color-text-secondary); font-size: 16px;" />
+                                 style="color: var(--color-text-secondary); font-size: var(--font-size-lg, 16px);" />
                     </div>
                     <div class="pt-entity-cell">
                       <fvdr-file-icon [type]="fileType(item.type)" />
@@ -365,7 +365,7 @@ const GROUPS: Group[] = [
       background: none; border: none; cursor: pointer;
       width: 24px; height: 24px; padding: 0;
       display: flex; align-items: center; justify-content: center;
-      color: var(--color-text-secondary); font-size: 20px;
+      color: var(--color-text-secondary); font-size: var(--font-size-2xl, 20px);
       border-radius: var(--radius-sm); transition: color 0.12s;
     }
     .ic-btn:hover { color: var(--color-text-primary); }
@@ -398,28 +398,28 @@ const GROUPS: Group[] = [
       border-radius: var(--radius-sm);
       background: var(--color-stone-0);
       font-family: var(--font-family);
-      font-size: 14px;
+      font-size: var(--font-size-base, 14px);
       color: var(--color-text-primary);
       cursor: pointer;
       white-space: nowrap;
       transition: border-color 0.12s;
     }
-    .tool-btn fvdr-icon { font-size: 16px; color: var(--color-text-secondary); }
+    .tool-btn fvdr-icon { font-size: var(--font-size-lg, 16px); color: var(--color-text-secondary); }
     .tool-btn:hover { border-color: var(--color-primary-500); }
     .tool-link {
       display: inline-flex;
       align-items: center;
       gap: var(--space-2);
       font-family: var(--font-family);
-      font-size: 14px;
+      font-size: var(--font-size-base, 14px);
       color: var(--color-primary-500);
       background: none;
       border: none;
       cursor: pointer;
       padding: 0;
     }
-    .tool-link fvdr-icon { font-size: 16px; }
-    .tool-link--sm { font-size: 13px; }
+    .tool-link fvdr-icon { font-size: var(--font-size-lg, 16px); }
+    .tool-link--sm { font-size: var(--font-size-sm, 13px); }
 
     /* ── Panels ── */
     .panels {
@@ -450,7 +450,7 @@ const GROUPS: Group[] = [
       flex-shrink: 0;
     }
     .tree-hdr-title {
-      font-size: 14px;
+      font-size: var(--font-size-base, 14px);
       font-weight: 600;
       color: var(--color-text-primary);
     }
@@ -495,13 +495,13 @@ const GROUPS: Group[] = [
       min-width: 0;
     }
     .item-idx {
-      font-size: 14px;
+      font-size: var(--font-size-base, 14px);
       color: var(--color-text-primary);
       white-space: nowrap;
       flex-shrink: 0;
     }
     .item-name {
-      font-size: 14px;
+      font-size: var(--font-size-base, 14px);
       color: var(--color-text-primary);
       white-space: nowrap;
       overflow: hidden;
@@ -532,12 +532,12 @@ const GROUPS: Group[] = [
       padding: var(--space-6) var(--space-4);
       text-align: center;
       color: var(--color-text-placeholder);
-      font-size: 14px;
+      font-size: var(--font-size-base, 14px);
     }
 
     /* Groups in left panel */
     .group-item { gap: var(--space-1); }
-    .group-item fvdr-icon { font-size: 16px; flex-shrink: 0; }
+    .group-item fvdr-icon { font-size: var(--font-size-lg, 16px); flex-shrink: 0; }
     .expand-gap { width: 20px; flex-shrink: 0; }
 
     /* ── Expand button (chevron) ── */
@@ -553,7 +553,7 @@ const GROUPS: Group[] = [
       cursor: pointer;
       border-radius: var(--radius-sm);
       color: var(--color-text-secondary);
-      font-size: 14px;
+      font-size: var(--font-size-base, 14px);
       padding: 0;
       transition: background 0.1s;
     }
@@ -630,9 +630,9 @@ const GROUPS: Group[] = [
       padding: 0 var(--space-3);
       overflow: hidden;
     }
-    .pt-entity-cell fvdr-icon { font-size: 16px; flex-shrink: 0; }
+    .pt-entity-cell fvdr-icon { font-size: var(--font-size-lg, 16px); flex-shrink: 0; }
     .pt-entity-hdr {
-      font-size: 14px;
+      font-size: var(--font-size-base, 14px);
       font-weight: 600;
       color: var(--color-text-primary);
       padding: 0 var(--space-4);
@@ -641,7 +641,7 @@ const GROUPS: Group[] = [
       padding-left: calc(var(--space-3) + 8px);
     }
     .pt-entity-name {
-      font-size: 14px;
+      font-size: var(--font-size-base, 14px);
       color: var(--color-text-primary);
       white-space: nowrap;
       overflow: hidden;
@@ -670,9 +670,9 @@ const GROUPS: Group[] = [
       padding: var(--space-1) 0;
       flex-shrink: 0;
     }
-    .perm-th fvdr-icon { font-size: 16px; color: var(--color-text-primary); }
+    .perm-th fvdr-icon { font-size: var(--font-size-lg, 16px); color: var(--color-text-primary); }
     .perm-th span {
-      font-size: 12px;
+      font-size: var(--font-size-xs, 12px);
       font-weight: 600;
       color: var(--color-text-primary);
       white-space: nowrap;

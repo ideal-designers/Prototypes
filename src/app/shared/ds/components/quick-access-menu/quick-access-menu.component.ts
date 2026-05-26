@@ -109,7 +109,7 @@ export interface QuickAccessItem {
     }
 
     .qa-header__title {
-      font-size: 14px;
+      font-size: var(--font-size-base, 14px);
       font-weight: 600;
       color: var(--color-text-primary, #1f2129);
       white-space: nowrap;
@@ -139,7 +139,7 @@ export interface QuickAccessItem {
       cursor: pointer;
       color: var(--color-text-secondary, #5f616a);
       border-radius: var(--radius-sm, 4px);
-      font-size: 16px;
+      font-size: var(--font-size-lg, 16px);
       padding: 0;
       flex-shrink: 0;
       transition: background 0.12s;
@@ -164,7 +164,7 @@ export interface QuickAccessItem {
       background: transparent;
       border: none;
       cursor: pointer;
-      font-size: 14px;
+      font-size: var(--font-size-base, 14px);
       font-weight: 400;
       font-family: var(--font-family, 'Open Sans', sans-serif);
       color: var(--color-text-primary, #1f2129);
@@ -187,7 +187,7 @@ export interface QuickAccessItem {
     .qa-item__icon {
       display: flex;
       align-items: center;
-      font-size: 16px;
+      font-size: var(--font-size-lg, 16px);
       color: var(--color-text-secondary, #5f616a);
       flex-shrink: 0;
     }

@@ -110,7 +110,7 @@ export type SearchSize = 's' | 'm' | 'l';
     /* Search icon */
     .search__icon {
       flex-shrink: 0;
-      font-size: 16px;
+      font-size: var(--font-size-lg, 16px);
       color: var(--color-text-placeholder);
       margin-left: var(--space-3);
     }
@@ -143,7 +143,7 @@ export type SearchSize = 's' | 'm' | 'l';
       border: none;
       cursor: pointer;
       color: var(--color-text-secondary);
-      font-size: 14px;
+      font-size: var(--font-size-base, 14px);
       padding: 0;
     }
     .search__clear:hover { color: var(--color-text-primary); }
@@ -160,7 +160,7 @@ export type SearchSize = 's' | 'm' | 'l';
       border: none;
       cursor: pointer;
       color: var(--color-text-secondary);
-      font-size: 16px;
+      font-size: var(--font-size-lg, 16px);
       padding: 0;
       margin-right: var(--space-3);
       transition: color 0.1s;

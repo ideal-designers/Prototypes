@@ -64,7 +64,7 @@ import { FvdrIconComponent } from '../../icons/icon.component';
     .drop--drag-over { border-color: var(--color-primary-500); background: var(--color-primary-50); border-style: solid; }
     .drop--disabled { opacity: 0.45; cursor: not-allowed; }
 
-    .drop__icon { font-size: 24px; color: var(--color-primary-500); margin-bottom: var(--space-1); }
+    .drop__icon { font-size: var(--font-size-4xl, 24px); color: var(--color-primary-500); margin-bottom: var(--space-1); }
     .drop__title {
       font-family: var(--font-family);
       font-size: var(--text-base-s-size);

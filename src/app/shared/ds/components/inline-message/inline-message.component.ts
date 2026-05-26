@@ -34,10 +34,10 @@ export type InlineMessageVariant = 'info' | 'success' | 'warning' | 'error';
       align-items: flex-start;
       gap: 5px;
       font-family: var(--font-family);
-      font-size: 13px;
+      font-size: var(--font-size-sm, 13px);
       line-height: 20px;
     }
-    .inline-msg__icon { font-size: 14px; margin-top: 3px; flex-shrink: 0; }
+    .inline-msg__icon { font-size: var(--font-size-base, 14px); margin-top: 3px; flex-shrink: 0; }
 
     .inline-msg--info    { color: var(--color-info-500); }
     .inline-msg--success { color: var(--color-primary-500); }

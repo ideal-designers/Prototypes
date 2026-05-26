@@ -110,13 +110,13 @@ const STATUS_BTN_CONFIG: Record<StatusBtnVariant, StatusBtnConfig> = {
       border: none;
       color: #fff;
       font-family: var(--font-family);
-      font-size: 13px;
+      font-size: var(--font-size-sm, 13px);
       font-weight: 600;
       cursor: pointer;
       transition: filter 0.15s;
     }
     .status-btn:hover { filter: brightness(0.92); }
-    .status-btn__icon, .status-btn__chevron { font-size: 14px; }
+    .status-btn__icon, .status-btn__chevron { font-size: var(--font-size-base, 14px); }
   `],
 })
 export class StatusButtonComponent {

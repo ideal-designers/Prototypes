@@ -396,7 +396,7 @@ interface FileTreeNode {
       align-items: center;
       gap: var(--space-2, 8px);
       /* margin removed — gap on .content handles spacing */
-      font-size: 14px;
+      font-size: var(--font-size-base, 14px);
       flex-shrink: 0;
     }
 
@@ -491,7 +491,7 @@ interface FileTreeNode {
     }
 
     .files-title {
-      font-size: 14px;
+      font-size: var(--font-size-base, 14px);
       font-weight: 600;
       color: var(--color-text-primary);
     }
@@ -525,7 +525,7 @@ interface FileTreeNode {
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 12px;
+      font-size: var(--font-size-xs, 12px);
       color: var(--color-text-secondary);
       padding: 0;
     }
@@ -541,7 +541,7 @@ interface FileTreeNode {
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 10px;
+      font-size: var(--font-size-3xs, 10px);
       cursor: pointer;
       background: var(--color-stone-0);
       color: var(--color-stone-0);
@@ -574,7 +574,7 @@ interface FileTreeNode {
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 12px;
+      font-size: var(--font-size-xs, 12px);
       font-weight: 700;
     }
 
@@ -588,7 +588,7 @@ interface FileTreeNode {
     }
 
     .tree-label {
-      font-size: 14px;
+      font-size: var(--font-size-base, 14px);
       color: var(--color-text-primary);
       white-space: nowrap;
       overflow: hidden;
@@ -785,7 +785,7 @@ interface FileTreeNode {
     }
 
     .dp-title {
-      font-size: 14px;
+      font-size: var(--font-size-base, 14px);
       font-weight: 600;
       color: var(--color-text-primary);
       line-height: 20px;
@@ -803,7 +803,7 @@ interface FileTreeNode {
       border: none;
       cursor: pointer;
       border-radius: 0 4px 0 0;
-      font-size: 16px;
+      font-size: var(--font-size-lg, 16px);
       color: var(--color-text-secondary);
       flex-shrink: 0;
     }
@@ -828,7 +828,7 @@ interface FileTreeNode {
 
     /* Labels: 12px/600/primary — Figma caption-2 */
     .dp-label {
-      font-size: 12px;
+      font-size: var(--font-size-xs, 12px);
       font-weight: 600;
       color: var(--color-text-primary);
       line-height: 16px;
@@ -843,7 +843,7 @@ interface FileTreeNode {
     }
 
     .dp-target-name {
-      font-size: 14px;
+      font-size: var(--font-size-base, 14px);
       font-weight: 400;
       color: var(--color-text-primary);
       line-height: 20px;
@@ -864,14 +864,14 @@ interface FileTreeNode {
     }
 
     .dp-author-name {
-      font-size: 14px;
+      font-size: var(--font-size-base, 14px);
       font-weight: 400;
       color: var(--color-text-primary);
       line-height: 20px;
     }
 
     .dp-author-email {
-      font-size: 12px;
+      font-size: var(--font-size-xs, 12px);
       font-weight: 400;
       color: var(--color-text-secondary);
       line-height: 16px;
@@ -897,7 +897,7 @@ interface FileTreeNode {
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 16px;
+      font-size: var(--font-size-lg, 16px);
       color: var(--color-text-secondary);
       flex-shrink: 0;
     }
@@ -919,7 +919,7 @@ interface FileTreeNode {
     }
 
     .dp-field-value {
-      font-size: 14px;
+      font-size: var(--font-size-base, 14px);
       font-weight: 400;
       color: var(--color-text-secondary);
       line-height: 20px;

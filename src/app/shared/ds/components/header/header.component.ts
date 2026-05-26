@@ -152,7 +152,7 @@ export interface BreadcrumbItem {
       color: var(--color-primary-500);
       font-weight: var(--text-base-s-sb-weight);
     }
-    .header__nav-icon { font-size: 16px; }
+    .header__nav-icon { font-size: var(--font-size-lg, 16px); }
     .header__nav-badge {
       display: inline-flex;
       align-items: center;
@@ -163,11 +163,11 @@ export interface BreadcrumbItem {
       border-radius: var(--radius-full);
       background: var(--color-error-600);
       color: #fff;
-      font-size: 10px;
+      font-size: var(--font-size-3xs, 10px);
       font-weight: 600;
     }
 
-    .header__menu { width:36px; height:36px; border:none; background:transparent; cursor:pointer; display:flex; align-items:center; justify-content:center; border-radius:var(--radius-sm); color:var(--color-text-secondary); font-size:24px; flex-shrink:0; }
+    .header__menu { width:36px; height:36px; border:none; background:transparent; cursor:pointer; display:flex; align-items:center; justify-content:center; border-radius:var(--radius-sm); color:var(--color-text-secondary); font-size:var(--font-size-4xl, 24px); flex-shrink:0; }
     .header__menu:hover { background:var(--color-hover-bg); color:var(--color-text-primary); }
     .header__breadcrumbs { flex:1; }
 
@@ -190,7 +190,7 @@ export interface BreadcrumbItem {
       border-radius: var(--radius-sm);
       cursor: pointer;
       color: var(--color-text-secondary);
-      font-size: 24px;
+      font-size: var(--font-size-4xl, 24px);
     }
     .header__action:hover { background: var(--color-hover-bg); color: var(--color-text-primary); }
 
@@ -204,7 +204,7 @@ export interface BreadcrumbItem {
       border-radius: var(--radius-full);
       background: var(--color-error-600);
       color: #fff;
-      font-size: 9px;
+      font-size: var(--font-size-micro, 9px);
       font-weight: 700;
       display: flex;
       align-items: center;
@@ -277,7 +277,7 @@ export class HeaderComponent {
     .mob-header__menu {
       display: flex; align-items: center; justify-content: center;
       width: 36px; height: 36px; border: none; background: transparent;
-      cursor: pointer; color: var(--color-text-secondary); font-size: 20px; flex-shrink: 0;
+      cursor: pointer; color: var(--color-text-secondary); font-size: var(--font-size-2xl, 20px); flex-shrink: 0;
       border-radius: var(--radius-sm);
     }
     .mob-header__back:hover,
@@ -300,7 +300,7 @@ export class HeaderComponent {
       position: relative;
       display: flex; align-items: center; justify-content: center;
       width: 36px; height: 36px; border: none; background: transparent;
-      cursor: pointer; color: var(--color-text-secondary); font-size: 20px;
+      cursor: pointer; color: var(--color-text-secondary); font-size: var(--font-size-2xl, 20px);
       border-radius: var(--radius-sm);
     }
     .mob-header__action:hover { background: var(--color-hover-bg); color: var(--color-text-primary); }
@@ -309,7 +309,7 @@ export class HeaderComponent {
       position: absolute; top: 4px; right: 4px;
       min-width: 14px; height: 14px; padding: 0 3px;
       border-radius: var(--radius-full); background: var(--color-error-600);
-      color: #fff; font-size: 9px; font-weight: 700;
+      color: #fff; font-size: var(--font-size-micro, 9px); font-weight: 700;
       display: flex; align-items: center; justify-content: center;
     }
   `],

@@ -343,9 +343,9 @@ const DEFAULT_COUNTRIES: PhoneCountry[] = [
       height: 100%;
     }
     .phone__country:hover { background: var(--color-hover-bg); }
-    .phone__flag { font-size: 16px; line-height: 1; }
+    .phone__flag { font-size: var(--font-size-lg, 16px); line-height: 1; }
     .phone__code { font-family: var(--font-family); font-size: var(--text-base-s-size); color: var(--color-text-primary); }
-    .phone__chevron { font-size: 14px; color: var(--color-text-secondary); transition: transform 0.15s; }
+    .phone__chevron { font-size: var(--font-size-base, 14px); color: var(--color-text-secondary); transition: transform 0.15s; }
     .phone__chevron--open { transform: rotate(180deg); }
 
     .phone__dropdown {

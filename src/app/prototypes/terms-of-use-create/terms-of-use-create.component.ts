@@ -406,7 +406,7 @@ function deepCloneTree(nodes: TreeNode[]): TreeNode[] {
     .settings-tab {
       height: 48px; padding: 0 var(--space-4);
       border: none; background: transparent; cursor: pointer;
-      font-size: 14px; font-weight: 400; color: var(--color-text-secondary);
+      font-size: var(--font-size-base, 14px); font-weight: 400; color: var(--color-text-secondary);
       font-family: var(--font-family); white-space: nowrap;
       border-bottom: 2px solid transparent;
       margin-bottom: -1px;
@@ -422,12 +422,12 @@ function deepCloneTree(nodes: TreeNode[]): TreeNode[] {
       border-bottom: 1px solid var(--color-divider);
       flex-shrink: 0;
     }
-    .demo-label { font-size: 12px; color: var(--color-text-secondary); font-weight: 400; }
+    .demo-label { font-size: var(--font-size-xs, 12px); color: var(--color-text-secondary); font-weight: 400; }
     .demo-btn {
       height: 24px; padding: 0 var(--space-3);
       border: 1px solid var(--color-divider); border-radius: var(--radius-sm);
       background: var(--color-stone-0); cursor: pointer;
-      font-size: 12px; color: var(--color-text-secondary); font-family: var(--font-family);
+      font-size: var(--font-size-xs, 12px); color: var(--color-text-secondary); font-family: var(--font-family);
     }
     .demo-btn:hover { border-color: var(--color-stone-600); }
     .demo-btn--active { background: var(--color-primary-50); border-color: var(--color-primary-500); color: var(--color-primary-600); font-weight: 600; }
@@ -440,9 +440,9 @@ function deepCloneTree(nodes: TreeNode[]): TreeNode[] {
     .field-group { display: flex; flex-direction: column; gap: var(--space-3); }
     .field-group--inline { flex-direction: row; align-items: center; gap: var(--space-3); padding: var(--space-1) 0; }
     .field-label {
-      font-size: 14px; font-weight: 600; color: var(--color-text-primary); line-height: 1.4;
+      font-size: var(--font-size-base, 14px); font-weight: 600; color: var(--color-text-primary); line-height: 1.4;
     }
-    .inline-label { font-size: 14px; color: var(--color-text-primary); }
+    .inline-label { font-size: var(--font-size-base, 14px); color: var(--color-text-primary); }
 
     /* Custom title animate */
     .custom-title-wrap { overflow: hidden; max-height: 0; opacity: 0; transition: max-height 0.18s ease, opacity 0.18s ease; }
@@ -453,7 +453,7 @@ function deepCloneTree(nodes: TreeNode[]): TreeNode[] {
     .select-files-link {
       display: inline-flex; align-items: center; gap: var(--space-1);
       background: transparent; border: none; cursor: pointer;
-      color: var(--color-primary-500); font-size: 14px; font-weight: 400;
+      color: var(--color-primary-500); font-size: var(--font-size-base, 14px); font-weight: 400;
       font-family: var(--font-family); padding: 0; text-decoration: underline;
       text-underline-offset: 2px;
     }
@@ -468,16 +468,16 @@ function deepCloneTree(nodes: TreeNode[]): TreeNode[] {
       border: 1px solid var(--color-divider);
       border-radius: var(--radius-sm);
       background: var(--color-stone-0);
-      font-size: 13px; color: var(--color-text-primary);
+      font-size: var(--font-size-sm, 13px); color: var(--color-text-primary);
     }
     .file-chip--warning { border-color: var(--color-warning-600, #FFDA07); background: var(--color-warning-50, #FFFDE7); }
     .chip-name { max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .chip-warn-icon { font-size: 14px; color: var(--color-warning-700, #B45309); flex-shrink: 0; }
+    .chip-warn-icon { font-size: var(--font-size-base, 14px); color: var(--color-warning-700, #B45309); flex-shrink: 0; }
     .chip-remove {
       display: flex; align-items: center; justify-content: center;
       width: 16px; height: 16px;
       border: none; background: transparent; cursor: pointer;
-      color: var(--color-text-secondary); padding: 0; font-size: 12px;
+      color: var(--color-text-secondary); padding: 0; font-size: var(--font-size-xs, 12px);
     }
     .chip-remove:hover { color: var(--color-text-primary); }
 
@@ -487,23 +487,23 @@ function deepCloneTree(nodes: TreeNode[]): TreeNode[] {
       z-index: 100;
       background: var(--color-stone-900); color: var(--color-stone-0);
       border-radius: var(--radius-sm); padding: var(--space-2) var(--space-3);
-      font-size: 12px; white-space: nowrap;
+      font-size: var(--font-size-xs, 12px); white-space: nowrap;
       display: flex; flex-direction: column; gap: var(--space-1);
       box-shadow: 0 4px 12px rgba(0,0,0,0.18);
     }
     .tooltip-link {
       display: inline-flex; align-items: center; gap: var(--space-1);
       background: transparent; border: none; cursor: pointer;
-      color: var(--color-primary-500); font-size: 12px; font-family: var(--font-family); padding: 0;
+      color: var(--color-primary-500); font-size: var(--font-size-xs, 12px); font-family: var(--font-family); padding: 0;
     }
     .tooltip-link:hover { color: var(--color-primary-300, #5EC99A); }
-    .tooltip-link-icon { font-size: 12px; }
+    .tooltip-link-icon { font-size: var(--font-size-xs, 12px); }
 
     .chips-more {
       height: 28px; padding: 0 var(--space-3);
       border: 1px solid var(--color-divider); border-radius: var(--radius-sm);
       background: var(--color-stone-200); cursor: pointer;
-      font-size: 13px; color: var(--color-text-secondary); font-family: var(--font-family);
+      font-size: var(--font-size-sm, 13px); color: var(--color-text-secondary); font-family: var(--font-family);
     }
     .chips-more:hover { background: var(--color-stone-300); color: var(--color-text-primary); }
 
@@ -514,12 +514,12 @@ function deepCloneTree(nodes: TreeNode[]): TreeNode[] {
       background: var(--color-stone-100);
       border: 1px solid var(--color-divider);
       border-radius: var(--radius-sm);
-      font-size: 13px; color: var(--color-text-primary); line-height: 1.5;
+      font-size: var(--font-size-sm, 13px); color: var(--color-text-primary); line-height: 1.5;
     }
-    .conflict-icon { font-size: 16px; color: var(--color-text-secondary); flex-shrink: 0; margin-top: 1px; }
+    .conflict-icon { font-size: var(--font-size-lg, 16px); color: var(--color-text-secondary); flex-shrink: 0; margin-top: 1px; }
     .conflict-link {
       background: transparent; border: none; cursor: pointer;
-      color: var(--color-primary-500); font-size: 13px; font-family: var(--font-family); padding: 0;
+      color: var(--color-primary-500); font-size: var(--font-size-sm, 13px); font-family: var(--font-family); padding: 0;
     }
     .conflict-link:hover { text-decoration: underline; }
 
@@ -533,11 +533,11 @@ function deepCloneTree(nodes: TreeNode[]): TreeNode[] {
       height: 36px; padding: 0 var(--space-4);
       border: 1px solid var(--color-divider); border-radius: var(--radius-sm);
       background: var(--color-stone-0); cursor: pointer;
-      font-size: 14px; color: var(--color-text-primary); font-family: var(--font-family);
+      font-size: var(--font-size-base, 14px); color: var(--color-text-primary); font-family: var(--font-family);
       align-self: flex-start;
     }
     .add-doc-btn:hover { border-color: var(--color-stone-600); background: var(--color-stone-100); }
-    .add-doc-icon { font-size: 16px; color: var(--color-primary-500); }
+    .add-doc-icon { font-size: var(--font-size-lg, 16px); color: var(--color-primary-500); }
     .uploaded-doc {
       display: flex; align-items: center; gap: var(--space-3);
       padding: var(--space-2) var(--space-3);
@@ -545,12 +545,12 @@ function deepCloneTree(nodes: TreeNode[]): TreeNode[] {
       background: var(--color-stone-0);
     }
     .doc-icon { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; }
-    .doc-file-icon { font-size: 20px; color: var(--color-error-600); }
-    .doc-name { flex: 1; font-size: 14px; color: var(--color-text-primary); }
+    .doc-file-icon { font-size: var(--font-size-2xl, 20px); color: var(--color-error-600); }
+    .doc-name { flex: 1; font-size: var(--font-size-base, 14px); color: var(--color-text-primary); }
     .doc-preview, .doc-remove {
       width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;
       border: none; background: transparent; cursor: pointer;
-      color: var(--color-text-secondary); font-size: 16px; padding: 0;
+      color: var(--color-text-secondary); font-size: var(--font-size-lg, 16px); padding: 0;
     }
     .doc-preview:hover, .doc-remove:hover { color: var(--color-text-primary); }
 
@@ -570,14 +570,14 @@ function deepCloneTree(nodes: TreeNode[]): TreeNode[] {
     .tb-btn {
       width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
       border: none; border-radius: var(--radius-sm); background: transparent; cursor: pointer;
-      font-size: 14px; color: var(--color-text-secondary); font-family: var(--font-family);
+      font-size: var(--font-size-base, 14px); color: var(--color-text-secondary); font-family: var(--font-family);
       padding: 0;
     }
     .tb-btn:hover { background: var(--color-stone-300); color: var(--color-text-primary); }
-    .tb-btn--text { font-size: 13px; }
+    .tb-btn--text { font-size: var(--font-size-sm, 13px); }
     .editor-body {
       min-height: 200px; padding: var(--space-4);
-      font-size: 14px; color: var(--color-text-primary); line-height: 1.6;
+      font-size: var(--font-size-base, 14px); color: var(--color-text-primary); line-height: 1.6;
       outline: none; background: var(--color-stone-0);
     }
     .editor-body--focused { box-shadow: inset 0 0 0 2px var(--color-primary-500); }
@@ -616,11 +616,11 @@ function deepCloneTree(nodes: TreeNode[]): TreeNode[] {
       border-bottom: 1px solid var(--color-divider);
       flex-shrink: 0;
     }
-    .file-modal__title { font-size: 16px; font-weight: 600; color: var(--color-text-primary); }
+    .file-modal__title { font-size: var(--font-size-lg, 16px); font-weight: 600; color: var(--color-text-primary); }
     .file-modal__close {
       width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
       border: none; background: transparent; cursor: pointer;
-      font-size: 16px; color: var(--color-text-secondary); border-radius: var(--radius-sm);
+      font-size: var(--font-size-lg, 16px); color: var(--color-text-secondary); border-radius: var(--radius-sm);
     }
     .file-modal__close:hover { background: var(--color-stone-200); }
 
@@ -630,10 +630,10 @@ function deepCloneTree(nodes: TreeNode[]): TreeNode[] {
       border-bottom: 1px solid var(--color-divider);
       flex-shrink: 0;
     }
-    .search-icon { font-size: 16px; color: var(--color-text-secondary); flex-shrink: 0; }
+    .search-icon { font-size: var(--font-size-lg, 16px); color: var(--color-text-secondary); flex-shrink: 0; }
     .search-input {
       flex: 1; border: none; outline: none; background: transparent;
-      font-size: 14px; color: var(--color-text-primary); font-family: var(--font-family);
+      font-size: var(--font-size-base, 14px); color: var(--color-text-primary); font-family: var(--font-family);
     }
     .search-input::placeholder { color: var(--color-text-placeholder); }
 
@@ -651,19 +651,19 @@ function deepCloneTree(nodes: TreeNode[]): TreeNode[] {
       width: 20px; height: 20px; min-width: 20px;
       display: flex; align-items: center; justify-content: center;
       border: none; background: transparent; cursor: pointer;
-      font-size: 12px; color: var(--color-text-secondary); padding: 0;
+      font-size: var(--font-size-xs, 12px); color: var(--color-text-secondary); padding: 0;
     }
     .tree-toggle:hover { color: var(--color-text-primary); }
     .tree-toggle-spacer { width: 20px; min-width: 20px; display: inline-block; }
     .tree-folder-spacer { width: 20px; min-width: 20px; display: inline-block; }
 
-    .tree-icon { font-size: 16px; flex-shrink: 0; }
+    .tree-icon { font-size: var(--font-size-lg, 16px); flex-shrink: 0; }
     .tree-icon--folder { color: var(--color-primary-500); }
     .tree-icon--file { color: var(--color-stone-600); }
-    .tree-name { font-size: 14px; color: var(--color-text-primary); flex: 1; }
+    .tree-name { font-size: var(--font-size-base, 14px); color: var(--color-text-primary); flex: 1; }
     .tree-name--restricted { color: var(--color-text-secondary); }
-    .tree-restricted-icon { font-size: 14px; color: #B45309; margin-right: var(--space-3); }
-    .tree-empty { padding: var(--space-4) var(--space-6); font-size: 14px; color: var(--color-text-secondary); }
+    .tree-restricted-icon { font-size: var(--font-size-base, 14px); color: #B45309; margin-right: var(--space-3); }
+    .tree-empty { padding: var(--space-4) var(--space-6); font-size: var(--font-size-base, 14px); color: var(--color-text-secondary); }
 
     .file-modal__footer {
       display: flex; align-items: center; justify-content: flex-end; gap: var(--space-3);
