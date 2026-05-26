@@ -185,7 +185,7 @@ const CREATED_ROWS: Record<string, string>[] = [
         <fvdr-modal
           [visible]="showModal"
           title="Import folder structure"
-          size="l"
+          size="m"
           (closed)="closeModal()"
         >
           <p class="modal-desc">Select the method of import. <a class="modal-learn" href="#" (click)="$event.preventDefault()">Learn more</a></p>
@@ -193,26 +193,34 @@ const CREATED_ROWS: Record<string, string>[] = [
           <div class="modal-options">
             <button class="opt-card" (click)="selectMethod('ai')" data-track="opt-ai">
               <img src="/assets/illustrations/ai-assistant.svg" class="opt-card-img" alt="" aria-hidden="true">
-              <span class="opt-card-titlerow">
-                <span class="opt-card-title">AI assistant</span>
-                <span class="opt-card-badge">New</span>
+              <span class="opt-card-textblock">
+                <span class="opt-card-titlerow">
+                  <span class="opt-card-title">AI assistant</span>
+                  <span class="opt-card-badge">New</span>
+                </span>
+                <span class="opt-card-desc">Upload a file or describe folder structure</span>
               </span>
-              <span class="opt-card-desc">Upload a file or describe folder structure</span>
             </button>
             <button class="opt-card" (click)="selectMethod('xlsx')" data-track="opt-xlsx">
               <img src="/assets/illustrations/xlsx-template.svg" class="opt-card-img" alt="" aria-hidden="true">
-              <span class="opt-card-title">XLSX template</span>
-              <span class="opt-card-desc">Create folder structure using our template</span>
+              <span class="opt-card-textblock">
+                <span class="opt-card-title">XLSX template</span>
+                <span class="opt-card-desc">Create folder structure using our template</span>
+              </span>
             </button>
             <button class="opt-card" (click)="selectMethod('info')" data-track="opt-info">
               <img src="/assets/illustrations/info-request-list.svg" class="opt-card-img" alt="" aria-hidden="true">
-              <span class="opt-card-title">Info request list</span>
-              <span class="opt-card-desc">Convert info request list to the folder structure</span>
+              <span class="opt-card-textblock">
+                <span class="opt-card-title">Info request list</span>
+                <span class="opt-card-desc">Convert info request list to the folder structure</span>
+              </span>
             </button>
             <button class="opt-card" (click)="selectMethod('copy')" data-track="opt-copy">
               <img src="/assets/illustrations/copy-from-project.svg" class="opt-card-img" alt="" aria-hidden="true">
-              <span class="opt-card-title">Another project</span>
-              <span class="opt-card-desc">Copy folder structure from existing project</span>
+              <span class="opt-card-textblock">
+                <span class="opt-card-title">Another project</span>
+                <span class="opt-card-desc">Copy folder structure from existing project</span>
+              </span>
             </button>
           </div>
         </fvdr-modal>
@@ -670,53 +678,63 @@ const CREATED_ROWS: Record<string, string>[] = [
     .docs-empty-btn { margin-top: var(--space-2); }
     .upload-standalone-btn { align-self: flex-start; margin-bottom: var(--space-4); }
 
-    /* ─── Import modal content (inside fvdr-modal body) ─── */
+    /* Figma 36059-304809: subtitle "Select the method…" — UI/Body-2 15/24 Regular */
     .modal-desc {
-      margin: 0 0 var(--space-4);
-      font-size: var(--font-size-sm);
+      margin: 0 0 var(--space-6);
+      font-size: 15px;
+      line-height: 24px;
       color: var(--color-text-secondary);
+      font-weight: 400;
     }
     .modal-learn {
       color: var(--color-primary-500);
       text-decoration: none;
-      font-weight: var(--font-weight-semi);
+      font-weight: 400;
     }
     .modal-learn:hover { text-decoration: underline; }
 
+    /* Figma 36059-304830: title row з badge — gap 8px, items-start */
     .opt-card-titlerow {
       display: flex;
       align-items: center;
+      justify-content: center;
       gap: var(--space-2);
     }
+    /* Figma 36059-304832: "New" badge — bg #EAF6ED, text #2C9C74, 12/16 Regular */
     .opt-card-badge {
       display: inline-flex;
       align-items: center;
-      padding: 2px var(--space-2);
-      background: var(--color-primary-50);
-      color: var(--color-primary-700);
+      justify-content: center;
+      padding: 1px var(--space-2) 3px;
+      background: #EAF6ED;
+      color: var(--color-primary-500);
       border-radius: var(--radius-sm);
-      font-size: var(--text-caption1-size);
-      font-weight: var(--font-weight-semi);
-      line-height: 1;
+      font-size: 12px;
+      line-height: 16px;
+      font-weight: 400;
     }
 
+    /* Figma 36059-304813: flex-wrap, gap 16px */
     .modal-options {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: var(--space-3);
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-4);
     }
 
+    /* Figma 36059-304814: w-224, p-24, gap-24, items-center */
     .opt-card {
+      width: 224px;
       display: flex;
       flex-direction: column;
-      align-items: flex-start;
-      gap: var(--space-2);
-      padding: var(--space-3) var(--space-4);
+      align-items: center;
+      justify-content: flex-end;
+      gap: var(--space-6);
+      padding: var(--space-6);
       background: var(--color-stone-0);
       border: 1px solid var(--color-divider);
       border-radius: var(--radius-sm);
       cursor: pointer;
-      text-align: left;
+      text-align: center;
       font-family: var(--font-family);
       transition: border-color 0.15s ease, background 0.15s ease;
     }
@@ -726,28 +744,33 @@ const CREATED_ROWS: Record<string, string>[] = [
       border-color: var(--color-primary-500);
     }
 
-    .opt-card--active {
-      background: var(--color-primary-50);
-      border: 1.5px solid var(--color-primary-500);
-      box-shadow: 0 0 0 1px var(--color-primary-500);
-    }
-
     .opt-card-img {
       width: 96px;
       height: 72px;
       display: block;
-      border-radius: var(--radius-sm);
-      margin-bottom: var(--space-1);
     }
 
+    /* Figma 36059-304829: text block — center, gap 8px */
+    .opt-card-textblock {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-2);
+      width: 100%;
+    }
+
+    /* Figma 36059-304831: Label/Medium 15/20 SemiBold */
     .opt-card-title {
-      font-size: var(--font-size-base);
-      font-weight: var(--font-weight-semi);
+      font-size: 15px;
+      line-height: 20px;
+      font-weight: 600;
       color: var(--color-text-primary);
     }
 
+    /* Figma 36059-304833: UI/Body 3 14/20 Regular */
     .opt-card-desc {
-      font-size: var(--font-size-xs);
+      font-size: 14px;
+      line-height: 20px;
       color: var(--color-text-secondary);
     }
 
