@@ -376,11 +376,20 @@ const CREATED_ROWS: Record<string, string>[] = [
                 class="upload-standalone-btn">
               </fvdr-btn>
 
-              <!-- Describe flow: show the prompt field (read-only) -->
-              <div *ngIf="sourceSegment === 'describe'" class="prompt-field">
-                <span class="prompt-field__text">{{ describeText }}</span>
-                <button class="prompt-field__edit" (click)="editPrompt()" title="Edit prompt">
-                  <fvdr-icon name="edit"></fvdr-icon>
+              <!-- Describe flow: Figma toolbar — prompt-field + Rebuild + Full structure -->
+              <div *ngIf="sourceSegment === 'describe'" class="gen-toolbar">
+                <div class="prompt-field">
+                  <span class="prompt-field__text">{{ describeText }}</span>
+                  <button class="prompt-field__edit" (click)="editPrompt()" title="Edit prompt">
+                    <fvdr-icon name="edit"></fvdr-icon>
+                  </button>
+                </div>
+                <fvdr-btn label="Rebuild index" variant="secondary" size="m" [iconName]="'reports'"></fvdr-btn>
+                <div class="gen-toolbar__spacer"></div>
+                <button class="gen-dropdown">
+                  <fvdr-icon name="folder" class="gen-dropdown__icon"></fvdr-icon>
+                  <span class="gen-dropdown__label">Full structure</span>
+                  <fvdr-icon name="chevron-down" class="gen-dropdown__chev"></fvdr-icon>
                 </button>
               </div>
 
@@ -397,9 +406,13 @@ const CREATED_ROWS: Record<string, string>[] = [
               </ng-container>
 
               <ng-container *ngIf="state === 'generated'">
-                <fvdr-btn label="Back" variant="ghost" (clicked)="onBack()" data-track="back"></fvdr-btn>
+                <fvdr-btn label="Back" variant="secondary" (clicked)="onBack()" data-track="back"></fvdr-btn>
                 <fvdr-btn label="Create" variant="primary" (clicked)="onCreate()" data-track="create"></fvdr-btn>
-                <fvdr-inline-message variant="info" text="14 new folders"></fvdr-inline-message>
+                <!-- Figma: pill-style inline message — grey-50 bg, h 40, padding 8/12, info icon -->
+                <span class="inline-pill">
+                  <fvdr-icon name="info" class="inline-pill__icon"></fvdr-icon>
+                  <span class="inline-pill__text">14 new folders</span>
+                </span>
                 <div class="footer-spacer"></div>
               </ng-container>
             </div>
@@ -1053,7 +1066,17 @@ const CREATED_ROWS: Record<string, string>[] = [
       color: var(--color-text-secondary);
     }
 
-    /* ─── Prompt field (describe flow, generated state) ─── */
+    /* ─── Generated toolbar (Figma 36421:29435) — prompt + Rebuild + Full structure ─── */
+    .gen-toolbar {
+      display: flex;
+      align-items: center;
+      gap: var(--space-4);
+      margin-bottom: var(--space-5);
+      width: 100%;
+    }
+    .gen-toolbar__spacer { flex: 1; }
+
+    /* Prompt field (describe flow, generated state) */
     .prompt-field {
       display: flex;
       align-items: center;
@@ -1065,9 +1088,29 @@ const CREATED_ROWS: Record<string, string>[] = [
       background: var(--color-stone-0);
       width: 640px;
       max-width: 100%;
-      flex-shrink: 0;
-      margin-bottom: var(--space-4);
+      flex-shrink: 1;
+      min-width: 0;
     }
+
+    /* Full structure dropdown — Figma button-style */
+    .gen-dropdown {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-2);
+      height: 40px;
+      padding: 0 var(--space-4);
+      background: var(--color-stone-0);
+      border: 1px solid var(--color-stone-400);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-family: var(--font-family);
+      color: var(--color-text-primary);
+      flex-shrink: 0;
+    }
+    .gen-dropdown:hover { border-color: var(--color-primary-500); }
+    .gen-dropdown__icon { font-size: var(--font-size-lg, 16px); color: var(--color-primary-500); }
+    .gen-dropdown__label { font-size: 15px; line-height: 16px; }
+    .gen-dropdown__chev { font-size: var(--font-size-lg, 16px); color: var(--color-text-secondary); }
     .prompt-field__text {
       flex: 1;
       font-size: var(--font-size-md);
@@ -1268,6 +1311,29 @@ const CREATED_ROWS: Record<string, string>[] = [
     }
 
     .footer-spacer { flex: 1; }
+
+    /* Figma 36411-33822: Inline pill — grey-50 bg, 40h, 8/12 padding, 16/24 icon+text */
+    .inline-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-2);
+      height: 40px;
+      padding: var(--space-2) var(--space-3);
+      background: var(--color-stone-100);
+      border-radius: var(--radius-sm);
+      font-family: var(--font-family);
+    }
+    .inline-pill__icon {
+      font-size: var(--font-size-lg, 16px);
+      color: var(--color-text-secondary);
+      flex-shrink: 0;
+    }
+    .inline-pill__text {
+      font-size: 15px;
+      line-height: 24px;
+      color: var(--color-text-primary);
+      white-space: nowrap;
+    }
 
     /* ─── Add button dropdown ─── */
     .add-btn-wrap {
