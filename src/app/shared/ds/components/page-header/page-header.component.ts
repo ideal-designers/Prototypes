@@ -18,21 +18,24 @@ import { FvdrIconComponent } from '../../icons/icon.component';
     </header>
   `,
   styles: [`
-    :host { display: block; }
+    :host { display: block; flex-shrink: 0; }
     .page-header {
-      display: flex; flex-direction: column; gap: var(--space-2);
-      padding: var(--space-6) 0 var(--space-4);
+      display: flex; flex-direction: column; gap: var(--space-1);
+      padding: var(--space-4) var(--space-6) var(--space-4);
+      background: var(--color-stone-0);
+      border-bottom: 1px solid var(--color-divider);
     }
     .breadcrumb {
-      display: flex; align-items: center; gap: var(--space-2);
-      font-size: var(--font-size-base, 14px);
+      display: flex; align-items: center; gap: var(--space-1);
+      font-size: var(--font-size-sm, 13px);
       color: var(--color-text-secondary);
+      line-height: 1;
     }
     .bc-item { color: var(--color-text-secondary); }
-    .bc-sep { font-size: var(--font-size-base, 14px); color: var(--color-text-secondary); }
+    .bc-sep { font-size: var(--font-size-sm, 13px); color: var(--color-text-secondary); }
     .page-title {
       margin: 0;
-      font-size: var(--font-size-2xl, 20px);
+      font-size: var(--font-size-xl, 18px);
       font-weight: 600;
       color: var(--color-text-primary);
       line-height: 1.4;

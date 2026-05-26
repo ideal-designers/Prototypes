@@ -1,0 +1,7 @@
+<svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="40" cy="40" r="36" fill="#E8F3FF"/>
+  <rect x="22" y="22" width="36" height="36" rx="2" fill="#fff" stroke="#358CEB" stroke-width="1.5"/>
+  <path d="M22 32h36M22 42h36M22 52h36M34 22v36M46 22v36" stroke="#358CEB" stroke-width="1.2"/>
+  <rect x="34" y="32" width="12" height="10" fill="#358CEB" fill-opacity="0.15"/>
+  <text x="40" y="68" text-anchor="middle" font-family="Inter, sans-serif" font-size="8" font-weight="700" fill="#358CEB">XLSX</text>
+</svg>
