@@ -635,6 +635,8 @@ const CREATED_ROWS: Record<string, string>[] = [
       overflow-y: auto;
       display: flex;
       flex-direction: column;
+      padding: 0 var(--space-6);
+      min-width: 0;
     }
 
     /* ─── Quick access wrapper ─── */
@@ -1115,9 +1117,8 @@ const CREATED_ROWS: Record<string, string>[] = [
       align-items: center;
     }
     .docs-tbl-row--head {
-      background: var(--color-stone-200);
-      position: sticky; top: 0; z-index: 2;
       min-height: 48px;
+      border-bottom: 1px solid var(--color-divider);
     }
     .docs-tbl-row--data {
       min-height: 52px;
