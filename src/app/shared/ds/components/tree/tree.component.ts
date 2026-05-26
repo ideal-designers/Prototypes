@@ -1,11 +1,15 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FvdrIconComponent } from '../../icons/icon.component';
+import { FileIconComponent, FvdrFileType } from '../file-icon/file-icon.component';
 
 export interface TreeNode {
   id: string;
   label: string;
+  /** Звичайна іконка з DS-набору. Якщо задано fileType — він має пріоритет. */
   icon?: string;
+  /** Колор-кодована file-icon (folder-colored, doc, pdf...). Default fileType для папок з дітьми. */
+  fileType?: FvdrFileType;
   children?: TreeNode[];
   disabled?: boolean;
   data?: any;
@@ -28,7 +32,7 @@ export interface TreeNode {
 @Component({
   selector: 'fvdr-tree',
   standalone: true,
-  imports: [CommonModule, FvdrIconComponent],
+  imports: [CommonModule, FvdrIconComponent, FileIconComponent],
   template: `
     <div class="tree">
       <ng-container *ngFor="let node of nodes">
@@ -51,7 +55,8 @@ export interface TreeNode {
             <fvdr-icon [name]="isExpanded(node.id) ? 'chevron-down' : 'chevron-right'" />
           </button>
           <span *ngIf="!node.children?.length" class="tree-node__spacer"></span>
-          <fvdr-icon *ngIf="node.icon" [name]="node.icon" class="tree-node__icon" />
+          <fvdr-file-icon *ngIf="node.fileType" [type]="node.fileType" class="tree-node__icon" />
+          <fvdr-icon *ngIf="!node.fileType && node.icon" [name]="node.icon" class="tree-node__icon" />
           <span class="tree-node__label">{{ node.label }}</span>
         </div>
         <ng-container *ngIf="isExpanded(node.id) && node.children">

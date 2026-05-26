@@ -8,43 +8,43 @@ import lottie, { AnimationItem } from 'lottie-web';
 type PageState = 'popup' | 'upload' | 'loading' | 'generated' | 'creating' | 'created';
 
 const FOLDER_TREE_NODES: TreeNode[] = [
-  { id: '1', label: '1. Corporate Structure', icon: 'folder', children: [
-    { id: '1.1', label: '1.1 Articles of Incorporation', icon: 'folder' },
-    { id: '1.2', label: '1.2 Bylaws & Board Resolutions', icon: 'folder' },
+  { id: '1', label: '1. Corporate Structure', fileType: 'folder-colored', children: [
+    { id: '1.1', label: '1.1 Articles of Incorporation', fileType: 'folder-colored' },
+    { id: '1.2', label: '1.2 Bylaws & Board Resolutions', fileType: 'folder-colored' },
   ]},
-  { id: '2', label: '2. Financial Information', icon: 'folder', children: [
-    { id: '2.1', label: '2.1 Audited Financial Statements', icon: 'folder' },
-    { id: '2.2', label: '2.2 Management Accounts', icon: 'folder' },
-    { id: '2.3', label: '2.3 Financial Projections', icon: 'folder' },
+  { id: '2', label: '2. Financial Information', fileType: 'folder-colored', children: [
+    { id: '2.1', label: '2.1 Audited Financial Statements', fileType: 'folder-colored' },
+    { id: '2.2', label: '2.2 Management Accounts', fileType: 'folder-colored' },
+    { id: '2.3', label: '2.3 Financial Projections', fileType: 'folder-colored' },
   ]},
-  { id: '3', label: '3. Legal & Compliance', icon: 'folder', children: [
-    { id: '3.1', label: '3.1 Material Contracts', icon: 'folder' },
-    { id: '3.2', label: '3.2 Litigation & Disputes', icon: 'folder' },
-    { id: '3.3', label: '3.3 Regulatory Approvals', icon: 'folder' },
+  { id: '3', label: '3. Legal & Compliance', fileType: 'folder-colored', children: [
+    { id: '3.1', label: '3.1 Material Contracts', fileType: 'folder-colored' },
+    { id: '3.2', label: '3.2 Litigation & Disputes', fileType: 'folder-colored' },
+    { id: '3.3', label: '3.3 Regulatory Approvals', fileType: 'folder-colored' },
   ]},
-  { id: '4', label: '4. Intellectual Property', icon: 'folder', children: [
-    { id: '4.1', label: '4.1 Patents & Trademarks', icon: 'folder' },
-    { id: '4.2', label: '4.2 Licensing Agreements', icon: 'folder' },
+  { id: '4', label: '4. Intellectual Property', fileType: 'folder-colored', children: [
+    { id: '4.1', label: '4.1 Patents & Trademarks', fileType: 'folder-colored' },
+    { id: '4.2', label: '4.2 Licensing Agreements', fileType: 'folder-colored' },
   ]},
-  { id: '5', label: '5. Human Resources', icon: 'folder', children: [
-    { id: '5.1', label: '5.1 Key Employee Contracts', icon: 'folder' },
-    { id: '5.2', label: '5.2 Benefits & Compensation', icon: 'folder' },
+  { id: '5', label: '5. Human Resources', fileType: 'folder-colored', children: [
+    { id: '5.1', label: '5.1 Key Employee Contracts', fileType: 'folder-colored' },
+    { id: '5.2', label: '5.2 Benefits & Compensation', fileType: 'folder-colored' },
   ]},
-  { id: '6', label: '6. Tax', icon: 'folder', children: [
-    { id: '6.1', label: '6.1 Tax Returns', icon: 'folder' },
-    { id: '6.2', label: '6.2 Transfer Pricing Documents', icon: 'folder' },
+  { id: '6', label: '6. Tax', fileType: 'folder-colored', children: [
+    { id: '6.1', label: '6.1 Tax Returns', fileType: 'folder-colored' },
+    { id: '6.2', label: '6.2 Transfer Pricing Documents', fileType: 'folder-colored' },
   ]},
 ];
 
 /** Flat list of root-level folders for the destination picker */
 const DEST_PICKER_NODES: TreeNode[] = [
-  { id: 'root', label: 'Documents', icon: 'folder', children: [
-    { id: 'p1', label: '1. Corporate Structure', icon: 'folder' },
-    { id: 'p2', label: '2. Financial Information', icon: 'folder' },
-    { id: 'p3', label: '3. Legal & Compliance', icon: 'folder' },
-    { id: 'p4', label: '4. Intellectual Property', icon: 'folder' },
-    { id: 'p5', label: '5. Human Resources', icon: 'folder' },
-    { id: 'p6', label: '6. Tax', icon: 'folder' },
+  { id: 'root', label: 'Documents', fileType: 'folder-colored', children: [
+    { id: 'p1', label: '1. Corporate Structure', fileType: 'folder-colored' },
+    { id: 'p2', label: '2. Financial Information', fileType: 'folder-colored' },
+    { id: 'p3', label: '3. Legal & Compliance', fileType: 'folder-colored' },
+    { id: 'p4', label: '4. Intellectual Property', fileType: 'folder-colored' },
+    { id: 'p5', label: '5. Human Resources', fileType: 'folder-colored' },
+    { id: 'p6', label: '6. Tax', fileType: 'folder-colored' },
   ]},
 ];
 
@@ -297,7 +297,7 @@ const CREATED_ROWS: Record<string, string>[] = [
                 <div class="dest-field">
                   <label class="dest-label">Destination folder</label>
                   <div class="dest-picker" (click)="folderPickerOpen = !folderPickerOpen">
-                    <fvdr-icon name="folder" class="dest-folder-icon"></fvdr-icon>
+                    <fvdr-file-icon type="folder-colored" class="dest-folder-icon"></fvdr-file-icon>
                     <span class="dest-folder-name">{{ selectedFolderLabel }}</span>
                     <fvdr-icon name="chevron-down" class="dest-chevron" [class.dest-chevron--open]="folderPickerOpen"></fvdr-icon>
                   </div>
@@ -340,7 +340,7 @@ const CREATED_ROWS: Record<string, string>[] = [
                 <div class="dest-field">
                   <label class="dest-label">Destination folder</label>
                   <div class="dest-picker" (click)="folderPickerOpen = !folderPickerOpen">
-                    <fvdr-icon name="folder" class="dest-folder-icon"></fvdr-icon>
+                    <fvdr-file-icon type="folder-colored" class="dest-folder-icon"></fvdr-file-icon>
                     <span class="dest-folder-name">{{ selectedFolderLabel }}</span>
                     <fvdr-icon name="chevron-down" class="dest-chevron" [class.dest-chevron--open]="folderPickerOpen"></fvdr-icon>
                   </div>
@@ -384,10 +384,10 @@ const CREATED_ROWS: Record<string, string>[] = [
                     <fvdr-icon name="edit"></fvdr-icon>
                   </button>
                 </div>
-                <fvdr-btn label="Rebuild index" variant="secondary" size="m" [iconName]="'reports'"></fvdr-btn>
+                <fvdr-btn label="Rebuild index" variant="secondary" size="m" [iconName]="'icon-rebuild-index'"></fvdr-btn>
                 <div class="gen-toolbar__spacer"></div>
                 <button class="gen-dropdown">
-                  <fvdr-icon name="folder" class="gen-dropdown__icon"></fvdr-icon>
+                  <fvdr-icon name="icon-full-structure" class="gen-dropdown__icon"></fvdr-icon>
                   <span class="gen-dropdown__label">Full structure</span>
                   <fvdr-icon name="chevron-down" class="gen-dropdown__chev"></fvdr-icon>
                 </button>
@@ -1108,7 +1108,7 @@ const CREATED_ROWS: Record<string, string>[] = [
       flex-shrink: 0;
     }
     .gen-dropdown:hover { border-color: var(--color-primary-500); }
-    .gen-dropdown__icon { font-size: var(--font-size-lg, 16px); color: var(--color-primary-500); }
+    .gen-dropdown__icon { font-size: var(--font-size-lg, 16px); color: var(--color-text-secondary); }
     .gen-dropdown__label { font-size: 15px; line-height: 16px; }
     .gen-dropdown__chev { font-size: var(--font-size-lg, 16px); color: var(--color-text-secondary); }
     .prompt-field__text {
