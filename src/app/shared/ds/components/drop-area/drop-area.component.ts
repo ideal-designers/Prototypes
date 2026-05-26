@@ -1,6 +1,9 @@
 import { Component, Input, Output, EventEmitter, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FvdrIconComponent } from '../../icons/icon.component';
+import { ButtonComponent } from '../button/button.component';
+
+export type DropAreaVariant = 'default' | 'compact';
 
 /**
  * DS Drag & Drop Area — Figma: liyNDiFf1piO8SQmHNKoeU, node 35319-17829
@@ -20,21 +23,35 @@ import { FvdrIconComponent } from '../../icons/icon.component';
 @Component({
   selector: 'fvdr-drop-area',
   standalone: true,
-  imports: [CommonModule, FvdrIconComponent],
+  imports: [CommonModule, FvdrIconComponent, ButtonComponent],
   template: `
     <div
-      class="drop"
+      class="drop drop--{{ variant }}"
       [class.drop--drag-over]="dragOver"
       [class.drop--disabled]="disabled"
-      (click)="!disabled && fileInput.click()"
+      (click)="variant === 'default' && !disabled && fileInput.click()"
       (dragover)="onDragOver($event)"
       (dragleave)="dragOver = false"
       (drop)="onDrop($event)"
     >
-      <fvdr-icon name="upload" class="drop__icon" />
-      <span class="drop__title">{{ title }}</span>
-      <span class="drop__subtitle">{{ subtitle }}</span>
-      <span *ngIf="accept" class="drop__accept">{{ accept }}</span>
+      <!-- Default variant: icon + title + subtitle + accept -->
+      <ng-container *ngIf="variant === 'default'">
+        <fvdr-icon name="upload" class="drop__icon" />
+        <span class="drop__title">{{ title }}</span>
+        <span class="drop__subtitle">{{ subtitle }}</span>
+        <span *ngIf="accept" class="drop__accept">{{ accept }}</span>
+      </ng-container>
+      <!-- Compact variant (Figma 36079:55616): title + primary "Choose file" button -->
+      <ng-container *ngIf="variant === 'compact'">
+        <span class="drop__title drop__title--compact">{{ title }}</span>
+        <fvdr-btn
+          [label]="buttonLabel"
+          variant="primary"
+          size="m"
+          [iconName]="'plus'"
+          (clicked)="$event.stopPropagation(); !disabled && fileInput.click()">
+        </fvdr-btn>
+      </ng-container>
       <input
         #fileInput
         type="file"
@@ -64,12 +81,32 @@ import { FvdrIconComponent } from '../../icons/icon.component';
     .drop--drag-over { border-color: var(--color-primary-500); background: var(--color-primary-50); border-style: solid; }
     .drop--disabled { opacity: 0.45; cursor: not-allowed; }
 
+    /* Compact variant — Figma 36079:55616: stone-50 bg, 1px dashed devider, radius 4, padding 0/24, gap 16 */
+    .drop--compact {
+      gap: var(--space-4);
+      padding: var(--space-6) var(--space-6);
+      border: 1px dashed var(--color-divider);
+      border-radius: var(--radius-sm);
+      background: #FBFBFB;
+      cursor: default;
+    }
+    .drop--compact:hover { border-color: var(--color-primary-500); background: #FBFBFB; }
+    .drop--compact.drop--drag-over { border-color: var(--color-primary-500); background: var(--color-primary-50); border-style: dashed; }
+
     .drop__icon { font-size: var(--font-size-4xl, 24px); color: var(--color-primary-500); margin-bottom: var(--space-1); }
     .drop__title {
       font-family: var(--font-family);
       font-size: var(--text-base-s-size);
       font-weight: var(--text-base-s-sb-weight);
       color: var(--color-text-primary);
+    }
+    /* Compact title — UI/Body-2 15/24 Regular secondary */
+    .drop__title--compact {
+      font-family: var(--font-family);
+      font-size: 15px;
+      line-height: 24px;
+      font-weight: 400;
+      color: var(--color-text-secondary);
     }
     .drop__subtitle {
       font-family: var(--font-family);
@@ -90,6 +127,10 @@ export class DropAreaComponent {
   @Input() accept = '';
   @Input() multiple = false;
   @Input() disabled = false;
+  /** 'default' (велика з upload icon) або 'compact' (текст + button, Figma IFS-AI) */
+  @Input() variant: DropAreaVariant = 'default';
+  /** Текст для primary-кнопки у variant='compact' */
+  @Input() buttonLabel = 'Choose file';
   @Output() filesDropped = new EventEmitter<File[]>();
 
   dragOver = false;

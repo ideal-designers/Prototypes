@@ -306,11 +306,12 @@ const CREATED_ROWS: Record<string, string>[] = [
                   </div>
                 </div>
 
-                <!-- Drop area (no file) -->
+                <!-- Drop area (no file) — Figma 36079:55616: compact variant -->
                 <fvdr-drop-area
                   *ngIf="!hasFile"
+                  variant="compact"
                   title="Drop your file in any format or layout"
-                  subtitle="or click to choose a file"
+                  buttonLabel="Choose file"
                   (filesDropped)="simulateUpload()"
                   class="wiz-drop-area"
                 ></fvdr-drop-area>
