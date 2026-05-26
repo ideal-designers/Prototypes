@@ -78,7 +78,7 @@ export interface ModalConfig {
 
     .modal {
       background: var(--color-stone-0);
-      border-radius: var(--radius-lg);
+      border-radius: var(--radius-sm);
       box-shadow: var(--shadow-popover);
       display: flex;
       flex-direction: column;
@@ -96,7 +96,7 @@ export interface ModalConfig {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: var(--space-4) var(--space-6);
+      padding: var(--space-6) var(--space-6) var(--space-2);
       flex-shrink: 0;
     }
 
@@ -126,7 +126,7 @@ export interface ModalConfig {
     .modal__body {
       flex: 1;
       overflow-y: auto;
-      padding: var(--space-6);
+      padding: 0 var(--space-6) var(--space-6);
     }
 
     .modal__content-text {
