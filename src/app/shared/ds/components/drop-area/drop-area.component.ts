@@ -49,7 +49,7 @@ export type DropAreaVariant = 'default' | 'compact';
           variant="primary"
           size="m"
           [iconName]="'plus'"
-          (clicked)="$event.stopPropagation(); !disabled && fileInput.click()">
+          (clicked)="openFilePicker($event, fileInput)">
         </fvdr-btn>
       </ng-container>
       <input
@@ -151,5 +151,12 @@ export class DropAreaComponent {
   onFileInput(e: Event): void {
     const files = Array.from((e.target as HTMLInputElement).files ?? []);
     if (files.length) this.filesDropped.emit(files);
+  }
+
+  /** Compact-variant: клік на primary button відкриває file picker. */
+  openFilePicker(e: Event, input: HTMLInputElement): void {
+    e.stopPropagation();
+    if (this.disabled) return;
+    input.click();
   }
 }
