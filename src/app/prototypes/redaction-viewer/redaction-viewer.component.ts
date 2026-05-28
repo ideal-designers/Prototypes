@@ -11,6 +11,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc =
 
 // ── Types ──────────────────────────────────────────────────────────────────
 type PiiCategory = 'personal-name' | 'address' | 'date-time' | 'email' | 'phone' | 'iban' | 'ssn' | 'passport';
+type MarkCategory = PiiCategory | 'manual' | 'keyword';
 type TabMode = 'search' | 'detect' | null;
 type DetectState = 'idle' | 'detecting' | 'results' | 'no-results';
 type MarkStatus = 'draft' | 'applied';
@@ -21,7 +22,7 @@ interface RedactionMark {
   text: string;
   pageNum: number;
   x: number; y: number; width: number; height: number;
-  category: PiiCategory | 'manual';
+  category: MarkCategory;
   status: MarkStatus;
 }
 
@@ -103,6 +104,23 @@ const PII_ORDER: PiiCategory[] = [
   'personal-name', 'address', 'date-time', 'email', 'phone', 'iban', 'ssn', 'passport'
 ];
 
+const MARKS_CAT_ORDER: MarkCategory[] = [
+  'manual', 'keyword', 'personal-name', 'address', 'date-time', 'email', 'phone', 'iban', 'ssn', 'passport'
+];
+
+const EXTRA_CAT_META: Record<'manual' | 'keyword', { label: string; svgPath: string; highlightColor: string }> = {
+  manual: {
+    label: 'Redacted areas',
+    svgPath: 'M3 5H1v16c0 1.1.9 2 2 2h16v-2H3V5zm18-4H7c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V3c0-1.1-.9-2-2-2zm0 16H7V3h14v14z',
+    highlightColor: 'rgba(40,40,40,.15)'
+  },
+  keyword: {
+    label: 'Keywords',
+    svgPath: 'M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z',
+    highlightColor: 'rgba(255,193,7,.35)'
+  }
+};
+
 // ── Component ──────────────────────────────────────────────────────────────
 @Component({
   selector: 'fvdr-redaction-viewer',
@@ -174,7 +192,7 @@ const PII_ORDER: PiiCategory[] = [
 
     <div class="rv-tool-separator"></div>
 
-    <button class="rv-tool-tab" [class.rv-tool-tab--active]="toolMode === 'redact-area'" (click)="setToolMode('redact-area')">
+    <button class="rv-tool-tab" [class.rv-tool-tab--active]="activeTab === null" (click)="activateRedactArea()">
       <svg viewBox="0 0 24 24"><path d="M3 5H1v16c0 1.1.9 2 2 2h16v-2H3V5zm18-4H7c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V3c0-1.1-.9-2-2-2zm0 16H7V3h14v14z"/></svg>
       Redact area
       <svg viewBox="0 0 24 24" class="rv-chevron"><path d="M7 10l5 5 5-5z"/></svg>
@@ -190,7 +208,7 @@ const PII_ORDER: PiiCategory[] = [
       Detect sensitive information
     </button>
 
-    <span class="rv-unsaved" *ngIf="hasUnsaved">You have unsaved changes</span>
+    <span class="rv-unsaved" *ngIf="hasUnapplied">You have unapplied changes</span>
   </div>
 
   <!-- ══ MAIN BODY ══ -->
@@ -230,7 +248,7 @@ const PII_ORDER: PiiCategory[] = [
             class="rv-page-overlay"
             [style.width.px]="pg.width"
             [style.height.px]="pg.height"
-            [class.rv-overlay--draw]="toolMode === 'redact-area'"
+            [class.rv-overlay--draw]="activeTab === null"
             (mousedown)="onOverlayMouseDown($event, i + 1)"
           >
             <!-- Search highlights -->
@@ -394,7 +412,7 @@ const PII_ORDER: PiiCategory[] = [
   </div>
 
   <!-- ══ FLOATING: SEARCH PANEL ══ -->
-  <div class="rv-float-panel" *ngIf="activeTab === 'search'">
+  <div class="rv-float-panel" *ngIf="activeTab === 'search'" (click)="$event.stopPropagation()">
     <div class="rv-float-panel-inner">
       <div class="rv-float-title">Search &amp; redact</div>
 
@@ -441,7 +459,7 @@ const PII_ORDER: PiiCategory[] = [
   </div>
 
   <!-- ══ FLOATING: DETECT PANEL ══ -->
-  <div class="rv-float-panel rv-float-panel--detect" *ngIf="activeTab === 'detect'">
+  <div class="rv-float-panel rv-float-panel--detect" *ngIf="activeTab === 'detect'" (click)="$event.stopPropagation()">
     <div class="rv-float-panel-inner">
 
       <!-- Detecting state -->
@@ -467,40 +485,41 @@ const PII_ORDER: PiiCategory[] = [
 
       <!-- Results state -->
       <div class="rv-detect-results" *ngIf="detectState === 'results'">
-        <div class="rv-float-title">Sensitive information</div>
-        <div class="rv-pii-chips">
-          <button
-            class="rv-pii-chip"
-            [class.rv-pii-chip--active]="selectedPiiCats.has('all')"
-            (click)="togglePiiFilter('all')"
-          >
-            All {{ getTotalPiiCount() }}
-          </button>
+        <div class="rv-float-title">Detecting sensitive information</div>
+
+        <div class="rv-detect-note-box">
+          <svg viewBox="0 0 24 24" class="rv-detect-note-ico">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+          </svg>
+          Check important info, as mistakes during detection may occur
+        </div>
+
+        <div class="rv-pii-chips-grid">
           <button
             *ngFor="let cat of PII_ORDER"
             class="rv-pii-chip"
-            [class.rv-pii-chip--active]="selectedPiiCats.has(cat)"
+            [class.rv-pii-chip--active]="selectedPiiCats.has(cat) || selectedPiiCats.has('all')"
             [style.display]="getPiiCount(cat) === 0 ? 'none' : ''"
             (click)="togglePiiFilter(cat)"
           >
             <svg class="rv-pii-chip-ico" viewBox="0 0 24 24">
               <path [attr.d]="getCatMeta(cat).svgPath"/>
             </svg>
-            {{ getCatMeta(cat).label }} {{ getPiiCount(cat) }}
+            {{ getCatMeta(cat).shortLabel }} ({{ getPiiCount(cat) }})
           </button>
+        </div>
+
+        <div class="rv-detect-pages" *ngIf="detectedPages.length > 0">
+          <span class="rv-detect-pages-label">Pages:</span>
+          <ng-container *ngFor="let pg of detectedPages; let last = last">
+            <button class="rv-detect-page-btn" (click)="scrollToPage(pg)">{{ pg }}</button><ng-container *ngIf="!last">, </ng-container>
+          </ng-container>
         </div>
 
         <button
           class="rv-mark-btn rv-mark-btn--active"
           (click)="markDetectedPii()"
         >Mark for redaction</button>
-
-        <div class="rv-detect-note">
-          <svg viewBox="0 0 24 24" class="rv-detect-note-ico">
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
-          </svg>
-          AI-generated – check for accuracy
-        </div>
       </div>
 
       <!-- No results -->
@@ -960,11 +979,26 @@ const PII_ORDER: PiiCategory[] = [
   border-color: var(--color-primary-500);
 }
 .rv-pii-chip-ico { width: 13px; height: 13px; fill: currentColor; }
-.rv-detect-note {
-  display: flex; align-items: center; gap: 6px;
-  font-size: 12px; color: var(--color-text-secondary);
+.rv-detect-note-box {
+  display: flex; align-items: flex-start; gap: 8px;
+  background: var(--color-stone-200, #F7F7F7); border-radius: 6px;
+  padding: 10px 12px; font-size: 12px; color: var(--color-text-secondary); line-height: 1.4;
 }
-.rv-detect-note-ico { width: 14px; height: 14px; fill: var(--color-stone-600); }
+.rv-detect-note-ico { width: 14px; height: 14px; fill: var(--color-stone-600); flex-shrink: 0; margin-top: 1px; }
+.rv-pii-chips-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 6px;
+}
+.rv-detect-pages {
+  font-size: 12px; color: var(--color-text-secondary);
+  display: flex; flex-wrap: wrap; align-items: center; gap: 2px;
+}
+.rv-detect-pages-label { font-weight: 500; color: var(--color-text-primary); margin-right: 2px; }
+.rv-detect-page-btn {
+  border: none; background: none; padding: 0; cursor: pointer;
+  font-size: 12px; color: var(--color-primary-500); font-family: inherit;
+  text-decoration: underline; text-decoration-color: transparent;
+}
+.rv-detect-page-btn:hover { text-decoration-color: var(--color-primary-500); }
 .rv-detect-idle { display: flex; flex-direction: column; gap: 10px; }
 .rv-detect-noresults { display: flex; flex-direction: column; gap: 8px; }
 
@@ -1042,7 +1076,7 @@ export class RedactionViewerComponent implements OnInit, OnDestroy {
   private textItems: TextItem[] = [];
 
   // ── UI state ──────────────────────────────────────────────────────────────
-  toolMode: 'redact-area' | 'none' = 'none';
+  toolMode: 'redact-area' | 'none' = 'redact-area';
   activeTab: TabMode = null;
   showMarksPanel = false;
   previewMode = false;
@@ -1100,6 +1134,16 @@ export class RedactionViewerComponent implements OnInit, OnDestroy {
     clearTimeout(this.detectTimer);
     clearInterval(this.detectProgressTimer);
     clearTimeout(this.toastTimer);
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(e: MouseEvent) {
+    if (!this.activeTab) return;
+    const target = e.target as HTMLElement;
+    if (!target.closest('.rv-float-panel') && !target.closest('.rv-tool-tab')) {
+      this.activeTab = null;
+      this.cdr.detectChanges();
+    }
   }
 
   @HostListener('document:keydown', ['$event'])
@@ -1223,17 +1267,23 @@ export class RedactionViewerComponent implements OnInit, OnDestroy {
   }
 
   // ── Tool modes ────────────────────────────────────────────────────────────
+  activateRedactArea() {
+    this.activeTab = null;
+    this.toolMode = 'redact-area';
+  }
+
   setToolMode(mode: 'redact-area' | 'none') {
-    this.toolMode = this.toolMode === mode ? 'none' : mode;
-    if (this.toolMode === 'redact-area') {
-      this.activeTab = null;
-      this.showMarksPanel = true;
-    }
+    this.toolMode = mode;
+    if (mode === 'redact-area') this.activeTab = null;
   }
 
   toggleTab(tab: 'search' | 'detect') {
-    this.activeTab = this.activeTab === tab ? null : tab;
-    if (this.activeTab) this.toolMode = 'none';
+    if (this.activeTab === tab) {
+      this.activeTab = null;
+    } else {
+      this.activeTab = tab;
+      this.toolMode = 'none';
+    }
   }
 
   // ── Navigation ────────────────────────────────────────────────────────────
@@ -1251,7 +1301,7 @@ export class RedactionViewerComponent implements OnInit, OnDestroy {
     }
   }
 
-  private scrollToPage(pageNum: number) {
+  scrollToPage(pageNum: number) {
     const el = document.getElementById(`page-wrap-${pageNum}`);
     el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
@@ -1354,7 +1404,7 @@ export class RedactionViewerComponent implements OnInit, OnDestroy {
         this.marks.push({
           id: crypto.randomUUID(), text: h.text,
           pageNum: h.pageNum, x: h.x, y: h.y, width: h.width, height: h.height,
-          category: 'personal-name', status: 'draft'
+          category: 'keyword', status: 'draft'
         });
       }
     }
@@ -1402,100 +1452,88 @@ export class RedactionViewerComponent implements OnInit, OnDestroy {
     this.detectedPii = [];
     if (!this.textReady) return;
 
-    const patterns: { cat: PiiCategory; re: RegExp }[] = [
-      { cat: 'email', re: /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g },
-      { cat: 'phone', re: /\b(\+\d{1,3}[\s.-]?)?\(?\d{3}\)?[\s.-]\d{3}[\s.-]\d{4}\b/g },
-      { cat: 'ssn', re: /\b\d{3}-\d{2}-\d{4}\b/g },
-      { cat: 'iban', re: /\b[A-Z]{2}\d{2}[A-Z0-9]{4}\d{7,15}\b/g },
-      { cat: 'date-time', re: /\b(January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},?\s+\d{4}\b|\b\d{1,2}\/\d{1,2}\/\d{4}\b|\b\d{4}-\d{2}-\d{2}\b/gi },
+    // Regex patterns
+    const regexPatterns: { cat: PiiCategory; re: RegExp }[] = [
+      { cat: 'email',    re: /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g },
+      { cat: 'phone',    re: /\b(\+\d{1,3}[\s.-]?)?\(?\d{3}\)?[\s.-]\d{3}[\s.-]\d{4}\b/g },
+      { cat: 'ssn',      re: /\b\d{3}-\d{2}-\d{4}\b/g },
+      { cat: 'iban',     re: /\b[A-Z]{2}\d{2}[A-Z0-9]{4}\d{7,15}\b/g },
+      { cat: 'passport', re: /\b[A-Z]{2}\d{7}\b/g },
+      // dates: month names, slash/dash formats, and 4-digit years in reference context
+      { cat: 'date-time', re: /\b(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},?\s+\d{4}\b|\b\d{1,2}\/\d{1,2}\/\d{4}\b|\b\d{4}-\d{2}-\d{2}\b|\b(?:19|20)\d{2}[,.\])]?\b/gi },
     ];
 
     for (const item of this.textItems) {
-      for (const { cat, re } of patterns) {
+      for (const { cat, re } of regexPatterns) {
         re.lastIndex = 0;
         let m;
         while ((m = re.exec(item.text)) !== null) {
           const charW = item.width / Math.max(item.text.length, 1);
-          const matchX = item.x + m.index * charW;
-          const matchW = m[0].length * charW;
           this.detectedPii.push({
             id: crypto.randomUUID(), text: m[0], category: cat,
             pageNum: item.pageNum,
-            x: matchX, y: item.y,
-            width: Math.max(matchW, 20), height: item.height + 2
+            x: item.x + m.index * charW, y: item.y,
+            width: Math.max(m[0].length * charW, 20), height: item.height + 2
           });
         }
       }
     }
 
-    // Add hardcoded realistic PII for categories hard to detect with regex
-    this.addHardcodedPii();
-  }
-
-  private addHardcodedPii() {
-    // Personal names — find items that look like name patterns in study context
-    const namePatterns = ['WILLIAM C', 'KATHRIN U', 'ANN R', 'UGUR S', 'OZLEM T'];
+    // Personal names — known surnames cited in this MCF paper
+    const NAMES = [
+      'Haslhofer', 'Hershkovits', 'Andrews', 'Baker', 'Brendle', 'Hamilton',
+      'Huisken', 'Sinestrari', 'White', 'Colding', 'Minicozzi', 'Brakke',
+      'Ilmanen', 'Grayson', 'Gage', 'Mantegazza', 'Head', 'Bernstein',
+      'Schulze', 'Lynch', 'Langford', 'Perelman', 'Kleiner', 'Wang',
+      'Sheng', 'Lauer', 'Naff'
+    ];
     for (const item of this.textItems) {
-      for (const np of namePatterns) {
-        if (item.text.toUpperCase().includes(np)) {
+      for (const name of NAMES) {
+        let pos = 0;
+        while ((pos = item.text.indexOf(name, pos)) !== -1) {
+          const charW = item.width / Math.max(item.text.length, 1);
           this.detectedPii.push({
-            id: crypto.randomUUID(), text: item.text.trim(), category: 'personal-name',
+            id: crypto.randomUUID(), text: name, category: 'personal-name',
             pageNum: item.pageNum,
-            x: item.x, y: item.y, width: item.width, height: item.height + 2
+            x: item.x + pos * charW, y: item.y,
+            width: name.length * charW, height: item.height + 2
           });
+          pos += name.length;
         }
       }
-    }
-
-    // Find address-like patterns
-    for (const item of this.textItems) {
-      if (/\b(Street|Avenue|Boulevard|Road|Lane|Drive|Pfizer|BioNTech|Mainz|New York)\b/i.test(item.text)) {
-        this.detectedPii.push({
-          id: crypto.randomUUID(), text: item.text.trim(), category: 'address',
-          pageNum: item.pageNum,
-          x: item.x, y: item.y, width: item.width, height: item.height + 2
-        });
-      }
-    }
-
-    // Passport — look for mixed alphanumeric patterns that look like passport numbers
-    for (const item of this.textItems) {
-      if (/\b[A-Z]{2}\d{7}\b/.test(item.text)) {
-        const m = item.text.match(/\b[A-Z]{2}\d{7}\b/)!;
+      // Also match "A. Lastname" initials pattern common in reference lists
+      const initRe = /\b[A-Z]\.\s*[A-Z][a-z]{2,}\b/g;
+      let m;
+      while ((m = initRe.exec(item.text)) !== null) {
         const charW = item.width / Math.max(item.text.length, 1);
-        const idx = item.text.indexOf(m[0]);
         this.detectedPii.push({
-          id: crypto.randomUUID(), text: m[0], category: 'passport',
+          id: crypto.randomUUID(), text: m[0], category: 'personal-name',
           pageNum: item.pageNum,
-          x: item.x + idx * charW, y: item.y,
+          x: item.x + m.index * charW, y: item.y,
           width: m[0].length * charW, height: item.height + 2
         });
       }
     }
 
-    // IBAN — look for long alphanumeric with country prefix
+    // Addresses — academic institution affiliations
+    const addrRe = /\b(?:Department of Mathematics|Courant Institute|University of Toronto|New York University|ETH\s+Z[uü]rich|University of California)\b/gi;
     for (const item of this.textItems) {
-      if (/\b(DE|GB|FR|US)[A-Z0-9]{16,}\b/.test(item.text)) {
-        const m = item.text.match(/\b(DE|GB|FR|US)[A-Z0-9]{16,}\b/)!;
+      addrRe.lastIndex = 0;
+      let m;
+      while ((m = addrRe.exec(item.text)) !== null) {
+        const charW = item.width / Math.max(item.text.length, 1);
         this.detectedPii.push({
-          id: crypto.randomUUID(), text: m[0], category: 'iban',
+          id: crypto.randomUUID(), text: m[0], category: 'address',
           pageNum: item.pageNum,
-          x: item.x, y: item.y, width: item.width, height: item.height + 2
+          x: item.x + m.index * charW, y: item.y,
+          width: Math.max(m[0].length * charW, 30), height: item.height + 2
         });
       }
     }
+  }
 
-    // SSN patterns (US format)
-    for (const item of this.textItems) {
-      const m = item.text.match(/\b\d{3}-\d{2}-\d{4}\b/);
-      if (m) {
-        this.detectedPii.push({
-          id: crypto.randomUUID(), text: m[0], category: 'ssn',
-          pageNum: item.pageNum, x: item.x, y: item.y,
-          width: item.width, height: item.height + 2
-        });
-      }
-    }
+  get detectedPages(): number[] {
+    return [...new Set(this.detectedPii.map(p => p.pageNum))].sort((a, b) => a - b);
   }
 
   togglePiiFilter(key: string) {
@@ -1555,7 +1593,7 @@ export class RedactionViewerComponent implements OnInit, OnDestroy {
 
   // ── Manual draw (redact area) ─────────────────────────────────────────────
   onOverlayMouseDown(e: MouseEvent, pageNum: number) {
-    if (this.toolMode !== 'redact-area') return;
+    if (this.activeTab !== null) return;
     const overlay = e.currentTarget as HTMLElement;
     const rect = overlay.getBoundingClientRect();
     const x = e.clientX - rect.left;
@@ -1606,7 +1644,7 @@ export class RedactionViewerComponent implements OnInit, OnDestroy {
     return this.marks.filter(m => m.pageNum === pageNum);
   }
 
-  getMarksByCategory(cat: PiiCategory | 'manual'): RedactionMark[] {
+  getMarksByCategory(cat: MarkCategory): RedactionMark[] {
     return this.marks.filter(m => m.category === cat);
   }
 
@@ -1614,10 +1652,9 @@ export class RedactionViewerComponent implements OnInit, OnDestroy {
     return this.marks.filter(m => m.pageNum === pageNum);
   }
 
-  get categoriesWithMarks(): (PiiCategory | 'manual')[] {
+  get categoriesWithMarks(): MarkCategory[] {
     const cats = new Set(this.marks.map(m => m.category));
-    const order: (PiiCategory | 'manual')[] = [...PII_ORDER, 'manual' as const];
-    return order.filter(c => cats.has(c));
+    return MARKS_CAT_ORDER.filter(c => cats.has(c));
   }
 
   get pagesWithMarks(): number[] {
@@ -1626,7 +1663,7 @@ export class RedactionViewerComponent implements OnInit, OnDestroy {
 
   get draftCount() { return this.marks.filter(m => m.status === 'draft').length; }
   get appliedCount() { return this.marks.filter(m => m.status === 'applied').length; }
-  get hasUnsaved() { return this.draftCount > 0 || this.appliedCount > 0; }
+  get hasUnapplied() { return this.draftCount > 0; }
 
   selectMark(m: RedactionMark) {
     this.selectedMark = this.selectedMark?.id === m.id ? null : m;
@@ -1699,22 +1736,23 @@ export class RedactionViewerComponent implements OnInit, OnDestroy {
   }
 
   // ── PII category helpers ──────────────────────────────────────────────────
-  getCatMeta(cat: PiiCategory | string) {
+  getCatMeta(cat: MarkCategory | string): { label: string; shortLabel?: string; svgPath: string; highlightColor: string } {
+    if (cat === 'manual' || cat === 'keyword') return EXTRA_CAT_META[cat];
     return CAT_META[cat as PiiCategory] || CAT_META['personal-name'];
   }
 
-  darkenColor(cat: PiiCategory): string {
-    const colors: Record<PiiCategory, string> = {
-      'personal-name': 'rgba(255, 193, 7, 0.9)',
-      'address': 'rgba(33, 150, 243, 0.8)',
-      'date-time': 'rgba(76, 175, 80, 0.8)',
-      'email': 'rgba(156, 39, 176, 0.7)',
-      'phone': 'rgba(255, 87, 34, 0.7)',
-      'iban': 'rgba(0, 188, 212, 0.7)',
-      'ssn': 'rgba(233, 30, 99, 0.7)',
-      'passport': 'rgba(121, 85, 72, 0.7)'
+  darkenColor(cat: PiiCategory | string): string {
+    const colors: Record<string, string> = {
+      'personal-name': 'rgba(255,193,7,.9)',
+      'address':       'rgba(33,150,243,.8)',
+      'date-time':     'rgba(76,175,80,.8)',
+      'email':         'rgba(156,39,176,.7)',
+      'phone':         'rgba(255,87,34,.7)',
+      'iban':          'rgba(0,188,212,.7)',
+      'ssn':           'rgba(233,30,99,.7)',
+      'passport':      'rgba(121,85,72,.7)'
     };
-    return colors[cat] || 'rgba(0,0,0,0.4)';
+    return colors[cat] || 'rgba(0,0,0,.4)';
   }
 
   // ── Toast ─────────────────────────────────────────────────────────────────
