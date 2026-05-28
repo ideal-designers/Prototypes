@@ -161,7 +161,7 @@ const badge: ComponentDocEntry = {
   ],
   anatomy: [
     { index: 1, part: 'Container',   spec: 'padding: 2px 8px · border-radius: 9999px (full)' },
-    { index: 2, part: 'Label text',  spec: 'font-size: 12px · font-weight: 600 · line-height: 16px' },
+    { index: 2, part: 'Label text',  spec: 'font-size: var(--font-size-xs, 12px) · font-weight: 600 · line-height: 16px' },
   ],
   tokens: [
     { token: '--color-interactive-primary', value: '#2c9c74', usage: 'Primary/success variant background tint' },
@@ -296,12 +296,12 @@ const input: ComponentDocEntry = {
     'Date/time selection — use Datepicker or Timepicker',
   ],
   anatomy: [
-    { index: 1, part: 'Label',                  spec: 'font-size: 12px · font-weight: 600 · margin-bottom: 4px' },
+    { index: 1, part: 'Label',                  spec: 'font-size: var(--font-size-xs, 12px) · font-weight: 600 · margin-bottom: 4px' },
     { index: 2, part: 'Container',              spec: 'height: 32/40/48px · border: 1px solid border-input · border-radius: 4px' },
     { index: 3, part: 'Left icon (optional)',   spec: '16×16px · margin: 0 8px' },
     { index: 4, part: 'Text value',             spec: 'font-size: 13/14/15px · flex: 1' },
     { index: 5, part: 'Right icon / state icon', spec: '16px · error=alert, success=check' },
-    { index: 6, part: 'Helper / error text',    spec: 'font-size: 12px · margin-top: 4px' },
+    { index: 6, part: 'Helper / error text',    spec: 'font-size: var(--font-size-xs, 12px) · margin-top: 4px' },
   ],
   tokens: [
     { token: '--color-border-input',    value: '#bbbdc8', usage: 'Default border color' },
@@ -476,6 +476,87 @@ const dropdown: ComponentDocEntry = {
 
 // ─────────────────────────────────────────────────────────────────────────────
 
+const timezoneDropdown: ComponentDocEntry = {
+  id: 'timezone-dropdown',
+  name: 'Timezone Dropdown',
+  selector: 'fvdr-dropdown [timezone]',
+  category: 'controls',
+  status: 'stable',
+  figmaNode: '15032-13756',
+  description:
+    'A specialised configuration of fvdr-dropdown for timezone selection. Displays city name, an Auto-detected badge, UTC offset, and live local time in both the trigger and every option row. Supports alias-based search (e.g. "Kiev" finds Kyiv) and an auto-detect row at the top of the list.',
+  whenToUse: [
+    'Letting users pick their account or notification timezone',
+    'Any time a timezone must be shown alongside the current local time',
+    'When the browser-detected timezone should be offered as a convenient default',
+  ],
+  whenNotToUse: [
+    'Simple offset-only pickers where city names are not needed',
+    'When live time updates would be distracting (e.g. dense forms)',
+    'Date/time pickers — use fvdr-datepicker or fvdr-timepicker instead',
+  ],
+  anatomy: [
+    { index: 1, part: 'Trigger',            spec: 'City name · Auto-detected badge · UTC offset · (HH:MM) · chevron' },
+    { index: 2, part: 'Auto-detect row',    spec: 'First row in panel · green-tinted when selected · badge + UTC + time on right' },
+    { index: 3, part: 'Option row',         spec: 'City name · optional badge · UTC offset · (HH:MM) right-aligned' },
+    { index: 4, part: 'Group label',        spec: 'AMERICAS / EUROPE / ASIA / AFRICA — uppercase, muted' },
+    { index: 5, part: 'Search field',       spec: 'Filters by city name, UTC offset string, and aliases array' },
+  ],
+  states: [
+    { name: 'Auto-detected (default)', description: 'City + [Auto-detected] badge + UTC offset + (time). Triggered on first load when detectAutoLabel is set and no value is bound.' },
+    { name: 'Manual selection',        description: 'Selected city name on left, UTC offset + (time) on right — no badge.' },
+    { name: 'Open / searching',        description: 'Panel shows auto-detect row, group headers, all timezone rows with live times.' },
+  ],
+  tokens: [
+    { token: '--color-primary-50',  value: '#EBF8EF', usage: 'Auto-detected badge background and selected row tint' },
+    { token: '--color-primary-500', value: '#2C9C74', usage: 'Badge text color, selected row text' },
+    { token: '--color-primary-600', value: '#1C8269', usage: 'Badge border color' },
+    { token: '--color-text-secondary', value: '#5F616A', usage: 'UTC offset and time labels' },
+    { token: '--color-hover-bg',    value: '#ECEEF9', usage: 'Option hover background' },
+  ],
+  usedIn: ['Account Settings → Time zone', 'Data room preferences'],
+  relatedComponents: ['dropdown', 'datepicker', 'timepicker'],
+  codeSnippet: `<!-- Timezone picker -->
+<fvdr-dropdown
+  label="Time zone"
+  [options]="timezoneOptions"
+  [(ngModel)]="selectedTimezone"
+  [searchable]="true"
+  searchPlaceholder="Search by city or timezone…"
+  detectAutoLabel="Auto-detected"
+  [detectAutoSublabel]="detectedCity"
+  [detectAutoOffset]="detectedOffset"
+  detectAutoValue="Europe/Kyiv"
+  [showCurrentTime]="true"
+  [panelMaxHeight]="300"
+  helperText="Determines when email notifications are sent out"
+  (autoDetected)="onAutoDetected()"
+/>
+
+<!-- DropdownOption shape for timezones -->
+<!--
+timezoneOptions = [
+  {
+    value:    'Europe/Kyiv',
+    label:    'Kyiv',
+    sublabel: 'UTC+2',
+    group:    'Europe',
+    aliases:  ['Ukraine', 'Kiev', 'EET'],
+    badge:    'Auto-detected',   // shown for the user's local tz
+  },
+  ...
+]
+-->`,
+  claudePrompt:
+    'Use fvdr-dropdown in timezone mode. ' +
+    'Pass [options] as DropdownOption[] with value=IANA id, label=city, sublabel=UTC offset, group=region, aliases=[...], badge="Auto-detected" for the detected tz. ' +
+    'Set detectAutoLabel="Auto-detected", [detectAutoSublabel]="city", [detectAutoOffset]="utcOffset", detectAutoValue="IANA/id", [showCurrentTime]="true", [panelMaxHeight]="300". ' +
+    'Bind with [(ngModel)] and listen to (autoDetected) to set the value to the detected timezone. ' +
+    'Import DS_COMPONENTS from shared/ds.',
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 const toggle: ComponentDocEntry = {
   id: 'toggle',
   name: 'Toggle',
@@ -497,7 +578,7 @@ const toggle: ComponentDocEntry = {
   anatomy: [
     { index: 1, part: 'Track',       spec: 'width: 36px · height: 20px · border-radius: 9999px · background: interactive-primary when on' },
     { index: 2, part: 'Thumb',       spec: 'width: 16px · height: 16px · border-radius: 9999px · background: white · transition: 0.2s' },
-    { index: 3, part: 'Label (optional)', spec: 'font-size: 14px · color: text-primary · margin-left: 8px' },
+    { index: 3, part: 'Label (optional)', spec: 'font-size: var(--font-size-base, 14px) · color: text-primary · margin-left: 8px' },
   ],
   tokens: [
     { token: '--color-interactive-primary', value: '#2c9c74', usage: 'Track color when checked' },
@@ -564,7 +645,7 @@ const checkbox: ComponentDocEntry = {
     { index: 1, part: 'Box',               spec: '16×16px · border: 1.5px solid border-input · border-radius: 4px' },
     { index: 2, part: 'Check icon',        spec: '10×10px centered · white · visible when checked' },
     { index: 3, part: 'Indeterminate bar', spec: '8×2px centered · white · visible in indeterminate state' },
-    { index: 4, part: 'Label',             spec: 'font-size: 14px · color: text-primary · margin-left: 8px' },
+    { index: 4, part: 'Label',             spec: 'font-size: var(--font-size-base, 14px) · color: text-primary · margin-left: 8px' },
   ],
   tokens: [
     { token: '--color-interactive-primary', value: '#2c9c74', usage: 'Box fill color when checked or indeterminate' },
@@ -632,7 +713,7 @@ const tabs: ComponentDocEntry = {
   ],
   anatomy: [
     { index: 1, part: 'Tab bar',          spec: 'display: flex · border-bottom: 1px solid border · gap: 0' },
-    { index: 2, part: 'Tab item',         spec: 'height: 40px · padding: 0 16px · font-size: 14px · cursor: pointer' },
+    { index: 2, part: 'Tab item',         spec: 'height: 40px · padding: 0 16px · font-size: var(--font-size-base, 14px) · cursor: pointer' },
     { index: 3, part: 'Active indicator', spec: 'height: 2px · bottom: -1px · background: interactive-primary · border-radius: 2px 2px 0 0' },
     { index: 4, part: 'Badge (optional)', spec: 'fvdr-badge · margin-left: 6px · variant: neutral or primary' },
     { index: 5, part: 'Content panel',    spec: 'padding-top: 16px · ng-content projection per tab' },
@@ -703,7 +784,7 @@ const status: ComponentDocEntry = {
   ],
   anatomy: [
     { index: 1, part: 'Dot',   spec: '8×8px · border-radius: 9999px · background: status color' },
-    { index: 2, part: 'Label', spec: 'font-size: 13px · font-weight: 500 · color: text-primary · margin-left: 6px' },
+    { index: 2, part: 'Label', spec: 'font-size: var(--font-size-sm, 13px) · font-weight: 500 · color: text-primary · margin-left: 6px' },
   ],
   tokens: [
     { token: '--color-interactive-primary', value: '#2c9c74', usage: 'Active/success dot color' },
@@ -767,8 +848,8 @@ const modal: ComponentDocEntry = {
   anatomy: [
     { index: 1, part: 'Overlay',          spec: 'position: fixed · inset: 0 · background: rgba(0,0,0,0.6)' },
     { index: 2, part: 'Dialog container', spec: 'max-width: 480px · border-radius: 8px · padding: 24px · shadow-modal' },
-    { index: 3, part: 'Header',           spec: 'font-size: 18px · font-weight: 600 · margin-bottom: 8px' },
-    { index: 4, part: 'Body',             spec: 'font-size: 14px · color: text-secondary · flex: 1' },
+    { index: 3, part: 'Header',           spec: 'font-size: var(--font-size-xl, 18px) · font-weight: 600 · margin-bottom: 8px' },
+    { index: 4, part: 'Body',             spec: 'font-size: var(--font-size-base, 14px) · color: text-secondary · flex: 1' },
     { index: 5, part: 'Footer / actions', spec: 'display: flex · gap: 8px · justify-content: flex-end · margin-top: 24px' },
   ],
   tokens: [
@@ -1030,18 +1111,42 @@ const chip: ComponentDocEntry = {
   category: 'controls',
   status: 'stable',
   description:
-    'A removable or selectable tag-like element used in multiselect inputs and filter bars. Can display an avatar or icon prefix.',
-  whenToUse: ['Representing selected items in a multiselect or tag-input field.'],
-  whenNotToUse: [],
-  anatomy: [],
+    'A compact label element with 14 color variants, 5 sizes, and pill/rect shape toggle. Used in filter bars, tag inputs, and category labels.',
+  whenToUse: [
+    'Representing selected items in a multiselect or tag-input field.',
+    'Category or status labels that need color differentiation.',
+    'Filter chips in toolbars or search panels.',
+  ],
+  whenNotToUse: [
+    'As action buttons — use fvdr-btn instead.',
+    'For navigation — use fvdr-tabs.',
+  ],
+  anatomy: [
+    { index: 1, part: 'Root',        spec: 'display:inline-flex · gap:8px · border-radius:4px (rect) or 9999px (pill) · overflow:hidden' },
+    { index: 2, part: 'Icon prefix', spec: 'Optional fvdr-icon · 14px · flex-shrink:0' },
+    { index: 3, part: 'Label',       spec: 'text · color:--color-text-primary · font-size by size token' },
+    { index: 4, part: 'Counter',     spec: 'Optional · same font as label · opacity:0.65' },
+    { index: 5, part: 'Remove btn',  spec: 'Optional · 16×16px · color:inherit · opacity:0.5→1 on hover' },
+  ],
   tokens: [
-    { token: '--color-bg-surface',          value: '#f7f7f7', usage: 'Chip background' },
-    { token: '--color-border',              value: '#dee0eb', usage: 'Chip border' },
-    { token: '--color-interactive-primary', value: '#2c9c74', usage: 'Selected chip background tint' },
+    { token: '--chip-bg-default',  value: '#eceef9', usage: 'Default chip background' },
+    { token: '--chip-bg-green',    value: '#eaf6ed', usage: 'Green / theme chip background' },
+    { token: '--chip-bg-yellow',   value: '#fff5e0', usage: 'Yellow chip background' },
+    { token: '--chip-bg-orange',   value: '#ffede1', usage: 'Orange chip background' },
+    { token: '--chip-bg-lime',     value: '#eef6e3', usage: 'Lime chip background' },
+    { token: '--chip-bg-teal',     value: '#e8fafa', usage: 'Teal chip background' },
+    { token: '--chip-bg-danger',   value: '#fff0ee', usage: 'Danger chip background' },
+    { token: '--chip-bg-blue',     value: '#eaf2fa', usage: 'Blue chip background' },
+    { token: '--chip-bg-indigo',   value: '#f0f0ff', usage: 'Indigo chip background' },
+    { token: '--chip-bg-purple',   value: '#f9f1ff', usage: 'Purple chip background' },
+    { token: '--chip-bg-magenta',  value: '#feeff9', usage: 'Magenta chip background' },
+    { token: '--chip-bg-grey',     value: '#f7f7f7', usage: 'Grey chip background' },
+    { token: '--chip-bg-coffee',   value: '#f0edea', usage: 'Coffee chip background' },
+    { token: '--color-text-primary', value: '#1f2129', usage: 'Text color on all chip variants' },
   ],
   usedIn: ['Multiselect', 'Activity Log (filter chips)'],
-  codeSnippet: `<fvdr-chip label="Engineering" (removed)="removeTag('engineering')"></fvdr-chip>`,
-  claudePrompt: 'Use fvdr-chip for tag/filter items. Import: @fvdr/ui/chip. @Input() label:string. @Output() removed emits void.',
+  codeSnippet: `<fvdr-chip label="Engineering" variant="green" size="m" (removed)="removeTag('engineering')"></fvdr-chip>`,
+  claudePrompt: 'Use fvdr-chip for tags/filters/categories. Inputs: label, variant (default|green|yellow|orange|lime|teal|danger|blue|indigo|purple|magenta|grey|coffee|theme), size (xs|s|m|l|xl), rounded (boolean), removable, selected, clickable, icon, counter. Outputs: removed, clicked.',
 };
 
 const multiselect: ComponentDocEntry = {
@@ -1319,7 +1424,7 @@ const sidebarNav: ComponentDocEntry = {
   anatomy: [
     { index: 1, part: 'Account switcher',  spec: 'height: 64px · project badge (40px) + name + chevron-down' },
     { index: 2, part: 'Nav item',          spec: 'height: 40px · icon zone 56px + label · optional chevron-down for groups' },
-    { index: 3, part: 'Sub-items',         spec: 'height: 40px · indent: 56px · font-size: 13px' },
+    { index: 3, part: 'Sub-items',         spec: 'height: 40px · indent: 56px · font-size: var(--font-size-sm, 13px)' },
     { index: 4, part: 'Bottom bar',        spec: 'height: 64px · ideals. logo + collapse button' },
   ],
   tokens: [
@@ -1432,6 +1537,7 @@ export const DS_REGISTRY: ComponentDocEntry[] = [
   avatar,
   input,
   dropdown,
+  timezoneDropdown,
   toggle,
   checkbox,
   tabs,

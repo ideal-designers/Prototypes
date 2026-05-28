@@ -42,7 +42,7 @@ const TIMEZONE_OPTIONS: DropdownOption[] = TIMEZONES_RAW.map(tz => ({
   sublabel: tz.offsetLabel,
   group: tz.region,
   aliases: tz.aliases,
-  badge: (tz as any).detected ? 'Your location' : undefined,
+  badge: (tz as any).detected ? 'Auto-detected' : undefined,
 }));
 
 @Component({
@@ -64,7 +64,8 @@ const TIMEZONE_OPTIONS: DropdownOption[] = TIMEZONES_RAW.map(tz => ({
         [searchable]="true"
         searchPlaceholder="Search by city or timezone…"
         detectAutoLabel="Auto-detected"
-        [detectAutoSublabel]="detectedSublabel"
+        [detectAutoSublabel]="detectedCity"
+        [detectAutoOffset]="detectedOffset"
         detectAutoValue="Europe/Kyiv"
         [showCurrentTime]="true"
         [panelMaxHeight]="300"
@@ -96,7 +97,7 @@ const TIMEZONE_OPTIONS: DropdownOption[] = TIMEZONES_RAW.map(tz => ({
       width: 100%; max-width: 480px; overflow-y: auto; padding: var(--space-8);
       display: flex; flex-direction: column; gap: var(--space-6);
     }
-    .page-title { font-size: 22px; font-weight: 700; color: var(--color-text-primary); margin: 0; }
+    .page-title { font-size: var(--font-size-3xl, 22px); font-weight: 700; color: var(--color-text-primary); margin: 0; }
 
     .card {
       background: var(--color-stone-0); border-radius: var(--radius-lg);
@@ -108,13 +109,13 @@ const TIMEZONE_OPTIONS: DropdownOption[] = TIMEZONES_RAW.map(tz => ({
       border: 1px solid var(--color-divider); padding: var(--space-5);
     }
     .changes__title {
-      font-size: 13px; font-weight: 600; color: var(--color-text-primary);
+      font-size: var(--font-size-sm, 13px); font-weight: 600; color: var(--color-text-primary);
       margin-bottom: var(--space-4);
     }
     .changes__list { display: flex; flex-direction: column; gap: var(--space-3); }
     .change {
       display: flex; gap: var(--space-3); align-items: flex-start;
-      font-size: 13px; color: var(--color-text-secondary); line-height: 1.5;
+      font-size: var(--font-size-sm, 13px); color: var(--color-text-secondary); line-height: 1.5;
     }
     .change__dot {
       width: 6px; height: 6px; border-radius: 50%;
@@ -126,7 +127,8 @@ const TIMEZONE_OPTIONS: DropdownOption[] = TIMEZONES_RAW.map(tz => ({
 export class TimezonePickerComponent implements OnInit {
   timezoneOptions: DropdownOption[] = TIMEZONE_OPTIONS;
   selectedTimezone = '';
-  detectedSublabel = `${DETECTED.city} · ${DETECTED.offsetLabel}`;
+  detectedCity = DETECTED.city;
+  detectedOffset = DETECTED.offsetLabel;
 
   changes = [
     { title: 'sublabel',        desc: 'UTC offset вирівняний вправо в кожному рядку списку' },

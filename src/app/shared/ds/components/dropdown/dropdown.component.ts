@@ -48,6 +48,7 @@ export type DropdownSize = 's' | 'm' | 'l';
          [class.dropdown--error]="error"
          (keydown)="onKeydown($event)">
       <label *ngIf="label" class="dropdown__label">{{ label }}</label>
+      <div class="dropdown__trigger-wrap">
       <button class="dropdown__trigger" type="button" [disabled]="disabled" (click)="toggle()">
         <!-- Icon left -->
         <fvdr-icon *ngIf="iconLeft" [name]="iconLeft" class="dropdown__icon-left" />
@@ -68,28 +69,24 @@ export type DropdownSize = 's' | 'm' | 'l';
           <ng-container *ngIf="isAutoSelected && detectAutoLabel; else regularValue">
             <span class="dropdown__value">{{ detectAutoSublabel || detectAutoLabel }}</span>
             <span class="dropdown__trigger-auto-badge">{{ detectAutoLabel }}</span>
-            <span *ngIf="showCurrentTime && currentTimeDisplay" class="dropdown__current-time">
-              <fvdr-icon name="clock" />
-              {{ currentTimeDisplay }}
+            <span class="dropdown__trigger-meta">
+              <span *ngIf="detectAutoOffset" class="dropdown__trigger-sublabel">{{ detectAutoOffset }}</span>
+              <span *ngIf="showCurrentTime && currentTimeDisplay" class="dropdown__current-time">({{ currentTimeDisplay }})</span>
             </span>
           </ng-container>
           <ng-template #regularValue>
             <span class="dropdown__value" [class.dropdown__value--placeholder]="!selectedLabel">
               {{ selectedLabel || placeholder }}
             </span>
-            <span *ngIf="showCurrentTime && selectedSublabel" class="dropdown__trigger-sublabel">{{ selectedSublabel }}</span>
-            <span *ngIf="showCurrentTime && currentTimeDisplay" class="dropdown__current-time">
-              <fvdr-icon name="clock" />
-              {{ currentTimeDisplay }}
+            <span class="dropdown__trigger-meta">
+              <span *ngIf="showCurrentTime && selectedSublabel" class="dropdown__trigger-sublabel">{{ selectedSublabel }}</span>
+              <span *ngIf="showCurrentTime && currentTimeDisplay" class="dropdown__current-time">({{ currentTimeDisplay }})</span>
             </span>
           </ng-template>
         </ng-template>
 
-        <fvdr-icon name="chevron-down" class="dropdown__chevron" style="margin-left:auto" />
+        <fvdr-icon name="chevron-down" class="dropdown__chevron" />
       </button>
-
-      <!-- Hint / helper -->
-      <span *ngIf="helperText" class="dropdown__hint" [class.dropdown__hint--error]="error">{{ helperText }}</span>
 
       <!-- Panel -->
       <div *ngIf="open" class="dropdown__panel" [style.max-height.px]="panelMaxHeight + 60">
@@ -112,9 +109,12 @@ export type DropdownSize = 's' | 'm' | 'l';
              (click)="selectAuto()"
              (mouseenter)="onAutoHover()"
              (mouseleave)="onOptionLeave()">
-          <span class="dropdown__detect-dot"></span>
           <span class="dropdown__detect-label">{{ detectAutoSublabel || detectAutoLabel }}</span>
           <span class="dropdown__detect-badge">{{ detectAutoLabel }}</span>
+          <span class="dropdown__opt-meta">
+            <span *ngIf="detectAutoOffset" class="dropdown__opt-sublabel">{{ detectAutoOffset }}</span>
+            <span *ngIf="showCurrentTime && liveTimes[detectAutoValue]" class="dropdown__opt-time">({{ liveTimes[detectAutoValue] }})</span>
+          </span>
         </div>
 
         <!-- Options list -->
@@ -138,9 +138,7 @@ export type DropdownSize = 's' | 'm' | 'l';
               <span *ngIf="opt.badge" class="dropdown__opt-badge">{{ opt.badge }}</span>
               <span class="dropdown__opt-meta">
                 <span *ngIf="opt.sublabel" class="dropdown__opt-sublabel">{{ opt.sublabel }}</span>
-                <span *ngIf="showCurrentTime && liveTimes[opt.value]" class="dropdown__opt-time">
-                  <fvdr-icon name="clock" />{{ liveTimes[opt.value] }}
-                </span>
+                <span *ngIf="showCurrentTime && liveTimes[opt.value]" class="dropdown__opt-time">({{ liveTimes[opt.value] }})</span>
               </span>
             </button>
           </ng-container>
@@ -151,10 +149,14 @@ export type DropdownSize = 's' | 'm' | 'l';
           </div>
         </div>
       </div>
+      </div><!-- /trigger-wrap -->
+      <!-- Hint / helper -->
+      <span *ngIf="helperText" class="dropdown__hint" [class.dropdown__hint--error]="error">{{ helperText }}</span>
     </div>
   `,
   styles: [`
-    .dropdown { position: relative; display: flex; flex-direction: column; gap: var(--space-1); }
+    .dropdown { display: flex; flex-direction: column; gap: var(--space-1); }
+    .dropdown__trigger-wrap { position: relative; }
 
     .dropdown__label {
       font-family: var(--font-family);
@@ -190,7 +192,7 @@ export type DropdownSize = 's' | 'm' | 'l';
     .dropdown--m .dropdown__trigger:has(.dropdown__chips) { height: auto; min-height: 40px; padding-top: 6px; padding-bottom: 6px; }
     .dropdown--l .dropdown__trigger:has(.dropdown__chips) { height: auto; min-height: 48px; padding-top: 8px; padding-bottom: 8px; }
 
-    .dropdown__icon-left { font-size: 16px; color: var(--color-text-secondary); flex-shrink: 0; }
+    .dropdown__icon-left { font-size: var(--font-size-lg, 16px); color: var(--color-text-secondary); flex-shrink: 0; }
 
     .dropdown__value { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--color-text-primary); }
     .dropdown__value--placeholder { color: var(--color-text-placeholder); }
@@ -204,11 +206,19 @@ export type DropdownSize = 's' | 'm' | 'l';
       border-radius: 9px;
       background: var(--color-primary-50);
       color: var(--color-primary-600);
-      font-size: 11px;
+      font-size: var(--font-size-2xs, 11px);
       font-weight: 600;
       white-space: nowrap;
       flex-shrink: 0;
       border: 1px solid rgba(44,156,116,0.2);
+    }
+
+    /* Meta group (offset + time) in trigger — right side */
+    .dropdown__trigger-meta {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      flex-shrink: 0;
     }
 
     /* UTC offset sublabel in trigger (e.g. "UTC-5") */
@@ -229,10 +239,9 @@ export type DropdownSize = 's' | 'm' | 'l';
       white-space: nowrap;
       flex-shrink: 0;
     }
-    .dropdown__current-time fvdr-icon { font-size: 12px; }
 
     .dropdown__chevron {
-      font-size: 16px;
+      font-size: var(--font-size-lg, 16px);
       color: var(--color-text-secondary);
       flex-shrink: 0;
       transition: transform 0.15s;
@@ -249,7 +258,7 @@ export type DropdownSize = 's' | 'm' | 'l';
     .dropdown__chip-remove {
       display: inline-flex; align-items: center; justify-content: center;
       background: none; border: none; cursor: pointer; padding: 0;
-      color: var(--color-text-secondary); font-size: 12px; line-height: 1;
+      color: var(--color-text-secondary); font-size: var(--font-size-xs, 12px); line-height: 1;
     }
     .dropdown__chip-remove:hover { color: var(--color-text-primary); }
 
@@ -308,7 +317,7 @@ export type DropdownSize = 's' | 'm' | 'l';
     .dropdown__detect-badge {
       display: inline-flex; align-items: center; height: 18px; padding: 0 6px;
       border-radius: 9px; background: var(--color-primary-50); color: var(--color-primary-600);
-      font-size: 11px; font-weight: 600; white-space: nowrap; flex-shrink: 0;
+      font-size: var(--font-size-2xs, 11px); font-weight: 600; white-space: nowrap; flex-shrink: 0;
       border: 1px solid rgba(44,156,116,0.2);
     }
 
@@ -341,7 +350,7 @@ export type DropdownSize = 's' | 'm' | 'l';
     .dropdown__option--selected:hover,
     .dropdown__option--selected.dropdown__option--active { background: var(--color-primary-50); filter: brightness(0.97); }
     .dropdown__option:disabled { opacity: 0.45; cursor: not-allowed; }
-    .dropdown__opt-icon { font-size: 16px; color: var(--color-text-secondary); flex-shrink: 0; }
+    .dropdown__opt-icon { font-size: var(--font-size-lg, 16px); color: var(--color-text-secondary); flex-shrink: 0; }
     .dropdown__opt-label { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .dropdown__opt-meta {
       display: flex; align-items: center; gap: var(--space-2);
@@ -356,13 +365,13 @@ export type DropdownSize = 's' | 'm' | 'l';
       font-size: var(--text-caption1-size); color: var(--color-text-secondary);
       white-space: nowrap; font-variant-numeric: tabular-nums;
     }
-    .dropdown__opt-time fvdr-icon { font-size: 11px; }
+    .dropdown__opt-time fvdr-icon { font-size: var(--font-size-2xs, 11px); }
     .dropdown__option--selected .dropdown__opt-sublabel,
     .dropdown__option--selected .dropdown__opt-time { color: var(--color-primary-500); opacity: 0.8; }
     .dropdown__opt-badge {
       display: inline-flex; align-items: center; height: 18px; padding: 0 6px;
       border-radius: 9px; background: var(--color-primary-50); color: var(--color-primary-500);
-      font-size: 11px; font-weight: 600; white-space: nowrap; flex-shrink: 0;
+      font-size: var(--font-size-2xs, 11px); font-weight: 600; white-space: nowrap; flex-shrink: 0;
     }
 
     /* Empty state */
@@ -398,6 +407,7 @@ export class DropdownComponent implements ControlValueAccessor, OnDestroy {
   @Input() detectAutoLabel = '';
   @Input() detectAutoSublabel = '';
   @Input() detectAutoValue = '';
+  @Input() detectAutoOffset = '';
   @Input() showCurrentTime = false;
   @Input() panelMaxHeight = 240;
   @Output() valueChange = new EventEmitter<string | string[]>();

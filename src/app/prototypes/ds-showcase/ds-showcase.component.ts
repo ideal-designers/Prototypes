@@ -252,18 +252,67 @@ import type { ComponentDocEntry } from './ds-registry';
         <!-- ── CHIPS ── -->
         <section class="section" id="chips">
           <h2 class="section__title">Chips</h2>
-          <div class="section__desc">Figma: node 15032-13859</div>
+          <div class="section__desc">Figma: node 15032-13859 · Sizes: xs/s/m/l/xl · Rounded: pill or rect</div>
+
+          <div class="subsection__label">Colors — rect (default)</div>
           <div class="row wrap">
-            <fvdr-chip label="Default" />
-            <fvdr-chip label="Primary" variant="primary" />
-            <fvdr-chip label="Success" variant="success" />
-            <fvdr-chip label="Warning" variant="warning" />
-            <fvdr-chip label="Error" variant="error" />
+            <fvdr-chip label="Default" variant="default" />
+            <fvdr-chip label="Green" variant="green" />
+            <fvdr-chip label="Yellow" variant="yellow" />
+            <fvdr-chip label="Orange" variant="orange" />
+            <fvdr-chip label="Lime" variant="lime" />
+            <fvdr-chip label="Teal" variant="teal" />
+            <fvdr-chip label="Danger" variant="danger" />
+            <fvdr-chip label="Blue" variant="blue" />
+            <fvdr-chip label="Indigo" variant="indigo" />
+            <fvdr-chip label="Purple" variant="purple" />
+            <fvdr-chip label="Magenta" variant="magenta" />
+            <fvdr-chip label="Grey" variant="grey" />
+            <fvdr-chip label="Coffee" variant="coffee" />
+            <fvdr-chip label="Theme" variant="theme" />
           </div>
+
+          <div class="subsection__label">Colors — rounded (pill)</div>
           <div class="row wrap">
-            <fvdr-chip label="Removable" [removable]="true" />
-            <fvdr-chip label="Selected" [selected]="true" />
-            <fvdr-chip label="Clickable" [clickable]="true" icon="edit" />
+            <fvdr-chip label="Default" variant="default" [rounded]="true" />
+            <fvdr-chip label="Green" variant="green" [rounded]="true" />
+            <fvdr-chip label="Yellow" variant="yellow" [rounded]="true" />
+            <fvdr-chip label="Orange" variant="orange" [rounded]="true" />
+            <fvdr-chip label="Lime" variant="lime" [rounded]="true" />
+            <fvdr-chip label="Teal" variant="teal" [rounded]="true" />
+            <fvdr-chip label="Danger" variant="danger" [rounded]="true" />
+            <fvdr-chip label="Blue" variant="blue" [rounded]="true" />
+            <fvdr-chip label="Indigo" variant="indigo" [rounded]="true" />
+            <fvdr-chip label="Purple" variant="purple" [rounded]="true" />
+            <fvdr-chip label="Magenta" variant="magenta" [rounded]="true" />
+            <fvdr-chip label="Grey" variant="grey" [rounded]="true" />
+            <fvdr-chip label="Coffee" variant="coffee" [rounded]="true" />
+          </div>
+
+          <div class="subsection__label">Sizes (xl → xs)</div>
+          <div class="row" style="align-items: center; flex-wrap: wrap;">
+            <fvdr-chip label="XL — 36px" variant="green" size="xl" />
+            <fvdr-chip label="L — 32px"  variant="green" size="l" />
+            <fvdr-chip label="M — 28px"  variant="green" size="m" />
+            <fvdr-chip label="S — 24px"  variant="green" size="s" />
+            <fvdr-chip label="XS — 20px" variant="green" size="xs" />
+          </div>
+
+          <div class="subsection__label">Features</div>
+          <div class="row wrap">
+            <fvdr-chip label="Removable" variant="default" [removable]="true" />
+            <fvdr-chip label="Selected" variant="default" [selected]="true" />
+            <fvdr-chip label="Clickable" variant="default" [clickable]="true" icon="edit" />
+            <fvdr-chip label="With counter" variant="blue" [counter]="12" />
+            <fvdr-chip label="With icon" variant="teal" icon="check" />
+          </div>
+
+          <div class="subsection__label">Legacy aliases (backward compat)</div>
+          <div class="row wrap">
+            <fvdr-chip label="primary → green" variant="primary" />
+            <fvdr-chip label="success → green" variant="success" />
+            <fvdr-chip label="warning → yellow" variant="warning" />
+            <fvdr-chip label="error → danger" variant="error" />
           </div>
         </section>
 
@@ -400,7 +449,7 @@ import type { ComponentDocEntry } from './ds-registry';
             cancelLabel="Cancel"
             (closed)="sheetVisible = false"
           >
-            <p style="color: var(--color-text-secondary); font-size: 14px; margin: 0;">Select an option from below to apply changes to your account settings.</p>
+            <p style="color: var(--color-text-secondary); font-size: var(--font-size-base, 14px); margin: 0;">Select an option from below to apply changes to your account settings.</p>
           </fvdr-bottom-sheet>
         </section>
 
@@ -502,13 +551,13 @@ import type { ComponentDocEntry } from './ds-registry';
           <h2 class="section__title">Cards</h2>
           <div class="row wrap" style="gap: 12px;">
             <fvdr-card title="Default card" style="width: 220px;">
-              <p style="font-size: 14px; color: var(--color-text-secondary); margin: 0;">Card content goes here.</p>
+              <p style="font-size: var(--font-size-base, 14px); color: var(--color-text-secondary); margin: 0;">Card content goes here.</p>
             </fvdr-card>
             <fvdr-card title="Active card" state="active" style="width: 220px;">
-              <p style="font-size: 14px; color: var(--color-text-secondary); margin: 0;">Active state with green border.</p>
+              <p style="font-size: var(--font-size-base, 14px); color: var(--color-text-secondary); margin: 0;">Active state with green border.</p>
             </fvdr-card>
             <fvdr-card title="Hoverable" [hoverable]="true" style="width: 220px;">
-              <p style="font-size: 14px; color: var(--color-text-secondary); margin: 0;">Hover to see shadow effect.</p>
+              <p style="font-size: var(--font-size-base, 14px); color: var(--color-text-secondary); margin: 0;">Hover to see shadow effect.</p>
             </fvdr-card>
           </div>
         </section>
@@ -604,7 +653,7 @@ import type { ComponentDocEntry } from './ds-registry';
           <div class="section__desc">Figma: node 15846-7469</div>
           <div class="icons-grid">
             <div *ngFor="let icon of iconNames" class="icon-item">
-              <fvdr-icon [name]="icon" style="font-size: 20px;" />
+              <fvdr-icon [name]="icon" style="font-size: var(--font-size-2xl, 20px);" />
               <span>{{ icon }}</span>
             </div>
           </div>
@@ -648,7 +697,7 @@ import type { ComponentDocEntry } from './ds-registry';
     .showcase__nav-link {
       display: block;
       padding: 6px var(--space-4);
-      font-size: 13px;
+      font-size: var(--font-size-sm, 13px);
       color: var(--color-text-secondary);
       text-decoration: none;
       border-radius: 0;
@@ -657,7 +706,7 @@ import type { ComponentDocEntry } from './ds-registry';
     .showcase__nav-link:hover { background: var(--color-hover-bg); color: var(--color-text-primary); }
     .showcase__nav-category {
       padding: var(--space-3) var(--space-4) var(--space-1);
-      font-size: 11px;
+      font-size: var(--font-size-2xs, 11px);
       font-weight: 600;
       letter-spacing: 0.06em;
       text-transform: uppercase;
@@ -721,6 +770,13 @@ import type { ComponentDocEntry } from './ds-registry';
       margin-top: -12px;
     }
 
+    .subsection__label {
+      font-size: var(--text-caption1-size);
+      font-weight: 600;
+      color: var(--color-text-secondary);
+      margin-top: var(--space-2);
+    }
+
     /* ── Layout helpers ── */
     .row { display: flex; align-items: center; gap: var(--space-3); }
     .wrap { flex-wrap: wrap; }
@@ -754,7 +810,7 @@ import type { ComponentDocEntry } from './ds-registry';
       margin-bottom: 24px;
     }
     .catalog__intro-text {
-      font-size: 14px;
+      font-size: var(--font-size-base, 14px);
       color: var(--color-text-secondary);
       margin: 0;
     }
@@ -762,7 +818,7 @@ import type { ComponentDocEntry } from './ds-registry';
       margin-bottom: 28px;
     }
     .catalog__group-label {
-      font-size: 11px;
+      font-size: var(--font-size-2xs, 11px);
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.8px;
@@ -792,17 +848,17 @@ import type { ComponentDocEntry } from './ds-registry';
       transform: translateY(-1px);
     }
     .catalog__card-name {
-      font-size: 14px;
+      font-size: var(--font-size-base, 14px);
       font-weight: 600;
       color: var(--color-text-primary);
     }
     .catalog__card-selector {
       font-family: 'Menlo', 'Courier New', monospace;
-      font-size: 11px;
+      font-size: var(--font-size-2xs, 11px);
       color: var(--color-text-muted);
     }
     .catalog__card-status {
-      font-size: 10px;
+      font-size: var(--font-size-3xs, 10px);
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.5px;
@@ -820,7 +876,7 @@ import type { ComponentDocEntry } from './ds-registry';
       border-top: 1px solid var(--color-border);
       margin: 0 0 40px;
       padding-top: 16px;
-      font-size: 12px;
+      font-size: var(--font-size-xs, 12px);
       color: var(--color-text-muted);
       letter-spacing: 0.5px;
     }

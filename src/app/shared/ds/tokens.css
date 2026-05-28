@@ -187,6 +187,36 @@
   --avatar-md: 32px;
   --avatar-lg: 40px;
   --avatar-xl: 48px;
+
+  /* ── Chip / Category Backgrounds (Figma: liyNDiFf1piO8SQmHNKoeU, node 15032-13859) ── */
+  --chip-bg-default:  #eceef9;
+  --chip-bg-green:    #eaf6ed;
+  --chip-bg-yellow:   #fff5e0;
+  --chip-bg-orange:   #ffede1;
+  --chip-bg-lime:     #eef6e3;
+  --chip-bg-teal:     #e8fafa;
+  --chip-bg-danger:   #fff0ee;
+  --chip-bg-blue:     #eaf2fa;
+  --chip-bg-indigo:   #f0f0ff;
+  --chip-bg-purple:   #f9f1ff;
+  --chip-bg-magenta:  #feeff9;
+  --chip-bg-grey:     #f7f7f7;
+  --chip-bg-coffee:   #f0edea;
+
+  /* ── Chip Icon / Remove Accent Colors (colored icon + × per variant, Figma node 4069-19936) ── */
+  --chip-icon-default:  #6b74c8;
+  --chip-icon-green:    #2c9c74;
+  --chip-icon-yellow:   #d4900a;
+  --chip-icon-orange:   #e07332;
+  --chip-icon-lime:     #5fa832;
+  --chip-icon-teal:     #0ea5b5;
+  --chip-icon-danger:   #e54430;
+  --chip-icon-blue:     #358ceb;
+  --chip-icon-indigo:   #4862d3;
+  --chip-icon-purple:   #8b5cf6;
+  --chip-icon-magenta:  #c026d3;
+  --chip-icon-grey:     #9c9ea8;
+  --chip-icon-coffee:   #8c7355;
 }
 
 /* ─────────────────────────────────────────
