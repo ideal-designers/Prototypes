@@ -175,7 +175,7 @@ const EXTRA_CAT_META: Record<'manual' | 'keyword', { label: string; svgPath: str
         Preview
       </label>
 
-      <button class="rv-apply-btn" [class.rv-apply-btn--active]="marks.length > 0" (click)="openApplyModal()">
+      <button class="rv-apply-btn" [class.rv-apply-btn--active]="draftCount > 0" [disabled]="draftCount === 0" (click)="openApplyModal()">
         Apply
       </button>
     </div>
@@ -397,12 +397,6 @@ const EXTRA_CAT_META: Record<'manual' | 'keyword', { label: string; svgPath: str
         </ng-container>
       </div>
 
-      <!-- Apply button -->
-      <div class="rv-marks-footer" *ngIf="draftCount > 0">
-        <button class="rv-marks-apply-btn" (click)="openApplyModal()">
-          Apply redactions
-        </button>
-      </div>
     </div>
 
     <!-- Panel toggle button (always visible on right edge) -->
@@ -666,7 +660,8 @@ const EXTRA_CAT_META: Record<'manual' | 'keyword', { label: string; svgPath: str
   background: #DEE0EB; color: #9C9EA8; font-size: 14px; font-weight: 500;
   transition: background .15s, color .15s;
 }
-.rv-apply-btn--active { background: var(--color-primary-500, #2C9C74); color: white; }
+.rv-apply-btn:disabled { opacity: 1; cursor: default; }
+.rv-apply-btn--active { background: var(--color-primary-500, #2C9C74); color: white; cursor: pointer; }
 .rv-apply-btn--active:hover { background: var(--color-primary-600, #1C8269); }
 
 /* ── Toolbar ── */
@@ -857,15 +852,6 @@ const EXTRA_CAT_META: Record<'manual' | 'keyword', { label: string; svgPath: str
 .rv-mark-card-del svg { width: 14px; height: 14px; fill: var(--color-stone-600); }
 .rv-mark-card:hover .rv-mark-card-del { opacity: 1; }
 .rv-mark-card-del:hover svg { fill: var(--color-error-600, #E54430); }
-.rv-marks-footer {
-  padding: 12px; border-top: 1px solid var(--color-divider);
-}
-.rv-marks-apply-btn {
-  width: 100%; padding: 9px; border-radius: 6px; border: none;
-  background: var(--color-primary-500, #2C9C74); color: white;
-  font-size: 14px; font-weight: 500; cursor: pointer;
-}
-.rv-marks-apply-btn:hover { background: var(--color-primary-600, #1C8269); }
 
 /* Panel toggle */
 .rv-panel-toggle {
