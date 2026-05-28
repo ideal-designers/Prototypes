@@ -104,5 +104,12 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
     status: 'wip',
     description: 'AI-assisted folder structure creation flow',
   },
+  {
+    slug: 'redaction-viewer',
+    title: 'Redaction Viewer',
+    figma: 'https://www.figma.com/design/02e4Sm7wmZioAEV6imoNR7/FVDR---Viewers--Project-statuses--Upgrade-?node-id=11398-175866',
+    status: 'wip',
+    description: 'PDF viewer with redaction mode — Search & Redact, PII detection, manual marks, apply',
+  },
   // REGISTRY_PLACEHOLDER
 ];

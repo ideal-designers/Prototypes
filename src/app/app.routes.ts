@@ -120,6 +120,11 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./prototypes/ifs-ai/ifs-ai.component').then(m => m.IfsAiComponent),
   },
+  {
+    path: 'redaction-viewer',
+    loadComponent: () =>
+      import('./prototypes/redaction-viewer/redaction-viewer.component').then(m => m.RedactionViewerComponent),
+  },
   // PROTO_ROUTES_PLACEHOLDER
   {
     path: '**',
