@@ -363,8 +363,13 @@ const CREATED_ROWS: Record<string, string>[] = [
             <!-- ── Step 1: Loading (Lottie) ── -->
             <div *ngIf="state === 'loading'" class="wiz-body wiz-body--loading">
               <div #lottieContainer class="lottie-wrap"></div>
-              <p class="loading-title">Building your folder structure with AI</p>
-              <p class="loading-sub">This can take a few moments…</p>
+              <div class="loading-text-block">
+                <p class="loading-title">Analyzing your input and building the structure</p>
+                <p class="loading-sub">This can take a few moments…</p>
+              </div>
+              <div class="loading-progress">
+                <div class="loading-progress__fill"></div>
+              </div>
             </div>
 
             <!-- ── Step 2: Generated ── -->
@@ -925,6 +930,7 @@ const CREATED_ROWS: Record<string, string>[] = [
       flex-direction: column;
       align-items: center;
       justify-content: center;
+      gap: var(--space-8);
     }
 
     .wiz-body--generated {
@@ -1141,23 +1147,67 @@ const CREATED_ROWS: Record<string, string>[] = [
     /* ─── Loading ─── */
     .lottie-wrap {
       width: 176px;
-      height: 224px;
+      height: 120px;
       flex-shrink: 0;
     }
 
+    .loading-text-block {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-2);
+      text-align: center;
+    }
+
     .loading-title {
-      margin: var(--space-4) 0 0;
-      font-size: var(--font-size-lg);
-      font-weight: var(--font-weight-semi);
+      margin: 0;
+      font-size: 18px;
+      line-height: 24px;
+      font-weight: 600;
       color: var(--color-text-primary);
       text-align: center;
     }
 
     .loading-sub {
-      margin: var(--space-2) 0 0;
-      font-size: var(--font-size-sm);
+      margin: 0;
+      font-size: 15px;
+      line-height: 24px;
+      font-weight: 400;
       color: var(--color-text-secondary);
       text-align: center;
+    }
+
+    /* ─── Fake progress bar ─── */
+    .loading-progress {
+      width: 320px;
+      height: 6px;
+      background: var(--color-stone-300);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      flex-shrink: 0;
+      position: relative;
+    }
+
+    .loading-progress__fill {
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 100%;
+      width: 0%;
+      background: var(--color-primary-500);
+      border-radius: var(--radius-sm);
+      animation: progress-fill 10s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+
+    @keyframes progress-fill {
+      0%   { width: 0%; }
+      10%  { width: 12%; }
+      30%  { width: 35%; }
+      50%  { width: 52%; }
+      70%  { width: 67%; }
+      85%  { width: 78%; }
+      95%  { width: 84%; }
+      100% { width: 87%; }
     }
 
     /* ─── Textarea (describe mode) ─── */
@@ -1669,7 +1719,7 @@ export class IfsAiComponent implements OnInit, OnDestroy {
       renderer: 'svg',
       loop: true,
       autoplay: true,
-      path: '/assets/lottie/ifs-loader.json',
+      path: '/assets/lottie/ifs-creating.json',
     });
   }
 }

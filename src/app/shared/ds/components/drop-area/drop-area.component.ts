@@ -153,10 +153,10 @@ export class DropAreaComponent {
     if (files.length) this.filesDropped.emit(files);
   }
 
-  /** Compact-variant: клік на primary button відкриває file picker. */
+  /** Compact-variant: клік на primary button симулює вибір файлу (прототип). */
   openFilePicker(e: Event, input: HTMLInputElement): void {
     e.stopPropagation();
     if (this.disabled) return;
-    input.click();
+    this.filesDropped.emit([]);
   }
 }
