@@ -4,6 +4,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import * as pdfjsLib from 'pdfjs-dist';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc =
@@ -54,6 +55,13 @@ interface TextItem {
   pageNum: number;
   x: number; y: number;   // screen pixels (scaled)
   width: number; height: number;
+}
+
+interface MarkCardGroup {
+  key: string;
+  category: MarkCategory | string;
+  label: string;
+  marks: RedactionMark[];
 }
 
 // ── PII category meta ──────────────────────────────────────────────────────
@@ -333,67 +341,96 @@ const EXTRA_CAT_META: Record<'manual' | 'keyword', { label: string; svgPath: str
         <p class="rv-marks-empty-text">You have no marks yet</p>
       </div>
 
-      <!-- Marks by category -->
-      <div class="rv-marks-list" *ngIf="marks.length > 0 && groupBy === 'category'">
-        <ng-container *ngFor="let cat of categoriesWithMarks">
-          <div class="rv-cat-header" (click)="toggleCatExpand(cat)">
-            <svg class="rv-cat-icon" viewBox="0 0 24 24">
-              <path [attr.d]="getCatMeta(cat).svgPath"/>
-            </svg>
-            <span class="rv-cat-label">{{ getCatMeta(cat).label }}</span>
-            <span class="rv-cat-count">{{ getMarksByCategory(cat).length }}</span>
-            <svg class="rv-cat-chevron" [class.rv-cat-chevron--open]="expandedCats.has(cat)" viewBox="0 0 24 24">
-              <path d="M7 10l5 5 5-5z"/>
-            </svg>
-          </div>
-          <div *ngIf="expandedCats.has(cat)" class="rv-cat-items">
-            <div
-              *ngFor="let m of getMarksByCategory(cat)"
-              class="rv-mark-card"
-              [class.rv-mark-card--selected]="selectedMark?.id === m.id"
-              (click)="selectMark(m)"
-            >
-              <span class="rv-mark-page">Page {{ m.pageNum }}</span>
-              <span class="rv-mark-text">{{ m.text || 'Manual redaction' }}</span>
-              <button class="rv-mark-card-del" (click)="$event.stopPropagation(); deleteMark(m.id)">
-                <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+      <!-- Cards by category -->
+      <div class="rv-cards-list" *ngIf="marks.length > 0 && groupBy === 'category'">
+        <ng-container *ngFor="let card of categoryCards">
+
+          <!-- SINGLE card (exactly 1 mark) -->
+          <div class="rv-card" *ngIf="card.marks.length === 1" (click)="selectMark(card.marks[0])" [class.rv-card--selected]="selectedMark?.id === card.marks[0].id">
+            <div class="rv-card-row">
+              <span class="rv-card-icon" [innerHTML]="getCatIconSvg(card.category)"></span>
+              <span class="rv-card-label">{{ card.label }}</span>
+              <span class="rv-card-page">Pg {{ card.marks[0].pageNum }}</span>
+              <button class="rv-card-del" title="Delete" (click)="$event.stopPropagation(); deleteMark(card.marks[0].id)">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 4.2002L4.24867 12.6912C4.39303 13.6728 5.23522 14.4002 6.22739 14.4002H9.77261C10.7648 14.4002 11.607 13.6728 11.7513 12.6912L13 4.2002" stroke="#5F616A" stroke-width="1.2"/><path d="M2.09961 4.19962H5.59957M13.8996 4.19962H10.3996M5.59957 4.19962H10.3996M5.59957 4.19962C5.59957 4.19962 5.59957 3.44636 5.59957 2.89962C5.59957 2.23402 6.22637 1.59962 6.99957 1.59961C7.75116 1.59961 8.28777 1.59961 8.99957 1.59961C9.77277 1.59962 10.3996 2.20718 10.3996 2.89962C10.3996 3.44636 10.3996 4.19962 10.3996 4.19962" stroke="#5F616A" stroke-width="1.2" stroke-linecap="round"/></svg>
               </button>
             </div>
+            <div class="rv-card-text" *ngIf="card.marks[0].text">{{ card.marks[0].text }}</div>
           </div>
-        </ng-container>
-      </div>
 
-      <!-- Marks by page -->
-      <div class="rv-marks-list" *ngIf="marks.length > 0 && groupBy === 'page'">
-        <ng-container *ngFor="let pageNum of pagesWithMarks">
-          <div class="rv-cat-header" (click)="togglePageExpand(pageNum)">
-            <svg class="rv-cat-icon" viewBox="0 0 24 24">
-              <path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/>
-            </svg>
-            <span class="rv-cat-label">Page {{ pageNum }}</span>
-            <span class="rv-cat-count">{{ getMarksByPage(pageNum).length }}</span>
-            <svg class="rv-cat-chevron" [class.rv-cat-chevron--open]="expandedPages.has(pageNum)" viewBox="0 0 24 24">
-              <path d="M7 10l5 5 5-5z"/>
-            </svg>
-          </div>
-          <div *ngIf="expandedPages.has(pageNum)" class="rv-cat-items">
-            <div
-              *ngFor="let m of getMarksByPage(pageNum)"
-              class="rv-mark-card"
-              [class.rv-mark-card--selected]="selectedMark?.id === m.id"
-              (click)="selectMark(m)"
-            >
-              <div class="rv-mark-card-top">
-                <svg class="rv-cat-icon rv-cat-icon--sm" viewBox="0 0 24 24">
-                  <path [attr.d]="getCatMeta(m.category).svgPath"/>
-                </svg>
-                <span class="rv-mark-text">{{ m.text || 'Manual redaction' }}</span>
-                <button class="rv-mark-card-del" (click)="$event.stopPropagation(); deleteMark(m.id)">
-                  <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+          <!-- GROUP card (2+ marks) -->
+          <div class="rv-card" *ngIf="card.marks.length > 1">
+            <div class="rv-card-row rv-card-row--clickable" (click)="toggleCardExpand(card.key)">
+              <span class="rv-card-icon" [innerHTML]="getCatIconSvg(card.category)"></span>
+              <span class="rv-card-label">{{ card.label }}</span>
+              <span class="rv-card-count">{{ card.marks.length }}</span>
+              <svg class="rv-card-chevron" [class.rv-card-chevron--open]="expandedCards.has(card.key)" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M4 6l4 4 4-4" stroke="#9C9EA8" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <div class="rv-card-items" *ngIf="expandedCards.has(card.key)">
+              <div
+                class="rv-card-item"
+                *ngFor="let m of card.marks"
+                (click)="selectMark(m)"
+                [class.rv-card-item--selected]="selectedMark?.id === m.id"
+              >
+                <span class="rv-card-page">Pg {{ m.pageNum }}</span>
+                <span class="rv-card-item-text">{{ m.text || 'Redacted area' }}</span>
+                <button class="rv-card-del" title="Delete" (click)="$event.stopPropagation(); deleteMark(m.id)">
+                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 4.2002L4.24867 12.6912C4.39303 13.6728 5.23522 14.4002 6.22739 14.4002H9.77261C10.7648 14.4002 11.607 13.6728 11.7513 12.6912L13 4.2002" stroke="#5F616A" stroke-width="1.2"/><path d="M2.09961 4.19962H5.59957M13.8996 4.19962H10.3996M5.59957 4.19962H10.3996M5.59957 4.19962C5.59957 4.19962 5.59957 3.44636 5.59957 2.89962C5.59957 2.23402 6.22637 1.59962 6.99957 1.59961C7.75116 1.59961 8.28777 1.59961 8.99957 1.59961C9.77277 1.59962 10.3996 2.20718 10.3996 2.89962C10.3996 3.44636 10.3996 4.19962 10.3996 4.19962" stroke="#5F616A" stroke-width="1.2" stroke-linecap="round"/></svg>
                 </button>
               </div>
             </div>
           </div>
+
+        </ng-container>
+      </div>
+
+      <!-- Cards by page -->
+      <div class="rv-cards-list" *ngIf="marks.length > 0 && groupBy === 'page'">
+        <ng-container *ngFor="let card of pageCards">
+
+          <!-- SINGLE card -->
+          <div class="rv-card" *ngIf="card.marks.length === 1" (click)="selectMark(card.marks[0])" [class.rv-card--selected]="selectedMark?.id === card.marks[0].id">
+            <div class="rv-card-row">
+              <span class="rv-card-icon" [innerHTML]="getCatIconSvg(card.marks[0].category)"></span>
+              <span class="rv-card-label">{{ card.label }}</span>
+              <button class="rv-card-del" title="Delete" (click)="$event.stopPropagation(); deleteMark(card.marks[0].id)">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 4.2002L4.24867 12.6912C4.39303 13.6728 5.23522 14.4002 6.22739 14.4002H9.77261C10.7648 14.4002 11.607 13.6728 11.7513 12.6912L13 4.2002" stroke="#5F616A" stroke-width="1.2"/><path d="M2.09961 4.19962H5.59957M13.8996 4.19962H10.3996M5.59957 4.19962H10.3996M5.59957 4.19962C5.59957 4.19962 5.59957 3.44636 5.59957 2.89962C5.59957 2.23402 6.22637 1.59962 6.99957 1.59961C7.75116 1.59961 8.28777 1.59961 8.99957 1.59961C9.77277 1.59962 10.3996 2.20718 10.3996 2.89962C10.3996 3.44636 10.3996 4.19962 10.3996 4.19962" stroke="#5F616A" stroke-width="1.2" stroke-linecap="round"/></svg>
+              </button>
+            </div>
+            <div class="rv-card-text">{{ card.marks[0].text || getCatMeta(card.marks[0].category).label }}</div>
+          </div>
+
+          <!-- GROUP card -->
+          <div class="rv-card" *ngIf="card.marks.length > 1">
+            <div class="rv-card-row rv-card-row--clickable" (click)="toggleCardExpand(card.key)">
+              <svg class="rv-card-icon-svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M9.333 1.333H4A1.333 1.333 0 002.667 2.667v10.666A1.333 1.333 0 004 14.667h8a1.333 1.333 0 001.333-1.334V5.333L9.333 1.333zm2.667 12H4V2.667h4.667V6h3.333v7.333z" fill="#5F616A"/>
+              </svg>
+              <span class="rv-card-label">{{ card.label }}</span>
+              <span class="rv-card-count">{{ card.marks.length }}</span>
+              <svg class="rv-card-chevron" [class.rv-card-chevron--open]="expandedCards.has(card.key)" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M4 6l4 4 4-4" stroke="#9C9EA8" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <div class="rv-card-items" *ngIf="expandedCards.has(card.key)">
+              <div
+                class="rv-card-item"
+                *ngFor="let m of card.marks"
+                (click)="selectMark(m)"
+                [class.rv-card-item--selected]="selectedMark?.id === m.id"
+              >
+                <span class="rv-card-icon" [innerHTML]="getCatIconSvg(m.category)"></span>
+                <span class="rv-card-item-text">{{ m.text || getCatMeta(m.category).label }}</span>
+                <button class="rv-card-del" title="Delete" (click)="$event.stopPropagation(); deleteMark(m.id)">
+                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 4.2002L4.24867 12.6912C4.39303 13.6728 5.23522 14.4002 6.22739 14.4002H9.77261C10.7648 14.4002 11.607 13.6728 11.7513 12.6912L13 4.2002" stroke="#5F616A" stroke-width="1.2"/><path d="M2.09961 4.19962H5.59957M13.8996 4.19962H10.3996M5.59957 4.19962H10.3996M5.59957 4.19962C5.59957 4.19962 5.59957 3.44636 5.59957 2.89962C5.59957 2.23402 6.22637 1.59962 6.99957 1.59961C7.75116 1.59961 8.28777 1.59961 8.99957 1.59961C9.77277 1.59962 10.3996 2.20718 10.3996 2.89962C10.3996 3.44636 10.3996 4.19962 10.3996 4.19962" stroke="#5F616A" stroke-width="1.2" stroke-linecap="round"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
         </ng-container>
       </div>
 
@@ -812,46 +849,86 @@ const EXTRA_CAT_META: Record<'manual' | 'keyword', { label: string; svgPath: str
 }
 .rv-marks-empty-illu { width: 80px; height: 80px; }
 .rv-marks-empty-text { color: var(--color-text-secondary); font-size: 13px; text-align: center; }
-.rv-marks-list { flex: 1; overflow-y: auto; }
-.rv-cat-header {
+
+/* ── Cards list ── */
+.rv-cards-list {
+  flex: 1; overflow-y: auto;
+  padding: 8px 0; display: flex; flex-direction: column; gap: 4px;
+}
+.rv-card {
+  margin: 0 12px;
+  border: 1px solid var(--color-divider, #DEE0EB);
+  border-radius: var(--radius-md, 8px);
+  background: white; overflow: hidden; cursor: pointer;
+}
+.rv-card--selected { border-color: var(--color-primary-500, #2C9C74); background: var(--color-primary-50, #EBF8EF); }
+.rv-card:hover:not(.rv-card--selected) { background: var(--color-stone-100, #FAFAFA); }
+.rv-card-row {
   display: flex; align-items: center; gap: 8px;
-  padding: 10px 16px; cursor: pointer;
+  padding: 10px 12px; min-height: 40px;
+}
+.rv-card-row--clickable { cursor: pointer; }
+.rv-card-row--clickable:hover { background: var(--color-stone-100, #FAFAFA); }
+.rv-card-icon {
+  width: 16px; height: 16px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.rv-card-icon svg { width: 16px; height: 16px; display: block; }
+.rv-card-icon-svg { width: 16px; height: 16px; flex-shrink: 0; display: block; }
+.rv-card-label {
+  flex: 1; font-size: 13px; font-weight: 500;
+  color: var(--color-text-primary);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.rv-card-count {
+  font-size: 11px; font-weight: 500;
+  padding: 2px 7px; border-radius: 10px;
+  background: var(--color-stone-200, #F7F7F7);
+  color: var(--color-text-secondary, #5F616A);
+  flex-shrink: 0;
+}
+.rv-card-chevron {
+  width: 16px; height: 16px; flex-shrink: 0;
+  transition: transform .15s;
+}
+.rv-card-chevron--open { transform: rotate(180deg); }
+.rv-card-page {
+  font-size: 11px; padding: 1px 6px; border-radius: 3px;
+  background: var(--color-stone-200, #F7F7F7);
+  color: var(--color-text-secondary, #5F616A);
+  white-space: nowrap; flex-shrink: 0;
+}
+.rv-card-text {
+  font-size: 12px; color: var(--color-text-secondary);
+  padding: 0 12px 10px 36px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.rv-card-del {
+  width: 24px; height: 24px; border: none; background: transparent;
+  cursor: pointer; border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; flex-shrink: 0;
+  transition: opacity .12s;
+}
+.rv-card:hover .rv-card-del { opacity: 1; }
+.rv-card-del:hover { background: var(--color-stone-200); }
+.rv-card-items {
+  border-top: 1px solid var(--color-divider);
+  background: var(--color-stone-100, #FAFAFA);
+}
+.rv-card-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 12px; cursor: pointer;
   border-bottom: 1px solid var(--color-divider);
 }
-.rv-cat-header:hover { background: var(--color-stone-200); }
-.rv-cat-icon { width: 16px; height: 16px; fill: var(--color-primary-500, #2C9C74); flex-shrink: 0; }
-.rv-cat-icon--sm { width: 14px; height: 14px; }
-.rv-cat-label { flex: 1; font-size: 13px; font-weight: 500; }
-.rv-cat-count {
-  font-size: 12px; color: white; background: var(--color-primary-500);
-  border-radius: 10px; padding: 1px 6px;
+.rv-card-item:last-child { border-bottom: none; }
+.rv-card-item:hover { background: var(--color-stone-200); }
+.rv-card-item--selected { background: var(--color-primary-50); }
+.rv-card-item:hover .rv-card-del { opacity: 1; }
+.rv-card-item-text {
+  flex: 1; font-size: 12px; color: var(--color-text-secondary);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.rv-cat-chevron { width: 18px; height: 18px; fill: var(--color-stone-600); transition: transform .15s; }
-.rv-cat-chevron--open { transform: rotate(180deg); }
-.rv-cat-items { background: var(--color-stone-100, #FAFAFA); }
-.rv-mark-card {
-  padding: 8px 16px; cursor: pointer; border-bottom: 1px solid var(--color-divider);
-  display: flex; flex-direction: column; gap: 4px;
-}
-.rv-mark-card:hover { background: var(--color-stone-200); }
-.rv-mark-card--selected { background: var(--color-primary-50); }
-.rv-mark-card-top { display: flex; align-items: center; gap: 6px; }
-.rv-mark-page {
-  font-size: 11px; color: white; background: var(--color-stone-700, #73757F);
-  border-radius: 10px; padding: 1px 7px; white-space: nowrap; flex-shrink: 0;
-}
-.rv-mark-text {
-  font-size: 12px; color: var(--color-text-secondary);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1;
-}
-.rv-mark-card-del {
-  width: 24px; height: 24px; border: none; background: transparent;
-  cursor: pointer; border-radius: 4px; display: flex; align-items: center; justify-content: center;
-  opacity: 0; flex-shrink: 0;
-}
-.rv-mark-card-del svg { width: 14px; height: 14px; fill: var(--color-stone-600); }
-.rv-mark-card:hover .rv-mark-card-del { opacity: 1; }
-.rv-mark-card-del:hover svg { fill: var(--color-error-600, #E54430); }
 
 /* Panel toggle */
 .rv-panel-toggle {
@@ -1069,8 +1146,7 @@ export class RedactionViewerComponent implements OnInit, OnDestroy {
   groupBy: GroupBy = 'category';
 
   // ── Expand state ──────────────────────────────────────────────────────────
-  expandedCats = new Set<string>(['personal-name', 'address', 'date-time']);
-  expandedPages = new Set<number>([1, 2, 3]);
+  expandedCards = new Set<string>();
 
   // ── Search ────────────────────────────────────────────────────────────────
   searchQuery = '';
@@ -1109,7 +1185,7 @@ export class RedactionViewerComponent implements OnInit, OnDestroy {
 
   Math = Math;
 
-  constructor(private cdr: ChangeDetectorRef, private ngZone: NgZone) {}
+  constructor(private cdr: ChangeDetectorRef, private ngZone: NgZone, private sanitizer: DomSanitizer) {}
 
   // ── Lifecycle ─────────────────────────────────────────────────────────────
   async ngOnInit() {
@@ -1563,7 +1639,6 @@ export class RedactionViewerComponent implements OnInit, OnDestroy {
     this.detectState = 'idle';
     this.activeTab = null;
     this.showMarksPanel = true;
-    this.expandedCats = new Set<string>(this.categoriesWithMarks);
     this.showToast(`${toMark.length} marks added`);
   }
 
@@ -1662,14 +1737,75 @@ export class RedactionViewerComponent implements OnInit, OnDestroy {
     if (this.selectedMark?.id === id) this.selectedMark = null;
   }
 
-  toggleCatExpand(cat: string) {
-    if (this.expandedCats.has(cat)) this.expandedCats.delete(cat);
-    else this.expandedCats.add(cat);
+  toggleCardExpand(key: string) {
+    const next = new Set(this.expandedCards);
+    if (next.has(key)) next.delete(key);
+    else next.add(key);
+    this.expandedCards = next;
+    this.cdr.detectChanges();
   }
 
-  togglePageExpand(page: number) {
-    if (this.expandedPages.has(page)) this.expandedPages.delete(page);
-    else this.expandedPages.add(page);
+  get categoryCards(): MarkCardGroup[] {
+    const cards: MarkCardGroup[] = [];
+    for (const cat of MARKS_CAT_ORDER) {
+      const catMarks = this.marks.filter(m => m.category === cat);
+      if (catMarks.length === 0) continue;
+      if (cat === 'keyword') {
+        const textMap = new Map<string, RedactionMark[]>();
+        for (const m of catMarks) {
+          const key = m.text.toLowerCase();
+          if (!textMap.has(key)) textMap.set(key, []);
+          textMap.get(key)!.push(m);
+        }
+        for (const textMarks of textMap.values()) {
+          cards.push({
+            key: `kw-${textMarks[0].text}`,
+            category: 'keyword',
+            label: textMarks[0].text || 'Keyword',
+            marks: textMarks
+          });
+        }
+      } else {
+        cards.push({
+          key: cat,
+          category: cat,
+          label: this.getCatMeta(cat).label,
+          marks: catMarks
+        });
+      }
+    }
+    return cards;
+  }
+
+  get pageCards(): MarkCardGroup[] {
+    const pages = [...new Set(this.marks.map(m => m.pageNum))].sort((a, b) => a - b);
+    return pages.map(pageNum => ({
+      key: `pg-${pageNum}`,
+      category: 'manual' as MarkCategory,
+      label: `Page ${pageNum}`,
+      marks: this.marks.filter(m => m.pageNum === pageNum)
+    }));
+  }
+
+  private readonly catIconSvgStrings: Partial<Record<string, string>> = {
+    'manual': `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5.56836 5.16797C5.54786 4.47138 6.30964 4.03128 6.90234 4.39746L14.3301 8.9873C14.9904 9.3953 14.8227 10.3697 14.1221 10.5713L13.9736 10.6006L10.2471 11.0459C10.0094 11.0743 9.7938 11.1988 9.65039 11.3906L7.40137 14.3965C6.90523 15.0599 5.85172 14.7265 5.82715 13.8984L5.56836 5.16797ZM1.90332 10.8359C2.26398 10.836 2.55654 11.1286 2.55664 11.4893V13.0146H4.08008C4.44105 13.0146 4.7334 13.308 4.7334 13.6689C4.73316 14.0297 4.44091 14.3223 4.08008 14.3223H2.12109L2.03125 14.3174C1.62174 14.2754 1.29561 13.9498 1.25391 13.54L1.25 13.4502V11.4893C1.2501 11.1286 1.54261 10.8359 1.90332 10.8359ZM7.10059 12.6074L8.59961 10.6045L8.74219 10.4316C9.04354 10.1045 9.43818 9.87676 9.87207 9.7793L10.0928 9.74219L12.5742 9.44531L6.90332 5.94043L7.10059 12.6074ZM1.90332 6.04297C2.26403 6.04302 2.55662 6.33557 2.55664 6.69629V8.87598C2.55653 9.23662 2.26398 9.52924 1.90332 9.5293C1.54262 9.5293 1.25011 9.23665 1.25 8.87598V6.69629C1.25002 6.33554 1.54257 6.04297 1.90332 6.04297ZM4.08008 1.25C4.44096 1.25 4.73324 1.54248 4.7334 1.90332C4.7334 2.2643 4.44105 2.55762 4.08008 2.55762H2.55664V4.08301C2.55646 4.44359 2.26393 4.73628 1.90332 4.73633C1.54267 4.73633 1.25018 4.44362 1.25 4.08301V2.12109C1.25021 1.63997 1.6402 1.25 2.12109 1.25H4.08008ZM13.4434 1.25C13.9243 1.25 14.3142 1.63997 14.3145 2.12109V4.08301C14.3143 4.44362 14.0218 4.73633 13.6611 4.73633C13.3005 4.73626 13.008 4.44358 13.0078 4.08301V2.55762H11.4844C11.1234 2.55762 10.8311 2.2643 10.8311 1.90332C10.8312 1.54248 11.1235 1.25 11.4844 1.25H13.4434ZM8.87012 1.25C9.231 1.25 9.52426 1.54248 9.52441 1.90332C9.52441 2.2643 9.23109 2.55762 8.87012 2.55762H6.69434C6.33336 2.55762 6.04004 2.2643 6.04004 1.90332C6.04019 1.54248 6.33345 1.25 6.69434 1.25H8.87012Z" fill="#5F616A"/></svg>`,
+    'keyword': `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12.6673 4.66634V3.33301L3.33398 3.33301V4.66634" stroke="#5F616A" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M7.99935 3.33301L7.99935 12.6663M7.99935 12.6663H6.66602M7.99935 12.6663H9.33268" stroke="#5F616A" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    'personal-name': `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8.00065 1.33301C4.31875 1.33301 1.33398 4.31778 1.33398 7.99967C1.33398 11.6816 4.31875 14.6663 8.00065 14.6663C11.6825 14.6663 14.6673 11.6816 14.6673 7.99967C14.6673 4.31778 11.6825 1.33301 8.00065 1.33301Z" stroke="#5F616A" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M2.84766 12.2301C2.84766 12.2301 4.33368 10.333 8.00034 10.333C11.667 10.333 13.153 12.2301 13.153 12.2301" stroke="#5F616A" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 8C9.10457 8 10 7.10457 10 6C10 4.89543 9.10457 4 8 4C6.89543 4 6 4.89543 6 6C6 7.10457 6.89543 8 8 8Z" stroke="#5F616A" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    'address': `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13.3337 6.66634C13.3337 9.61186 8.00033 14.6663 8.00033 14.6663C8.00033 14.6663 2.66699 9.61186 2.66699 6.66634C2.66699 3.72082 5.05481 1.33301 8.00033 1.33301C10.9458 1.33301 13.3337 3.72082 13.3337 6.66634Z" stroke="#5F616A" stroke-width="1.2"/><path d="M7.99967 7.33333C8.36786 7.33333 8.66634 7.03486 8.66634 6.66667C8.66634 6.29848 8.36786 6 7.99967 6C7.63148 6 7.33301 6.29848 7.33301 6.66667C7.33301 7.03486 7.63148 7.33333 7.99967 7.33333Z" stroke="#5F616A" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    'date-time': `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10 2.66634V1.33301M10 2.66634V3.99967M10 2.66634H7M2 6.66634V12.6663C2 13.4027 2.59695 13.9997 3.33333 13.9997H12.6667C13.4031 13.9997 14 13.4027 14 12.6663V6.66634H2Z" stroke="#5F616A" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 6.66699V4.00033C2 3.26395 2.59695 2.66699 3.33333 2.66699H4.66667" stroke="#5F616A" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4.66602 1.33301V3.99967" stroke="#5F616A" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M14.0007 6.66699V4.00033C14.0007 3.26395 13.4037 2.66699 12.6673 2.66699H12.334" stroke="#5F616A" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    'email': `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4.66602 5.99967L7.99935 8.33301L11.3327 5.99967" stroke="#5F616A" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M1 11.8665V4.13314C1 3.39676 1.59695 2.7998 2.33333 2.7998H13.6667C14.403 2.7998 15 3.39676 15 4.13314V11.8665C15 12.6029 14.403 13.1998 13.6667 13.1998H2.33333C1.59695 13.1998 1 12.6028 1 11.8665Z" stroke="#5F616A" stroke-width="1.2"/></svg>`,
+  };
+
+  getCatIconSvg(cat: MarkCategory | string): SafeHtml {
+    const svgStr = this.catIconSvgStrings[cat];
+    if (svgStr) return this.sanitizer.bypassSecurityTrustHtml(svgStr);
+    const meta = CAT_META[cat as PiiCategory];
+    if (meta) {
+      return this.sanitizer.bypassSecurityTrustHtml(
+        `<svg width="16" height="16" viewBox="0 0 24 24"><path fill="#5F616A" d="${meta.svgPath}"/></svg>`
+      );
+    }
+    return this.sanitizer.bypassSecurityTrustHtml('');
   }
 
   // ── Apply / Leave ─────────────────────────────────────────────────────────
