@@ -24,6 +24,7 @@
     "@tinymce/tinymce-angular": "^9.1.1",
     "@vercel/analytics": "^1.6.1",
     "lottie-web": "^5.13.0",
+    "pdfjs-dist": "^3.11.174",
     "posthog-js": "^1.364.1",
     "rxjs": "~7.8.0",
     "tinymce": "^8.4.0",
