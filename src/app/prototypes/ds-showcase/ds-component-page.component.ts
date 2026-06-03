@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
-import { DS_COMPONENTS, ToastService, FloatingPanelItem, FilterBtnColor, RedactionMarkPage } from '../../shared/ds';
+import { DS_COMPONENTS, ToastService, ToastAction, FloatingPanelItem, FilterBtnColor, RedactionMarkPage } from '../../shared/ds';
 import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, ComponentCategory } from './ds-registry';
 
 @Component({
@@ -1328,12 +1328,38 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
         <!-- TOAST -->
         <ng-container *ngSwitchCase="'toast'">
           <div class="examples-group">
+            <h3 class="examples-group__title">Severities</h3>
+            <div class="toast-preview">
+              <fvdr-toast variant="success" message="Message Content" [duration]="0"></fvdr-toast>
+              <fvdr-toast variant="warning" message="Message Content" [duration]="0"></fvdr-toast>
+              <fvdr-toast variant="error"   message="Message Content" [duration]="0"></fvdr-toast>
+              <fvdr-toast variant="info"    message="Message Content" [duration]="0"></fvdr-toast>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">With title</h3>
+            <div class="toast-preview">
+              <fvdr-toast variant="success" title="Saved!"  message="Your changes were saved successfully." [duration]="0"></fvdr-toast>
+              <fvdr-toast variant="error"   title="Error"   message="Something went wrong. Please try again." [duration]="0"></fvdr-toast>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">With actions</h3>
+            <div class="toast-preview">
+              <fvdr-toast variant="success" message="Lorem ipsum dolor" [actions]="demoToastActions" [duration]="0"></fvdr-toast>
+              <fvdr-toast variant="warning" message="Lorem ipsum dolor" [actions]="demoToastActions" [duration]="0"></fvdr-toast>
+              <fvdr-toast variant="error"   message="Lorem ipsum dolor" [actions]="demoToastActions" [duration]="0"></fvdr-toast>
+              <fvdr-toast variant="info"    message="Lorem ipsum dolor" [actions]="demoToastActions" [duration]="0"></fvdr-toast>
+            </div>
+          </div>
+          <div class="examples-group">
             <h3 class="examples-group__title">Trigger toasts</h3>
             <div class="examples-row examples-row--wrap">
               <fvdr-btn label="Success toast" variant="primary"   size="m" (clicked)="toastSvc.show({ variant: 'success', title: 'Saved!',   message: 'Your changes were saved.' })"></fvdr-btn>
               <fvdr-btn label="Error toast"   variant="danger"    size="m" (clicked)="toastSvc.show({ variant: 'error',   title: 'Error',     message: 'Something went wrong.' })"></fvdr-btn>
               <fvdr-btn label="Warning toast" variant="secondary" size="m" (clicked)="toastSvc.show({ variant: 'warning', title: 'Warning',   message: 'Unsaved changes detected.' })"></fvdr-btn>
               <fvdr-btn label="Info toast"    variant="ghost"     size="m" (clicked)="toastSvc.show({ variant: 'info',    title: 'Info',      message: 'New update available.' })"></fvdr-btn>
+              <fvdr-btn label="Toast with actions" variant="secondary" size="m" (clicked)="toastSvc.show({ variant: 'info', message: 'A file was deleted.', duration: 0, actions: [{ label: 'Undo', onClick: undoAction }, { label: 'Dismiss' }] })"></fvdr-btn>
             </div>
           </div>
         </ng-container>
@@ -1397,6 +1423,56 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
               <div class="example-labeled"><fvdr-file-icon type="txt"></fvdr-file-icon><span>txt</span></div>
               <div class="example-labeled"><fvdr-file-icon type="code"></fvdr-file-icon><span>code</span></div>
               <div class="example-labeled"><fvdr-file-icon type="eml"></fvdr-file-icon><span>eml</span></div>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- REDACTION MARK CARD -->
+        <ng-container *ngSwitchCase="'redaction-mark-card'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">Data types</h3>
+            <div class="examples-col" style="max-width: 320px;">
+              <fvdr-redaction-mark-card type="personal-name" title="Andrew State" status="applied"></fvdr-redaction-mark-card>
+              <fvdr-redaction-mark-card type="address" title="221B Baker Street" status="applied"></fvdr-redaction-mark-card>
+              <fvdr-redaction-mark-card type="date-time" title="14 Mar 2026, 09:30" status="applied"></fvdr-redaction-mark-card>
+              <fvdr-redaction-mark-card type="email" title="andrew@example.com" status="applied"></fvdr-redaction-mark-card>
+              <fvdr-redaction-mark-card type="phone" title="+44 20 7946 0958" status="applied"></fvdr-redaction-mark-card>
+              <fvdr-redaction-mark-card type="iban" title="GB29 NWBK 6016 1331 9268 19" status="applied"></fvdr-redaction-mark-card>
+              <fvdr-redaction-mark-card type="ssn" title="078-05-1120" status="applied"></fvdr-redaction-mark-card>
+              <fvdr-redaction-mark-card type="passport" title="X12345678" status="applied"></fvdr-redaction-mark-card>
+              <fvdr-redaction-mark-card type="text-mark" title="Confidential clause" status="applied"></fvdr-redaction-mark-card>
+              <fvdr-redaction-mark-card type="redacted-area" title="Redacted area" status="applied"></fvdr-redaction-mark-card>
+            </div>
+          </div>
+
+          <div class="examples-group">
+            <h3 class="examples-group__title">Status</h3>
+            <div class="examples-col" style="max-width: 320px;">
+              <fvdr-redaction-mark-card type="personal-name" title="Andrew State" status="draft"></fvdr-redaction-mark-card>
+              <fvdr-redaction-mark-card type="personal-name" title="Andrew State" status="applied"></fvdr-redaction-mark-card>
+            </div>
+          </div>
+
+          <div class="examples-group">
+            <h3 class="examples-group__title">Grouped by page (subtitle = type)</h3>
+            <div class="examples-col" style="max-width: 320px;">
+              <fvdr-redaction-mark-card type="personal-name" title="Andrew State" groupedBy="page" status="applied"></fvdr-redaction-mark-card>
+              <fvdr-redaction-mark-card type="email" title="andrew@example.com" groupedBy="page" status="draft"></fvdr-redaction-mark-card>
+            </div>
+          </div>
+
+          <div class="examples-group">
+            <h3 class="examples-group__title">Grouped by category (subtitle = page)</h3>
+            <div class="examples-col" style="max-width: 320px;">
+              <fvdr-redaction-mark-card type="personal-name" title="Andrew State" pageLabel="Page 1" groupedBy="category" status="applied"></fvdr-redaction-mark-card>
+              <fvdr-redaction-mark-card type="email" title="andrew@example.com" pageLabel="Page 3" groupedBy="category" status="draft"></fvdr-redaction-mark-card>
+            </div>
+          </div>
+
+          <div class="examples-group">
+            <h3 class="examples-group__title">Selected (active mark)</h3>
+            <div class="examples-col" style="max-width: 320px;">
+              <fvdr-redaction-mark-card type="iban" title="GB29 NWBK 6016 1331 9268 19" pageLabel="Page 2" groupedBy="category" status="draft" [selected]="true"></fvdr-redaction-mark-card>
             </div>
           </div>
         </ng-container>
@@ -1819,6 +1895,9 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
     </section>
 
   </main>
+
+  <!-- Toast host — renders toasts triggered via ToastService -->
+  <fvdr-toast-host />
 
 </div>
   `,
@@ -2532,6 +2611,16 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
       flex-wrap: wrap;
     }
 
+    .toast-preview {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 24px;
+      background: var(--color-bg-surface, #f7f7f7);
+      border-radius: 8px;
+    }
+
     .examples-row--align-end {
       align-items: flex-end;
     }
@@ -2860,6 +2949,15 @@ export class DsComponentPageComponent implements OnInit, OnDestroy {
   toastSvc = inject(ToastService);
   private sub!: Subscription;
 
+  demoToastActions: ToastAction[] = [
+    { label: 'Action', keepOpen: true },
+    { label: 'Action 2', keepOpen: true },
+  ];
+
+  undoAction = (): void => {
+    this.toastSvc.show({ variant: 'success', message: 'Action undone.' });
+  };
+
   entry: ComponentDocEntry | undefined;
   searchQuery = '';
   modalOpen = false;
@@ -3120,6 +3218,7 @@ export class DsComponentPageComponent implements OnInit, OnDestroy {
   // ── Stepper / Range bindings ──
   demoStepperVal = 3;
   demoRangeVal = 40;
+
 
   // ── Header demo data ──
   demoHeaderNav = [

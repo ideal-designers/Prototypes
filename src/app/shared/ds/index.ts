@@ -176,7 +176,7 @@ export { InlineMessageComponent } from './components/inline-message/inline-messa
 export type { InlineMessageVariant } from './components/inline-message/inline-message.component';
 
 export { ToastComponent, ToastHostComponent, ToastService } from './components/toast/toast.component';
-export type { ToastVariant, ToastData } from './components/toast/toast.component';
+export type { ToastVariant, ToastData, ToastAction } from './components/toast/toast.component';
 
 export { ModalComponent, BottomSheetComponent } from './components/modal/modal.component';
 export type { ModalSize, ModalConfig } from './components/modal/modal.component';

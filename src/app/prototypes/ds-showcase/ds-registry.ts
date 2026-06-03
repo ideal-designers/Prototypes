@@ -1263,12 +1263,16 @@ const toast: ComponentDocEntry = {
   description:
     'A non-blocking notification that appears at a corner of the screen and auto-dismisses. Injected programmatically via ToastService.',
   whenToUse: ['Confirming a completed action (saved, copied, deleted) without blocking the UI.'],
-  whenNotToUse: [],
+  whenNotToUse: ['Critical errors that require a decision — use a Modal or Confirmation dialog instead.'],
   anatomy: [],
   tokens: [
-    { token: '--color-interactive-secondary', value: '#40424b', usage: 'Default toast background' },
-    { token: '--color-text-inverse',          value: '#ffffff', usage: 'Toast text color' },
-    { token: '--shadow-card',                 value: 'var(--shadow-card)', usage: 'Toast elevation' },
+    { token: '--color-stone-0',        value: '#ffffff', usage: 'Toast surface' },
+    { token: '--color-alert-success',  value: '#2c9c74', usage: 'Success bar + icon' },
+    { token: '--color-alert-warning',  value: '#d48806', usage: 'Warning bar + icon' },
+    { token: '--color-alert-error',    value: '#de1135', usage: 'Error bar + icon' },
+    { token: '--color-alert-info',     value: '#5f616a', usage: 'Info bar + icon' },
+    { token: '--color-text-primary',   value: '#1f2129', usage: 'Message text' },
+    { token: '--shadow-toast',         value: 'var(--shadow-toast)', usage: 'Toast elevation' },
   ],
   usedIn: ['API Keys (copy key)', 'Settings (save)', 'Delete Account'],
   codeSnippet: `// In a component

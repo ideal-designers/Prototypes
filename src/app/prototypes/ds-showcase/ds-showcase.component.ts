@@ -44,8 +44,8 @@ import type { ComponentDocEntry } from './ds-registry';
           <h1 class="showcase__h1">FVDR Design System</h1>
           <p class="showcase__subtitle">All components in one place · Figma: <a href="https://www.figma.com/design/liyNDiFf1piO8SQmHNKoeU" target="_blank">liyNDiFf1piO8SQmHNKoeU</a></p>
           <div class="showcase__stats">
-            <span class="showcase__stat"><b>35</b> components</span>
-            <span class="showcase__stat"><b>110</b> icons</span>
+            <span class="showcase__stat"><b>38</b> components</span>
+            <span class="showcase__stat"><b>145</b> icons</span>
             <span class="showcase__stat"><b>6</b> categories</span>
           </div>
         </div>
@@ -1171,6 +1171,9 @@ export class DsShowcaseComponent implements OnInit, OnDestroy {
     'user-add','user-remove','user-check','user-edit',
     'group','group-add','time','trending-up','trending-down',
     'plan','card','usage','note',
+    // 16x16 — Redaction marks
+    'user-circle','calendar-date','mail','location',
+    'bank','card-security','passport','text-mark','redacted-area','delete',
     // 24x24 — Navigation (API)
     'api',
     // 24x24 — Navigation (nav-*)

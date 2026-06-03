@@ -28,6 +28,7 @@
      Figma: Stone grey / $stone-*
   ───────────────────────────────────────── */
   --color-stone-0:    #FFFFFF;  /* Pure white */
+  --color-stone-50:   #FBFBFB;  /* Toast / subtle surface */
   --color-stone-100:  #FAFAFA;  /* Subtle bg */
   --color-stone-200:  #F7F7F7;  /* Surface, input bg */
   --color-stone-300:  #ECEEF9;  /* UI hover bg */
@@ -58,6 +59,16 @@
   --color-warning-500: #FFE448;
   --color-warning-600: #FFDA07;
   --color-warning-700: #D1B200;
+
+  /* ─────────────────────────────────────────
+     ALERT / TOAST semantics
+     Figma: Messages › Toasts (node 15032-16725)
+     Canonical alert colors for toast bar + icon.
+  ───────────────────────────────────────── */
+  --color-alert-success: #2C9C74;  /* green-500 */
+  --color-alert-error:   #DE1135;  /* red-500 */
+  --color-alert-warning: #D48806;  /* yellow-500 */
+  --color-alert-info:    #5F616A;  /* stone-700 */
 
   /* ─────────────────────────────────────────
      INFO (Dodger Blue)
@@ -217,6 +228,12 @@
   --chip-icon-magenta:  #c026d3;
   --chip-icon-grey:     #9c9ea8;
   --chip-icon-coffee:   #8c7355;
+
+  /* ── Redaction mark card (Figma: 02e4Sm7wmZioAEV6imoNR7, node 17313-67932) ── */
+  --redaction-status-draft:    #ffc694;  /* categories/orange — draft status square */
+  --redaction-status-applied:  #b1eac2;  /* categories/green — applied status square */
+  --redaction-selected-bg:     #ffede1;  /* orange-50 — selected card background */
+  --redaction-selected-border: #df6d00;  /* orange-500 — selected card border */
 }
 
 /* ─────────────────────────────────────────
@@ -229,6 +246,7 @@
 
   /* Stone scale — inverted for dark */
   --color-stone-0:    #1F2129;
+  --color-stone-50:   #1B1D24;
   --color-stone-100:  #212426;
   --color-stone-200:  #292D2F;
   --color-stone-300:  #33383B;
