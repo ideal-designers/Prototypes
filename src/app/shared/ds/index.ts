@@ -45,6 +45,9 @@
  *   <fvdr-sidebar-nav>         → App sidebar (VDR/CA/Internal, collapsible, with sub-nav)
  *   <fvdr-file-icon>           → File/folder icon (folder, pdf, doc, xls, image, video, zip…)
  *   <fvdr-quick-access-menu>   → Quick access shortcuts panel (collapsible, active state)
+ *   <fvdr-ghost-btn>           → Ghost button (circle-plus icon, optional label + shortcut, S/M)
+ *   <fvdr-floating-panel>      → Floating toolbar of ghost buttons (vertical/horizontal × big/small)
+ *   <fvdr-filter-btn>          → Filter button (12 colors, M/S, status dot, counter, arrow)
  *
  * Usage in prototype:
  *   import { DS_COMPONENTS } from '../../shared/ds';
@@ -94,6 +97,10 @@ import { FileIconComponent } from './components/file-icon/file-icon.component';
 import { QuickAccessMenuComponent } from './components/quick-access-menu/quick-access-menu.component';
 import { BreadcrumbsComponent } from './components/breadcrumbs/breadcrumbs.component';
 import { PageHeaderComponent } from './components/page-header/page-header.component';
+import { RedactionMarkCardComponent } from './components/redaction-mark-card/redaction-mark-card.component';
+import { GhostBtnComponent } from './components/ghost-btn/ghost-btn.component';
+import { FloatingPanelComponent } from './components/floating-panel/floating-panel.component';
+import { FilterBtnComponent } from './components/filter-btn/filter-btn.component';
 
 // ─── Re-exports ───────────────────────────────────────────────────────────────
 
@@ -200,6 +207,18 @@ export { BreadcrumbsComponent } from './components/breadcrumbs/breadcrumbs.compo
 
 export { PageHeaderComponent } from './components/page-header/page-header.component';
 
+export { RedactionMarkCardComponent } from './components/redaction-mark-card/redaction-mark-card.component';
+export type { RedactionMarkType, RedactionMarkStatus, RedactionMarkGroupBy, RedactionMarkPage } from './components/redaction-mark-card/redaction-mark-card.component';
+
+export { GhostBtnComponent } from './components/ghost-btn/ghost-btn.component';
+export type { GhostBtnSize } from './components/ghost-btn/ghost-btn.component';
+
+export { FloatingPanelComponent } from './components/floating-panel/floating-panel.component';
+export type { FloatingPanelItem, FloatingPanelOrientation, FloatingPanelSize } from './components/floating-panel/floating-panel.component';
+
+export { FilterBtnComponent } from './components/filter-btn/filter-btn.component';
+export type { FilterBtnSize, FilterBtnColor } from './components/filter-btn/filter-btn.component';
+
 /** Convenience array — spread into component imports[] */
 export const DS_COMPONENTS = [
   // Original
@@ -250,4 +269,8 @@ export const DS_COMPONENTS = [
   QuickAccessMenuComponent,
   BreadcrumbsComponent,
   PageHeaderComponent,
+  RedactionMarkCardComponent,
+  GhostBtnComponent,
+  FloatingPanelComponent,
+  FilterBtnComponent,
 ];

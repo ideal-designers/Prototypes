@@ -150,7 +150,7 @@ export type SegmentSize = 'sm' | 'md' | 'mobile';
       padding: 0 var(--space-3);
       height: 28px;                          /* S size default */
       background: var(--color-stone-0);
-      border: 1.5px solid var(--color-stone-400);
+      border: 1px solid var(--color-stone-400);
       font-family: var(--font-family);
       font-size: var(--text-base-s-size);
       font-weight: var(--text-base-s-weight);
@@ -181,13 +181,20 @@ export type SegmentSize = 'sm' | 'md' | 'mobile';
     .seg-table__item--last:not(.seg-table__item--active) {
       border-left: none;
     }
+    /* Prevent double border: last item active — overlap prev item's right border */
+    .seg-table__item--last.seg-table__item--active {
+      margin-left: -1px;
+    }
 
     /* Active: light green highlight + green border */
     .seg-table__item--active {
       background: var(--color-primary-50);   /* #EBF8EF */
-      border: 1.5px solid var(--color-primary-500) !important;
+      border: 1px solid var(--color-primary-500) !important;
       color: var(--color-text-primary);
       z-index: 1;
+    }
+    .seg-table__item--active .seg-table__icon {
+      color: var(--color-primary-500);
     }
     .seg-table__item:not(.seg-table__item--active):not(:disabled):hover {
       background: var(--color-stone-100);

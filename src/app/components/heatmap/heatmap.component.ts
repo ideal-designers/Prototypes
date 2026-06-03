@@ -89,7 +89,7 @@ interface ClickDot {
       padding: 12px 20px;
       background: #101A16;
       border-bottom: 1px solid #1e2e28;
-      font-family: 'Open Sans', sans-serif;
+      font-family: var(--font-family);
     }
     .heatmap-toolbar__title {
       font-weight: 600;
@@ -122,7 +122,7 @@ interface ClickDot {
       align-items: center;
       justify-content: center;
       color: #9bbfb0;
-      font-family: 'Open Sans', sans-serif;
+      font-family: var(--font-family);
     }
   `],
 })

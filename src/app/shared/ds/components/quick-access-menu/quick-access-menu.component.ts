@@ -82,7 +82,7 @@ export interface QuickAccessItem {
       background: var(--color-stone-0, #fff);
       border-radius: var(--radius-sm, 4px);
       overflow: hidden;
-      font-family: var(--font-family, 'Open Sans', sans-serif);
+      font-family: var(--font-family);
     }
     .qa-menu--collapsed {
       width: auto;
@@ -163,7 +163,7 @@ export interface QuickAccessItem {
       cursor: pointer;
       font-size: var(--font-size-base, 14px);
       font-weight: 400;
-      font-family: var(--font-family, 'Open Sans', sans-serif);
+      font-family: var(--font-family);
       color: var(--color-text-primary, #1f2129);
       text-align: left;
       border-radius: var(--radius-sm, 4px);

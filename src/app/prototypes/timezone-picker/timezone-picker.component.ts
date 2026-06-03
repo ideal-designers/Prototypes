@@ -89,7 +89,7 @@ const TIMEZONE_OPTIONS: DropdownOption[] = TIMEZONES_RAW.map(tz => ({
 </div>
   `,
   styles: [`
-    :host { display: block; height: 100vh; overflow: hidden; font-family: var(--font-family, 'Inter', sans-serif); }
+    :host { display: block; height: 100vh; overflow: hidden; font-family: var(--font-family); }
     .page { display: flex; height: 100vh; background: var(--color-stone-200); justify-content: center; }
 
     .main {

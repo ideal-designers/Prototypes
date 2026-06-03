@@ -94,7 +94,7 @@ interface ScenarioCard {
       min-height: 100vh;
       background: #0B1410;
       color: #e8f5f0;
-      font-family: 'Inter', 'Open Sans', sans-serif;
+      font-family: var(--font-family);
       padding: 48px 24px 80px;
     }
 

@@ -358,7 +358,7 @@ interface FileTreeNode {
   styles: [`
     :host {
       display: block;
-      font-family: var(--font-family, 'Open Sans', sans-serif);
+      font-family: var(--font-family);
       color: var(--color-text-primary);
     }
 
