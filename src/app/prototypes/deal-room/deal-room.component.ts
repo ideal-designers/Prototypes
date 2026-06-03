@@ -21,7 +21,7 @@ import { TrackerService } from '../../services/tracker.service';
       min-height: 100vh;
       background: #0B1410;
       color: #e8f5f0;
-      font-family: 'Open Sans', sans-serif;
+      font-family: var(--font-family);
       display: flex;
       flex-direction: column;
       align-items: center;

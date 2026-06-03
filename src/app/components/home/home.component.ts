@@ -338,7 +338,7 @@ const VIEW_MODE_STORAGE_KEY = 'fvdr-home-view-mode';
       min-height: 100vh;
       background: #0B1410;
       color: #e8f5f0;
-      font-family: 'Open Sans', sans-serif;
+      font-family: var(--font-family);
       padding: 48px 24px;
     }
     .home__header { max-width: 960px; margin: 0 auto 28px; }

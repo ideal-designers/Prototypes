@@ -44,7 +44,7 @@ import { AuthService } from '../../services/auth.service';
       align-items: center;
       justify-content: center;
       padding: 24px;
-      font-family: 'Open Sans', sans-serif;
+      font-family: var(--font-family);
     }
 
     .card {

@@ -27,7 +27,7 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
     { provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => ToggleComponent), multi: true },
   ],
   template: `
-    <label class="toggle" [class.toggle--disabled]="disabled" (click)="!disabled && toggle()">
+    <label class="toggle" [class.toggle--disabled]="disabled" [class.toggle--s]="size === 's'" (click)="!disabled && toggle()">
       <span class="toggle__track" [class.toggle__track--on]="checked">
         <span class="toggle__thumb"></span>
       </span>
@@ -44,6 +44,7 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
     }
     .toggle--disabled { opacity: 0.45; cursor: not-allowed; }
 
+    /* ── Size M (default) ── */
     .toggle__track {
       position: relative;
       display: inline-flex;
@@ -71,6 +72,18 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
     }
     .toggle__track--on .toggle__thumb { transform: translateX(16px); }
 
+    /* ── Size S ── */
+    .toggle--s .toggle__track {
+      width: 28px;
+      height: 16px;
+      border-radius: 8px;
+    }
+    .toggle--s .toggle__thumb {
+      width: 12px;
+      height: 12px;
+    }
+    .toggle--s .toggle__track--on .toggle__thumb { transform: translateX(12px); }
+
     .toggle__label {
       font-family: var(--font-family);
       font-size: var(--text-base-s-size);
@@ -84,6 +97,8 @@ export class ToggleComponent implements ControlValueAccessor {
   @Input() label = '';
   @Input() checked = false;
   @Input() disabled = false;
+  /** Size: 'm' (default, 36×20px) or 's' (28×16px) */
+  @Input() size: 'm' | 's' = 'm';
   @Output() checkedChange = new EventEmitter<boolean>();
 
   private onChange: (v: boolean) => void = () => {};

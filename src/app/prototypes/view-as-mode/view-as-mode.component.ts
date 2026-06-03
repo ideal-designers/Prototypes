@@ -191,7 +191,7 @@ interface FileRow {
       width: 100vw;
       height: 100vh;
       overflow: hidden;
-      font-family: var(--font-family, 'Open Sans', sans-serif);
+      font-family: var(--font-family);
     }
 
     /* ── Layout ───────────────────────────────────────────────── */

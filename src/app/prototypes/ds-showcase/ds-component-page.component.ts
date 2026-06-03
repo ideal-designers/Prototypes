@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
-import { DS_COMPONENTS, ToastService } from '../../shared/ds';
+import { DS_COMPONENTS, ToastService, FloatingPanelItem, FilterBtnColor, RedactionMarkPage } from '../../shared/ds';
 import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, ComponentCategory } from './ds-registry';
 
 @Component({
@@ -1466,6 +1466,263 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
           </div>
         </ng-container>
 
+        <!-- GHOST BTN -->
+        <ng-container *ngSwitchCase="'ghost-btn'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">Icon only</h3>
+            <div class="examples-row" style="gap:24px; align-items:center; flex-wrap:wrap">
+              <div class="example-labeled">
+                <fvdr-ghost-btn size="big"></fvdr-ghost-btn>
+                <span>Big / Default</span>
+              </div>
+              <div class="example-labeled">
+                <fvdr-ghost-btn size="big" [selected]="true"></fvdr-ghost-btn>
+                <span>Big / Selected</span>
+              </div>
+              <div class="example-labeled">
+                <fvdr-ghost-btn size="small"></fvdr-ghost-btn>
+                <span>Small / Default</span>
+              </div>
+              <div class="example-labeled">
+                <fvdr-ghost-btn size="small" [selected]="true"></fvdr-ghost-btn>
+                <span>Small / Selected</span>
+              </div>
+              <div class="example-labeled">
+                <fvdr-ghost-btn size="big" [disabled]="true"></fvdr-ghost-btn>
+                <span>Disabled</span>
+              </div>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">With label — Big (40px)</h3>
+            <div class="examples-row" style="gap:24px; align-items:center; flex-wrap:wrap">
+              <div class="example-labeled">
+                <fvdr-ghost-btn size="big" label="Invite viewers"></fvdr-ghost-btn>
+                <span>Default</span>
+              </div>
+              <div class="example-labeled">
+                <fvdr-ghost-btn size="big" label="Invite viewers" shortcut="Shift"></fvdr-ghost-btn>
+                <span>With shortcut</span>
+              </div>
+              <div class="example-labeled">
+                <fvdr-ghost-btn size="big" label="Invite viewers" shortcut="Shift" [selected]="true"></fvdr-ghost-btn>
+                <span>Selected</span>
+              </div>
+              <div class="example-labeled">
+                <fvdr-ghost-btn size="big" label="Invite viewers" [disabled]="true"></fvdr-ghost-btn>
+                <span>Disabled</span>
+              </div>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">With label — Small (32px)</h3>
+            <div class="examples-row" style="gap:24px; align-items:center; flex-wrap:wrap">
+              <div class="example-labeled">
+                <fvdr-ghost-btn size="small" label="Invite viewers"></fvdr-ghost-btn>
+                <span>Default</span>
+              </div>
+              <div class="example-labeled">
+                <fvdr-ghost-btn size="small" label="Invite viewers" shortcut="Shift"></fvdr-ghost-btn>
+                <span>With shortcut</span>
+              </div>
+              <div class="example-labeled">
+                <fvdr-ghost-btn size="small" label="Invite viewers" shortcut="Shift" [selected]="true"></fvdr-ghost-btn>
+                <span>Selected</span>
+              </div>
+              <div class="example-labeled">
+                <fvdr-ghost-btn size="small" label="Invite viewers" [disabled]="true"></fvdr-ghost-btn>
+                <span>Disabled</span>
+              </div>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- FLOATING PANEL -->
+        <ng-container *ngSwitchCase="'floating-panel'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">Vertical</h3>
+            <div class="examples-row" style="gap:32px; align-items:flex-start; flex-wrap:wrap">
+              <div class="example-labeled">
+                <fvdr-floating-panel
+                  [items]="demoFloatingPanelItems"
+                  orientation="vertical"
+                  size="big"
+                  (itemClicked)="onFpItemClick($event)">
+                </fvdr-floating-panel>
+                <span>Big (8px padding, 4px gap)</span>
+              </div>
+              <div class="example-labeled">
+                <fvdr-floating-panel
+                  [items]="demoFloatingPanelItems"
+                  orientation="vertical"
+                  size="small"
+                  (itemClicked)="onFpItemClick($event)">
+                </fvdr-floating-panel>
+                <span>Small (4px padding, no gap)</span>
+              </div>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Horizontal</h3>
+            <div class="examples-row" style="gap:32px; align-items:flex-start; flex-wrap:wrap">
+              <div class="example-labeled">
+                <fvdr-floating-panel
+                  [items]="demoFloatingPanelItems"
+                  orientation="horizontal"
+                  size="big"
+                  (itemClicked)="onFpItemClick($event)">
+                </fvdr-floating-panel>
+                <span>Big (8px padding, 4px gap)</span>
+              </div>
+              <div class="example-labeled">
+                <fvdr-floating-panel
+                  [items]="demoFloatingPanelItems"
+                  orientation="horizontal"
+                  size="small"
+                  (itemClicked)="onFpItemClick($event)">
+                </fvdr-floating-panel>
+                <span>Small (4px padding, no gap)</span>
+              </div>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Interactive — клікни на кнопку (toggle selected)</h3>
+            <div class="examples-row" style="gap:32px; align-items:flex-start">
+              <fvdr-floating-panel
+                [items]="demoFloatingPanelItems"
+                orientation="vertical"
+                size="big"
+                (itemClicked)="onFpItemClick($event)">
+              </fvdr-floating-panel>
+              <fvdr-floating-panel
+                [items]="demoFloatingPanelItems"
+                orientation="horizontal"
+                size="big"
+                (itemClicked)="onFpItemClick($event)">
+              </fvdr-floating-panel>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- ═══ FILTER BUTTON ═══ -->
+        <ng-container *ngSwitchCase="'filter-btn'">
+
+          <!-- All 12 colors — default state -->
+          <div class="example-block">
+            <p class="example-label">Colors — Default state (M)</p>
+            <div class="example-row" style="flex-wrap:wrap; gap:16px">
+              <fvdr-filter-btn *ngFor="let c of filterBtnColors" [color]="c" [label]="c | titlecase"></fvdr-filter-btn>
+            </div>
+          </div>
+
+          <!-- All 12 colors — selected state -->
+          <div class="example-block">
+            <p class="example-label">Colors — Selected state (M)</p>
+            <div class="example-row" style="flex-wrap:wrap; gap:16px">
+              <fvdr-filter-btn *ngFor="let c of filterBtnColors" [color]="c" [label]="c | titlecase" [selected]="true"></fvdr-filter-btn>
+            </div>
+          </div>
+
+          <!-- S size -->
+          <div class="example-block">
+            <p class="example-label">Size S — Default + Selected</p>
+            <div class="example-row" style="flex-wrap:wrap; gap:16px">
+              <fvdr-filter-btn size="S" label="Filter" color="default"></fvdr-filter-btn>
+              <fvdr-filter-btn size="S" label="Selected" color="default" [selected]="true"></fvdr-filter-btn>
+              <fvdr-filter-btn size="S" label="Blue" color="blue" [selected]="true"></fvdr-filter-btn>
+              <fvdr-filter-btn size="S" label="Danger" color="danger" [selected]="true"></fvdr-filter-btn>
+            </div>
+          </div>
+
+          <!-- Optional parts -->
+          <div class="example-block">
+            <p class="example-label">With counter · status dot · arrow</p>
+            <div class="example-row" style="flex-wrap:wrap; gap:16px">
+              <fvdr-filter-btn label="Email" color="blue" [selected]="true" [showCounter]="true" counter="12"></fvdr-filter-btn>
+              <fvdr-filter-btn label="Danger" color="danger" [selected]="true" [showStatus]="true" [showCounter]="true" counter="3"></fvdr-filter-btn>
+              <fvdr-filter-btn label="Category" color="yellow" [showArrow]="true"></fvdr-filter-btn>
+              <fvdr-filter-btn label="All filters" [showArrow]="true" [showCounter]="true" counter="5"></fvdr-filter-btn>
+            </div>
+          </div>
+
+          <!-- Disabled -->
+          <div class="example-block">
+            <p class="example-label">Disabled</p>
+            <div class="example-row" style="gap:16px">
+              <fvdr-filter-btn label="Disabled" [disabled]="true"></fvdr-filter-btn>
+              <fvdr-filter-btn label="Disabled" color="blue" [selected]="true" [disabled]="true"></fvdr-filter-btn>
+              <fvdr-filter-btn size="S" label="Disabled S" [disabled]="true"></fvdr-filter-btn>
+            </div>
+          </div>
+
+        </ng-container>
+
+        <!-- ══ REDACTION MARK CARD ══ -->
+        <ng-container *ngSwitchCase="'redaction-mark-card'">
+
+          <!-- Single cards — all types, draft -->
+          <div class="example-block">
+            <p class="example-label">Single card — all types, draft</p>
+            <div style="display:flex; flex-direction:column; gap:4px; max-width:320px">
+              <fvdr-redaction-mark-card type="personal-name" title="Andrew State"       pageLabel="Page 1" status="draft"   groupedBy="category" style="display:block"></fvdr-redaction-mark-card>
+              <fvdr-redaction-mark-card type="address"       title="123 Main St"        pageLabel="Page 2" status="draft"   groupedBy="category" style="display:block"></fvdr-redaction-mark-card>
+              <fvdr-redaction-mark-card type="date-time"     title="12 Jan 2024"        pageLabel="Page 1" status="draft"   groupedBy="category" style="display:block"></fvdr-redaction-mark-card>
+              <fvdr-redaction-mark-card type="email"         title="user@example.com"   pageLabel="Page 3" status="draft"   groupedBy="category" style="display:block"></fvdr-redaction-mark-card>
+              <fvdr-redaction-mark-card type="phone"         title="+380 50 123 4567"   pageLabel="Page 1" status="draft"   groupedBy="category" style="display:block"></fvdr-redaction-mark-card>
+              <fvdr-redaction-mark-card type="iban"          title="UA21 3996 2200"     pageLabel="Page 4" status="draft"   groupedBy="category" style="display:block"></fvdr-redaction-mark-card>
+              <fvdr-redaction-mark-card type="ssn"          title="123-45-6789"         pageLabel="Page 2" status="draft"   groupedBy="category" style="display:block"></fvdr-redaction-mark-card>
+              <fvdr-redaction-mark-card type="passport"      title="AB 123456"          pageLabel="Page 5" status="draft"   groupedBy="category" style="display:block"></fvdr-redaction-mark-card>
+              <fvdr-redaction-mark-card type="text-mark"     title="confidential"       pageLabel="Page 1" status="draft"   groupedBy="category" style="display:block"></fvdr-redaction-mark-card>
+              <fvdr-redaction-mark-card type="redacted-area"                            pageLabel="Page 3" status="draft"   groupedBy="category" style="display:block"></fvdr-redaction-mark-card>
+            </div>
+          </div>
+
+          <!-- Applied status -->
+          <div class="example-block">
+            <p class="example-label">Single card — applied status</p>
+            <div style="display:flex; flex-direction:column; gap:4px; max-width:320px">
+              <fvdr-redaction-mark-card type="personal-name" title="Andrew State"     pageLabel="Page 1" status="applied" groupedBy="category" style="display:block"></fvdr-redaction-mark-card>
+              <fvdr-redaction-mark-card type="email"         title="user@example.com" pageLabel="Page 3" status="applied" groupedBy="category" style="display:block"></fvdr-redaction-mark-card>
+              <fvdr-redaction-mark-card type="phone"         title="+380 50 123 4567" pageLabel="Page 1" status="applied" groupedBy="category" style="display:block"></fvdr-redaction-mark-card>
+            </div>
+          </div>
+
+          <!-- Selected states -->
+          <div class="example-block">
+            <p class="example-label">Selected states — marked vs applied</p>
+            <div style="display:flex; flex-direction:column; gap:4px; max-width:320px">
+              <fvdr-redaction-mark-card type="personal-name" title="Andrew State"     pageLabel="Page 1" status="draft"   groupedBy="category" [selected]="true" style="display:block"></fvdr-redaction-mark-card>
+              <fvdr-redaction-mark-card type="email"         title="user@example.com" pageLabel="Page 3" status="applied" groupedBy="category" [selected]="true" style="display:block"></fvdr-redaction-mark-card>
+            </div>
+          </div>
+
+          <!-- Group card — draft + applied -->
+          <div class="example-block">
+            <p class="example-label">Group card — draft (expanded)</p>
+            <div style="max-width:320px">
+              <fvdr-redaction-mark-card
+                type="email" title="Email"
+                [pages]="demoRmcPagesDraft"
+                [expanded]="true"
+                style="display:block">
+              </fvdr-redaction-mark-card>
+            </div>
+          </div>
+
+          <div class="example-block">
+            <p class="example-label">Group card — applied (collapsed)</p>
+            <div style="max-width:320px">
+              <fvdr-redaction-mark-card
+                type="personal-name" title="Personal name"
+                [pages]="demoRmcPagesApplied"
+                [expanded]="false"
+                style="display:block">
+              </fvdr-redaction-mark-card>
+            </div>
+          </div>
+
+        </ng-container>
+
         <!-- DEFAULT STUB -->
         <ng-container *ngSwitchDefault>
           <div class="stub-example">
@@ -1570,7 +1827,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
       display: flex;
       height: 100vh;
       overflow: hidden;
-      font-family: var(--font-family, 'Open Sans', sans-serif);
+      font-family: var(--font-family);
       background: var(--color-bg-page, #fff);
     }
 
@@ -2905,6 +3162,7 @@ export class DsComponentPageComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.initFloatingPanelItems();
     this.sub = this.route.paramMap.subscribe(params => {
       const id = params.get('id') ?? '';
       this.entry = DS_REGISTRY.find(e => e.id === id);
@@ -2936,5 +3194,48 @@ export class DsComponentPageComponent implements OnInit, OnDestroy {
 
   getEntryById(id: string): ComponentDocEntry | undefined {
     return DS_REGISTRY.find(e => e.id === id);
+  }
+
+  // ── Floating Panel demo icons (SVG path d= values, 16×16 viewBox) ──────────
+  private readonly FP_SEARCH  = 'M11.0057 9.80503H10.3734L10.1492 9.58891C10.9337 8.67639 11.4059 7.49171 11.4059 6.20297C11.4059 3.32933 9.07662 1 6.20297 1C3.32933 1 1 3.32933 1 6.20297C1 9.07662 3.32933 11.4059 6.20297 11.4059C7.49171 11.4059 8.67639 10.9337 9.58891 10.1492L9.80503 10.3734V11.0057L13.8073 15L15 13.8073L11.0057 9.80503ZM6.20297 9.80503C4.20983 9.80503 2.60091 8.19611 2.60091 6.20297C2.60091 4.20983 4.20983 2.60091 6.20297 2.60091C8.19611 2.60091 9.80503 4.20983 9.80503 6.20297C9.80503 8.19611 8.19611 9.80503 6.20297 9.80503Z';
+  private readonly FP_SPARKLE = 'M8 1L9.25 6.75L15 8L9.25 9.25L8 15L6.75 9.25L1 8L6.75 6.75L8 1Z';
+  private readonly FP_COMMENT = 'M1 1H15V12H4L1 15V1ZM3 3V11L4.5 9.5H13V3H3ZM5 6H11V8H5V6Z';
+  private readonly FP_INFO    = 'M0 8C0 3.584 3.576 0 7.992 0C12.416 0 16 3.584 16 8C16 12.416 12.416 16 7.992 16C3.576 16 0 12.416 0 8ZM1.6 8C1.6 11.536 4.464 14.4 8 14.4C11.536 14.4 14.4 11.536 14.4 8C14.4 4.464 11.536 1.6 8 1.6C4.464 1.6 1.6 4.464 1.6 8ZM8.80078 5.6H7.20078L7.20078 4L8.80078 4V5.6ZM8.80078 12H7.20078L7.20078 7.2H8.80078V12Z';
+
+  demoFloatingPanelItems: FloatingPanelItem[] = [];
+  demoFpActiveId = '';
+
+  // ── Filter button demo ────────────────────────────────────
+  readonly filterBtnColors: FilterBtnColor[] = [
+    'default', 'stone', 'blue', 'yellow', 'orange',
+    'lime', 'teal', 'indigo', 'purple', 'magenta', 'danger', 'coffee',
+  ];
+
+  readonly demoRmcPagesDraft: RedactionMarkPage[] = [
+    { id: 'p1', pageLabel: 'Page 1', status: 'draft',   selected: true },
+    { id: 'p2', pageLabel: 'Page 3', status: 'draft',   selected: false },
+    { id: 'p3', pageLabel: 'Page 7', status: 'applied', selected: false },
+  ];
+
+  readonly demoRmcPagesApplied: RedactionMarkPage[] = [
+    { id: 'a1', pageLabel: 'Page 2', status: 'applied', selected: false },
+    { id: 'a2', pageLabel: 'Page 5', status: 'applied', selected: false },
+  ];
+
+  private initFloatingPanelItems(): void {
+    this.demoFloatingPanelItems = [
+      { id: 'search',  iconPath: this.FP_SEARCH,  tooltip: 'Search' },
+      { id: 'ai',      iconPath: this.FP_SPARKLE, tooltip: 'AI Assistant' },
+      { id: 'comment', iconPath: this.FP_COMMENT, tooltip: 'Comments' },
+      { id: 'info',    iconPath: this.FP_INFO,    tooltip: 'Info' },
+    ];
+  }
+
+  onFpItemClick(id: string): void {
+    this.demoFpActiveId = this.demoFpActiveId === id ? '' : id;
+    this.demoFloatingPanelItems = this.demoFloatingPanelItems.map(item => ({
+      ...item,
+      selected: item.id === this.demoFpActiveId,
+    }));
   }
 }

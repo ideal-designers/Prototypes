@@ -1526,6 +1526,222 @@ const fileIcon: ComponentDocEntry = {
   claudePrompt: 'Use fvdr-file-icon to represent file types. Import: @fvdr/ui/file-icon. @Input() extension?:string. @Input() mimeType?:string. @Input() size:"sm"|"md"|"lg"="md".',
 };
 
+const ghostBtn: ComponentDocEntry = {
+  id: 'ghost-btn',
+  name: 'Ghost Button',
+  selector: 'fvdr-ghost-btn',
+  category: 'controls',
+  status: 'stable',
+  figmaNode: '7023:23051',
+  description: 'Ghost button with circle-plus icon. Two sizes — Big (40px) and Small (32px) — and four interaction states: default, hover, active, selected. Optionally shows a text label, chevron arrow, and keyboard shortcut badge.',
+  whenToUse: [
+    'Toolbar action to invite or add viewers to a document',
+    'Toggle button to open/collapse a viewers panel',
+    'Any ghost-style action that needs icon-only or icon+label layout',
+  ],
+  whenNotToUse: [
+    'As a primary or secondary action button — use fvdr-btn instead',
+    'When no icon is needed — use fvdr-btn ghost variant',
+  ],
+  anatomy: [
+    { index: 1, part: 'Container', spec: 'Transparent rounded button, border-radius 4px' },
+    { index: 2, part: 'Icon',      spec: '16×16 SVG circle with plus sign; color inherits from state' },
+    { index: 3, part: 'Label',     spec: 'Optional text; 15px/24lh (big), 14px/20lh (small)' },
+    { index: 4, part: 'Arrow',     spec: 'Optional chevron-down shown when label is set' },
+    { index: 5, part: 'Shortcut',  spec: 'Optional keyboard shortcut badge (e.g. Shift)' },
+  ],
+  states: [
+    { name: 'Default',  description: 'Transparent background, gray icon' },
+    { name: 'Hover',    description: '#F7F7F7 background on pointer-over' },
+    { name: 'Active',   description: '#ECEEF9 background while pressed' },
+    { name: 'Selected', description: '#EAF6ED background + green icon and arrow, text stays dark' },
+    { name: 'Disabled', description: '40% opacity, no pointer events' },
+  ],
+  tokens: [
+    { token: '--color-stone-200',    value: '#F7F7F7', usage: 'Hover background' },
+    { token: '--color-hover-bg',     value: '#ECEEF9', usage: 'Active (pressed) background' },
+    { token: '#EAF6ED',              value: '#EAF6ED', usage: 'Selected background' },
+    { token: '--color-stone-700',    value: '#73757F', usage: 'Default icon color' },
+    { token: '--color-primary-500',  value: '#2C9C74', usage: 'Selected icon color' },
+    { token: '--radius-sm',          value: '4px',     usage: 'Button border radius' },
+  ],
+  usedIn: ['Viewers toolbar', 'Document header'],
+  relatedComponents: ['fvdr-btn'],
+  codeSnippet: `<!-- Icon only (default) -->
+<fvdr-ghost-btn (clicked)="openViewers()"></fvdr-ghost-btn>
+
+<!-- Small + selected -->
+<fvdr-ghost-btn size="small" [selected]="panelOpen" (clicked)="togglePanel()"></fvdr-ghost-btn>
+
+<!-- With label + shortcut -->
+<fvdr-ghost-btn label="Invite viewers" shortcut="Shift" (clicked)="invite()"></fvdr-ghost-btn>`,
+  claudePrompt: 'Use fvdr-ghost-btn for a ghost button with a configurable icon. @Input() size:"big"|"small"="big". @Input() iconPath:string (SVG path d= attribute, defaults to circle-plus). @Input() label:string (shows text + arrow when set). @Input() shortcut:string (keyboard badge). @Input() selected:boolean (green selected state). @Input() disabled:boolean. @Output() clicked.',
+};
+
+const floatingPanel: ComponentDocEntry = {
+  id: 'floating-panel',
+  name: 'Floating Panel',
+  selector: 'fvdr-floating-panel',
+  category: 'controls',
+  status: 'stable',
+  figmaNode: '11255:9878',
+  description: 'Organism: a floating toolbar of icon-only ghost buttons. Supports vertical and horizontal orientation, two sizes (big/small), and any number of configurable items.',
+  whenToUse: [
+    'Document viewer toolbars (search, AI, comments, info)',
+    'Floating action panels anchored to the viewport or a container',
+    'Any compact icon-only toolbar that needs to float over content',
+  ],
+  whenNotToUse: [
+    'When buttons need labels — use a regular toolbar instead',
+    'As a context menu — use fvdr-droplist',
+    'When more than ~6 items — consider a sidebar instead',
+  ],
+  anatomy: [
+    { index: 1, part: 'Panel container', spec: 'White bg, box-shadow 0 0 4px rgba(52,58,64,0.08), rounded corners' },
+    { index: 2, part: 'Ghost button',    spec: 'fvdr-ghost-btn size="small" (32×32px) for each item' },
+    { index: 3, part: 'Icon',            spec: '16×16 SVG path, color inherits from ghost button state' },
+  ],
+  states: [
+    { name: 'Default',    description: 'Transparent button background' },
+    { name: 'Hover',      description: '#F7F7F7 button background' },
+    { name: 'Active',     description: '#ECEEF9 button background while pressed' },
+    { name: 'Selected',   description: '#EAF6ED button background + green icon' },
+    { name: 'Disabled',   description: '40% opacity on the button' },
+  ],
+  tokens: [
+    { token: '--color-stone-0',   value: '#FFFFFF',                    usage: 'Panel background' },
+    { token: 'shadow',            value: 'rgba(52,58,64,0.08) 0 0 4px', usage: 'Panel drop shadow' },
+    { token: '--radius-sm',       value: '4px',                        usage: 'Panel radius (small, horizontal)' },
+    { token: '--radius-md',       value: '8px',                        usage: 'Panel radius (big vertical)' },
+  ],
+  usedIn: ['Redaction viewer', 'Document viewer toolbar'],
+  relatedComponents: ['fvdr-ghost-btn'],
+  codeSnippet: `const SEARCH = 'M11.006 9.805H10.373...'; // SVG path d value
+
+items: FloatingPanelItem[] = [
+  { id: 'search',  iconPath: SEARCH,  tooltip: 'Search' },
+  { id: 'ai',      iconPath: SPARKLE, tooltip: 'AI' },
+  { id: 'comment', iconPath: COMMENT, tooltip: 'Comments' },
+];
+
+<fvdr-floating-panel
+  [items]="items"
+  orientation="vertical"
+  size="big"
+  (itemClicked)="onTool($event)">
+</fvdr-floating-panel>`,
+  claudePrompt: 'Use fvdr-floating-panel for a floating icon-only toolbar. @Input() items:FloatingPanelItem[] (each has id, iconPath SVG path d= value, optional tooltip/selected/disabled). @Input() orientation:"vertical"|"horizontal"="vertical". @Input() size:"big"|"small"="big". @Output() itemClicked emits item id string.',
+};
+
+const redactionMarkCard: ComponentDocEntry = {
+  id: 'redaction-mark-card',
+  name: 'Redaction Mark Card',
+  selector: 'fvdr-redaction-mark-card',
+  category: 'data',
+  status: 'stable',
+  description:
+    'A row in the document "Redaction marks" side panel. Shows a detected sensitive value, a context line, a type icon, and a status square. Covers 10 data types (personal name, address, date & time, email, phone, IBAN, SSN, passport, text mark, redacted area), two statuses (draft / applied), two grouping modes, and selected state. Reveals a delete action on hover.',
+  whenToUse: [
+    'Listing detected redaction marks in a document side panel',
+    'Letting users review, select, and remove individual marks',
+    'Grouping marks by page or by category',
+  ],
+  whenNotToUse: [
+    'Generic list rows (use a plain list item or Table)',
+    'File or folder rows (use File Icon + list row)',
+    'Selecting from a fixed set of options (use Dropdown or Checkbox)',
+  ],
+  anatomy: [],
+  tokens: [
+    { token: '#FFC694', value: '#FFC694', usage: 'Draft status square fill' },
+    { token: '#B1EAC2', value: '#B1EAC2', usage: 'Applied status square fill' },
+    { token: '--color-divider',       value: '#DEE0EB', usage: 'Card border' },
+    { token: '--color-stone-300',     value: '#ECEEF9', usage: 'Selected card background' },
+    { token: '--color-primary-500',   value: '#2C9C74', usage: 'Selected card border' },
+    { token: '--color-text-primary',  value: '#1F2129', usage: 'Title text' },
+    { token: '--color-text-secondary',value: '#5F616A', usage: 'Subtitle + icon color' },
+    { token: '--color-error-600',     value: '#E54430', usage: 'Delete button hover color' },
+  ],
+  usedIn: ['Redaction Viewer (marks panel)'],
+  codeSnippet: `<!-- Grouped by category: subtitle shows the page -->
+<fvdr-redaction-mark-card
+  type="personal-name"
+  title="Andrew State"
+  pageLabel="Page 1"
+  status="draft"
+  groupedBy="category"
+  [selected]="false"
+  (clicked)="select(mark)"
+  (deleted)="remove(mark)" />
+
+<!-- Grouped by page: subtitle shows the type -->
+<fvdr-redaction-mark-card
+  type="email"
+  title="vladyslav.orel@gmail.com"
+  status="applied"
+  groupedBy="page" />
+
+<!-- Redacted area (single line) -->
+<fvdr-redaction-mark-card type="redacted-area" groupedBy="page" />`,
+  claudePrompt:
+    'Implement the fvdr-redaction-mark-card Angular component. Import: @fvdr/ui. @Input() type: "personal-name"|"address"|"date-time"|"email"|"phone"|"iban"|"ssn"|"passport"|"text-mark"|"redacted-area" = "personal-name" (maps to a 16px icon + default label). @Input() title:string (the detected value; falls back to the type label). @Input() pageLabel:string (shown as subtitle when groupedBy="category"). @Input() status: "draft"|"applied" = "draft" (orange/green 8px status square). @Input() groupedBy: "page"|"category" = "page" (page → subtitle is the type label; category → subtitle is the page). @Input() selected = false (selected highlight). @Input() deletable = true. @Output() clicked and @Output() deleted. The delete (trash) action is revealed on hover. Use DS tokens only.',
+};
+
+const filterBtn: ComponentDocEntry = {
+  id: 'filter-btn',
+  name: 'Filter Button',
+  selector: 'fvdr-filter-btn',
+  category: 'controls',
+  status: 'stable',
+  figmaNode: '37844:15398',
+  description: 'Filter button for category-based filtering. Two sizes (M/S), three states (default/hover/selected), 12 color variants. Optional leading icon, status dot, counter badge, and chevron arrow.',
+  whenToUse: [
+    'Show an active filter category (e.g. by label group or priority)',
+    'Let users toggle filters with color-coded categories',
+    'Display a count of active filter items with [counter]',
+  ],
+  whenNotToUse: [
+    'Primary/secondary CTAs — use fvdr-btn instead',
+    'Navigation items — use fvdr-tabs or fvdr-segment',
+    'Simple toggles without label — use fvdr-chip',
+  ],
+  anatomy: [
+    { index: 1, part: 'Container', spec: 'White bg + stone-300 border, 4px radius; selected → color-specific bg/border' },
+    { index: 2, part: 'Icon Start', spec: '16px (M) / 14px (S), configurable via [iconPath]' },
+    { index: 3, part: 'Status dot', spec: '8×8px rounded 2px, color from [color] variant' },
+    { index: 4, part: 'Label',      spec: '15px/16lh (M) · 14px/14lh (S), weight 400' },
+    { index: 5, part: 'Counter',    spec: 'Secondary text; turns dark (#1F2129) when selected' },
+    { index: 6, part: 'Arrow',      spec: '16px / 14px chevron-down, shown via [showArrow]' },
+  ],
+  states: [
+    { name: 'Default',  description: 'White background, stone-300 border' },
+    { name: 'Hover',    description: 'stone-200 (#F7F7F7) background' },
+    { name: 'Selected', description: 'Color-specific bg + border (12 palettes)' },
+    { name: 'Disabled', description: '40% opacity, no pointer events' },
+  ],
+  tokens: [
+    { token: '--color-stone-0',     value: '#FFFFFF', usage: 'Default background' },
+    { token: '--color-divider',     value: '#DEE0EB', usage: 'Default border' },
+    { token: '--color-stone-200',   value: '#F7F7F7', usage: 'Hover background' },
+    { token: '--radius-sm',         value: '4px',     usage: 'Border radius' },
+  ],
+  usedIn: ['Filter bars', 'Marks panel', 'Category filter strips'],
+  relatedComponents: ['fvdr-chip', 'fvdr-btn'],
+  codeSnippet: `<!-- Default (M) -->
+<fvdr-filter-btn label="Keywords"></fvdr-filter-btn>
+
+<!-- Selected, blue, with counter -->
+<fvdr-filter-btn label="Email" color="blue" [selected]="true"
+  [showCounter]="true" counter="5">
+</fvdr-filter-btn>
+
+<!-- Small, danger, with status dot + arrow -->
+<fvdr-filter-btn size="S" label="Danger" color="danger"
+  [showStatus]="true" [showArrow]="true">
+</fvdr-filter-btn>`,
+  claudePrompt: 'Use fvdr-filter-btn for a color-coded filter toggle. @Input() label:string="Filter". @Input() size:"M"|"S"="M". @Input() color:"default"|"stone"|"blue"|"yellow"|"orange"|"lime"|"teal"|"indigo"|"purple"|"magenta"|"danger"|"coffee"="default". @Input() selected:boolean. @Input() disabled:boolean. @Input() showIcon:boolean=true (SVG leading icon). @Input() iconPath:string (SVG path d=, default=color-picker target). @Input() showStatus:boolean (color dot). @Input() showCounter:boolean; counter:string. @Input() showArrow:boolean (chevron). @Output() clicked.',
+};
+
 // ─────────────────────────────────────────────────────────────────────────────
 // REGISTRY EXPORT
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1569,6 +1785,10 @@ export const DS_REGISTRY: ComponentDocEntry[] = [
   sidebarNav,
   quickAccessMenu,
   fileIcon,
+  redactionMarkCard,
+  ghostBtn,
+  floatingPanel,
+  filterBtn,
 ];
 
 export const DS_CATEGORIES: { id: ComponentCategory; label: string }[] = [

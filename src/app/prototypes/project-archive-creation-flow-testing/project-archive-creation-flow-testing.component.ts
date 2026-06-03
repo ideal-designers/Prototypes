@@ -377,7 +377,7 @@ function freshRecipientForm() {
 
     .shell {
       display: flex; height: 100vh;
-      font-family: var(--font-family, 'Open Sans', sans-serif);
+      font-family: var(--font-family);
       background: var(--color-bg-page); overflow: hidden; position: relative;
     }
 

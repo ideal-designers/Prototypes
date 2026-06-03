@@ -147,8 +147,8 @@ export type SegmentSize = 'sm' | 'md' | 'mobile';
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: var(--space-1);                        /* 4px */
-      padding: 0 var(--space-3);                  /* 0 12px */
+      gap: var(--space-1);
+      padding: 0 var(--space-3);
       height: 28px;
       background: var(--color-stone-0, #ffffff);
       border: 1px solid var(--color-divider, #dee0eb);
@@ -188,13 +188,20 @@ export type SegmentSize = 'sm' | 'md' | 'mobile';
     .seg-table__item:not(.seg-table__item--active):not(:disabled):hover .seg-table__icon {
       color: var(--color-primary-500, #2c9c74);
     }
+    /* Prevent double border: last item active — overlap prev item's right border */
+    .seg-table__item--last.seg-table__item--active {
+      margin-left: -1px;
+    }
 
     /* ── Active state: green highlight + full green border ── */
     .seg-table__item--active {
-      background: var(--chip-bg-green, #eaf6ed);
+      background: var(--color-primary-50, #eaf6ed);
       border: 1px solid var(--color-primary-500, #2c9c74) !important;
       color: var(--color-text-primary);
       z-index: 1;
+    }
+    .seg-table__item--active .seg-table__icon {
+      color: var(--color-primary-500, #2c9c74);
     }
     /* Override middle-item border suppression when active */
     .seg-table__item--middle.seg-table__item--active {
