@@ -369,6 +369,8 @@ function freshRecipientForm() {
         </svg>
       </div>
 
+      <fvdr-toast-host />
+
     </div>
   `,
   styles: [`

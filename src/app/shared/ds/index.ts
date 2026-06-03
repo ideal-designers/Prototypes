@@ -45,6 +45,8 @@
  *   <fvdr-sidebar-nav>         → App sidebar (VDR/CA/Internal, collapsible, with sub-nav)
  *   <fvdr-file-icon>           → File/folder icon (folder, pdf, doc, xls, image, video, zip…)
  *   <fvdr-quick-access-menu>   → Quick access shortcuts panel (collapsible, active state)
+ *   <fvdr-redaction-mark-card> → Single redaction mark row (10 types, draft/applied)
+ *   <fvdr-redaction-mark-group>→ Expandable redaction mark group (N marks + child rows)
  *
  * Usage in prototype:
  *   import { DS_COMPONENTS } from '../../shared/ds';
@@ -94,6 +96,8 @@ import { FileIconComponent } from './components/file-icon/file-icon.component';
 import { QuickAccessMenuComponent } from './components/quick-access-menu/quick-access-menu.component';
 import { BreadcrumbsComponent } from './components/breadcrumbs/breadcrumbs.component';
 import { PageHeaderComponent } from './components/page-header/page-header.component';
+import { RedactionMarkCardComponent } from './components/redaction-mark-card/redaction-mark-card.component';
+import { RedactionMarkGroupComponent } from './components/redaction-mark-card/redaction-mark-group.component';
 
 // ─── Re-exports ───────────────────────────────────────────────────────────────
 
@@ -169,7 +173,7 @@ export { InlineMessageComponent } from './components/inline-message/inline-messa
 export type { InlineMessageVariant } from './components/inline-message/inline-message.component';
 
 export { ToastComponent, ToastHostComponent, ToastService } from './components/toast/toast.component';
-export type { ToastVariant, ToastData } from './components/toast/toast.component';
+export type { ToastVariant, ToastData, ToastAction } from './components/toast/toast.component';
 
 export { ModalComponent, BottomSheetComponent } from './components/modal/modal.component';
 export type { ModalSize, ModalConfig } from './components/modal/modal.component';
@@ -199,6 +203,12 @@ export type { QuickAccessItem } from './components/quick-access-menu/quick-acces
 export { BreadcrumbsComponent } from './components/breadcrumbs/breadcrumbs.component';
 
 export { PageHeaderComponent } from './components/page-header/page-header.component';
+
+export { RedactionMarkCardComponent } from './components/redaction-mark-card/redaction-mark-card.component';
+export type { RedactionType, RedactionStatus, RedactionGroupBy } from './components/redaction-mark-card/redaction-mark-card.component';
+
+export { RedactionMarkGroupComponent } from './components/redaction-mark-card/redaction-mark-group.component';
+export type { RedactionMarkChild } from './components/redaction-mark-card/redaction-mark-group.component';
 
 /** Convenience array — spread into component imports[] */
 export const DS_COMPONENTS = [
@@ -250,4 +260,6 @@ export const DS_COMPONENTS = [
   QuickAccessMenuComponent,
   BreadcrumbsComponent,
   PageHeaderComponent,
+  RedactionMarkCardComponent,
+  RedactionMarkGroupComponent,
 ];

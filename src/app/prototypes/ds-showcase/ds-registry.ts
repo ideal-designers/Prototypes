@@ -1263,12 +1263,16 @@ const toast: ComponentDocEntry = {
   description:
     'A non-blocking notification that appears at a corner of the screen and auto-dismisses. Injected programmatically via ToastService.',
   whenToUse: ['Confirming a completed action (saved, copied, deleted) without blocking the UI.'],
-  whenNotToUse: [],
+  whenNotToUse: ['Critical errors that require a decision — use a Modal or Confirmation dialog instead.'],
   anatomy: [],
   tokens: [
-    { token: '--color-interactive-secondary', value: '#40424b', usage: 'Default toast background' },
-    { token: '--color-text-inverse',          value: '#ffffff', usage: 'Toast text color' },
-    { token: '--shadow-card',                 value: 'var(--shadow-card)', usage: 'Toast elevation' },
+    { token: '--color-stone-0',        value: '#ffffff', usage: 'Toast surface' },
+    { token: '--color-alert-success',  value: '#2c9c74', usage: 'Success bar + icon' },
+    { token: '--color-alert-warning',  value: '#d48806', usage: 'Warning bar + icon' },
+    { token: '--color-alert-error',    value: '#de1135', usage: 'Error bar + icon' },
+    { token: '--color-alert-info',     value: '#5f616a', usage: 'Info bar + icon' },
+    { token: '--color-text-primary',   value: '#1f2129', usage: 'Message text' },
+    { token: '--shadow-toast',         value: 'var(--shadow-toast)', usage: 'Toast elevation' },
   ],
   usedIn: ['API Keys (copy key)', 'Settings (save)', 'Delete Account'],
   codeSnippet: `// In a component
@@ -1530,6 +1534,159 @@ const fileIcon: ComponentDocEntry = {
 // REGISTRY EXPORT
 // ─────────────────────────────────────────────────────────────────────────────
 
+const redactionMarkCard: ComponentDocEntry = {
+  id: 'redaction-mark-card',
+  name: 'Redaction Mark Card',
+  selector: 'fvdr-redaction-mark-card',
+  category: 'data',
+  status: 'stable',
+  figmaNode: '17313-67932',
+  description:
+    'A row in the document "Redaction marks" side panel. Shows a detected sensitive value, a context line, a type icon, and a status square. Covers 10 data types (personal name, address, date & time, email, phone, IBAN, SSN, passport, text mark, redacted area), two statuses (draft / applied), two grouping modes, and selected state. Reveals a delete action on hover.',
+  whenToUse: [
+    'Listing detected redaction marks in a document side panel',
+    'Letting users review, select, and remove individual marks',
+    'Grouping marks by page or by category',
+  ],
+  whenNotToUse: [
+    'Generic list rows (use a plain list item or Table)',
+    'File or folder rows (use File Icon + list row)',
+    'Selecting from a fixed set of options (use Dropdown or Checkbox)',
+  ],
+  anatomy: [
+    { index: 1, part: 'Container',     spec: 'height: 64px · border-radius: 4px · padding: 12px 16px · gap: 16px · 1px divider border' },
+    { index: 2, part: 'Type icon',     spec: '16×16px fvdr-icon · color: --color-icon · maps from type' },
+    { index: 3, part: 'Title',         spec: 'font-size: 14px · line-height: 20px · primary text · single line, ellipsis' },
+    { index: 4, part: 'Subtitle',      spec: 'font-size: 12px · line-height: 16px · secondary text · page or type label' },
+    { index: 5, part: 'Status square', spec: '8×8px · radius 2px · orange (draft) / green (applied)' },
+    { index: 6, part: 'Delete action', spec: '16×16px trash icon · revealed on hover · danger color on hover' },
+  ],
+  states: [
+    { name: 'Default',  description: 'Resting row on a white background with a 1px divider border.' },
+    { name: 'Hover',    description: 'Background shifts to the hover tint (#eceef9) and the delete action is revealed.' },
+    { name: 'Selected', description: 'Active mark — orange-50 background (#ffede1) with an orange-500 border (#df6d00).' },
+    { name: 'Draft',    description: 'Status square is orange — the mark is proposed but not yet applied.' },
+    { name: 'Applied',  description: 'Status square is green — the mark has been applied to the document.' },
+  ],
+  tokens: [
+    { token: '--color-stone-0',              value: '#ffffff', usage: 'Default card background' },
+    { token: '--color-divider',              value: '#dee0eb', usage: 'Card border' },
+    { token: '--color-hover-bg',             value: '#eceef9', usage: 'Hover background' },
+    { token: '--redaction-selected-bg',      value: '#ffede1', usage: 'Selected background' },
+    { token: '--redaction-selected-border',  value: '#df6d00', usage: 'Selected border' },
+    { token: '--color-text-primary',         value: '#1f2129', usage: 'Title color' },
+    { token: '--color-text-secondary',       value: '#5f616a', usage: 'Subtitle color' },
+    { token: '--color-icon',                 value: '#5f616a', usage: 'Type icon color' },
+    { token: '--redaction-status-draft',     value: '#ffc694', usage: 'Draft status square' },
+    { token: '--redaction-status-applied',   value: '#b1eac2', usage: 'Applied status square' },
+    { token: '--color-danger',               value: '#e54430', usage: 'Delete icon hover color' },
+  ],
+  usedIn: ['Document viewer (Redaction marks panel)'],
+  relatedComponents: ['chip', 'status', 'file-icon'],
+  codeSnippet: `<!-- Grouped by category: subtitle shows the page -->
+<fvdr-redaction-mark-card
+  type="personal-name"
+  title="Andrew State"
+  pageLabel="Page 1"
+  status="draft"
+  groupedBy="category"
+  [selected]="false"
+  (clicked)="select(mark)"
+  (deleted)="remove(mark)" />
+
+<!-- Grouped by page: subtitle shows the type -->
+<fvdr-redaction-mark-card
+  type="email"
+  title="vladyslav.orel@gmail.com"
+  status="applied"
+  groupedBy="page" />
+
+<!-- Redacted area (single line) -->
+<fvdr-redaction-mark-card type="redacted-area" groupedBy="page" />`,
+  claudePrompt:
+    'Implement the fvdr-redaction-mark-card Angular component. Import: @fvdr/ui. ' +
+    '@Input() type: "personal-name"|"address"|"date-time"|"email"|"phone"|"iban"|"ssn"|"passport"|"text-mark"|"redacted-area" = "personal-name" (maps to a 16px icon + default label). ' +
+    '@Input() title:string (the detected value; falls back to the type label). ' +
+    '@Input() pageLabel:string (shown as subtitle when groupedBy="category"). ' +
+    '@Input() status: "draft"|"applied" = "draft" (orange/green 8px status square). ' +
+    '@Input() groupedBy: "page"|"category" = "page" (page → subtitle is the type label; category → subtitle is the page). ' +
+    '@Input() selected = false (orange highlight). @Input() deletable = true. ' +
+    '@Output() clicked and @Output() deleted. The delete (trash) action is revealed on hover. Use DS tokens only.',
+};
+
+const redactionMarkGroup: ComponentDocEntry = {
+  id: 'redaction-mark-group',
+  name: 'Redaction Mark Group',
+  selector: 'fvdr-redaction-mark-group',
+  category: 'data',
+  status: 'stable',
+  figmaNode: '17274-51560',
+  description:
+    'A combined, expandable redaction mark that groups every page hit for the same detected value. The header mirrors Redaction Mark Card but its subtitle shows the mark count ("5 marks") with a chevron; activating it expands a list of child page rows, each with its own status square and a colored left accent. Covers the same 10 data types, draft / applied statuses, expanded / collapsed states, and a selected header highlight.',
+  whenToUse: [
+    'Collapsing many marks of the same value into one expandable row',
+    'Showing how many pages a redaction value appears on, then drilling into each page',
+    'Keeping a long redaction-marks panel scannable',
+  ],
+  whenNotToUse: [
+    'A single mark with no duplicates (use Redaction Mark Card)',
+    'Generic expandable lists or trees (use Tree)',
+    'Selecting from a fixed set of options (use Dropdown)',
+  ],
+  anatomy: [
+    { index: 1, part: 'Container',     spec: 'border-radius: 4px · 1px divider border · clips the child list' },
+    { index: 2, part: 'Header row',    spec: 'height: 64px · padding: 12px 16px · gap: 16px · clickable toggle' },
+    { index: 3, part: 'Type icon',     spec: '16×16px fvdr-icon · color: --color-icon · maps from type' },
+    { index: 4, part: 'Count + chevron', spec: '"N marks" secondary text + chevron-down / chevron-up' },
+    { index: 5, part: 'Status square', spec: '8×8px · radius 2px · orange (draft) / green (applied)' },
+    { index: 6, part: 'Child row',     spec: 'page label + status square · 3px colored left accent when selected' },
+  ],
+  states: [
+    { name: 'Collapsed', description: 'Only the header row is shown; chevron points down.' },
+    { name: 'Expanded',  description: 'Chevron points up and the child page rows are revealed below a divider.' },
+    { name: 'Hover',     description: 'Header / child background shifts to the hover tint (#eceef9); delete is revealed.' },
+    { name: 'Selected',  description: 'Active group header — orange-50 background (#ffede1); active child gets a colored left accent.' },
+    { name: 'Draft / Applied', description: 'Status squares are orange (draft) or green (applied), per group and per child.' },
+  ],
+  tokens: [
+    { token: '--color-stone-0',             value: '#ffffff', usage: 'Container / header background' },
+    { token: '--color-divider',             value: '#dee0eb', usage: 'Border + header/list divider' },
+    { token: '--color-hover-bg',            value: '#eceef9', usage: 'Hover background' },
+    { token: '--redaction-selected-bg',     value: '#ffede1', usage: 'Selected header / child background' },
+    { token: '--redaction-status-draft',    value: '#ffc694', usage: 'Draft status square + child accent' },
+    { token: '--redaction-status-applied',  value: '#b1eac2', usage: 'Applied status square + child accent' },
+    { token: '--color-text-primary',        value: '#1f2129', usage: 'Title / child label color' },
+    { token: '--color-text-secondary',      value: '#5f616a', usage: 'Count + chevron color' },
+    { token: '--color-icon',                value: '#5f616a', usage: 'Type icon color' },
+    { token: '--color-danger',              value: '#e54430', usage: 'Delete icon hover color' },
+  ],
+  usedIn: ['Document viewer (Redaction marks panel)'],
+  relatedComponents: ['redaction-mark-card', 'tree', 'status'],
+  codeSnippet: `<fvdr-redaction-mark-group
+  type="personal-name"
+  title="Andrew State"
+  status="draft"
+  [marks]="[
+    { pageLabel: 'Page 1', status: 'draft', selected: true },
+    { pageLabel: 'Page 2', status: 'draft' },
+    { pageLabel: 'Page 5', status: 'applied' }
+  ]"
+  [(expanded)]="open"
+  [selected]="true"
+  (markClicked)="select($event)"
+  (deleted)="removeGroup()" />`,
+  claudePrompt:
+    'Implement the fvdr-redaction-mark-group Angular component (combined, expandable redaction mark). Import: @fvdr/ui. ' +
+    '@Input() type: same 10 redaction types as fvdr-redaction-mark-card (maps to a 16px icon). ' +
+    '@Input() title:string (detected value; falls back to type label). ' +
+    '@Input() status: "draft"|"applied" = "draft" (8px status square). ' +
+    '@Input() marks: { id?:string; pageLabel:string; status?:"draft"|"applied"; selected?:boolean }[] (child page rows). ' +
+    '@Input() expanded = false (two-way via expandedChange). @Input() selected = false. @Input() deletable = true. ' +
+    'Header subtitle shows "{marks.length} marks" + a chevron (down collapsed / up expanded); clicking the header toggles expanded. ' +
+    'When expanded, render one child row per mark with its page label, an 8px status square, and a 3px colored left accent when selected. ' +
+    '@Output() expandedChange, toggled, markClicked, deleted. Use DS tokens only.',
+};
+
 export const DS_REGISTRY: ComponentDocEntry[] = [
   // Fully documented
   button,
@@ -1569,6 +1726,8 @@ export const DS_REGISTRY: ComponentDocEntry[] = [
   sidebarNav,
   quickAccessMenu,
   fileIcon,
+  redactionMarkCard,
+  redactionMarkGroup,
 ];
 
 export const DS_CATEGORIES: { id: ComponentCategory; label: string }[] = [
