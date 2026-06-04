@@ -260,12 +260,12 @@ const TYPE_META: Record<RedactionMarkType, { label: string; icon: string }> = {
     .rmc:not(.rmc--group):hover { background: var(--color-stone-100, #FAFAFA); }
 
     /* Selected — draft (orange) */
-    .rmc--selected.rmc--draft:not(.rmc--group) { background: #FFEDE1; border-color: #DF6D00; }
-    .rmc--selected.rmc--draft:not(.rmc--group):hover { background: #FFEDE1; }
+    .rmc--selected.rmc--draft:not(.rmc--group) { background: var(--redaction-selected-bg); border-color: var(--redaction-selected-border); }
+    .rmc--selected.rmc--draft:not(.rmc--group):hover { background: var(--redaction-selected-bg); }
 
     /* Selected — applied (green) */
-    .rmc--selected.rmc--applied:not(.rmc--group) { background: #EAF6ED; border-color: #2C9C74; }
-    .rmc--selected.rmc--applied:not(.rmc--group):hover { background: #EAF6ED; }
+    .rmc--selected.rmc--applied:not(.rmc--group) { background: var(--color-status-stable-bg); border-color: var(--color-interactive-primary); }
+    .rmc--selected.rmc--applied:not(.rmc--group):hover { background: var(--color-status-stable-bg); }
 
     /* Hovered — gray (same as CSS :hover) */
     .rmc--hovered:not(.rmc--group) { background: var(--color-stone-100, #FAFAFA); }
@@ -280,12 +280,12 @@ const TYPE_META: Record<RedactionMarkType, { label: string; icon: string }> = {
     .rmc-icon ::ng-deep svg { width: 16px; height: 16px; display: block; }
 
     /* Icon tints in selected state only */
-    .rmc--selected.rmc--draft   .rmc-icon { color: #DF6D00; }
-    .rmc--selected.rmc--applied .rmc-icon { color: #2C9C74; }
+    .rmc--selected.rmc--draft   .rmc-icon { color: var(--redaction-selected-border); }
+    .rmc--selected.rmc--applied .rmc-icon { color: var(--color-interactive-primary); }
 
     /* Icon tints in selected group card header */
-    .rmc--group-selected.rmc--group-draft   .rmc-group-head .rmc-icon { color: #DF6D00; }
-    .rmc--group-selected.rmc--group-applied .rmc-group-head .rmc-icon { color: #2C9C74; }
+    .rmc--group-selected.rmc--group-draft   .rmc-group-head .rmc-icon { color: var(--redaction-selected-border); }
+    .rmc--group-selected.rmc--group-applied .rmc-group-head .rmc-icon { color: var(--color-interactive-primary); }
 
     /* ── Info column ───────────────────────────────────────── */
     .rmc-info {
@@ -316,8 +316,8 @@ const TYPE_META: Record<RedactionMarkType, { label: string; icon: string }> = {
 
     /* ── Status dot ────────────────────────────────────────── */
     .rmc-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
-    .rmc-dot--draft   { background: #FFC694; }
-    .rmc-dot--applied { background: #B1EAC2; }
+    .rmc-dot--draft   { background: var(--redaction-status-draft); }
+    .rmc-dot--applied { background: var(--redaction-status-applied); }
 
     /* ── Delete button — hidden by default, appears on hover ─ */
     .rmc-del {
@@ -346,8 +346,8 @@ const TYPE_META: Record<RedactionMarkType, { label: string; icon: string }> = {
     }
 
     /* Selected group: colored border based on status */
-    .rmc--group.rmc--group-selected.rmc--group-draft   { border-color: #DF6D00; }
-    .rmc--group.rmc--group-selected.rmc--group-applied { border-color: #2C9C74; }
+    .rmc--group.rmc--group-selected.rmc--group-draft   { border-color: var(--redaction-selected-border); }
+    .rmc--group.rmc--group-selected.rmc--group-applied { border-color: var(--color-interactive-primary); }
 
     /* ── Group header ──────────────────────────────────────── */
     .rmc-group-head {
@@ -359,8 +359,8 @@ const TYPE_META: Record<RedactionMarkType, { label: string; icon: string }> = {
     .rmc-group-head:hover { background: var(--color-stone-100, #FAFAFA); }
 
     /* Selected group header: colored bg */
-    .rmc--group-selected.rmc--group-draft   .rmc-group-head { background: #FFEDE1; }
-    .rmc--group-selected.rmc--group-applied .rmc-group-head { background: #EAF6ED; }
+    .rmc--group-selected.rmc--group-draft   .rmc-group-head { background: var(--redaction-selected-bg); }
+    .rmc--group-selected.rmc--group-applied .rmc-group-head { background: var(--color-status-stable-bg); }
     .rmc--group-selected .rmc-group-head:hover { filter: brightness(0.97); }
 
     /* ── Group meta (count + chevron) ─────────────────────── */
@@ -387,8 +387,8 @@ const TYPE_META: Record<RedactionMarkType, { label: string; icon: string }> = {
       overflow-y: auto;
     }
     /* Colored divider when group is selected */
-    .rmc--group-selected.rmc--group-draft   .rmc-pages { border-top-color: #DF6D00; }
-    .rmc--group-selected.rmc--group-applied .rmc-pages { border-top-color: #2C9C74; }
+    .rmc--group-selected.rmc--group-draft   .rmc-pages { border-top-color: var(--redaction-selected-border); }
+    .rmc--group-selected.rmc--group-applied .rmc-pages { border-top-color: var(--color-interactive-primary); }
 
     .rmc-page-row {
       display: flex; align-items: center; gap: 12px;
@@ -396,17 +396,17 @@ const TYPE_META: Record<RedactionMarkType, { label: string; icon: string }> = {
       cursor: pointer; box-sizing: border-box;
       background: white;
       /* color prop controls vertical bar indicator via fill=currentColor */
-      color: #ECEEF9;
+      color: var(--color-selection-bg);
       transition: background 0.1s;
     }
     .rmc-page-row:hover:not(.rmc-page-row--selected) {
-      background: #F7F7F7;
-      color: #ECEEF9;
+      background: var(--color-bg-surface);
+      color: var(--color-selection-bg);
     }
 
     /* Selected page row — bg matches group header; bar color per group status */
-    .rmc--group-draft   .rmc-page-row--selected { background: #FFEDE1; color: #FFAD66; }
-    .rmc--group-applied .rmc-page-row--selected { background: #EAF6ED; color: #7FDEA5; }
+    .rmc--group-draft   .rmc-page-row--selected { background: var(--redaction-selected-bg); color: var(--redaction-draft-bar); }
+    .rmc--group-applied .rmc-page-row--selected { background: var(--color-status-stable-bg); color: var(--redaction-applied-bar); }
 
     .rmc-page-bar { width: 16px; height: 16px; flex-shrink: 0; }
 

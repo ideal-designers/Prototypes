@@ -756,7 +756,7 @@ const CREATED_ROWS: Record<string, string>[] = [
       align-items: center;
       justify-content: center;
       padding: 1px var(--space-2) 3px;
-      background: #EAF6ED;
+      background: var(--color-status-stable-bg);
       color: var(--color-primary-500);
       border-radius: var(--radius-sm);
       font-size: 12px;

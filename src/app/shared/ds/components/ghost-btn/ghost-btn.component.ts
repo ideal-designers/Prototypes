@@ -97,7 +97,7 @@ const DEFAULT_ICON_PATH =
     /* ── Selected bg ── */
     .vb--selected,
     .vb--selected:hover:not(:disabled),
-    .vb--selected:active:not(:disabled) { background: #EAF6ED; }
+    .vb--selected:active:not(:disabled) { background: var(--color-status-stable-bg); }
 
     /* ── Icon (default) ── */
     .vb-icon  { flex-shrink: 0; color: var(--color-stone-700, #73757F); }

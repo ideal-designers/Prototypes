@@ -848,15 +848,15 @@ const EXTRA_CAT_META: Record<'manual' | 'keyword', { label: string; svgPath: str
   font-size: 14px; font-weight: 400; color: var(--color-text-primary, #1F2129);
   white-space: nowrap;
 }
-.rv-marks-chip--applied { background: #EAF6ED; }
-.rv-marks-chip--draft   { background: #FFEDE1; }
+.rv-marks-chip--applied { background: var(--color-status-stable-bg); }
+.rv-marks-chip--draft   { background: var(--redaction-selected-bg); }
 .rv-marks-chip-label { padding: 0 4px; line-height: 20px; }
 .rv-marks-chip-count { line-height: 20px; }
 .rv-marks-dot {
   width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0;
 }
-.rv-marks-dot--applied { background: #B1EAC2; }
-.rv-marks-dot--draft   { background: #FFC694; }
+.rv-marks-dot--applied { background: var(--redaction-status-applied); }
+.rv-marks-dot--draft   { background: var(--redaction-status-draft); }
 .rv-page-nav { font-size: 14px; color: var(--color-text-secondary, #5F616A); white-space: nowrap; }
 .rv-divider-v { width: 1px; height: 20px; background: var(--color-divider); margin: 0 4px; }
 /* ── Toolbar ── */
@@ -902,7 +902,7 @@ fvdr-toggle ::ng-deep .toggle__label { font-size: 15px; }
   padding: 80px 0; color: var(--color-text-secondary);
 }
 .rv-spinner {
-  width: 32px; height: 32px; border: 3px solid #DEE0EB;
+  width: 32px; height: 32px; border: 3px solid var(--color-border);
   border-top-color: var(--color-primary-500); border-radius: 50%;
   animation: rv-spin 0.8s linear infinite;
 }
@@ -947,9 +947,9 @@ fvdr-toggle ::ng-deep .toggle__label { font-size: 15px; }
 .rv-mark--dragging { cursor: grabbing; }
 .rv-mark--draft  { background: rgba(223, 109, 0, 0.16); }
 .rv-mark--applied { background: rgba(44, 156, 116, 0.16); }
-.rv-mark--preview { background: #000; border-color: transparent; cursor: default; }
-.rv-mark--selected.rv-mark--draft { background: rgba(223, 109, 0, 0.24); border-color: #DF6D00; }
-.rv-mark--selected.rv-mark--applied { background: rgba(44, 156, 116, 0.24); border-color: #2C9C74; }
+.rv-mark--preview { background: var(--redaction-preview-fill); border-color: transparent; cursor: default; }
+.rv-mark--selected.rv-mark--draft { background: rgba(223, 109, 0, 0.24); border-color: var(--redaction-selected-border); }
+.rv-mark--selected.rv-mark--applied { background: rgba(44, 156, 116, 0.24); border-color: var(--color-interactive-primary); }
 .rv-mark--hover.rv-mark--draft { border-color: rgba(223, 109, 0, 0.5); }
 .rv-mark--hover.rv-mark--applied { border-color: rgba(44, 156, 116, 0.5); }
 .rv-mark-del {

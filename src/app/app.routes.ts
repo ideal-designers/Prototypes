@@ -125,6 +125,11 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./prototypes/redaction-viewer/redaction-viewer.component').then(m => m.RedactionViewerComponent),
   },
+  {
+    path: 'q-a-drag-and-drop',
+    loadComponent: () =>
+      import('./prototypes/q-a-drag-and-drop/q-a-drag-and-drop.component').then(m => m.QaDragAndDropComponent),
+  },
   // PROTO_ROUTES_PLACEHOLDER
   {
     path: '**',

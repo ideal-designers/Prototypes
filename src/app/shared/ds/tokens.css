@@ -234,6 +234,9 @@
   --redaction-status-applied:  #b1eac2;  /* categories/green — applied status square */
   --redaction-selected-bg:     #ffede1;  /* orange-50 — selected card background */
   --redaction-selected-border: #df6d00;  /* orange-500 — selected card border */
+  --redaction-draft-bar:       #ffad66;  /* orange-300 — selected draft page-row bar */
+  --redaction-applied-bar:     #7fdea5;  /* green-300 — selected applied page-row bar */
+  --redaction-preview-fill:    #000000;  /* preview redaction overlay fill */
 }
 
 /* ─────────────────────────────────────────

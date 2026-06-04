@@ -87,10 +87,10 @@ export type DropAreaVariant = 'default' | 'compact';
       padding: var(--space-6) var(--space-6);
       border: 1px dashed var(--color-divider);
       border-radius: var(--radius-sm);
-      background: #FBFBFB;
+      background: var(--color-bg-subtle);
       cursor: default;
     }
-    .drop--compact:hover { border-color: var(--color-primary-500); background: #FBFBFB; }
+    .drop--compact:hover { border-color: var(--color-primary-500); background: var(--color-bg-subtle); }
     .drop--compact.drop--drag-over { border-color: var(--color-primary-500); background: var(--color-primary-50); border-style: dashed; }
 
     .drop__icon { font-size: var(--font-size-4xl, 24px); color: var(--color-primary-500); margin-bottom: var(--space-1); }
