@@ -264,7 +264,7 @@ const TYPE_META: Record<RedactionMarkType, { label: string; icon: string }> = {
     .rmc--selected.rmc--draft:not(.rmc--group):hover { background: var(--redaction-selected-bg); }
 
     /* Selected — applied (green) */
-    .rmc--selected.rmc--applied:not(.rmc--group) { background: var(--color-status-stable-bg); border-color: var(--color-interactive-primary); }
+    .rmc--selected.rmc--applied:not(.rmc--group) { background: var(--color-status-stable-bg); border-color: var(--color-primary-500, #2C9C74); }
     .rmc--selected.rmc--applied:not(.rmc--group):hover { background: var(--color-status-stable-bg); }
 
     /* Hovered — gray (same as CSS :hover) */
@@ -281,11 +281,11 @@ const TYPE_META: Record<RedactionMarkType, { label: string; icon: string }> = {
 
     /* Icon tints in selected state only */
     .rmc--selected.rmc--draft   .rmc-icon { color: var(--redaction-selected-border); }
-    .rmc--selected.rmc--applied .rmc-icon { color: var(--color-interactive-primary); }
+    .rmc--selected.rmc--applied .rmc-icon { color: var(--color-primary-500, #2C9C74); }
 
     /* Icon tints in selected group card header */
     .rmc--group-selected.rmc--group-draft   .rmc-group-head .rmc-icon { color: var(--redaction-selected-border); }
-    .rmc--group-selected.rmc--group-applied .rmc-group-head .rmc-icon { color: var(--color-interactive-primary); }
+    .rmc--group-selected.rmc--group-applied .rmc-group-head .rmc-icon { color: var(--color-primary-500, #2C9C74); }
 
     /* ── Info column ───────────────────────────────────────── */
     .rmc-info {
@@ -347,7 +347,7 @@ const TYPE_META: Record<RedactionMarkType, { label: string; icon: string }> = {
 
     /* Selected group: colored border based on status */
     .rmc--group.rmc--group-selected.rmc--group-draft   { border-color: var(--redaction-selected-border); }
-    .rmc--group.rmc--group-selected.rmc--group-applied { border-color: var(--color-interactive-primary); }
+    .rmc--group.rmc--group-selected.rmc--group-applied { border-color: var(--color-primary-500, #2C9C74); }
 
     /* ── Group header ──────────────────────────────────────── */
     .rmc-group-head {
@@ -388,7 +388,7 @@ const TYPE_META: Record<RedactionMarkType, { label: string; icon: string }> = {
     }
     /* Colored divider when group is selected */
     .rmc--group-selected.rmc--group-draft   .rmc-pages { border-top-color: var(--redaction-selected-border); }
-    .rmc--group-selected.rmc--group-applied .rmc-pages { border-top-color: var(--color-interactive-primary); }
+    .rmc--group-selected.rmc--group-applied .rmc-pages { border-top-color: var(--color-primary-500, #2C9C74); }
 
     .rmc-page-row {
       display: flex; align-items: center; gap: 12px;
@@ -396,12 +396,12 @@ const TYPE_META: Record<RedactionMarkType, { label: string; icon: string }> = {
       cursor: pointer; box-sizing: border-box;
       background: white;
       /* color prop controls vertical bar indicator via fill=currentColor */
-      color: var(--color-selection-bg);
+      color: var(--color-stone-300);
       transition: background 0.1s;
     }
     .rmc-page-row:hover:not(.rmc-page-row--selected) {
       background: var(--color-bg-surface);
-      color: var(--color-selection-bg);
+      color: var(--color-stone-300);
     }
 
     /* Selected page row — bg matches group header; bar color per group status */

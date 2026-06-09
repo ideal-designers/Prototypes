@@ -171,17 +171,20 @@ const EXTRA_CAT_META: Record<'manual' | 'keyword', { label: string; svgPath: str
   <!-- ══ HEADER ══ -->
   <header class="rv-header">
     <div class="rv-header-left">
-      <fvdr-ghost-btn
-        size="small"
-        [iconPath]="ICON_CLOSE_VIEWER"
-        (clicked)="onBack()">
-      </fvdr-ghost-btn>
-      <svg class="rv-file-icon" width="24" height="24" viewBox="0 0 24 24" fill="none">
-        <rect width="24" height="24" rx="4" fill="#0F81C0"/>
-        <path fill-rule="evenodd" clip-rule="evenodd" d="M19 7H5V8.42857H19V7ZM19 9.85714H5V11.2857H19V9.85714ZM5 12.7143H19V14.1429H5V12.7143ZM14.3333 15.5714H5V17H14.3333V15.5714Z" fill="white"/>
-      </svg>
-      <span class="rv-filename">2.2.1 Protocol / Ready for review. pdf</span>
+      <div class="rv-file-group">
+        <fvdr-ghost-btn
+          size="small"
+          [iconPath]="ICON_CLOSE_VIEWER"
+          (clicked)="onBack()">
+        </fvdr-ghost-btn>
+        <svg class="rv-file-icon" width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <rect width="24" height="24" rx="4" fill="#0F81C0"/>
+          <path fill-rule="evenodd" clip-rule="evenodd" d="M19 7H5V8.42857H19V7ZM19 9.85714H5V11.2857H19V9.85714ZM5 12.7143H19V14.1429H5V12.7143ZM14.3333 15.5714H5V17H14.3333V15.5714Z" fill="white"/>
+        </svg>
+        <span class="rv-filename">2.2.1 Protocol / Ready for review. pdf</span>
+      </div>
 
+      <div class="rv-chips-group">
       <div class="rv-mode-chip">
         <!-- Redaction icon 14×14 -->
         <svg class="rv-mode-chip-icon" width="14" height="14" viewBox="0 0 14 14" fill="none">
@@ -204,12 +207,25 @@ const EXTRA_CAT_META: Record<'manual' | 'keyword', { label: string; svgPath: str
         <span class="rv-marks-chip-label">Draft</span>
         <span class="rv-marks-chip-count">{{ draftCount }}</span>
       </div>
+      </div><!-- /rv-chips-group -->
+
+      <!-- Autosave indicator -->
+      <div class="rv-autosave" *ngIf="hasSavedOnce || saveState === 'saving'">
+        <svg *ngIf="saveState === 'saving'" class="rv-autosave-icon rv-autosave-icon--spinning" width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M12.7197 5.46973C13.0126 5.17686 13.4873 5.17684 13.7802 5.46973L15.7802 7.46973C16.0731 7.76261 16.0731 8.23739 15.7802 8.53027C15.4873 8.82316 15.0126 8.82314 14.7197 8.53027L13.9921 7.80273C13.9943 7.86827 13.9999 7.93393 13.9999 8C13.9999 11.3137 11.3136 14 7.99994 14C7.36878 14 6.76062 13.902 6.18939 13.721C5.68368 13.5607 5.58323 12.9297 5.95558 12.5518C6.17943 12.3246 6.51629 12.2605 6.82412 12.3439C7.19891 12.4455 7.59303 12.5 7.99994 12.5C10.4852 12.5 12.4999 10.4853 12.4999 8C12.4999 7.93783 12.4976 7.876 12.4951 7.81445L11.7802 8.53027C11.4873 8.82316 11.0126 8.82314 10.7197 8.53027C10.4268 8.23738 10.4268 7.76262 10.7197 7.46973L12.7197 5.46973Z" fill="currentColor"/>
+          <path d="M7.99994 2C8.63058 2.00001 9.23833 2.09767 9.80921 2.27834C10.315 2.43843 10.4156 3.06943 10.0432 3.44735C9.81942 3.67446 9.48268 3.73862 9.17488 3.65543C8.80034 3.55419 8.40648 3.50001 7.99994 3.5C5.51466 3.5 3.49994 5.51472 3.49994 8C3.49994 8.06183 3.50138 8.12335 3.50385 8.18457L4.21967 7.46973C4.51257 7.17686 4.98733 7.17684 5.28022 7.46973C5.57307 7.76261 5.57307 8.23739 5.28022 8.53027L3.28022 10.5303C2.98733 10.8232 2.51257 10.8231 2.21967 10.5303L0.21967 8.53027C-0.0732233 8.23738 -0.0732233 7.76262 0.21967 7.46973C0.512565 7.17686 0.987333 7.17684 1.28022 7.46973L2.0058 8.19531C2.00369 8.13044 1.99994 8.06539 1.99994 8C1.99994 4.68629 4.68623 2 7.99994 2Z" fill="currentColor"/>
+        </svg>
+        <svg *ngIf="saveState === 'saved'" class="rv-autosave-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M8 2.5C10.4271 2.5 12.449 4.22966 12.9033 6.52344C14.6463 6.72345 16 8.20342 16 10C16 11.933 14.433 13.5 12.5 13.5H3.5C1.567 13.5 0 11.933 0 10C0 9.92023 0.00353591 9.84114 0.00878906 9.7627C0.00315844 9.67585 0 9.58827 0 9.5C0 7.49632 1.47317 5.83629 3.39551 5.54492C4.15654 3.75483 5.93218 2.5 8 2.5ZM8 4C6.55436 4 5.31018 4.87636 4.77637 6.13184L4.44824 6.90234L3.62012 7.02832C2.42033 7.21028 1.5 8.2489 1.5 9.5C1.5 9.55254 1.50209 9.60794 1.50586 9.66602L1.51172 9.76465L1.50586 9.86328C1.50206 9.92008 1.5 9.96384 1.5 10C1.5 11.1046 2.39543 12 3.5 12H12.5C13.6046 12 14.5 11.1046 14.5 10C14.5 8.97473 13.7271 8.12786 12.7324 8.01367L11.6445 7.88867L11.4316 6.81445C11.1135 5.20914 9.69654 4 8 4ZM9.46973 6.96973C9.76262 6.67683 10.2374 6.67683 10.5303 6.96973C10.8232 7.26262 10.8232 7.73738 10.5303 8.03027L7.5 11.0605L5.46973 9.03027C5.17683 8.73738 5.17683 8.26262 5.46973 7.96973C5.74433 7.69512 6.17905 7.67766 6.47363 7.91797L6.53027 7.96973L7.5 8.93945L9.46973 6.96973Z" fill="currentColor"/>
+        </svg>
+        <span class="rv-autosave-label" [class.rv-autosave-label--visible]="saveState === 'saving' || savedLabelVisible">{{ saveState === 'saving' ? 'Saving…' : 'Saved' }}</span>
+      </div>
     </div>
 
     <div class="rv-header-right">
       <fvdr-toggle [(checked)]="previewMode" label="Preview"></fvdr-toggle>
 
-      <fvdr-btn label="Apply" variant="primary" size="m" [disabled]="draftCount === 0" (clicked)="openApplyModal()"></fvdr-btn>
+      <fvdr-btn label="Apply" variant="primary" size="m" [disabled]="draftCount === 0 && !pendingApplyChanges" (clicked)="openApplyModal()"></fvdr-btn>
     </div>
   </header>
 
@@ -262,6 +278,8 @@ const EXTRA_CAT_META: Record<'manual' | 'keyword', { label: string; svgPath: str
             placeholder="Search"
             style="display:block;">
           </fvdr-search>
+
+          <fvdr-checkbox [(ngModel)]="wholeWord" label="Whole word" (ngModelChange)="onSearchChange(searchQuery)"></fvdr-checkbox>
 
           <div class="rv-search-meta" *ngIf="searchQuery && searchHighlights.length > 0">
             <span>{{ currentSearchIdx + 1 }} of {{ searchHighlights.length }} results · {{ searchPagesCount }} {{ searchPagesCount === 1 ? 'page' : 'pages' }}</span>
@@ -538,6 +556,16 @@ const EXTRA_CAT_META: Record<'manual' | 'keyword', { label: string; svgPath: str
       <div class="rv-marks-header">
         <span class="rv-marks-title">Redaction marks</span>
         <div class="rv-marks-header-actions">
+          <button *ngIf="marks.length > 0" class="rv-icon-btn" (click)="toggleAllSections()" [title]="allSectionsExpanded ? 'Collapse all' : 'Expand all'">
+            <svg *ngIf="allSectionsExpanded" width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M7.66939 8.99967C7.9023 8.84571 8.21917 8.87172 8.42427 9.07682L11.7573 12.4098C11.9916 12.6441 11.9916 13.0241 11.7573 13.2585C11.523 13.4926 11.1429 13.4927 10.9086 13.2585L7.99947 10.3483L5.09029 13.2585C4.85605 13.4923 4.47686 13.4923 4.24263 13.2585C4.00832 13.0241 4.00832 12.6441 4.24263 12.4098L7.57564 9.07682L7.66939 8.99967Z" fill="currentColor"/>
+              <path d="M10.9086 2.74577C11.1429 2.51177 11.523 2.51188 11.7573 2.74577C11.9915 2.98001 11.9914 3.36007 11.7573 3.5944L8.42427 6.92741C8.21917 7.13251 7.9023 7.15852 7.66939 7.00455L7.57564 6.92741L4.24263 3.5944C4.00852 3.36007 4.00838 2.98001 4.24263 2.74577C4.47681 2.51215 4.85611 2.51215 5.09029 2.74577L7.99947 5.65592L10.9086 2.74577Z" fill="currentColor"/>
+            </svg>
+            <svg *ngIf="!allSectionsExpanded" width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M10.9086 9.74525C11.1428 9.51126 11.523 9.51137 11.7572 9.74525C11.9915 9.9795 11.9913 10.3596 11.7572 10.5939L8.42423 13.9269C8.21912 14.132 7.90226 14.158 7.66934 14.004L7.57559 13.9269L4.24259 10.5939C4.00847 10.3596 4.00834 9.9795 4.24259 9.74525C4.47677 9.51164 4.85606 9.51164 5.09024 9.74525L7.99942 12.6554L10.9086 9.74525Z" fill="currentColor"/>
+              <path d="M7.66934 1.99916C7.90221 1.84531 8.21916 1.87132 8.42423 2.0763L11.7572 5.40931C11.9915 5.64358 11.9914 6.02362 11.7572 6.25795C11.5229 6.4921 11.1429 6.49221 10.9086 6.25795L7.99942 3.34779L5.09024 6.25795C4.85601 6.49183 4.47682 6.49183 4.24259 6.25795C4.00836 6.02362 4.0083 5.6436 4.24259 5.40931L7.57559 2.0763L7.66934 1.99916Z" fill="currentColor"/>
+            </svg>
+          </button>
           <button *ngIf="marks.length > 0" class="rv-icon-btn" (click)="showDeleteAllModal = true" title="Delete all marks">
             <svg width="16" height="16" viewBox="0 0 16 16" style="fill:none">
               <path d="M3 4.19922L4.24867 12.6902C4.39303 13.6718 5.23522 14.3992 6.22739 14.3992H9.77261C10.7648 14.3992 11.607 13.6718 11.7513 12.6902L13 4.19922" stroke="currentColor" stroke-width="1.2"/>
@@ -545,7 +573,9 @@ const EXTRA_CAT_META: Record<'manual' | 'keyword', { label: string; svgPath: str
             </svg>
           </button>
           <button class="rv-icon-btn" (click)="showMarksPanel = false">
-            <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M4.11077 11.8891L7.99985 8M11.8889 4.11091L7.99985 8M7.99985 8L4.11077 4.11091M7.99985 8L11.8889 11.8891" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
           </button>
         </div>
       </div>
@@ -763,15 +793,16 @@ const EXTRA_CAT_META: Record<'manual' | 'keyword', { label: string; svgPath: str
   <!-- ══ MODAL: APPLY ══ -->
   <fvdr-modal
     [visible]="showApplyModal"
-    title="Apply changes"
+    title="Apply changes?"
+    content="All users will see the redacted version of this document. You can undo it later."
     confirmLabel="Apply"
     cancelLabel="Cancel"
-    size="s"
+    cancelVariant="secondary"
+    size="md"
     [closeOnOverlay]="true"
     (confirmed)="confirmApply()"
     (cancelled)="showApplyModal = false"
     (closed)="showApplyModal = false">
-    <p style="margin:0; font-size:14px; color:var(--color-text-primary)">Apply redaction marks to the document? This cannot be undone.</p>
   </fvdr-modal>
 
   <!-- ══ MODAL: LEAVE ══ -->
@@ -793,15 +824,16 @@ const EXTRA_CAT_META: Record<'manual' | 'keyword', { label: string; svgPath: str
   <fvdr-modal
     [visible]="showDeleteAllModal"
     title="Delete all marks"
+    content="Are you sure you want to delete all marks?"
     confirmLabel="Delete"
     cancelLabel="Cancel"
     confirmVariant="danger"
-    size="s"
+    cancelVariant="secondary"
+    size="md"
     [closeOnOverlay]="true"
     (confirmed)="confirmDeleteAll()"
     (cancelled)="showDeleteAllModal = false"
     (closed)="showDeleteAllModal = false">
-    <p style="margin:0; font-size:14px; color:var(--color-text-primary)">Are you sure you want to delete all marks?</p>
   </fvdr-modal>
 
   <!-- Toast host (DS) -->
@@ -827,7 +859,9 @@ const EXTRA_CAT_META: Record<'manual' | 'keyword', { label: string; svgPath: str
   background: white;
   flex-shrink: 0; z-index: 20;
 }
-.rv-header-left { display: flex; align-items: center; gap: 8px; }
+.rv-header-left { display: flex; align-items: center; gap: 16px; }
+.rv-file-group { display: flex; align-items: center; gap: 8px; }
+.rv-chips-group { display: flex; align-items: center; gap: 8px; }
 .rv-header-right { display: flex; align-items: center; gap: 16px; }
 .rv-filename { font-size: 16px; font-weight: 600; color: var(--color-text-primary); }
 .rv-file-icon { width: 24px; height: 24px; flex-shrink: 0; border-radius: 4px; }
@@ -844,7 +878,7 @@ const EXTRA_CAT_META: Record<'manual' | 'keyword', { label: string; svgPath: str
 .rv-mode-chip-text { white-space: nowrap; }
 .rv-marks-chip {
   display: inline-flex; align-items: center; gap: 4px;
-  height: 28px; padding: 0 8px; border-radius: var(--radius-sm, 4px);
+  height: 28px; padding: 0 8px; border-radius: 16px;
   font-size: 14px; font-weight: 400; color: var(--color-text-primary, #1F2129);
   white-space: nowrap;
 }
@@ -859,6 +893,19 @@ const EXTRA_CAT_META: Record<'manual' | 'keyword', { label: string; svgPath: str
 .rv-marks-dot--draft   { background: var(--redaction-status-draft); }
 .rv-page-nav { font-size: 14px; color: var(--color-text-secondary, #5F616A); white-space: nowrap; }
 .rv-divider-v { width: 1px; height: 20px; background: var(--color-divider); margin: 0 4px; }
+/* ── Autosave ── */
+.rv-autosave {
+  display: inline-flex; align-items: center; gap: 8px;
+  color: var(--color-text-secondary, #5F616A);
+}
+.rv-autosave-icon { flex-shrink: 0; }
+.rv-autosave-label {
+  font-size: 14px; line-height: 20px; white-space: nowrap;
+  opacity: 0; transition: opacity 0.4s ease;
+}
+.rv-autosave-label--visible { opacity: 1; }
+.rv-autosave-icon--spinning { animation: rv-spin 1s linear infinite; }
+@keyframes rv-spin { to { transform: rotate(360deg); } }
 /* ── Toolbar ── */
 .rv-toolbar {
   display: flex; align-items: center; gap: 4px;
@@ -946,12 +993,12 @@ fvdr-toggle ::ng-deep .toggle__label { font-size: 15px; }
 }
 .rv-mark--dragging { cursor: grabbing; }
 .rv-mark--draft  { background: rgba(223, 109, 0, 0.16); }
-.rv-mark--applied { background: rgba(44, 156, 116, 0.16); }
+.rv-mark--applied { background: rgba(64, 66, 75, 0.16); }
 .rv-mark--preview { background: var(--redaction-preview-fill); border-color: transparent; cursor: default; }
 .rv-mark--selected.rv-mark--draft { background: rgba(223, 109, 0, 0.24); border-color: var(--redaction-selected-border); }
-.rv-mark--selected.rv-mark--applied { background: rgba(44, 156, 116, 0.24); border-color: var(--color-interactive-primary); }
+.rv-mark--selected.rv-mark--applied { background: rgba(64, 66, 75, 0.24); border-color: var(--color-stone-900); }
 .rv-mark--hover.rv-mark--draft { border-color: rgba(223, 109, 0, 0.5); }
-.rv-mark--hover.rv-mark--applied { border-color: rgba(44, 156, 116, 0.5); }
+.rv-mark--hover.rv-mark--applied { border-color: rgba(64, 66, 75, 0.4); }
 .rv-mark-del {
   position: absolute; top: -8px; right: -8px;
   width: 18px; height: 18px; border-radius: 50%;
@@ -963,8 +1010,8 @@ fvdr-toggle ::ng-deep .toggle__label { font-size: 15px; }
 .rv-mark--selected .rv-mark-del { opacity: 1; }
 .rv-mark-del svg { width: 12px; height: 12px; }
 .rv-draw-rect {
-  position: absolute; background: rgba(31,33,41,.5);
-  border: 2px dashed rgba(255,255,255,.7);
+  position: absolute; background: rgba(223, 109, 0, 0.16);
+  border: 1px solid rgba(223, 109, 0, 0.5);
   pointer-events: none;
 }
 
@@ -1120,8 +1167,9 @@ fvdr-toggle ::ng-deep .toggle__label { font-size: 15px; }
 }
 .rv-icon-btn:hover { background: var(--color-stone-300, #ECEEF9); }
 /* Close button in marks header — no bg, just darken icon */
+.rv-marks-header .rv-icon-btn { width: 16px; height: 16px; border-radius: 0; }
 .rv-marks-header .rv-icon-btn:hover { background: transparent; color: var(--color-text-primary, #1F2129); }
-.rv-icon-btn svg { width: 18px; height: 18px; fill: currentColor; }
+.rv-icon-btn svg { width: 18px; height: 18px; }
 .rv-icon-btn--sm { width: 26px; height: 26px; }
 .rv-icon-btn--sm svg { width: 14px; height: 14px; }
 .rv-icon-btn:disabled { opacity: .4; cursor: default; }
@@ -1165,6 +1213,7 @@ export class RedactionViewerComponent implements OnInit, OnDestroy {
 
   // ── Search ────────────────────────────────────────────────────────────────
   searchQuery = '';
+  wholeWord = false;
   searchHighlights: SearchHighlight[] = [];
   currentSearchIdx = 0;
 
@@ -1193,8 +1242,16 @@ export class RedactionViewerComponent implements OnInit, OnDestroy {
 
   // ── Modals ────────────────────────────────────────────────────────────────
   showApplyModal = false;
+  pendingApplyChanges = false;
   showLeaveModal = false;
   showDeleteAllModal = false;
+
+  // ── Autosave state ────────────────────────────────────────────────────────
+  saveState: 'saving' | 'saved' = 'saved';
+  savedLabelVisible = false;
+  hasSavedOnce = false;
+  private saveTimer: any;
+  private savedLabelTimer: any;
 
   // ── Toast (DS ToastService) ───────────────────────────────────────────────
   private toastService = inject(ToastService);
@@ -1335,6 +1392,21 @@ export class RedactionViewerComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     clearTimeout(this.detectTimer);
     clearInterval(this.detectProgressTimer);
+    clearTimeout(this.saveTimer);
+    clearTimeout(this.savedLabelTimer);
+  }
+
+  triggerSave() {
+    this.saveState = 'saving';
+    this.savedLabelVisible = false;
+    clearTimeout(this.saveTimer);
+    clearTimeout(this.savedLabelTimer);
+    this.saveTimer = setTimeout(() => {
+      this.saveState = 'saved';
+      this.hasSavedOnce = true;
+      this.savedLabelVisible = true;
+      this.savedLabelTimer = setTimeout(() => { this.savedLabelVisible = false; }, 3000);
+    }, 1500);
   }
 
   @HostListener('document:click', ['$event'])
@@ -1557,8 +1629,13 @@ export class RedactionViewerComponent implements OnInit, OnDestroy {
   private runSearch(q: string) {
     const lower = q.toLowerCase();
     const results: SearchHighlight[] = [];
+    const regex = this.wholeWord
+      ? new RegExp(`\\b${lower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'gi')
+      : null;
     for (const item of this.textItems) {
-      const idx = item.text.toLowerCase().indexOf(lower);
+      const idx = regex
+        ? (() => { regex.lastIndex = 0; const m = regex.exec(item.text); return m ? m.index : -1; })()
+        : item.text.toLowerCase().indexOf(lower);
       if (idx === -1) continue;
       // Approximate width for the matched portion
       const charW = item.width / Math.max(item.text.length, 1);
@@ -1619,6 +1696,7 @@ export class RedactionViewerComponent implements OnInit, OnDestroy {
     this.activeTab = null;
     this.showMarksPanel = true;
     this.recomputeSections();
+    this.triggerSave();
     this.toastService.show({ variant: 'success', message: `${this.marks.filter(m => m.status === 'draft').length} marks added` });
   }
 
@@ -1870,6 +1948,7 @@ export class RedactionViewerComponent implements OnInit, OnDestroy {
         category: 'manual' as any, status: 'draft'
       };
       this.marks.push(newMark);
+      this.triggerSave();
       this.selectedMark = newMark;
       this.showMarksPanel = true;
       this.recomputeSections();
@@ -2019,13 +2098,27 @@ export class RedactionViewerComponent implements OnInit, OnDestroy {
 
   deleteMark(id: string) {
     this.saveHistory();
+    if (this.marks.find(m => m.id === id)?.status === 'applied') this.pendingApplyChanges = true;
     this.marks = this.marks.filter(m => m.id !== id);
+    this.triggerSave();
     if (this.selectedMark?.id === id) this.selectedMark = null;
     this.recomputeSections();
   }
 
   toggleSection(key: string) {
     this.expandedSections = { ...this.expandedSections, [key]: !this.expandedSections[key] };
+    this.cdr.detectChanges();
+  }
+
+  get allSectionsExpanded(): boolean {
+    return this.displayedSections.length > 0 && this.displayedSections.every(s => this.expandedSections[s.key]);
+  }
+
+  toggleAllSections() {
+    const expand = !this.allSectionsExpanded;
+    const next: Record<string, boolean> = {};
+    for (const sec of this.displayedSections) next[sec.key] = expand;
+    this.expandedSections = next;
     this.cdr.detectChanges();
   }
 
@@ -2064,10 +2157,12 @@ export class RedactionViewerComponent implements OnInit, OnDestroy {
     if (sectionKey.startsWith('pg-')) {
       const pageNum = parseInt(sectionKey.replace('pg-', ''), 10);
       const ids = new Set(this.marks.filter(m => m.pageNum === pageNum).map(m => m.id));
+      if (this.marks.some(m => ids.has(m.id) && m.status === 'applied')) this.pendingApplyChanges = true;
       this.marks = this.marks.filter(m => !ids.has(m.id));
       if (this.selectedMark && ids.has(this.selectedMark.id)) this.selectedMark = null;
     } else {
       const cat = sectionKey as MarkCategory;
+      if (this.marks.some(m => m.category === cat && m.status === 'applied')) this.pendingApplyChanges = true;
       this.marks = this.marks.filter(m => m.category !== cat);
       if (this.selectedMark?.category === cat) this.selectedMark = null;
     }
@@ -2081,6 +2176,7 @@ export class RedactionViewerComponent implements OnInit, OnDestroy {
       if (grp) {
         this.saveHistory();
         const ids = new Set(grp.marks.map(m => m.id));
+        if (grp.marks.some(m => m.status === 'applied')) this.pendingApplyChanges = true;
         this.marks = this.marks.filter(m => !ids.has(m.id));
         if (this.selectedMark && ids.has(this.selectedMark.id)) this.selectedMark = null;
         this.recomputeSections();
@@ -2161,13 +2257,14 @@ export class RedactionViewerComponent implements OnInit, OnDestroy {
 
   // ── Apply / Leave ─────────────────────────────────────────────────────────
   openApplyModal() {
-    if (this.marks.length === 0) return;
+    if (this.draftCount === 0 && !this.pendingApplyChanges) return;
     this.showApplyModal = true;
   }
 
   confirmApply() {
     this.saveHistory();
     this.marks = this.marks.map(m => ({ ...m, status: 'applied' as MarkStatus }));
+    this.pendingApplyChanges = false;
     this.showApplyModal = false;
     this.recomputeSections();
     this.toastService.show({ variant: 'success', message: 'Redactions applied successfully' });
@@ -2182,6 +2279,7 @@ export class RedactionViewerComponent implements OnInit, OnDestroy {
 
   confirmDeleteAll() {
     this.saveHistory();
+    if (this.marks.some(m => m.status === 'applied')) this.pendingApplyChanges = true;
     this.marks = [];
     this.selectedMark = null;
     this.showDeleteAllModal = false;
@@ -2189,11 +2287,7 @@ export class RedactionViewerComponent implements OnInit, OnDestroy {
     this.toastService.show({ variant: 'success', message: 'All marks deleted' });
   }
 
-  onBack() {
-    if (this.marks.length > 0) {
-      this.showLeaveModal = true;
-    }
-  }
+  onBack() {}
 
   onPreviewToggle() {
     // Preview mode shows applied appearance for draft marks

@@ -237,6 +237,9 @@
   --redaction-draft-bar:       #ffad66;  /* orange-300 — selected draft page-row bar */
   --redaction-applied-bar:     #7fdea5;  /* green-300 — selected applied page-row bar */
   --redaction-preview-fill:    #000000;  /* preview redaction overlay fill */
+
+  /* ── Status semantic bg (used by ghost-btn selected, mark cards) ── */
+  --color-status-stable-bg:    var(--chip-bg-green, #eaf6ed);
 }
 
 /* ─────────────────────────────────────────

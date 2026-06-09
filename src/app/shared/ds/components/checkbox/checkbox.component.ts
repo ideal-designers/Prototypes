@@ -72,7 +72,7 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
       width: var(--checkbox-size);   /* 16px */
       height: var(--checkbox-size);  /* 16px */
       border-radius: var(--checkbox-radius); /* 1px */
-      border: 1.5px solid var(--color-stone-400); /* unselected: #DEE0EB */
+      border: 1px solid var(--color-stone-400); /* unselected: #DEE0EB */
       background: var(--color-stone-0);
       display: flex;
       align-items: center;

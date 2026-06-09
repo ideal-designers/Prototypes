@@ -5,7 +5,7 @@ import { ButtonComponent } from '../button/button.component';
 import { BehaviorSubject } from 'rxjs';
 import { Injectable } from '@angular/core';
 
-export type ModalSize = 's' | 'm' | 'l' | 'xl';
+export type ModalSize = 's' | 'md' | 'm' | 'l' | 'xl';
 
 export interface ModalConfig {
   id?: string;
@@ -57,7 +57,7 @@ export interface ModalConfig {
           <p *ngIf="content" class="modal__content-text">{{ content }}</p>
         </div>
         <div *ngIf="confirmLabel || cancelLabel" class="modal__footer">
-          <fvdr-btn *ngIf="cancelLabel" [label]="cancelLabel" variant="ghost" (clicked)="cancel()" />
+          <fvdr-btn *ngIf="cancelLabel" [label]="cancelLabel" [variant]="cancelVariant" (clicked)="cancel()" />
           <fvdr-btn *ngIf="confirmLabel" [label]="confirmLabel" [variant]="confirmVariant || 'primary'" [disabled]="confirmDisabled" (clicked)="confirm()" />
         </div>
       </div>
@@ -88,6 +88,7 @@ export interface ModalConfig {
     @keyframes scale-in { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
 
     .modal--s  { width: 400px; }
+    .modal--md { width: 504px; }
     .modal--m  { width: 520px; }
     .modal--l  { width: 640px; }
     .modal--xl { width: 800px; }
@@ -99,6 +100,13 @@ export interface ModalConfig {
       padding: var(--space-6) var(--space-6) var(--space-2);
       flex-shrink: 0;
     }
+
+    /* ── md size overrides ── */
+    .modal--md .modal__header { padding: 24px 24px 0; }
+    .modal--md .modal__title  { font-size: 16px; }
+    .modal--md .modal__body   { padding: 24px; }
+    .modal--md .modal__footer { padding: 0 24px 24px; }
+    .modal--md .modal__content-text { font-size: 16px; line-height: 24px; color: var(--color-text-primary); }
 
     .modal__title {
       font-family: var(--font-family);
@@ -112,16 +120,18 @@ export interface ModalConfig {
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 32px;
-      height: 32px;
+      width: 16px;
+      height: 16px;
       border: none;
       background: transparent;
       cursor: pointer;
       color: var(--color-text-secondary);
       border-radius: var(--radius-sm);
-      font-size: var(--font-size-lg, 16px);
+      font-size: 16px;
+      padding: 0;
+      flex-shrink: 0;
     }
-    .modal__close:hover { background: var(--color-hover-bg); color: var(--color-text-primary); }
+    .modal__close:hover { color: var(--color-text-primary); }
 
     .modal__body {
       flex: 1;
@@ -141,7 +151,7 @@ export interface ModalConfig {
       display: flex;
       align-items: center;
       justify-content: flex-end;
-      gap: var(--space-2);
+      gap: var(--space-4);
       padding: var(--space-4) var(--space-6);
       flex-shrink: 0;
     }
@@ -155,6 +165,7 @@ export class ModalComponent {
   @Input() confirmLabel = '';
   @Input() cancelLabel = '';
   @Input() confirmVariant: 'primary' | 'danger' = 'primary';
+  @Input() cancelVariant: 'ghost' | 'secondary' = 'ghost';
   @Input() confirmDisabled = false;
   @Input() closeOnOverlay = true;
   @Output() closed = new EventEmitter<void>();

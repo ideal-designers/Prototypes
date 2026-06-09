@@ -56,7 +56,7 @@ export type ButtonSize = 's' | 'm' | 'l';
       gap: 6px;
       padding: 0 var(--space-3);
       border-radius: var(--radius-sm);
-      border: 1.5px solid transparent;
+      border: 1px solid transparent;
       font-family: var(--font-family);
       font-weight: 400;
       cursor: pointer;

@@ -144,7 +144,7 @@ export type SearchSize = 's' | 'm' | 'l';
       cursor: pointer;
       color: var(--color-text-secondary);
       font-size: var(--font-size-base, 14px);
-      padding: 0;
+      padding: 0 var(--space-4) 0 0;
     }
     .search__clear:hover { color: var(--color-text-primary); }
 
