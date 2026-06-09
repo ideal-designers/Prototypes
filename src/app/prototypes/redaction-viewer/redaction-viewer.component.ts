@@ -279,7 +279,7 @@ const EXTRA_CAT_META: Record<'manual' | 'keyword', { label: string; svgPath: str
             style="display:block;">
           </fvdr-search>
 
-          <fvdr-checkbox [(ngModel)]="wholeWord" label="Whole word" (ngModelChange)="onSearchChange(searchQuery)"></fvdr-checkbox>
+          <fvdr-checkbox [(ngModel)]="wholeWord" label="Match whole word" (ngModelChange)="onSearchChange(searchQuery)"></fvdr-checkbox>
 
           <div class="rv-search-meta" *ngIf="searchQuery && searchHighlights.length > 0">
             <span>{{ currentSearchIdx + 1 }} of {{ searchHighlights.length }} results · {{ searchPagesCount }} {{ searchPagesCount === 1 ? 'page' : 'pages' }}</span>
@@ -566,7 +566,7 @@ const EXTRA_CAT_META: Record<'manual' | 'keyword', { label: string; svgPath: str
               <path d="M7.66934 1.99916C7.90221 1.84531 8.21916 1.87132 8.42423 2.0763L11.7572 5.40931C11.9915 5.64358 11.9914 6.02362 11.7572 6.25795C11.5229 6.4921 11.1429 6.49221 10.9086 6.25795L7.99942 3.34779L5.09024 6.25795C4.85601 6.49183 4.47682 6.49183 4.24259 6.25795C4.00836 6.02362 4.0083 5.6436 4.24259 5.40931L7.57559 2.0763L7.66934 1.99916Z" fill="currentColor"/>
             </svg>
           </button>
-          <button *ngIf="marks.length > 0" class="rv-icon-btn" (click)="showDeleteAllModal = true" title="Delete all marks">
+          <button *ngIf="marks.length > 0" class="rv-icon-btn" (click)="showDeleteAllModal = true" title="Delete redaction marks">
             <svg width="16" height="16" viewBox="0 0 16 16" style="fill:none">
               <path d="M3 4.19922L4.24867 12.6902C4.39303 13.6718 5.23522 14.3992 6.22739 14.3992H9.77261C10.7648 14.3992 11.607 13.6718 11.7513 12.6902L13 4.19922" stroke="currentColor" stroke-width="1.2"/>
               <path d="M2.1001 4.19962H5.60006M13.9001 4.19962H10.4001M5.60006 4.19962H10.4001M5.60006 4.19962C5.60006 4.19962 5.60006 3.44636 5.60006 2.89962C5.60006 2.23402 6.22686 1.59962 7.00006 1.59961C7.75165 1.59961 8.28826 1.59961 9.00006 1.59961C9.77326 1.59962 10.4001 2.20718 10.4001 2.89962C10.4001 3.44636 10.4001 4.19962 10.4001 4.19962" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
@@ -696,7 +696,7 @@ const EXTRA_CAT_META: Record<'manual' | 'keyword', { label: string; svgPath: str
             <path fill-rule="evenodd" clip-rule="evenodd" d="M123.824 94.4234C123.083 93.8664 122.024 94.3943 122.023 95.3214L122.011 106.597C122.009 107.631 123.287 108.119 123.976 107.347L127.289 103.628L132.253 103.22C133.284 103.135 133.664 101.821 132.837 101.199L123.824 94.4234ZM123.7 105.119L123.71 96.4483L130.641 101.659L126.927 101.964C126.639 101.988 126.371 102.121 126.179 102.337L123.7 105.119Z" fill="white"/>
           </g>
         </svg>
-        <p class="rv-marks-empty-text">You have no marks yet</p>
+        <p class="rv-marks-empty-text">Select an area or search for text in the document to add redaction marks.</p>
       </div>
 
       <!-- Sections list (category & page share one template) -->
@@ -793,8 +793,8 @@ const EXTRA_CAT_META: Record<'manual' | 'keyword', { label: string; svgPath: str
   <!-- ══ MODAL: APPLY ══ -->
   <fvdr-modal
     [visible]="showApplyModal"
-    title="Apply changes?"
-    content="All users will see the redacted version of this document. You can undo it later."
+    title="Apply redaction marks"
+    content="Redaction marks will be applied and all participants with access to this document will see the redacted version. You can remove redaction marks later."
     confirmLabel="Apply"
     cancelLabel="Cancel"
     cancelVariant="secondary"
@@ -823,8 +823,8 @@ const EXTRA_CAT_META: Record<'manual' | 'keyword', { label: string; svgPath: str
   <!-- ══ MODAL: DELETE ALL ══ -->
   <fvdr-modal
     [visible]="showDeleteAllModal"
-    title="Delete all marks"
-    content="Are you sure you want to delete all marks?"
+    title="Delete redaction marks"
+    content="All redaction marks will be deleted. To restore them, use the undo button in the toolbar."
     confirmLabel="Delete"
     cancelLabel="Cancel"
     confirmVariant="danger"
@@ -2267,7 +2267,7 @@ export class RedactionViewerComponent implements OnInit, OnDestroy {
     this.pendingApplyChanges = false;
     this.showApplyModal = false;
     this.recomputeSections();
-    this.toastService.show({ variant: 'success', message: 'Redactions applied successfully' });
+    this.toastService.show({ variant: 'success', message: 'Redaction marks applied' });
   }
 
   confirmLeave() {
