@@ -993,12 +993,12 @@ fvdr-toggle ::ng-deep .toggle__label { font-size: 15px; }
 }
 .rv-mark--dragging { cursor: grabbing; }
 .rv-mark--draft  { background: rgba(223, 109, 0, 0.16); }
-.rv-mark--applied { background: rgba(64, 66, 75, 0.16); }
+.rv-mark--applied { background: rgba(44, 156, 116, 0.16); }
 .rv-mark--preview { background: var(--redaction-preview-fill); border-color: transparent; cursor: default; }
 .rv-mark--selected.rv-mark--draft { background: rgba(223, 109, 0, 0.24); border-color: var(--redaction-selected-border); }
-.rv-mark--selected.rv-mark--applied { background: rgba(64, 66, 75, 0.24); border-color: var(--color-stone-900); }
+.rv-mark--selected.rv-mark--applied { background: rgba(44, 156, 116, 0.24); border-color: var(--color-primary-500); }
 .rv-mark--hover.rv-mark--draft { border-color: rgba(223, 109, 0, 0.5); }
-.rv-mark--hover.rv-mark--applied { border-color: rgba(64, 66, 75, 0.4); }
+.rv-mark--hover.rv-mark--applied { border-color: rgba(44, 156, 116, 0.4); }
 .rv-mark-del {
   position: absolute; top: -8px; right: -8px;
   width: 18px; height: 18px; border-radius: 50%;
