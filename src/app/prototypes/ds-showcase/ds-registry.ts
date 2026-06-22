@@ -1530,6 +1530,56 @@ const fileIcon: ComponentDocEntry = {
   claudePrompt: 'Use fvdr-file-icon to represent file types. Import: @fvdr/ui/file-icon. @Input() extension?:string. @Input() mimeType?:string. @Input() size:"sm"|"md"|"lg"="md".',
 };
 
+const planIcon: ComponentDocEntry = {
+  id: 'plan-icon',
+  name: 'Plan Icon',
+  selector: 'fvdr-plan-icon',
+  category: 'display',
+  status: 'stable',
+  figmaNode: '15846-7469',
+  description:
+    'A color-coded brand badge for an iDeals subscription plan or data-room type. Each plan has a distinct fill color and white glyph, and ships in three native sizes (24 / 32 / 40px). Covers all 13 plans: Basic, Business, Core, Demo/Test, Elite, Enterprise, Premier, Preparation Area, Pro24, Trial, Vault, Vault Max and Vault Trial.',
+  whenToUse: [
+    'Showing which plan or data-room type a project belongs to in lists, cards, or headers',
+    'Plan selectors and billing / upgrade screens',
+    'Anywhere a plan needs an instantly recognisable brand mark',
+  ],
+  whenNotToUse: [
+    'Generic monochrome UI icons — use fvdr-icon instead',
+    'File or folder types — use fvdr-file-icon',
+    'As a status pill with a text label — use fvdr-status',
+  ],
+  anatomy: [
+    { index: 1, part: 'Rounded square',  spec: 'border-radius: 4px · brand fill color · 24 / 32 / 40px' },
+    { index: 2, part: 'Plan glyph',      spec: 'White (or multi-stroke) mark centered in a 16px content box' },
+  ],
+  tokens: [],
+  states: [
+    { name: 'Small',  description: '24×24px — for dense rows and inline list items.' },
+    { name: 'Medium', description: '32×32px — default, for cards and table cells.' },
+    { name: 'Large',  description: '40×40px — for headers and plan-selection screens.' },
+  ],
+  usedIn: ['Projects list (plan column)', 'Billing & upgrade screens', 'Data-room headers'],
+  relatedComponents: ['file-icon', 'status', 'badge'],
+  codeSnippet: `<!-- Default (medium, 32px) -->
+<fvdr-plan-icon name="vault"></fvdr-plan-icon>
+
+<!-- Sizes -->
+<fvdr-plan-icon name="enterprise" size="s"></fvdr-plan-icon>
+<fvdr-plan-icon name="enterprise" size="m"></fvdr-plan-icon>
+<fvdr-plan-icon name="enterprise" size="l"></fvdr-plan-icon>
+
+<!-- Available names -->
+<!-- basic · business · core · demo-test · elite · enterprise ·
+     premier · preparation-area · pro24 · trial · vault · vault-max · vault-trial -->`,
+  claudePrompt:
+    'Use fvdr-plan-icon to render a colored iDeals plan badge. Import DS_COMPONENTS from shared/ds. ' +
+    '@Input() name: FvdrPlanName — one of basic, business, core, demo-test, elite, enterprise, premier, preparation-area, pro24, trial, vault, vault-max, vault-trial. ' +
+    '@Input() size: "s" | "m" | "l" = "m" (24 / 32 / 40px). ' +
+    'Icons are served as SVG assets from assets/plan-icons/{name}-{size}.svg. ' +
+    'Import FVDR_PLAN_NAMES for the full ordered list of plan names.',
+};
+
 const ghostBtn: ComponentDocEntry = {
   id: 'ghost-btn',
   name: 'Ghost Button',
@@ -1789,6 +1839,7 @@ export const DS_REGISTRY: ComponentDocEntry[] = [
   sidebarNav,
   quickAccessMenu,
   fileIcon,
+  planIcon,
   redactionMarkCard,
   ghostBtn,
   floatingPanel,

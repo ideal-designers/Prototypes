@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
-import { DS_COMPONENTS, ToastService, ToastAction, FloatingPanelItem, FilterBtnColor, RedactionMarkPage } from '../../shared/ds';
+import { DS_COMPONENTS, ToastService, ToastAction, FloatingPanelItem, FilterBtnColor, RedactionMarkPage, FvdrPlanName, FVDR_PLAN_NAMES } from '../../shared/ds';
 import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, ComponentCategory } from './ds-registry';
 
 @Component({
@@ -402,6 +402,66 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
             </div>
           </ng-container>
 
+          <!-- TIMEZONE DROPDOWN -->
+          <ng-container *ngSwitchCase="'timezone-dropdown'">
+            <div class="anatomy-wrap anatomy-wrap--tz">
+              <!-- Trigger (auto-detected state) -->
+              <div class="mock-dropdown">
+                <div class="mock-dropdown__trigger mock-tz__trigger">
+                  <span class="mock-tz__left">
+                    <span class="mock-tz__city">Kyiv</span>
+                    <span class="mock-tz__badge">Auto-detected</span>
+                  </span>
+                  <span class="mock-tz__right">
+                    <span class="mock-tz__meta">UTC+2 (14:32)</span>
+                    <fvdr-icon name="chevron-down" style="font-size:var(--font-size-base, 14px);color:var(--color-text-secondary)"></fvdr-icon>
+                  </span>
+                </div>
+                <!-- Floating panel -->
+                <div class="mock-dropdown__panel">
+                  <div class="mock-tz__search">
+                    <fvdr-icon name="search" style="font-size:var(--font-size-sm, 13px);color:var(--color-text-placeholder)"></fvdr-icon>
+                    <span>Search by city or timezone…</span>
+                  </div>
+                  <div class="mock-tz__detect">
+                    <span class="mock-tz__city">Kyiv</span>
+                    <span class="mock-tz__badge">Auto-detected</span>
+                    <span class="mock-tz__meta">UTC+2 (14:32)</span>
+                  </div>
+                  <div class="mock-tz__group">EUROPE</div>
+                  <div class="mock-dropdown__option">
+                    London <span class="mock-tz__meta">UTC±0 (12:32)</span>
+                  </div>
+                  <div class="mock-dropdown__option mock-dropdown__option--selected">
+                    Kyiv <span class="mock-tz__meta">UTC+2 (14:32)</span>
+                  </div>
+                </div>
+              </div>
+              <!-- Labels -->
+              <div class="anatomy-label anatomy-label--left"  style="left:-72px;top:10px">trigger</div>
+              <div class="anatomy-label anatomy-label--right" style="right:-64px;top:10px">chevron</div>
+              <div class="anatomy-label anatomy-label--left"  style="left:-72px;top:64px">search</div>
+              <div class="anatomy-label anatomy-label--left"  style="left:-96px;top:104px">auto-detect row</div>
+              <div class="anatomy-label anatomy-label--right" style="right:-64px;top:138px">group</div>
+              <div class="anatomy-label anatomy-label--right" style="right:-72px;top:204px">selected</div>
+              <!-- Dimensions -->
+              <div class="dim-v" style="left:-22px;top:0;height:40px">40px</div>
+            </div>
+          </ng-container>
+
+          <!-- PLAN ICON -->
+          <ng-container *ngSwitchCase="'plan-icon'">
+            <div class="anatomy-wrap anatomy-wrap--plan">
+              <fvdr-plan-icon name="vault" size="l"></fvdr-plan-icon>
+              <!-- Labels -->
+              <div class="anatomy-label anatomy-label--top"    style="top:-42px;left:50%;transform:translateX(-50%)">rounded square</div>
+              <div class="anatomy-label anatomy-label--bottom" style="bottom:-42px;left:50%;transform:translateX(-50%)">glyph</div>
+              <!-- Dimensions -->
+              <div class="dim-v" style="left:-30px;top:0;height:40px">40px</div>
+              <div class="dim-h" style="bottom:-22px;left:0;width:40px">40px</div>
+            </div>
+          </ng-container>
+
           <ng-container *ngSwitchDefault>
             <div class="anatomy-preview-empty">Live anatomy preview coming soon for this component.</div>
           </ng-container>
@@ -574,6 +634,61 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
           <div class="examples-group">
             <h3 class="examples-group__title">Multi-select with chips</h3>
             <fvdr-dropdown label="Tags" [options]="demoOptions" [multi]="true" placeholder="Select multiple…" helperText="You can select several options"></fvdr-dropdown>
+          </div>
+        </ng-container>
+
+        <!-- TIMEZONE DROPDOWN -->
+        <ng-container *ngSwitchCase="'timezone-dropdown'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">Timezone selector</h3>
+            <fvdr-dropdown
+              label="Time zone"
+              [options]="demoTimezoneOptions"
+              [(ngModel)]="selectedTimezone"
+              [searchable]="true"
+              searchPlaceholder="Search by city or timezone…"
+              detectAutoLabel="Auto-detected"
+              detectAutoSublabel="Kyiv"
+              detectAutoOffset="UTC+2"
+              detectAutoValue="Europe/Kyiv"
+              [showCurrentTime]="true"
+              [panelMaxHeight]="300"
+              helperText="Determines when email notifications about documents and report subscriptions are sent out, and time displayed in data room"
+              (autoDetected)="onTimezoneAutoDetected()"
+            ></fvdr-dropdown>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Alias search</h3>
+            <fvdr-dropdown
+              label="Search aliases (try “Kiev”, “Pacific”, “CET”)"
+              [options]="demoTimezoneOptions"
+              [searchable]="true"
+              searchPlaceholder="Type a city, region or alias…"
+              [showCurrentTime]="true"
+              [panelMaxHeight]="300"
+              placeholder="Select a timezone…"
+            ></fvdr-dropdown>
+          </div>
+        </ng-container>
+
+        <!-- PLAN ICON -->
+        <ng-container *ngSwitchCase="'plan-icon'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">Sizes</h3>
+            <div class="examples-row" style="align-items:flex-end;gap:24px">
+              <div class="plan-demo-item"><fvdr-plan-icon name="vault" size="s"></fvdr-plan-icon><span>Small · 24</span></div>
+              <div class="plan-demo-item"><fvdr-plan-icon name="vault" size="m"></fvdr-plan-icon><span>Medium · 32</span></div>
+              <div class="plan-demo-item"><fvdr-plan-icon name="vault" size="l"></fvdr-plan-icon><span>Large · 40</span></div>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">All plans</h3>
+            <div class="plan-grid">
+              <div class="plan-demo-item" *ngFor="let p of planNames">
+                <fvdr-plan-icon [name]="p" size="m"></fvdr-plan-icon>
+                <span>{{ planLabel(p) }}</span>
+              </div>
+            </div>
           </div>
         </ng-container>
 
@@ -2441,6 +2556,58 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
     }
     .mock-dropdown__option--selected { background: var(--color-primary-50, #ebf8ef); color: #2c9c74; font-weight: 500; }
 
+    /* ── TIMEZONE DROPDOWN anatomy ── */
+    .anatomy-wrap--tz { width: 300px; }
+    .mock-tz__trigger { gap: 8px; }
+    .mock-tz__left  { display: flex; align-items: center; gap: 8px; min-width: 0; }
+    .mock-tz__right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+    .mock-tz__city { font-size: var(--font-size-sm, 13px); color: var(--color-text-primary, #1f2129); }
+    .mock-tz__badge {
+      font-size: var(--font-size-2xs, 11px); line-height: 1; white-space: nowrap;
+      padding: 2px 6px; border-radius: var(--radius-sm, 4px);
+      background: var(--color-primary-50, #ebf8ef); color: var(--color-primary-500, #2c9c74);
+      border: 1px solid var(--color-primary-600, #1c8269);
+    }
+    .mock-tz__meta { font-size: var(--font-size-2xs, 11px); color: var(--color-text-secondary, #5f616a); white-space: nowrap; }
+    .mock-tz__search {
+      display: flex; align-items: center; gap: 6px;
+      margin: 8px; height: 32px; padding: 0 10px;
+      border: 1px solid var(--color-divider, #dee0eb); border-radius: var(--radius-sm, 4px);
+      font-size: var(--font-size-2xs, 11px); color: var(--color-text-placeholder, #9c9ea8);
+    }
+    .mock-tz__detect {
+      display: flex; align-items: center; gap: 8px;
+      height: 36px; padding: 0 12px;
+      background: var(--color-primary-50, #ebf8ef);
+    }
+    .mock-tz__detect .mock-tz__meta { margin-left: auto; }
+    .mock-tz__group {
+      padding: 6px 12px 2px;
+      font-size: var(--font-size-3xs, 10px); font-weight: 600; letter-spacing: 0.5px;
+      text-transform: uppercase; color: var(--color-text-placeholder, #9c9ea8);
+    }
+    .mock-dropdown__option .mock-tz__meta { margin-left: auto; }
+
+    /* ── PLAN ICON ── */
+    .anatomy-wrap--plan {
+      display: inline-flex; align-items: center; justify-content: center;
+      padding: 12px; background: var(--color-bg-page, #fff); border-radius: var(--radius-md, 8px);
+    }
+    .plan-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: var(--space-4, 16px);
+      width: 100%;
+    }
+    .plan-demo-item {
+      display: flex; flex-direction: column; align-items: center; gap: var(--space-2, 8px);
+      text-align: center;
+    }
+    .plan-demo-item span {
+      font-size: var(--font-size-2xs, 11px); color: var(--color-text-secondary, #5f616a);
+      white-space: nowrap;
+    }
+
     /* ── TOGGLE anatomy ── */
     .anatomy-wrap--toggle { width: 160px; }
     .mock-toggle-group { display: flex; flex-direction: column; gap: 16px; }
@@ -3181,6 +3348,33 @@ export class DsComponentPageComponent implements OnInit, OnDestroy {
     { value: 'guest',  label: 'Guest',     group: 'Collaborators' },
     { value: 'none',   label: 'No access', group: 'Other' },
   ];
+
+  // ── Timezone dropdown demo data ──
+  demoTimezoneOptions = [
+    { value: 'America/New_York',    label: 'New York',     sublabel: 'UTC−5',    group: 'Americas', aliases: ['Eastern', 'Toronto', 'Boston'] },
+    { value: 'America/Chicago',     label: 'Chicago',      sublabel: 'UTC−6',    group: 'Americas', aliases: ['Central', 'Dallas', 'Houston'] },
+    { value: 'America/Los_Angeles', label: 'Los Angeles',  sublabel: 'UTC−8',    group: 'Americas', aliases: ['Pacific', 'San Francisco', 'Seattle'] },
+    { value: 'America/Sao_Paulo',   label: 'São Paulo',    sublabel: 'UTC−3',    group: 'Americas', aliases: ['Brazil', 'Rio'] },
+    { value: 'Europe/London',       label: 'London',       sublabel: 'UTC±0',    group: 'Europe',   aliases: ['UK', 'Dublin', 'Lisbon'] },
+    { value: 'Europe/Paris',        label: 'Paris',        sublabel: 'UTC+1',    group: 'Europe',   aliases: ['CET', 'Berlin', 'Rome', 'Madrid'] },
+    { value: 'Europe/Kyiv',         label: 'Kyiv',         sublabel: 'UTC+2',    group: 'Europe',   aliases: ['Ukraine', 'Kiev', 'EET'], badge: 'Auto-detected' },
+    { value: 'Europe/Moscow',       label: 'Moscow',       sublabel: 'UTC+3',    group: 'Europe',   aliases: ['Russia', 'Istanbul'] },
+    { value: 'Asia/Dubai',          label: 'Dubai',        sublabel: 'UTC+4',    group: 'Asia',     aliases: ['UAE', 'Abu Dhabi'] },
+    { value: 'Asia/Kolkata',        label: 'Kolkata',      sublabel: 'UTC+5:30', group: 'Asia',     aliases: ['India', 'Mumbai', 'IST'] },
+    { value: 'Asia/Singapore',      label: 'Singapore',    sublabel: 'UTC+8',    group: 'Asia',     aliases: ['SGT', 'Beijing', 'Shanghai', 'Hong Kong'] },
+    { value: 'Asia/Tokyo',          label: 'Tokyo',        sublabel: 'UTC+9',    group: 'Asia',     aliases: ['Japan', 'Seoul', 'Osaka'] },
+    { value: 'Australia/Sydney',    label: 'Sydney',       sublabel: 'UTC+10',   group: 'Asia',     aliases: ['Australia', 'Melbourne'] },
+    { value: 'Africa/Lagos',        label: 'Lagos',        sublabel: 'UTC+1',    group: 'Africa',   aliases: ['Nigeria', 'West Africa'] },
+    { value: 'Africa/Cairo',        label: 'Cairo',        sublabel: 'UTC+2',    group: 'Africa',   aliases: ['Egypt'] },
+  ];
+  selectedTimezone = '';
+  onTimezoneAutoDetected() { this.selectedTimezone = 'Europe/Kyiv'; }
+
+  // ── Plan icon demo data ──
+  planNames: FvdrPlanName[] = FVDR_PLAN_NAMES;
+  planLabel(name: string): string {
+    return name.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+  }
 
   // ── Table demo data ──
   demoTableCols = [
