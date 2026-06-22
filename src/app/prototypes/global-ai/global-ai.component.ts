@@ -10,6 +10,7 @@ import {
   SegmentItem,
   TabItem,
   DropdownOption,
+  FvdrIconName,
 } from '../../shared/ds';
 import { TrackerService } from '../../services/tracker.service';
 
@@ -26,12 +27,25 @@ interface PromptDef {
 
 interface ReportClaim {
   text: string;
-  source: string;
+  source?: string;
 }
 
 interface ReportSection {
   heading: string;
   claims: ReportClaim[];
+}
+
+interface AgentDef {
+  id: string;
+  title: string;
+  desc: string;
+  icon: FvdrIconName;
+  soon?: boolean;
+}
+
+interface Suggestion {
+  label: string;
+  body: string;
 }
 
 @Component({
@@ -78,6 +92,18 @@ interface ReportSection {
           <span class="ga-hero__mark"><fvdr-icon name="api"></fvdr-icon></span>
           <h1 class="ga-hero__title">What can I help you with?</h1>
           <p class="ga-hero__sub">Ask anything about the documents in <b>Project Apollo</b>, or start from a curated due-diligence prompt.</p>
+
+          <div class="ga-suggest">
+            <fvdr-chip
+              *ngFor="let s of suggestions"
+              [label]="s.label"
+              variant="grey"
+              size="s"
+              [clickable]="true"
+              data-track="suggested-prompt"
+              (clicked)="useSuggestion(s)"
+            ></fvdr-chip>
+          </div>
         </div>
 
         <!-- Composer -->
@@ -140,6 +166,50 @@ interface ReportSection {
           <p class="ga-disclaimer">Assistant uses AI and may display inaccurate info — always verify against the source documents.</p>
         </div>
 
+        <!-- Inline answer -->
+        <div class="ga-answer" *ngIf="asking || answered">
+          <div class="ga-answer__head">
+            <span class="ga-agent__icon"><fvdr-icon name="api"></fvdr-icon></span>
+            <div class="ga-answer__meta">
+              <span class="ga-answer__model">{{ modelLabel() }}</span>
+              <span class="ga-answer__scope">· Room documents · permission-scoped</span>
+            </div>
+          </div>
+
+          <div class="ga-answer__loading" *ngIf="asking">
+            <fvdr-icon name="spinner" class="ga-spin"></fvdr-icon>
+            <span>Reading the documents you have access to…</span>
+          </div>
+
+          <ng-container *ngIf="answered && !asking">
+            <div class="ga-claim" *ngFor="let c of answerClaims">
+              <p class="ga-claim__text">{{ c.text }}</p>
+              <button
+                *ngIf="c.source"
+                class="ga-cite"
+                data-track="source-citation"
+                [attr.title]="'Open ' + c.source"
+                (click)="openSource(c.source)"
+              >
+                <fvdr-icon name="link"></fvdr-icon>
+                <span>{{ c.source }}</span>
+              </button>
+            </div>
+
+            <div class="ga-answer__foot">
+              <span class="ga-answer__note"><fvdr-icon name="lock-close"></fvdr-icon> Only documents within your access were used.</span>
+              <fvdr-btn
+                label="Open in Deep Research"
+                variant="ghost"
+                size="s"
+                iconName="search"
+                dataTrack="answer-deep-research"
+                (clicked)="openDeepResearch()"
+              ></fvdr-btn>
+            </div>
+          </ng-container>
+        </div>
+
         <!-- Agents gallery -->
         <div class="ga-section">
           <div class="ga-section__head">
@@ -149,20 +219,22 @@ interface ReportSection {
 
           <div class="ga-grid ga-grid--agents">
             <fvdr-card
-              [hoverable]="true"
-              data-track="agent-deep-research"
-              (click)="openDeepResearch()"
+              *ngFor="let a of agents"
+              [hoverable]="!a.soon"
+              [attr.data-track]="'agent-' + a.id"
+              (click)="onAgentClick(a)"
             >
-              <div class="ga-agent">
-                <span class="ga-agent__icon"><fvdr-icon name="search"></fvdr-icon></span>
+              <div class="ga-agent" [class.ga-agent--soon]="a.soon">
+                <span class="ga-agent__icon"><fvdr-icon [name]="a.icon"></fvdr-icon></span>
                 <div class="ga-agent__body">
                   <div class="ga-agent__head">
-                    <h3 class="ga-agent__title">Deep Research Agent</h3>
-                    <fvdr-badge label="By Ideals" variant="primary"></fvdr-badge>
+                    <h3 class="ga-agent__title">{{ a.title }}</h3>
+                    <fvdr-badge *ngIf="!a.soon" label="By Ideals" variant="primary"></fvdr-badge>
+                    <fvdr-badge *ngIf="a.soon" label="Soon" variant="neutral"></fvdr-badge>
                   </div>
-                  <p class="ga-agent__desc">Runs a multi-step investigation across the room and returns a structured report with a citation on every claim.</p>
+                  <p class="ga-agent__desc">{{ a.desc }}</p>
                 </div>
-                <fvdr-icon name="chevron-right" class="ga-agent__go"></fvdr-icon>
+                <fvdr-icon *ngIf="!a.soon" name="chevron-right" class="ga-agent__go"></fvdr-icon>
               </div>
             </fvdr-card>
 
@@ -370,6 +442,28 @@ interface ReportSection {
       margin: 0; line-height: 1.4;
     }
 
+    /* ── Starter suggestions ── */
+    .ga-suggest { display: flex; flex-wrap: wrap; gap: var(--space-2); justify-content: center; margin-top: var(--space-4); }
+
+    /* ── Inline answer ── */
+    .ga-answer {
+      border: 1px solid var(--color-divider); border-radius: var(--radius-lg);
+      background: var(--color-stone-100); padding: var(--space-4);
+      display: flex; flex-direction: column; gap: var(--space-3);
+    }
+    .ga-answer__head { display: flex; align-items: center; gap: var(--space-2); }
+    .ga-answer__meta { display: flex; align-items: baseline; gap: var(--space-1); flex-wrap: wrap; }
+    .ga-answer__model { font-size: var(--font-size-sm, 13px); font-weight: var(--font-weight-semi, 600); color: var(--color-text-primary); }
+    .ga-answer__scope { font-size: var(--font-size-xs, 12px); color: var(--color-text-secondary); }
+    .ga-answer__loading { display: flex; align-items: center; gap: var(--space-2); color: var(--color-text-secondary); font-size: var(--font-size-sm, 13px); }
+    .ga-spin { animation: ga-spin 0.9s linear infinite; color: var(--color-primary-500); }
+    @keyframes ga-spin { to { transform: rotate(360deg); } }
+    .ga-answer__foot {
+      display: flex; align-items: center; justify-content: space-between; gap: var(--space-3);
+      flex-wrap: wrap; border-top: 1px solid var(--color-divider); padding-top: var(--space-3);
+    }
+    .ga-answer__note { display: inline-flex; align-items: center; gap: var(--space-1); font-size: var(--font-size-xs, 12px); color: var(--color-text-secondary); }
+
     /* ── Sections ── */
     .ga-section { display: flex; flex-direction: column; gap: var(--space-4); padding-top: var(--space-2); }
     .ga-section__head { display: flex; align-items: baseline; gap: var(--space-3); border-bottom: 1px solid var(--color-divider); padding-bottom: var(--space-2); }
@@ -389,6 +483,8 @@ interface ReportSection {
       background: var(--color-primary-50); color: var(--color-primary-500); font-size: 18px;
     }
     .ga-agent__icon--ghost { background: var(--color-stone-200); color: var(--color-text-secondary); }
+    .ga-agent--soon { opacity: 0.7; }
+    .ga-agent--soon .ga-agent__icon { background: var(--color-stone-200); color: var(--color-text-secondary); }
     .ga-agent__body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--space-1); }
     .ga-agent__head { display: flex; align-items: center; gap: var(--space-2); }
     .ga-agent__title { font-size: var(--font-size-md, 15px); font-weight: var(--font-weight-semi, 600); margin: 0; color: var(--color-text-primary); }
@@ -479,11 +575,28 @@ export class GlobalAiComponent implements OnInit, OnDestroy {
   taskFilter = '';
   docTypeFilter = '';
 
+  // ── Inline answer state ──
+  asking = false;
+  answered = false;
+  answerClaims: ReportClaim[] = [];
+
   // ── Deep research state ──
   researching = false;
   reportVisible = false;
 
   // ── Data ──
+  suggestions: Suggestion[] = [
+    { label: 'Summarize the financials', body: 'Summarize the target\'s financial position from the latest statements in this room.' },
+    { label: 'Upcoming contract payments', body: 'List all contracts with payments due within the next 90 days, with amounts and dates.' },
+    { label: 'Key risks to flag', body: 'What are the key risks I should flag from the contracts and financials in this room?' },
+  ];
+
+  agents: AgentDef[] = [
+    { id: 'deep-research', title: 'Deep Research Agent', desc: 'Runs a multi-step investigation across the room and returns a structured report with a citation on every claim.', icon: 'search' },
+    { id: 'summarize', title: 'Document Summarizer', desc: 'Produces a one-page summary of any document, with page references back to the source.', icon: 'finished', soon: true },
+    { id: 'risk', title: 'Risk Flagger', desc: 'Scans agreements for unusual clauses, missing signatures, and high-risk terms.', icon: 'attention', soon: true },
+  ];
+
   breadcrumbs: BreadcrumbItem[] = [
     { id: 'room', label: 'Project Apollo' },
     { id: 'ai', label: 'AI Assistant' },
@@ -596,16 +709,36 @@ export class GlobalAiComponent implements OnInit, OnDestroy {
   }
 
   // ── Composer ──
+  modelLabel(): string {
+    return this.modelOptions.find(m => m.value === this.model)?.label ?? 'Assistant';
+  }
+
   onSourceChange(id: string): void {
     if (id === 'web') {
       this.toast.show({ variant: 'warning', title: 'Web sources enabled', message: 'Room context may leave the secure perimeter.', duration: 2600 });
     }
   }
 
+  useSuggestion(s: Suggestion): void {
+    this.query = s.body;
+    this.onAsk();
+  }
+
   onAsk(): void {
-    if (!this.query.trim()) return;
+    if (!this.query.trim() || this.asking) return;
+    this.asking = true;
+    this.answered = false;
     this.tracker.trackTask('global-ai', 'task_complete', 'ask');
-    this.toast.show({ variant: 'success', message: 'Searching the room documents you have access to…', duration: 2400 });
+    setTimeout(() => {
+      this.asking = false;
+      this.answered = true;
+      // Hard-coded, permission-scoped demo answer — every claim is sourced.
+      this.answerClaims = [
+        { text: 'Based on the latest statements, the target reported €42.3M in total assets and €18.7M in total liabilities as of Q4 2025.', source: 'Balance Sheet 2025.xlsx · p.2' },
+        { text: 'Three supplier contracts carry payments totaling €1.2M due within the next 90 days.', source: 'Supplier Master Agreement.pdf · p.8' },
+        { text: 'Net cash position improved 14% year over year.', source: 'Cash Flow Statement.pdf · p.1' },
+      ];
+    }, 1000);
   }
 
   // ── Catalog ──
@@ -640,6 +773,14 @@ export class GlobalAiComponent implements OnInit, OnDestroy {
   }
 
   // ── Agents ──
+  onAgentClick(a: AgentDef): void {
+    if (a.soon) {
+      this.toast.show({ variant: 'info', title: a.title, message: 'This agent is coming soon.', duration: 2000 });
+      return;
+    }
+    if (a.id === 'deep-research') this.openDeepResearch();
+  }
+
   openDeepResearch(): void {
     this.view = 'deep-research';
     this.reportVisible = false;
@@ -664,7 +805,8 @@ export class GlobalAiComponent implements OnInit, OnDestroy {
     }, 1100);
   }
 
-  openSource(source: string): void {
+  openSource(source?: string): void {
+    if (!source) return;
     this.toast.show({ variant: 'info', title: 'Opening source', message: source, duration: 2200 });
   }
 }

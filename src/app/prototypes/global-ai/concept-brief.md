@@ -32,8 +32,14 @@
 ## Approach
 - An **AI Hub** layered over the standard VDR room shell (`fvdr-sidebar-nav` +
   `fvdr-header`), reached via an `AI` header action.
-- Hub blocks: permissions banner → hero → composer (model selector, source segment,
-  web-source warning, prompt catalog launcher) → disclaimer → agents gallery.
+- Hub blocks: permissions banner → hero with **starter prompt chips** → composer
+  (model selector, source segment, web-source warning, prompt catalog launcher) →
+  **inline sourced answer** → disclaimer → agents gallery.
+- **Inline answer**: asking returns a permission-scoped answer where every claim
+  carries a clickable source citation, plus an "Open in Deep Research" path — the
+  citation provenance is present from the first interaction, not only inside agents.
+- **Agents gallery** ships Deep Research live, with Document Summarizer & Risk
+  Flagger shown as roadmap ("Soon") and a "Create your own agent" entry.
 - **Prompt catalog** as an `fvdr-modal` (l/xl) with `fvdr-tabs`
   (All / By Ideals / Custom / Favorites), `fvdr-search`, and a grid of `fvdr-card`
   DD prompts; inserting a prompt fills the composer.
