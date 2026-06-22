@@ -7,6 +7,8 @@ import {
   SidebarNavItem,
   BreadcrumbItem,
   HeaderAction,
+  TabsComponent,
+  TabItem,
 } from '../../shared/ds';
 import { TrackerService } from '../../services/tracker.service';
 
@@ -50,16 +52,12 @@ type AssetKind = 'logo' | 'background';
     <div class="bp-content">
 
       <!-- Settings sub-tabs (Branding active; others out of prototype scope) -->
-      <div class="settings-tabs" role="tablist">
-        <button
-          *ngFor="let t of settingsTabs"
-          class="stab"
-          role="tab"
-          [class.stab--active]="t.id === activeTab"
-          [attr.aria-selected]="t.id === activeTab"
-          (click)="onTabClick(t.id)"
-        >{{ t.label }}</button>
-      </div>
+      <fvdr-tabs
+        class="settings-tabs"
+        [tabs]="settingsTabs"
+        [activeId]="activeTab"
+        (tabChange)="onTabClick($event)"
+      ></fvdr-tabs>
 
       <!-- Page heading -->
       <div class="bp-head">
@@ -316,23 +314,8 @@ type AssetKind = 'logo' | 'background';
       .bp-preview-col { position: static; }
     }
 
-    /* ── Settings sub-tabs ── */
-    .settings-tabs {
-      display: flex; gap: 4px; border-bottom: 1px solid var(--color-divider);
-      margin-bottom: 24px;
-    }
-    .stab {
-      appearance: none; background: none; border: none; cursor: pointer;
-      font-family: var(--font-family); font-size: var(--font-size-base, 14px);
-      color: var(--color-text-secondary); padding: 10px 14px;
-      border-bottom: 2px solid transparent; margin-bottom: -1px; border-radius: 0;
-      transition: color .15s ease;
-    }
-    .stab:hover { color: var(--color-text-primary); }
-    .stab--active {
-      color: var(--color-primary-600); font-weight: 600;
-      border-bottom-color: var(--color-primary-500);
-    }
+    /* ── Settings sub-tabs (DS fvdr-tabs) ── */
+    .settings-tabs { display: block; margin-bottom: var(--space-6); }
 
     /* ── Page head ── */
     .bp-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 16px; }
@@ -533,6 +516,7 @@ export class BrandingPageComponent implements OnInit, OnDestroy {
 
   @ViewChild('logoInput') logoInput!: ElementRef<HTMLInputElement>;
   @ViewChild('bgInput') bgInput!: ElementRef<HTMLInputElement>;
+  @ViewChild(TabsComponent) private tabsRef?: TabsComponent;
 
   sidebarCollapsed = false;
   activeTab = 'branding';
@@ -575,7 +559,7 @@ export class BrandingPageComponent implements OnInit, OnDestroy {
     { name: 'Graphite', hex: '#1F2129' },
   ];
 
-  settingsTabs = [
+  settingsTabs: TabItem[] = [
     { id: 'general',   label: 'General' },
     { id: 'documents', label: 'Documents' },
     { id: 'security',  label: 'Security' },
@@ -649,6 +633,8 @@ export class BrandingPageComponent implements OnInit, OnDestroy {
     if (id === 'branding') return;
     const label = this.settingsTabs.find(t => t.id === id)?.label ?? id;
     this.toast.show({ variant: 'info', message: `Only “Branding” is implemented in this prototype.`, title: label, duration: 2400 });
+    // Keep Branding visually active — fvdr-tabs self-mutates its activeId on click, so reset it.
+    if (this.tabsRef) this.tabsRef.activeId = 'branding';
   }
 
   // ── File handling ───────────────────────────────────────────────
