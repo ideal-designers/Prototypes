@@ -111,5 +111,12 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
     status: 'live',
     description: 'PDF viewer with redaction mode — Search & Redact, PII detection, manual marks, apply',
   },
+    {
+    slug: 'branding-page',
+    title: 'Branding page',
+    figma: '',
+    status: 'wip',
+    description: 'Project branding settings with UX-audit improvements: full-tile upload, save-state toast, undo on delete, login preview',
+  },
   // REGISTRY_PLACEHOLDER
 ];

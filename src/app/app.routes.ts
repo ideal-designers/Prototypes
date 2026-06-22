@@ -130,6 +130,12 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./prototypes/q-a-drag-and-drop/q-a-drag-and-drop.component').then(m => m.QaDragAndDropComponent),
   },
+  {
+    path: 'branding-page',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./prototypes/branding-page/branding-page.component').then(m => m.BrandingPageComponent),
+  },
   // PROTO_ROUTES_PLACEHOLDER
   {
     path: '**',
