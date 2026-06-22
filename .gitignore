@@ -33,5 +33,7 @@ src/environments/environment.prod.ts
 
 # Claude Code local config (may contain API keys)
 .claude/*
-# …but share team-wide subagent prompts with the design team
+# …but share team-wide subagent prompts, slash commands, and skills with the design team
 !.claude/agents/
+!.claude/commands/
+!.claude/skills/
