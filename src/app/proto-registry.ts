@@ -118,5 +118,12 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
     status: 'wip',
     description: 'Project branding settings with UX-audit improvements: full-tile upload, save-state toast, undo on delete, login preview',
   },
+    {
+    slug: 'global-ai',
+    title: 'Global AI in VDR',
+    figma: '',
+    status: 'wip',
+    description: 'Global AI assistant scoped to the data room, permission-aware',
+  },
   // REGISTRY_PLACEHOLDER
 ];

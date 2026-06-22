@@ -136,6 +136,11 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./prototypes/branding-page/branding-page.component').then(m => m.BrandingPageComponent),
   },
+    {
+    path: 'global-ai',
+    loadComponent: () =>
+      import('./prototypes/global-ai/global-ai.component').then(m => m.GlobalAiComponent),
+  },
   // PROTO_ROUTES_PLACEHOLDER
   {
     path: '**',
