@@ -20,8 +20,8 @@
 
 ## Design goals
 1. **One global entry point** to AI, reachable from any room screen (header action).
-2. **Explicit, safe source separation** — room documents ON by default, web sources
-   OFF by default with a confidentiality warning.
+2. **Scoped, in-perimeter sources** — the assistant works only over room documents;
+   the user can narrow scope to specific files or folders. No external web by design.
 3. **Due-diligence prompts out of the box** — a curated, searchable catalog.
 4. **Visible provenance** — every answer/claim links back to its source document &
    page in the room (our differentiator vs Egnyte).
@@ -33,8 +33,11 @@
 - An **AI Hub** layered over the standard VDR room shell (`fvdr-sidebar-nav` +
   `fvdr-header`), reached via an `AI` header action.
 - Hub blocks: permissions banner → hero with **starter prompt chips** → composer
-  (model selector, source segment, web-source warning, prompt catalog launcher) →
+  (model selector, **file/folder scope picker**, prompt catalog launcher) →
   **inline sourced answer** → disclaimer → agents gallery.
+- **Scope picker** (`fvdr-modal` + `fvdr-checkbox` tree): defaults to all room
+  documents; the user can restrict the assistant to chosen folders or individual
+  files. The composer shows the active scope; no external/web source exists.
 - **Inline answer**: asking returns a permission-scoped answer where every claim
   carries a clickable source citation, plus an "Open in Deep Research" path — the
   citation provenance is present from the first interaction, not only inside agents.
@@ -46,8 +49,8 @@
 - **Deep Research** agent opens a chat-style state with the same composer and a
   hard-coded **structured report whose every claim carries a clickable citation**
   to a room document/page.
-- **Security-first defaults** throughout: web OFF, permissions banner always present,
-  copy that reinforces "in-perimeter, access-inherited".
+- **Security-first defaults** throughout: no external/web sources, permissions banner
+  always present, copy that reinforces "in-perimeter, access-inherited".
 
 ## Out of scope (assumptions to confirm with product)
 - Target product is **Ideals VDR** (not Board).

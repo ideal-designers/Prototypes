@@ -7,10 +7,10 @@ import {
   SidebarNavItem,
   BreadcrumbItem,
   HeaderAction,
-  SegmentItem,
   TabItem,
   DropdownOption,
   FvdrIconName,
+  FvdrFileType,
 } from '../../shared/ds';
 import { TrackerService } from '../../services/tracker.service';
 
@@ -46,6 +46,18 @@ interface AgentDef {
 interface Suggestion {
   label: string;
   body: string;
+}
+
+interface ScopeFile {
+  id: string;
+  label: string;
+  fileType: FvdrFileType;
+}
+
+interface ScopeFolder {
+  id: string;
+  label: string;
+  files: ScopeFile[];
 }
 
 @Component({
@@ -125,14 +137,14 @@ interface Suggestion {
                 ></fvdr-dropdown>
               </div>
 
-              <div class="ga-control" data-track="sources-web-toggle">
-                <fvdr-segment
-                  [items]="sourceItems"
-                  [(activeId)]="sourceScope"
-                  size="sm"
-                  (activeIdChange)="onSourceChange($event)"
-                ></fvdr-segment>
-              </div>
+              <fvdr-btn
+                [label]="scopeLabel()"
+                variant="secondary"
+                size="s"
+                iconName="folder"
+                dataTrack="sources-scope"
+                (clicked)="openScopePicker()"
+              ></fvdr-btn>
 
               <fvdr-btn
                 label="Browse prompts"
@@ -155,14 +167,6 @@ interface Suggestion {
             ></fvdr-btn>
           </div>
 
-          <!-- Web-source confidentiality warning -->
-          <div class="ga-web-warn" *ngIf="sourceScope === 'web'">
-            <fvdr-inline-message
-              variant="warning"
-              text="Web sources may send room context outside the secure perimeter. Use only for non-confidential questions."
-            ></fvdr-inline-message>
-          </div>
-
           <p class="ga-disclaimer">Assistant uses AI and may display inaccurate info — always verify against the source documents.</p>
         </div>
 
@@ -172,7 +176,7 @@ interface Suggestion {
             <span class="ga-agent__icon"><fvdr-icon name="api"></fvdr-icon></span>
             <div class="ga-answer__meta">
               <span class="ga-answer__model">{{ modelLabel() }}</span>
-              <span class="ga-answer__scope">· Room documents · permission-scoped</span>
+              <span class="ga-answer__scope">· {{ scopeLabel() }} · permission-scoped</span>
             </div>
           </div>
 
@@ -288,9 +292,14 @@ interface Suggestion {
               <div class="ga-control" data-track="model-select">
                 <fvdr-dropdown [options]="modelOptions" [(ngModel)]="model" size="s" iconLeft="api"></fvdr-dropdown>
               </div>
-              <div class="ga-control" data-track="sources-web-toggle">
-                <fvdr-segment [items]="sourceItems" [(activeId)]="sourceScope" size="sm" (activeIdChange)="onSourceChange($event)"></fvdr-segment>
-              </div>
+              <fvdr-btn
+                [label]="scopeLabel()"
+                variant="secondary"
+                size="s"
+                iconName="folder"
+                dataTrack="sources-scope"
+                (clicked)="openScopePicker()"
+              ></fvdr-btn>
             </div>
             <fvdr-btn
               label="Run Deep Research"
@@ -301,9 +310,6 @@ interface Suggestion {
               [loading]="researching"
               (clicked)="runResearch()"
             ></fvdr-btn>
-          </div>
-          <div class="ga-web-warn" *ngIf="sourceScope === 'web'">
-            <fvdr-inline-message variant="warning" text="Web sources may send room context outside the secure perimeter. Use only for non-confidential questions."></fvdr-inline-message>
           </div>
         </div>
 
@@ -342,6 +348,43 @@ interface Suggestion {
 
     </div>
   </div>
+
+  <!-- ── Source scope picker modal ─────────────────────────────── -->
+  <fvdr-modal
+    [visible]="scopePickerOpen"
+    title="Choose documents"
+    size="m"
+    confirmLabel="Use selection"
+    cancelLabel="Cancel"
+    (confirmed)="applyScope()"
+    (cancelled)="scopePickerOpen = false"
+    (closed)="scopePickerOpen = false"
+  >
+    <div class="ga-scope">
+      <p class="ga-scope__hint">Limit the assistant to specific files or folders. It still only reads what you have permission to see.</p>
+
+      <div class="ga-scope__row ga-scope__row--all">
+        <fvdr-checkbox [checked]="draftAll" (checkedChange)="toggleAll($event)"></fvdr-checkbox>
+        <fvdr-icon name="folder" class="ga-scope__icon"></fvdr-icon>
+        <span class="ga-scope__label">All documents in this room</span>
+      </div>
+
+      <div class="ga-scope__tree">
+        <ng-container *ngFor="let f of roomDocs">
+          <div class="ga-scope__row">
+            <fvdr-checkbox [checked]="isChecked(f.id)" (checkedChange)="toggleNode(f.id)"></fvdr-checkbox>
+            <fvdr-file-icon type="folder" class="ga-scope__icon"></fvdr-file-icon>
+            <span class="ga-scope__label">{{ f.label }}</span>
+          </div>
+          <div class="ga-scope__row ga-scope__row--file" *ngFor="let file of f.files">
+            <fvdr-checkbox [checked]="isChecked(file.id)" (checkedChange)="toggleNode(file.id)"></fvdr-checkbox>
+            <fvdr-file-icon [type]="file.fileType" class="ga-scope__icon"></fvdr-file-icon>
+            <span class="ga-scope__label">{{ file.label }}</span>
+          </div>
+        </ng-container>
+      </div>
+    </div>
+  </fvdr-modal>
 
   <!-- ── Prompt catalog modal ──────────────────────────────────── -->
   <fvdr-modal
@@ -546,6 +589,20 @@ interface Suggestion {
       font-size: var(--font-size-sm, 13px);
     }
 
+    /* ── Scope picker ── */
+    .ga-scope { display: flex; flex-direction: column; gap: var(--space-2); }
+    .ga-scope__hint { font-size: var(--font-size-sm, 13px); color: var(--color-text-secondary); margin: 0 0 var(--space-2); line-height: 1.45; }
+    .ga-scope__row {
+      display: flex; align-items: center; gap: var(--space-2);
+      height: 36px; padding: 0 var(--space-2); border-radius: var(--radius-sm);
+    }
+    .ga-scope__row:hover { background: var(--color-hover-bg); }
+    .ga-scope__row--all { border-bottom: 1px solid var(--color-divider); border-radius: 0; margin-bottom: var(--space-1); }
+    .ga-scope__row--file { padding-left: var(--space-8); }
+    .ga-scope__icon { color: var(--color-stone-600); font-size: 16px; }
+    .ga-scope__label { font-size: var(--font-size-sm, 14px); color: var(--color-text-primary); }
+    .ga-scope__tree { display: flex; flex-direction: column; max-height: 320px; overflow-y: auto; }
+
     /* ── Responsive ── */
     @media (max-width: 900px) {
       .ga-content { padding: var(--space-5) var(--space-4); }
@@ -566,7 +623,13 @@ export class GlobalAiComponent implements OnInit, OnDestroy {
   query = '';
   researchQuery = '';
   model = 'sonnet';
-  sourceScope = 'room';
+
+  // ── Source scope state ──
+  scopePickerOpen = false;
+  selectedAll = true;                 // applied scope
+  selectedIds = new Set<string>();    // applied scope (folder/file ids)
+  draftAll = true;                    // while picker open
+  draftIds = new Set<string>();
 
   // ── Catalog state ──
   catalogOpen = false;
@@ -623,9 +686,19 @@ export class GlobalAiComponent implements OnInit, OnDestroy {
     { value: 'gpt', label: 'GPT-5.2', icon: 'api' },
   ];
 
-  sourceItems: SegmentItem[] = [
-    { id: 'room', label: 'Room documents', icon: 'overview' },
-    { id: 'web', label: 'Web sources', icon: 'link' },
+  roomDocs: ScopeFolder[] = [
+    { id: 'financials', label: 'Financials', files: [
+      { id: 'bs', label: 'Balance Sheet 2025.xlsx', fileType: 'xls' },
+      { id: 'cf', label: 'Cash Flow Statement.pdf', fileType: 'pdf' },
+      { id: 'pl', label: 'P&L 2025.xlsx', fileType: 'xls' },
+    ]},
+    { id: 'contracts', label: 'Contracts', files: [
+      { id: 'sma', label: 'Supplier Master Agreement.pdf', fileType: 'pdf' },
+      { id: 'sow', label: 'Vendor SOW — Helix.pdf', fileType: 'pdf' },
+    ]},
+    { id: 'legal', label: 'Legal', files: [
+      { id: 'inc', label: 'Certificate of Incorporation.pdf', fileType: 'pdf' },
+    ]},
   ];
 
   catalogTabs: TabItem[] = [
@@ -713,10 +786,55 @@ export class GlobalAiComponent implements OnInit, OnDestroy {
     return this.modelOptions.find(m => m.value === this.model)?.label ?? 'Assistant';
   }
 
-  onSourceChange(id: string): void {
-    if (id === 'web') {
-      this.toast.show({ variant: 'warning', title: 'Web sources enabled', message: 'Room context may leave the secure perimeter.', duration: 2600 });
+  // ── Source scope ──
+  private scopeLabelFor(id: string): string {
+    const folder = this.roomDocs.find(f => f.id === id);
+    if (folder) return folder.label;
+    for (const f of this.roomDocs) {
+      const file = f.files.find(x => x.id === id);
+      if (file) return file.label;
     }
+    return id;
+  }
+
+  scopeLabel(): string {
+    if (this.selectedAll || this.selectedIds.size === 0) return 'All documents';
+    if (this.selectedIds.size === 1) return this.scopeLabelFor([...this.selectedIds][0]);
+    return `${this.selectedIds.size} selected`;
+  }
+
+  openScopePicker(): void {
+    this.draftAll = this.selectedAll;
+    this.draftIds = new Set(this.selectedIds);
+    this.scopePickerOpen = true;
+  }
+
+  isChecked(id: string): boolean {
+    return !this.draftAll && this.draftIds.has(id);
+  }
+
+  toggleNode(id: string): void {
+    this.draftAll = false;
+    if (this.draftIds.has(id)) this.draftIds.delete(id);
+    else this.draftIds.add(id);
+  }
+
+  toggleAll(on: boolean): void {
+    this.draftAll = on;
+    if (on) this.draftIds.clear();
+  }
+
+  applyScope(): void {
+    if (this.draftAll || this.draftIds.size === 0) {
+      this.selectedAll = true;
+      this.selectedIds.clear();
+    } else {
+      this.selectedAll = false;
+      this.selectedIds = new Set(this.draftIds);
+    }
+    this.scopePickerOpen = false;
+    this.tracker.trackTask('global-ai', 'task_complete', 'scope-set');
+    this.toast.show({ variant: 'success', message: `Scope: ${this.scopeLabel()}`, duration: 2000 });
   }
 
   useSuggestion(s: Suggestion): void {
