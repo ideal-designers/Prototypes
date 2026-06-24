@@ -60,6 +60,13 @@ interface ScopeFolder {
   files: ScopeFile[];
 }
 
+interface ScopeChip {
+  id: string;
+  label: string;
+  icon: FvdrIconName;
+  fileIds: string[];
+}
+
 @Component({
   selector: 'fvdr-global-ai',
   standalone: true,
@@ -165,6 +172,21 @@ interface ScopeFolder {
               dataTrack="ai-send"
               (clicked)="onAsk()"
             ></fvdr-btn>
+          </div>
+
+          <!-- Active scope chips -->
+          <div class="ga-scope-chips" *ngIf="scopeChips().length">
+            <span class="ga-scope-chips__label"><fvdr-icon name="folder"></fvdr-icon> Scope:</span>
+            <fvdr-chip
+              *ngFor="let chip of scopeChips()"
+              [label]="chip.label"
+              [icon]="chip.icon"
+              variant="grey"
+              size="s"
+              [removable]="true"
+              data-track="scope-chip-remove"
+              (removed)="removeChip(chip)"
+            ></fvdr-chip>
           </div>
 
           <p class="ga-disclaimer">Assistant uses AI and may display inaccurate info — always verify against the source documents.</p>
@@ -363,25 +385,35 @@ interface ScopeFolder {
     <div class="ga-scope">
       <p class="ga-scope__hint">Limit the assistant to specific files or folders. It still only reads what you have permission to see.</p>
 
-      <div class="ga-scope__row ga-scope__row--all">
+      <fvdr-search [(ngModel)]="scopeSearch" placeholder="Search files and folders…" size="s"></fvdr-search>
+
+      <div class="ga-scope__row ga-scope__row--all" *ngIf="!scopeSearch.trim()">
         <fvdr-checkbox [checked]="draftAll" (checkedChange)="toggleAll($event)"></fvdr-checkbox>
         <fvdr-icon name="folder" class="ga-scope__icon"></fvdr-icon>
         <span class="ga-scope__label">All documents in this room</span>
       </div>
 
       <div class="ga-scope__tree">
-        <ng-container *ngFor="let f of roomDocs">
+        <ng-container *ngFor="let f of filteredDocs()">
           <div class="ga-scope__row">
-            <fvdr-checkbox [checked]="isChecked(f.id)" (checkedChange)="toggleNode(f.id)"></fvdr-checkbox>
+            <fvdr-checkbox
+              [checked]="folderChecked(f)"
+              [indeterminate]="folderIndeterminate(f)"
+              (checkedChange)="toggleFolder(f)"
+            ></fvdr-checkbox>
             <fvdr-file-icon type="folder" class="ga-scope__icon"></fvdr-file-icon>
             <span class="ga-scope__label">{{ f.label }}</span>
           </div>
           <div class="ga-scope__row ga-scope__row--file" *ngFor="let file of f.files">
-            <fvdr-checkbox [checked]="isChecked(file.id)" (checkedChange)="toggleNode(file.id)"></fvdr-checkbox>
+            <fvdr-checkbox [checked]="fileChecked(file.id)" (checkedChange)="toggleFile(file.id)"></fvdr-checkbox>
             <fvdr-file-icon [type]="file.fileType" class="ga-scope__icon"></fvdr-file-icon>
             <span class="ga-scope__label">{{ file.label }}</span>
           </div>
         </ng-container>
+
+        <div class="ga-scope__empty" *ngIf="!filteredDocs().length">
+          No files or folders match “{{ scopeSearch }}”.
+        </div>
       </div>
     </div>
   </fvdr-modal>
@@ -602,6 +634,15 @@ interface ScopeFolder {
     .ga-scope__icon { color: var(--color-stone-600); font-size: 16px; }
     .ga-scope__label { font-size: var(--font-size-sm, 14px); color: var(--color-text-primary); }
     .ga-scope__tree { display: flex; flex-direction: column; max-height: 320px; overflow-y: auto; }
+    .ga-scope__empty { padding: var(--space-6) var(--space-2); text-align: center; color: var(--color-text-secondary); font-size: var(--font-size-sm, 13px); }
+
+    /* ── Active scope chips ── */
+    .ga-scope-chips { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-2); }
+    .ga-scope-chips__label {
+      display: inline-flex; align-items: center; gap: var(--space-1);
+      font-size: var(--font-size-xs, 12px); font-weight: var(--font-weight-semi, 600);
+      color: var(--color-text-secondary);
+    }
 
     /* ── Responsive ── */
     @media (max-width: 900px) {
@@ -624,12 +665,13 @@ export class GlobalAiComponent implements OnInit, OnDestroy {
   researchQuery = '';
   model = 'sonnet';
 
-  // ── Source scope state ──
+  // ── Source scope state (file-based; folder = all of its files) ──
   scopePickerOpen = false;
-  selectedAll = true;                 // applied scope
-  selectedIds = new Set<string>();    // applied scope (folder/file ids)
-  draftAll = true;                    // while picker open
-  draftIds = new Set<string>();
+  scopeSearch = '';
+  selectedAll = true;                      // applied scope
+  selectedFileIds = new Set<string>();     // applied scope (file ids)
+  draftAll = true;                         // while picker open
+  draftFileIds = new Set<string>();
 
   // ── Catalog state ──
   catalogOpen = false;
@@ -786,51 +828,94 @@ export class GlobalAiComponent implements OnInit, OnDestroy {
     return this.modelOptions.find(m => m.value === this.model)?.label ?? 'Assistant';
   }
 
-  // ── Source scope ──
-  private scopeLabelFor(id: string): string {
-    const folder = this.roomDocs.find(f => f.id === id);
-    if (folder) return folder.label;
+  // ── Source scope (file-based; a folder = the set of its files) ──
+
+  /** Compact scope chips for the composer: a fully-selected folder collapses to one chip. */
+  scopeChips(): ScopeChip[] {
+    if (this.selectedAll || this.selectedFileIds.size === 0) return [];
+    const chips: ScopeChip[] = [];
     for (const f of this.roomDocs) {
-      const file = f.files.find(x => x.id === id);
-      if (file) return file.label;
+      const selected = f.files.filter(x => this.selectedFileIds.has(x.id));
+      if (!selected.length) continue;
+      if (selected.length === f.files.length) {
+        chips.push({ id: f.id, label: f.label, icon: 'folder', fileIds: f.files.map(x => x.id) });
+      } else {
+        for (const file of selected) chips.push({ id: file.id, label: file.label, icon: 'finished', fileIds: [file.id] });
+      }
     }
-    return id;
+    return chips;
   }
 
   scopeLabel(): string {
-    if (this.selectedAll || this.selectedIds.size === 0) return 'All documents';
-    if (this.selectedIds.size === 1) return this.scopeLabelFor([...this.selectedIds][0]);
-    return `${this.selectedIds.size} selected`;
+    if (this.selectedAll || this.selectedFileIds.size === 0) return 'All documents';
+    const chips = this.scopeChips();
+    if (chips.length === 1) return chips[0].label;
+    return `${chips.length} selected`;
+  }
+
+  removeChip(chip: ScopeChip): void {
+    chip.fileIds.forEach(id => this.selectedFileIds.delete(id));
+    if (this.selectedFileIds.size === 0) this.selectedAll = true;
   }
 
   openScopePicker(): void {
+    this.scopeSearch = '';
     this.draftAll = this.selectedAll;
-    this.draftIds = new Set(this.selectedIds);
+    this.draftFileIds = new Set(this.selectedFileIds);
     this.scopePickerOpen = true;
   }
 
-  isChecked(id: string): boolean {
-    return !this.draftAll && this.draftIds.has(id);
+  /** Folders (and their files) filtered by the picker search box. */
+  filteredDocs(): ScopeFolder[] {
+    const q = this.scopeSearch.trim().toLowerCase();
+    if (!q) return this.roomDocs;
+    return this.roomDocs
+      .map(f => {
+        if (f.label.toLowerCase().includes(q)) return f;
+        const files = f.files.filter(x => x.label.toLowerCase().includes(q));
+        return files.length ? { ...f, files } : null;
+      })
+      .filter((f): f is ScopeFolder => f !== null);
   }
 
-  toggleNode(id: string): void {
+  fileChecked(id: string): boolean {
+    return !this.draftAll && this.draftFileIds.has(id);
+  }
+
+  folderChecked(f: ScopeFolder): boolean {
+    return !this.draftAll && f.files.every(x => this.draftFileIds.has(x.id));
+  }
+
+  folderIndeterminate(f: ScopeFolder): boolean {
+    if (this.draftAll) return false;
+    const n = f.files.filter(x => this.draftFileIds.has(x.id)).length;
+    return n > 0 && n < f.files.length;
+  }
+
+  toggleFile(id: string): void {
     this.draftAll = false;
-    if (this.draftIds.has(id)) this.draftIds.delete(id);
-    else this.draftIds.add(id);
+    if (this.draftFileIds.has(id)) this.draftFileIds.delete(id);
+    else this.draftFileIds.add(id);
+  }
+
+  toggleFolder(f: ScopeFolder): void {
+    this.draftAll = false;
+    const all = f.files.every(x => this.draftFileIds.has(x.id));
+    f.files.forEach(x => all ? this.draftFileIds.delete(x.id) : this.draftFileIds.add(x.id));
   }
 
   toggleAll(on: boolean): void {
     this.draftAll = on;
-    if (on) this.draftIds.clear();
+    if (on) this.draftFileIds.clear();
   }
 
   applyScope(): void {
-    if (this.draftAll || this.draftIds.size === 0) {
+    if (this.draftAll || this.draftFileIds.size === 0) {
       this.selectedAll = true;
-      this.selectedIds.clear();
+      this.selectedFileIds.clear();
     } else {
       this.selectedAll = false;
-      this.selectedIds = new Set(this.draftIds);
+      this.selectedFileIds = new Set(this.draftFileIds);
     }
     this.scopePickerOpen = false;
     this.tracker.trackTask('global-ai', 'task_complete', 'scope-set');
