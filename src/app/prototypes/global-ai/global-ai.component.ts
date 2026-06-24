@@ -474,12 +474,12 @@ interface ScopeChip {
 </div>
   `,
   styles: [`
-    :host { display: block; font-family: var(--font-family); color: var(--color-text-primary); }
+    :host { display: block; height: 100vh; font-family: var(--font-family); color: var(--color-text-primary); }
 
-    .ga-shell { display: flex; min-height: 100vh; background: var(--color-stone-0); }
-    .ga-main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+    .ga-shell { display: flex; height: 100vh; overflow: hidden; background: var(--color-stone-0); }
+    .ga-main { flex: 1; display: flex; flex-direction: column; min-width: 0; min-height: 0; }
     .ga-content {
-      flex: 1; overflow-y: auto;
+      flex: 1; min-height: 0; overflow-y: auto;
       padding: var(--space-8) var(--space-10);
       max-width: 920px; width: 100%; margin: 0 auto;
       display: flex; flex-direction: column; gap: var(--space-6);
