@@ -336,6 +336,17 @@
   --ease:           var(--primitive-ease, ease);
   --ease-in-out:    var(--primitive-ease-in-out, ease-in-out);
 
+  /* ── Breakpoints (min-width, mobile-first) ── */
+  /* NOTE: CSS var() cannot be used inside @media conditions — these are the
+     single source of truth for reference, JS reads, and container queries.
+     For @media use the literal px below, or import BREAKPOINTS from
+     src/app/shared/ds/breakpoints.ts. We do NOT use a column grid — only the
+     4px spacing grid + these viewport breakpoints. */
+  --bp-mobile:  375px;  /* ≥375  — mobile (base)            */
+  --bp-tablet:  768px;  /* ≥768  — tablet                   */
+  --bp-laptop:  1024px; /* ≥1024 — laptop / small desktop   */
+  --bp-desktop: 1440px; /* ≥1440 — desktop (large)          */
+
   /* ── Font family ── */
   --font-family: 'Open Sans', sans-serif;
 }

@@ -130,6 +130,9 @@ export { SafeHtmlPipe } from './pipes/safe-html.pipe';
 export { FvdrIconComponent } from './icons/icon.component';
 export type { FvdrIconName } from './icons/icons';
 
+export { BREAKPOINTS, MEDIA_UP } from './breakpoints';
+export type { BreakpointName } from './breakpoints';
+
 export { InputComponent } from './components/input/input.component';
 export type { InputSize, InputState } from './components/input/input.component';
 

@@ -28,6 +28,8 @@ import type { ComponentDocEntry } from './ds-registry';
       <!-- Sidebar nav -->
       <nav class="showcase__nav">
         <div class="showcase__nav-logo">DS Components</div>
+        <div class="showcase__nav-category">Foundations</div>
+        <a class="showcase__nav-link" style="cursor: pointer;" (click)="scrollTo('breakpoints')">Breakpoints</a>
         <ng-container *ngFor="let cat of catalogGroups">
           <div class="showcase__nav-category">{{ cat.label }}</div>
           <a
@@ -49,6 +51,27 @@ import type { ComponentDocEntry } from './ds-registry';
             <span class="showcase__stat"><b>6</b> categories</span>
           </div>
         </div>
+
+        <!-- ── FOUNDATIONS · BREAKPOINTS ── -->
+        <section class="section" id="breakpoints">
+          <h2 class="section__title">Breakpoints</h2>
+          <div class="section__desc">
+            Mobile-first min-width thresholds. No column grid — only the 4px spacing grid + these viewport breakpoints.
+            Spec: <code>specs/foundations/breakpoints.md</code> · Tokens: <code>--bp-*</code> · TS: <code>BREAKPOINTS</code> / <code>MEDIA_UP</code>
+          </div>
+          <div class="bp-bar">
+            <div class="bp-seg" *ngFor="let b of bps">
+              <span class="bp-seg__marker" [style.background]="b.color"></span>
+              <span class="bp-seg__min">≥ {{ b.min }}px</span>
+              <span class="bp-seg__name">{{ b.name }}</span>
+              <span class="bp-seg__range">{{ b.range }}</span>
+              <code class="bp-seg__token">{{ b.token }}</code>
+            </div>
+          </div>
+          <div class="bp-note">
+            <code>var()</code> can't be used inside <code>&#64;media</code> conditions — use the literal px in CSS, or import <code>MEDIA_UP</code> in TS.
+          </div>
+        </section>
 
         <!-- ── COMPONENT CATALOG GRID ── -->
         <div class="catalog">
@@ -880,6 +903,36 @@ import type { ComponentDocEntry } from './ds-registry';
       color: var(--color-text-muted);
       letter-spacing: 0.5px;
     }
+
+    /* ── Breakpoints foundation ── */
+    .bp-bar { display: flex; gap: var(--space-2); margin-top: var(--space-4); }
+    .bp-seg {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      padding: var(--space-3);
+      background: var(--color-stone-0);
+      border: 1px solid var(--color-divider);
+      border-radius: var(--radius-md);
+    }
+    .bp-seg__marker {
+      height: 4px;
+      width: 32px;
+      border-radius: 9999px;
+      margin-bottom: var(--space-2);
+    }
+    .bp-seg__min { font-size: var(--font-size-lg, 16px); font-weight: 700; color: var(--color-text-primary); }
+    .bp-seg__name { font-size: var(--font-size-sm, 13px); font-weight: 600; color: var(--color-text-primary); }
+    .bp-seg__range { font-size: var(--font-size-xs, 12px); color: var(--color-text-secondary); }
+    .bp-seg__token { font-size: var(--font-size-2xs, 11px); color: var(--color-text-muted); margin-top: 2px; }
+    .bp-note { margin-top: var(--space-3); font-size: var(--font-size-xs, 12px); color: var(--color-text-secondary); }
+    .section__desc code, .bp-note code, .bp-seg__token {
+      background: var(--color-stone-200);
+      padding: 1px 4px;
+      border-radius: var(--radius-sm);
+    }
+    @media (max-width: 768px) { .bp-bar { flex-direction: column; } }
   `],
 })
 export class DsShowcaseComponent implements OnInit, OnDestroy {
@@ -890,6 +943,13 @@ export class DsShowcaseComponent implements OnInit, OnDestroy {
     label: cat.label,
     items: DS_REGISTRY.filter((e: ComponentDocEntry) => e.category === cat.id),
   })).filter(g => g.items.length > 0);
+
+  readonly bps = [
+    { name: 'Mobile',  min: 375,  range: '375 – 767',   token: '--bp-mobile',  color: 'var(--color-stone-500)' },
+    { name: 'Tablet',  min: 768,  range: '768 – 1023',  token: '--bp-tablet',  color: 'var(--color-primary-500)' },
+    { name: 'Laptop',  min: 1024, range: '1024 – 1439', token: '--bp-laptop',  color: 'var(--color-primary-600)' },
+    { name: 'Desktop', min: 1440, range: '≥ 1440',      token: '--bp-desktop', color: 'var(--color-primary-700)' },
+  ];
 
   ngOnInit(): void { this.tracker.trackPageView('ds-showcase'); }
   ngOnDestroy(): void { this.tracker.destroyListeners(); }
