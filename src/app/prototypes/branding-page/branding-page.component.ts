@@ -59,24 +59,6 @@ type AssetKind = 'logo' | 'background';
         (tabChange)="onTabClick($event)"
       ></fvdr-tabs>
 
-      <!-- Page heading -->
-      <div class="bp-head">
-        <div>
-          <h1 class="bp-title">Branding</h1>
-          <p class="bp-subtitle">
-            Customize how your data room looks for invited users — logo, accent
-            color and the login page background.
-          </p>
-        </div>
-      </div>
-
-      <!-- Audit-trail note (Issue #3 — Paul / compliance) -->
-      <div class="bp-audit-note">
-        <fvdr-icon name="history" class="bp-audit-note__icon"></fvdr-icon>
-        <span>All branding changes are recorded in the project
-          <a href="#" (click)="$event.preventDefault()">activity log</a>.</span>
-      </div>
-
       <!-- ── Two columns: settings form + live preview ── -->
       <div class="bp-cols">
         <div class="bp-form">
@@ -85,7 +67,7 @@ type AssetKind = 'logo' | 'background';
       <section class="bp-card">
         <div class="bp-card__info">
           <h2 class="bp-card__title">Logo</h2>
-          <p class="bp-card__desc">Shown on the login page and in the data room header. PNG, JPG or SVG · 1:1 square · recommended 256×256&nbsp;px.</p>
+          <p class="bp-card__desc">Shown on the login page and in the data room header.<br>PNG, JPG or SVG · 1:1 square · recommended 256×256&nbsp;px.</p>
         </div>
 
         <div class="bp-card__control">
@@ -97,26 +79,26 @@ type AssetKind = 'logo' | 'background';
             data-track="logo-add"
             (click)="pickFile('logo')"
           >
-            <span class="logo-ph" aria-hidden="true">
-              <span class="logo-ph__ring"></span>
-              <span class="logo-ph__tile">
-                <fvdr-icon name="image" class="logo-ph__icon"></fvdr-icon>
+            <span class="add-anim" aria-hidden="true">
+              <span class="add-anim__back"></span>
+              <span class="add-anim__front">
+                <svg viewBox="0 0 46.5455 34.9091" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect width="46.5455" height="34.9091" rx="5.81818" fill="var(--color-primary-100, #AAE2BA)"/>
+                  <path d="M14.871 14.865C15.4169 14.0072 16.6519 13.9598 17.2619 14.7731L23.7211 23.3855C24.2522 24.0936 25.2874 24.1672 25.9133 23.5413L30.8142 18.6403C31.4401 18.0144 32.4753 18.088 33.0064 18.7961L38.9819 26.7635C39.7011 27.7224 39.0169 29.0908 37.8183 29.0908H8.468C7.3202 29.0908 6.6246 27.8237 7.2409 26.8553L14.871 14.865Z" fill="var(--color-primary-500, #2C9C74)"/>
+                  <circle cx="34.1818" cy="9.4545" r="3.63636" fill="var(--color-primary-500, #2C9C74)"/>
+                </svg>
               </span>
-              <span class="logo-ph__badge"><fvdr-icon name="plus"></fvdr-icon></span>
+              <span class="add-anim__plus"><fvdr-icon name="plus"></fvdr-icon></span>
             </span>
-            <span class="upload-tile__label">+ Add logo</span>
+            <span class="upload-tile__label">Add image</span>
           </button>
 
           <!-- Filled state: preview + hover actions (icon-only, fit inside tile) -->
           <div *ngIf="logoUrl" class="upload-tile upload-tile--filled upload-tile--square">
             <img [src]="logoUrl" class="upload-tile__img" alt="Logo preview" />
             <div class="upload-tile__overlay">
-              <button type="button" class="tile-action" title="Replace" aria-label="Replace" data-track="logo-edit" (click)="pickFile('logo')">
-                <fvdr-icon name="edit"></fvdr-icon>
-              </button>
-              <button type="button" class="tile-action tile-action--danger" title="Delete" aria-label="Delete" data-track="logo-delete" (click)="removeAsset('logo')">
-                <fvdr-icon name="trash"></fvdr-icon>
-              </button>
+              <fvdr-btn variant="secondary" size="s" iconName="edit" [iconOnly]="true" ariaLabel="Replace" dataTrack="logo-edit" (clicked)="pickFile('logo')"></fvdr-btn>
+              <fvdr-btn variant="danger-secondary" size="s" iconName="trash" [iconOnly]="true" ariaLabel="Delete" dataTrack="logo-delete" (clicked)="removeAsset('logo')"></fvdr-btn>
             </div>
           </div>
         </div>
@@ -152,7 +134,7 @@ type AssetKind = 'logo' | 'background';
       <section class="bp-card">
         <div class="bp-card__info">
           <h2 class="bp-card__title">Login page background</h2>
-          <p class="bp-card__desc">A full-screen image behind the sign-in form. JPG or PNG · up to 10&nbsp;MB · recommended 1920×1080&nbsp;px.</p>
+          <p class="bp-card__desc">A full-screen image behind the sign-in form.<br>JPG or PNG · up to 10&nbsp;MB · recommended 1920×1080&nbsp;px.</p>
         </div>
 
         <div class="bp-card__control">
@@ -163,25 +145,25 @@ type AssetKind = 'logo' | 'background';
             data-track="bg-add"
             (click)="pickFile('background')"
           >
-            <span class="logo-ph" aria-hidden="true">
-              <span class="logo-ph__ring"></span>
-              <span class="logo-ph__tile">
-                <fvdr-icon name="image" class="logo-ph__icon"></fvdr-icon>
+            <span class="add-anim" aria-hidden="true">
+              <span class="add-anim__back"></span>
+              <span class="add-anim__front">
+                <svg viewBox="0 0 46.5455 34.9091" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect width="46.5455" height="34.9091" rx="5.81818" fill="var(--color-primary-100, #AAE2BA)"/>
+                  <path d="M14.871 14.865C15.4169 14.0072 16.6519 13.9598 17.2619 14.7731L23.7211 23.3855C24.2522 24.0936 25.2874 24.1672 25.9133 23.5413L30.8142 18.6403C31.4401 18.0144 32.4753 18.088 33.0064 18.7961L38.9819 26.7635C39.7011 27.7224 39.0169 29.0908 37.8183 29.0908H8.468C7.3202 29.0908 6.6246 27.8237 7.2409 26.8553L14.871 14.865Z" fill="var(--color-primary-500, #2C9C74)"/>
+                  <circle cx="34.1818" cy="9.4545" r="3.63636" fill="var(--color-primary-500, #2C9C74)"/>
+                </svg>
               </span>
-              <span class="logo-ph__badge"><fvdr-icon name="plus"></fvdr-icon></span>
+              <span class="add-anim__plus"><fvdr-icon name="plus"></fvdr-icon></span>
             </span>
-            <span class="upload-tile__label">+ Add image</span>
+            <span class="upload-tile__label">Add image</span>
           </button>
 
           <div *ngIf="backgroundUrl" class="upload-tile upload-tile--filled upload-tile--wide">
             <img [src]="backgroundUrl" class="upload-tile__img upload-tile__img--cover" alt="Background preview" />
             <div class="upload-tile__overlay">
-              <button type="button" class="tile-action" title="Replace" aria-label="Replace" data-track="bg-edit" (click)="pickFile('background')">
-                <fvdr-icon name="edit"></fvdr-icon>
-              </button>
-              <button type="button" class="tile-action tile-action--danger" title="Delete" aria-label="Delete" data-track="bg-delete" (click)="removeAsset('background')">
-                <fvdr-icon name="trash"></fvdr-icon>
-              </button>
+              <fvdr-btn variant="secondary" size="s" iconName="edit" [iconOnly]="true" ariaLabel="Replace" dataTrack="bg-edit" (clicked)="pickFile('background')"></fvdr-btn>
+              <fvdr-btn variant="danger-secondary" size="s" iconName="trash" [iconOnly]="true" ariaLabel="Delete" dataTrack="bg-delete" (clicked)="removeAsset('background')"></fvdr-btn>
             </div>
           </div>
         </div>
@@ -207,41 +189,40 @@ type AssetKind = 'logo' | 'background';
         </div>
       </section>
 
-      <!-- ── Save bar (matches other settings tabs — explicit Save) ── -->
-      <div class="save-bar" [class.save-bar--visible]="dirty">
-        <div class="save-bar__actions">
-          <fvdr-btn variant="primary" size="m" label="Save changes" data-track="save" (clicked)="save()"></fvdr-btn>
-          <fvdr-btn variant="secondary" size="m" label="Discard" data-track="discard" (clicked)="discard()"></fvdr-btn>
-        </div>
-        <span class="save-bar__hint">
-          <fvdr-icon name="info" class="save-bar__hint-icon"></fvdr-icon>
-          You have unsaved changes
-        </span>
-      </div>
-
         </div><!-- /.bp-form -->
 
         <!-- ── Live login preview (second column) ── -->
         <aside class="bp-preview-col">
-          <h3 class="preview-panel__title">Login page preview</h3>
+          <div class="bp-card__info">
+            <h3 class="preview-panel__title">Login page preview</h3>
+            <p class="bp-card__desc">Live preview of the invited-user sign-in screen.</p>
+          </div>
           <div class="login-preview" [style.background-image]="backgroundUrl ? 'url(' + backgroundUrl + ')' : null">
-            <div class="login-preview__scrim"></div>
+            <div *ngIf="backgroundUrl" class="login-preview__scrim"></div>
             <div class="login-preview__card">
               <div class="login-preview__logo">
                 <img *ngIf="logoUrl" [src]="logoUrl" alt="Logo" />
-                <span *ngIf="!logoUrl" class="login-preview__logo-ph">Your logo</span>
+                <span *ngIf="!logoUrl" class="login-preview__logo-ph">Logo</span>
               </div>
-              <div class="login-preview__field"><span>Email</span><i></i></div>
-              <div class="login-preview__field"><span>Password</span><i></i></div>
-              <button class="login-preview__btn" [style.background]="themeColor">Sign in</button>
-              <a class="login-preview__link" [style.color]="themeColor">Forgot password?</a>
+              <div class="login-preview__fields">
+                <div class="login-preview__field"><span>Email</span><i></i></div>
+              </div>
+              <button class="login-preview__btn" [style.background]="themeColor">Continue</button>
             </div>
           </div>
-          <p class="login-preview__note">Live preview of the invited-user sign-in screen.</p>
         </aside>
 
       </div><!-- /.bp-cols -->
 
+    </div>
+
+    <!-- ── Sticky save bar — pinned to the bottom of the screen ── -->
+    <div class="save-bar" [class.save-bar--visible]="dirty">
+      <div class="save-bar__actions">
+        <fvdr-btn variant="primary" size="m" label="Save changes" data-track="save" (clicked)="save()"></fvdr-btn>
+        <fvdr-btn variant="secondary" size="m" label="Discard" data-track="discard" (clicked)="discard()"></fvdr-btn>
+      </div>
+      <fvdr-inline-message variant="warning" size="m" text="You have unsaved changes" class="save-bar__msg"></fvdr-inline-message>
     </div>
   </div>
 </div>
@@ -257,6 +238,7 @@ type AssetKind = 'logo' | 'background';
   size="m"
   confirmLabel="Apply"
   cancelLabel="Cancel"
+  cancelVariant="secondary"
   (confirmed)="applyCrop()"
   (cancelled)="cropOpen = false"
   (closed)="cropOpen = false"
@@ -283,12 +265,26 @@ type AssetKind = 'logo' | 'background';
       />
       <div class="crop__grid" aria-hidden="true"></div>
     </div>
-    <div class="crop__zoom">
-      <fvdr-icon name="image" class="crop__zoom-icon crop__zoom-icon--sm"></fvdr-icon>
-      <input type="range" min="1" max="3" step="0.01" [(ngModel)]="cropZoom" (ngModelChange)="clampCropOffset()" aria-label="Zoom" />
-      <fvdr-icon name="image" class="crop__zoom-icon"></fvdr-icon>
+    <div class="crop__controls">
+      <div class="crop__zoom">
+        <span class="crop__zoom-icon crop__zoom-icon--sm" aria-hidden="true">
+          <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="16" height="16" rx="3" fill="var(--color-primary-100, #AAE2BA)"/>
+            <path d="M4.91785 6.74806C5.19929 6.30579 5.83606 6.28133 6.1506 6.70071L7.98115 9.14145C8.25499 9.50658 8.78874 9.54451 9.11148 9.22178L10.3885 7.94473C10.7113 7.622 11.245 7.65993 11.5189 8.02506L13.1 10.1333C13.4708 10.6277 13.118 11.3333 12.5 11.3333H3.36626C2.77444 11.3333 2.41578 10.6799 2.73351 10.1806L4.91785 6.74806Z" fill="var(--color-primary-500, #2C9C74)"/>
+            <circle cx="11.75" cy="4.58325" r="1.25" fill="var(--color-primary-500, #2C9C74)"/>
+          </svg>
+        </span>
+        <input type="range" min="1" max="3" step="0.01" [(ngModel)]="cropZoom" (ngModelChange)="clampCropOffset()" [style.--range-pct]="rangePct" aria-label="Zoom" />
+        <span class="crop__zoom-icon crop__zoom-icon--lg" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="24" height="24" rx="3" fill="var(--color-primary-100, #AAE2BA)"/>
+            <path d="M7.66785 9.6648C7.9493 9.22254 8.58606 9.19808 8.9006 9.61746L12.2311 14.0582C12.505 14.4233 13.0387 14.4613 13.3615 14.1385L15.8885 11.6115C16.2113 11.2887 16.745 11.3267 17.0189 11.6918L20.1 15.8C20.4708 16.2944 20.118 17 19.5 17H4.36626C3.77444 17 3.41578 16.3466 3.73351 15.8473L7.66785 9.6648Z" fill="var(--color-primary-500, #2C9C74)"/>
+            <circle cx="17.625" cy="6.875" r="1.875" fill="var(--color-primary-500, #2C9C74)"/>
+          </svg>
+        </span>
+      </div>
+      <p class="crop__hint">Drag the image to reposition. Slide to zoom.</p>
     </div>
-    <p class="crop__hint">Drag the image to reposition · slide to zoom</p>
   </div>
 </fvdr-modal>
 
@@ -300,14 +296,14 @@ type AssetKind = 'logo' | 'background';
 
     /* Sidebar always full viewport height; only the main content scrolls */
     .bp-layout { display: flex; height: 100vh; overflow: hidden; background: var(--color-stone-0); }
-    .bp-main { flex: 1; min-width: 0; min-height: 0; display: flex; flex-direction: column; background: var(--color-stone-0); }
+    .bp-main { flex: 1; min-width: 0; min-height: 0; display: flex; flex-direction: column; background: var(--color-stone-0); position: relative; }
     .bp-content { flex: 1; min-height: 0; overflow-y: auto; padding: 24px 32px 64px; }
 
     /* Two equal columns (50/50): settings form (left) + live preview (right, sticky) */
     .bp-cols { display: flex; align-items: flex-start; gap: 40px; }
     .bp-form { flex: 1 1 0; min-width: 0; }
-    .bp-preview-col { flex: 1 1 0; min-width: 0; position: sticky; top: 0; }
-    .preview-panel__title { font-size: var(--font-size-sm, 13px); font-weight: var(--font-weight-semi, 600); color: var(--color-text-secondary); margin: 0 0 10px; }
+    .bp-preview-col { flex: 1 1 0; min-width: 0; position: sticky; top: 0; display: flex; flex-direction: column; gap: 24px; }
+    .preview-panel__title { font-size: var(--font-size-md, 15px); font-weight: var(--font-weight-semi, 600); line-height: var(--line-height-base, 20px); color: var(--color-text-primary); margin: 0; }
     @media (max-width: 1080px) {
       .bp-cols { flex-direction: column; gap: 28px; }
       .bp-form, .bp-preview-col { width: 100%; flex: none; }
@@ -317,27 +313,12 @@ type AssetKind = 'logo' | 'background';
     /* ── Settings sub-tabs (DS fvdr-tabs) ── */
     .settings-tabs { display: block; margin-bottom: var(--space-6); }
 
-    /* ── Page head ── */
-    .bp-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 16px; }
-    .bp-title { font-size: var(--font-size-3xl, 22px); font-weight: var(--font-weight-bold, 700); color: var(--color-text-primary); margin: 0 0 4px; }
-    .bp-subtitle { font-size: var(--font-size-sm, 13px); color: var(--color-text-secondary); margin: 0; max-width: 540px; line-height: 1.5; }
-
-    /* ── Audit note (borderless, on white) ── */
-    .bp-audit-note {
-      display: flex; align-items: center; gap: 7px;
-      padding: 0; margin: 0 0 8px;
-      font-size: var(--font-size-xs, 12px); color: var(--color-text-placeholder);
-    }
-    .bp-audit-note__icon { font-size: var(--font-size-base, 14px); color: var(--color-stone-500); }
-    .bp-audit-note a { color: var(--color-info-500); }
-
-    /* ── Setting row (borderless, white bg, separated by spacing) ── */
-    .bp-card {
-      display: grid; grid-template-columns: 260px 1fr; gap: 32px;
-      padding: 18px 0 24px;
-    }
-    .bp-card__title { font-size: var(--font-size-lg, 16px); font-weight: var(--font-weight-semi, 600); line-height: var(--line-height-lg, 24px); color: var(--color-text-primary); margin: 0 0 4px; display: flex; align-items: center; gap: 6px; }
-    .bp-card__desc { font-size: var(--font-size-xs, 12px); color: var(--color-text-secondary); margin: 0; line-height: 1.5; }
+    /* ── Setting section — info stacked above the control (Figma vertical) ── */
+    .bp-form { display: flex; flex-direction: column; gap: 24px; }
+    .bp-card { display: flex; flex-direction: column; gap: 16px; align-items: flex-start; }
+    .bp-card__info { display: flex; flex-direction: column; gap: 8px; }
+    .bp-card__title { font-size: var(--font-size-md, 15px); font-weight: var(--font-weight-semi, 600); line-height: var(--line-height-base, 20px); color: var(--color-text-primary); margin: 0; display: flex; align-items: center; gap: 6px; }
+    .bp-card__desc { font-size: var(--font-size-base, 14px); color: var(--color-text-secondary); margin: 0; line-height: var(--line-height-base, 20px); }
     .bp-card__control { min-width: 0; }
     .bp-card__filehint { font-size: var(--font-size-xs, 12px); color: var(--color-text-placeholder); margin: 10px 0 0; }
     .bp-card__filehint code { background: var(--color-stone-100); padding: 1px 6px; border-radius: var(--radius-sm); color: var(--color-text-secondary); }
@@ -349,63 +330,56 @@ type AssetKind = 'logo' | 'background';
       gap: 6px; width: 280px; height: 132px; border-radius: var(--radius-md);
       font-family: var(--font-family);
     }
-    .upload-tile--wide { width: 100%; max-width: 420px; height: 160px; }
-    .upload-tile--square { width: 168px; height: 168px; }
+    .upload-tile--wide { width: 244px; height: 152px; }
+    .upload-tile--square { width: 152px; height: 152px; }
     .upload-tile--empty {
       appearance: none; cursor: pointer;
-      border: 1.5px dashed var(--color-stone-400); background: transparent;
+      border: 1px dashed var(--color-stone-400); background: var(--color-stone-200);
       transition: border-color .15s ease, background .15s ease;
       padding: 12px;
     }
     .upload-tile--empty:hover { border-color: var(--color-primary-500); background: var(--color-primary-50); }
-    .upload-tile__label { font-size: var(--font-size-sm, 13px); font-weight: var(--font-weight-semi, 600); color: var(--color-text-primary); }
+    .upload-tile__label { font-size: var(--font-size-lg, 16px); font-weight: var(--font-weight-regular, 400); line-height: var(--line-height-lg, 24px); color: var(--color-primary-500); }
 
-    /* ── Decorative empty-state placeholder ── */
-    .logo-ph {
-      position: relative; width: 60px; height: 60px; margin-bottom: 4px;
+    /* ── Animated add-image placeholder (Figma 609:1267) ── */
+    .add-anim { position: relative; width: 64px; height: 64px; }
+    .add-anim__back {
+      position: absolute; left: 5.8px; top: 11.6px; width: 46.5px; height: 34.9px;
+      border-radius: 5.8px; background: var(--color-primary-400);
+      transform-origin: 6.25% 91.667%;
+      transition: transform .4s cubic-bezier(.5, 0, .5, 1);
+    }
+    .add-anim__front {
+      position: absolute; left: 11.6px; top: 17.5px; width: 46.5px; height: 34.9px;
+      transform-origin: 95.313% 91.667%;
+      transition: transform .4s cubic-bezier(.5, 0, .5, 1);
+    }
+    .add-anim__front svg { display: block; width: 100%; height: 100%; }
+    .add-anim__plus {
+      position: absolute; right: 0; bottom: 5.8px; z-index: 2;
+      width: 20.4px; height: 20.4px; border-radius: 50%;
+      background: var(--color-stone-0); box-shadow: var(--shadow-card);
       display: grid; place-items: center;
     }
-    .logo-ph__ring {
-      position: absolute; inset: -6px; border-radius: 50%;
-      background: radial-gradient(circle at 30% 25%, var(--color-primary-50), transparent 70%);
-      opacity: .9;
-    }
-    .logo-ph__tile {
-      position: relative; width: 52px; height: 52px; border-radius: var(--radius-md);
-      display: grid; place-items: center;
-      background: linear-gradient(135deg, var(--color-primary-500), var(--color-primary-700));
-      box-shadow: var(--shadow-hover);
-      transform: rotate(-4deg); transition: transform .18s ease;
-    }
-    .logo-ph__icon { font-size: var(--font-size-4xl, 24px); color: var(--color-stone-0); }
-    .logo-ph__badge {
-      position: absolute; right: -2px; bottom: -2px; z-index: 2;
-      width: 22px; height: 22px; border-radius: 50%;
-      background: var(--color-stone-0); color: var(--color-primary-600);
-      display: grid; place-items: center; font-size: var(--font-size-xs, 12px);
-      border: 2px solid var(--color-stone-0); box-shadow: var(--shadow-card);
-    }
-    .logo-ph__badge fvdr-icon { font-size: var(--font-size-2xs, 11px); }
-    .upload-tile--empty:hover .logo-ph__tile { transform: rotate(0deg) scale(1.05); }
+    .add-anim__plus fvdr-icon { font-size: var(--font-size-sm, 13px); color: var(--color-primary-500); }
+    /* Hover: the two cards fan apart */
+    .upload-tile--empty:hover .add-anim__back { transform: rotate(-10.77deg); }
+    .upload-tile--empty:hover .add-anim__front { transform: rotate(5.84deg); }
 
     .upload-tile--filled { border: 1px solid var(--color-divider); background: var(--color-stone-0); overflow: hidden; }
     .upload-tile__img { width: 100%; height: 100%; object-fit: cover; }
     .upload-tile__img--cover { width: 100%; height: 100%; object-fit: cover; }
     .upload-tile__overlay {
-      position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 8px;
-      background: var(--color-overlay-dark); opacity: 0; transition: opacity .15s ease;
+      position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 10px;
+      opacity: 0; transition: opacity .15s ease;
     }
+    /* 90% white dim over the image (Figma) */
+    .upload-tile__overlay::before {
+      content: ''; position: absolute; inset: 0;
+      background: var(--color-stone-0); opacity: .9;
+    }
+    .upload-tile__overlay fvdr-btn { position: relative; z-index: 1; }
     .upload-tile--filled:hover .upload-tile__overlay { opacity: 1; }
-    /* Icon-only actions — fit inside the tile, no overflow */
-    .tile-action {
-      display: inline-flex; align-items: center; justify-content: center; cursor: pointer;
-      width: 34px; height: 34px; padding: 0;
-      background: var(--color-stone-0); border: none; border-radius: var(--radius-md);
-      color: var(--color-text-primary);
-    }
-    .tile-action:hover { background: var(--color-stone-200); }
-    .tile-action--danger { color: var(--color-error-600); }
-    .tile-action fvdr-icon { font-size: var(--font-size-md, 15px); }
 
     /* ── Color swatches ── */
     .swatches { display: flex; flex-wrap: wrap; gap: 10px; }
@@ -444,69 +418,104 @@ type AssetKind = 'logo' | 'background';
     .invite-banner fvdr-plan-icon { flex-shrink: 0; }
 
     /* ── Sticky save bar ── */
+    /* Pinned to the bottom of the screen; slides up when there are unsaved changes */
     .save-bar {
-      position: sticky; bottom: 0; z-index: 5;
-      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+      position: absolute; left: 0; right: 0; bottom: 0; z-index: 20;
+      display: flex; align-items: center; justify-content: flex-start; gap: 16px;
       background: var(--color-stone-0);
-      padding: 14px 0; margin-top: 16px;
-      box-shadow: var(--shadow-popup);
-      opacity: 0; transform: translateY(12px); pointer-events: none;
-      transition: opacity .2s ease, transform .2s ease;
+      border-top: 1px solid var(--color-divider);
+      padding: 12px 32px;
+      transform: translateY(100%); pointer-events: none;
+      transition: transform .25s ease;
     }
-    .save-bar--visible { opacity: 1; transform: translateY(0); pointer-events: auto; }
-    .save-bar__hint { display: flex; align-items: center; gap: 8px; font-size: var(--font-size-sm, 13px); color: var(--color-text-secondary); }
-    .save-bar__hint-icon { font-size: var(--font-size-md, 15px); color: var(--color-warning-600); }
+    .save-bar--visible { transform: translateY(0); pointer-events: auto; }
     .save-bar__actions { display: flex; gap: 8px; }
 
-    /* ── Login preview ── */
+    /* ── Login preview (Figma 603:14837) ── */
     .login-preview {
       position: relative; border-radius: var(--radius-md); overflow: hidden;
       width: 100%; aspect-ratio: 16 / 11;
       display: flex; align-items: center; justify-content: center;
-      background-color: var(--color-stone-300); background-size: cover; background-position: center;
+      background-color: var(--color-stone-200); background-size: cover; background-position: center;
     }
     .login-preview__scrim { position: absolute; inset: 0; background: var(--color-overlay-light); }
     .login-preview__card {
       position: relative; z-index: 1; background: var(--color-stone-0);
-      border-radius: var(--radius-md); padding: 32px 30px; width: 340px; max-width: 80%;
-      display: flex; flex-direction: column; gap: 12px; box-shadow: var(--shadow-modal);
+      border-radius: var(--radius-md); padding: 24px 32px 32px;
+      display: flex; flex-direction: column; align-items: flex-start; gap: 16px;
+      box-shadow: var(--shadow-card);
     }
-    .login-preview__logo { height: 40px; display: flex; align-items: center; justify-content: center; margin-bottom: 6px; }
-    .login-preview__logo img { max-height: 40px; max-width: 180px; object-fit: contain; }
-    .login-preview__logo-ph { font-size: var(--font-size-xs, 12px); color: var(--color-text-placeholder); border: 1px dashed var(--color-stone-400); padding: 6px 14px; border-radius: var(--radius-sm); }
-    .login-preview__field { border: 1px solid var(--color-divider); border-radius: var(--radius-sm); padding: 8px 10px; font-size: var(--font-size-xs, 12px); color: var(--color-text-placeholder); display: flex; flex-direction: column; gap: 5px; }
-    .login-preview__field i { display: block; height: 6px; width: 60%; background: var(--color-stone-300); border-radius: var(--radius-sm); }
-    .login-preview__btn { border: none; border-radius: var(--radius-sm); padding: 10px; color: var(--color-stone-0); font-weight: var(--font-weight-semi, 600); font-size: var(--font-size-sm, 13px); cursor: default; font-family: var(--font-family); }
-    .login-preview__link { font-size: var(--font-size-xs, 12px); text-align: center; text-decoration: none; }
-    .login-preview__note { font-size: var(--font-size-xs, 12px); color: var(--color-text-secondary); margin: 14px 0 0; text-align: center; }
+    .login-preview__logo { display: flex; align-items: center; justify-content: center; }
+    .login-preview__logo img { width: 46px; height: 46px; object-fit: contain; border-radius: var(--radius-sm); }
+    .login-preview__logo-ph {
+      width: 46px; height: 46px; border-radius: var(--radius-sm);
+      background: var(--color-text-placeholder); color: var(--color-stone-0);
+      display: grid; place-items: center;
+      font-size: var(--font-size-base, 14px); line-height: var(--line-height-base, 20px);
+    }
+    .login-preview__fields { display: flex; flex-direction: column; gap: 10px; width: 200px; }
+    .login-preview__field {
+      height: 32px; box-sizing: border-box; overflow: hidden;
+      border: 1px solid var(--color-stone-300); border-radius: var(--radius-sm);
+      padding: 5px 6px; display: flex; flex-direction: column; gap: 4px;
+      font-size: var(--font-size-2xs, 11px); line-height: 1; color: var(--color-text-placeholder);
+    }
+    .login-preview__field i { display: block; height: 4px; width: 92px; background: var(--color-stone-300); border-radius: var(--radius-sm); }
+    .login-preview__btn {
+      width: 200px; height: 32px; border: none; border-radius: var(--radius-sm);
+      color: var(--color-stone-0); font-weight: var(--font-weight-regular, 400);
+      font-size: var(--font-size-base, 14px); cursor: default; font-family: var(--font-family);
+    }
 
-    /* ── Crop modal ── */
-    .crop { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+    /* ── Crop modal (Figma 611:2471 / 611:2579) ── */
+    .crop { display: flex; flex-direction: column; align-items: center; gap: 20px; }
     .crop__frame {
       position: relative; overflow: hidden; border-radius: var(--radius-md);
-      background: var(--color-stone-200); cursor: grab; touch-action: none;
-      max-width: 100%;
+      background: var(--color-stone-200); border: 1px solid var(--color-stone-400);
+      cursor: grab; touch-action: none; max-width: 100%;
     }
     .crop__frame:active { cursor: grabbing; }
     .crop__img { position: absolute; left: 50%; top: 50%; user-select: none; -webkit-user-drag: none; pointer-events: none; }
+    /* Rule-of-thirds grid (interior lines only) */
     .crop__grid {
       position: absolute; inset: 0; pointer-events: none;
       background-image:
-        linear-gradient(rgba(255,255,255,.4) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,.4) 1px, transparent 1px);
-      background-size: 33.333% 33.333%;
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,.5);
+        linear-gradient(to right, transparent calc(33.333% - 0.5px), var(--color-stone-400) calc(33.333% - 0.5px) calc(33.333% + 0.5px), transparent calc(33.333% + 0.5px), transparent calc(66.666% - 0.5px), var(--color-stone-400) calc(66.666% - 0.5px) calc(66.666% + 0.5px), transparent calc(66.666% + 0.5px)),
+        linear-gradient(to bottom, transparent calc(33.333% - 0.5px), var(--color-stone-400) calc(33.333% - 0.5px) calc(33.333% + 0.5px), transparent calc(33.333% + 0.5px), transparent calc(66.666% - 0.5px), var(--color-stone-400) calc(66.666% - 0.5px) calc(66.666% + 0.5px), transparent calc(66.666% + 0.5px));
     }
-    .crop__zoom { display: flex; align-items: center; gap: 12px; width: 100%; max-width: 340px; }
-    .crop__zoom input[type=range] { flex: 1; accent-color: var(--color-primary-500); cursor: pointer; }
-    .crop__zoom-icon { color: var(--color-stone-600); font-size: var(--font-size-2xl, 20px); }
-    .crop__zoom-icon--sm { font-size: var(--font-size-sm, 13px); }
-    .crop__hint { font-size: var(--font-size-xs, 12px); color: var(--color-text-placeholder); margin: 0; }
+    .crop__controls { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%; }
+    .crop__zoom { display: flex; align-items: center; justify-content: center; gap: 24px; width: 100%; max-width: 380px; }
+    /* ── DS slider (Figma 21176:1948): green fill + grey track + white/green thumb ── */
+    .crop__zoom input[type=range] {
+      -webkit-appearance: none; appearance: none;
+      flex: 1; height: 24px; margin: 0; background: transparent; cursor: pointer;
+    }
+    .crop__zoom input[type=range]::-webkit-slider-runnable-track {
+      height: 4px; border-radius: var(--radius-sm);
+      background: linear-gradient(to right, var(--color-primary-500) var(--range-pct, 0%), var(--color-stone-300) var(--range-pct, 0%));
+    }
+    .crop__zoom input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none; margin-top: -7px;
+      width: 18px; height: 18px; border-radius: 50%;
+      background: var(--color-stone-0); border: 2px solid var(--color-primary-500);
+      box-shadow: 0 0 0 2px var(--color-primary-50);
+    }
+    .crop__zoom input[type=range]:active::-webkit-slider-thumb { cursor: grabbing; }
+    .crop__zoom input[type=range]::-moz-range-track { height: 4px; border-radius: var(--radius-sm); background: var(--color-stone-300); }
+    .crop__zoom input[type=range]::-moz-range-progress { height: 4px; border-radius: var(--radius-sm); background: var(--color-primary-500); }
+    .crop__zoom input[type=range]::-moz-range-thumb {
+      width: 18px; height: 18px; border: 2px solid var(--color-primary-500); border-radius: 50%;
+      background: var(--color-stone-0); box-shadow: 0 0 0 2px var(--color-primary-50);
+    }
+    .crop__zoom-icon { flex-shrink: 0; display: block; }
+    .crop__zoom-icon svg { display: block; width: 100%; height: auto; }
+    .crop__zoom-icon--sm { width: 16px; }
+    .crop__zoom-icon--lg { width: 24px; }
+    .crop__hint { font-size: var(--font-size-base, 14px); line-height: var(--line-height-base, 20px); color: var(--color-text-secondary); margin: 0; text-align: center; }
 
     @media (max-width: 760px) {
       .bp-content { padding: 18px 16px 48px; }
-      .bp-card { grid-template-columns: 1fr; gap: 14px; }
-      .bp-head { flex-direction: column; }
+      .save-bar { padding: 12px 16px; }
     }
   `],
 })
@@ -669,10 +678,14 @@ export class BrandingPageComponent implements OnInit, OnDestroy {
   }
 
   // ── Crop ────────────────────────────────────────────────────────
-  /** Output dimensions & frame aspect per asset. Logo = 1:1, background = 16:9. */
-  private get cropAspect(): number { return this.cropKind === 'logo' ? 1 : 16 / 9; }
-  get cropFrameW(): number { return this.cropKind === 'logo' ? 300 : 360; }
-  get cropFrameH(): number { return Math.round(this.cropFrameW / this.cropAspect); }
+  /** Zoom slider fill percentage (cropZoom 1→3 maps to 0→100%). */
+  get rangePct(): string { return `${((this.cropZoom - 1) / 2) * 100}%`; }
+
+  /** Crop frame dimensions per asset (Figma: logo 300×300, background 390×234). */
+  get cropFrameW(): number { return this.cropKind === 'logo' ? 300 : 390; }
+  get cropFrameH(): number { return this.cropKind === 'logo' ? 300 : 234; }
+  /** Output/frame aspect ratio (derived from the frame so the crop is not distorted). */
+  private get cropAspect(): number { return this.cropFrameW / this.cropFrameH; }
 
   private get cropBaseScale(): number {
     if (!this.cropImage) return 1;

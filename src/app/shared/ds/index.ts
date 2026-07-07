@@ -178,7 +178,7 @@ export { CounterComponent } from './components/counter/counter.component';
 export type { CounterVariant, CounterSize } from './components/counter/counter.component';
 
 export { InlineMessageComponent } from './components/inline-message/inline-message.component';
-export type { InlineMessageVariant } from './components/inline-message/inline-message.component';
+export type { InlineMessageVariant, InlineMessageSize } from './components/inline-message/inline-message.component';
 
 export { ToastComponent, ToastHostComponent, ToastService } from './components/toast/toast.component';
 export type { ToastVariant, ToastData, ToastAction } from './components/toast/toast.component';

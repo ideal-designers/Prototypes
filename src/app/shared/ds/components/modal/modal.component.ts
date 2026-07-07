@@ -152,7 +152,7 @@ export interface ModalConfig {
       align-items: center;
       justify-content: flex-end;
       gap: var(--space-4);
-      padding: var(--space-4) var(--space-6);
+      padding: var(--space-4) var(--space-6) var(--space-6);
       flex-shrink: 0;
     }
   `],

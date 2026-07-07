@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FvdrIconComponent } from '../../icons/icon.component';
 import type { FvdrIconName } from '../../icons/icons';
 
-export type ButtonType = 'primary' | 'secondary' | 'ghost' | 'danger' | 'link' | 'text';
+export type ButtonType = 'primary' | 'secondary' | 'ghost' | 'danger' | 'danger-secondary' | 'link' | 'text';
 export type ButtonSize = 's' | 'm' | 'l';
 
 /**
@@ -36,8 +36,10 @@ export type ButtonSize = 's' | 'm' | 'l';
   template: `
     <button
       class="btn btn--{{ variant }} btn--{{ size }}"
+      [class.btn--icon]="iconOnly && !label"
       [disabled]="disabled || loading"
       [attr.data-track]="dataTrack"
+      [attr.aria-label]="iconOnly && !label ? ariaLabel : null"
       (click)="!disabled && !loading && clicked.emit($event)"
     >
       <span *ngIf="loading" class="btn__spinner"></span>
@@ -45,7 +47,7 @@ export type ButtonSize = 's' | 'm' | 'l';
       <fvdr-icon *ngIf="iconName && !loading" [name]="iconName" class="btn__icon-ds"></fvdr-icon>
       <!-- icon: raw SVG innerHTML (legacy) -->
       <svg *ngIf="icon && !iconName && !loading" class="btn__icon" [innerHTML]="icon" width="16" height="16" viewBox="0 0 16 16"></svg>
-      <span class="btn__label">{{ label }}</span>
+      <span *ngIf="label" class="btn__label">{{ label }}</span>
     </button>
   `,
   styles: [`
@@ -171,6 +173,21 @@ export type ButtonSize = 's' | 'm' | 'l';
       border-color: var(--color-error-700);
     }
 
+    /* ── Type: Danger secondary — white/outline red ── */
+    .btn--danger-secondary {
+      background: transparent;
+      border-color: var(--color-error-600);
+      color: var(--color-error-600);
+    }
+    .btn--danger-secondary:hover:not(:disabled) {
+      background: var(--color-error-bg);
+      border-color: var(--color-error-600);
+      color: var(--color-error-600);
+    }
+
+    /* ── Icon-only: square, no horizontal padding ── */
+    .btn--icon { padding: 0; aspect-ratio: 1; }
+
     /* ── Spinner ── */
     .btn__spinner {
       width: 14px; height: 14px;
@@ -194,6 +211,8 @@ export class ButtonComponent {
   @Input() loading = false;
   @Input() icon?: string;           // legacy: raw SVG string
   @Input() iconName?: FvdrIconName; // preferred: DS icon name
+  @Input() iconOnly = false;        // square icon button (no label)
+  @Input() ariaLabel = '';          // accessible name for icon-only buttons
   @Input() dataTrack?: string;
   @Output() clicked = new EventEmitter<MouseEvent>();
 }
