@@ -462,6 +462,356 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
             </div>
           </ng-container>
 
+          <!-- TEXTAREA -->
+          <ng-container *ngSwitchCase="'textarea'">
+            <div class="anatomy-wrap anatomy-wrap--textarea">
+              <fvdr-textarea label="Description" placeholder="Enter notes…" [maxlength]="200" helperText="Add any relevant details"></fvdr-textarea>
+              <div class="anatomy-label anatomy-label--left"  style="left:-60px;top:2px">label</div>
+              <div class="anatomy-label anatomy-label--right" style="right:-76px;top:56px">textarea</div>
+              <div class="anatomy-label anatomy-label--right" style="right:-72px;bottom:24px">counter</div>
+              <div class="anatomy-label anatomy-label--left"  style="left:-60px;bottom:2px">helper</div>
+              <div class="dim-h" style="bottom:-28px;left:0;width:12px">12</div>
+              <div class="dim-h" style="bottom:-28px;right:0;width:12px">12</div>
+            </div>
+          </ng-container>
+
+          <!-- SEARCH -->
+          <ng-container *ngSwitchCase="'search'">
+            <div class="anatomy-wrap anatomy-wrap--search">
+              <fvdr-search placeholder="Search projects…" [(ngModel)]="demoSearchValue"></fvdr-search>
+              <div class="anatomy-label anatomy-label--top"   style="top:-42px;left:20px">icon</div>
+              <div class="anatomy-label anatomy-label--right" style="right:-60px;top:50%;transform:translateY(-50%)">input</div>
+              <div class="anatomy-label anatomy-label--left"  style="left:-56px;top:50%;transform:translateY(-50%)">field</div>
+              <div class="dim-v" style="right:-100px;top:0;height:40px">40px</div>
+            </div>
+          </ng-container>
+
+          <!-- PHONE INPUT -->
+          <ng-container *ngSwitchCase="'phone-input'">
+            <div class="anatomy-wrap anatomy-wrap--phone">
+              <fvdr-phone-input label="Phone number"></fvdr-phone-input>
+              <div class="anatomy-label anatomy-label--left"  style="left:-56px;top:2px">label</div>
+              <div class="anatomy-label anatomy-label--top"   style="top:-42px;left:28px">country</div>
+              <div class="anatomy-label anatomy-label--right" style="right:-84px;top:44px">number input</div>
+              <div class="dim-v" style="right:-124px;top:24px;height:40px">40px</div>
+            </div>
+          </ng-container>
+
+          <!-- RADIO -->
+          <ng-container *ngSwitchCase="'radio'">
+            <div class="anatomy-wrap anatomy-wrap--radio">
+              <fvdr-radio [options]="demoRadioOptions" [value]="demoRadioValue"></fvdr-radio>
+              <div class="anatomy-label anatomy-label--left"  style="left:-96px;top:9px">circle</div>
+              <div class="anatomy-label anatomy-label--right" style="right:-56px;top:9px">label</div>
+              <div class="anatomy-label anatomy-label--top"   style="top:-42px;left:-4px">dot</div>
+              <div class="dim-v" style="left:-22px;top:0;height:18px">18</div>
+            </div>
+          </ng-container>
+
+          <!-- SEGMENT -->
+          <ng-container *ngSwitchCase="'segment'">
+            <div class="anatomy-wrap anatomy-wrap--segment">
+              <fvdr-segment [items]="demoSegmentItems" [activeId]="demoSegmentValue"></fvdr-segment>
+              <div class="anatomy-label anatomy-label--top"    style="top:-42px;left:22px">active</div>
+              <div class="anatomy-label anatomy-label--top"    style="top:-42px;right:22px">item</div>
+              <div class="anatomy-label anatomy-label--bottom" style="bottom:-42px;left:50%;transform:translateX(-50%)">track</div>
+            </div>
+          </ng-container>
+
+          <!-- MULTISELECT -->
+          <ng-container *ngSwitchCase="'multiselect'">
+            <div class="anatomy-wrap anatomy-wrap--multiselect">
+              <fvdr-multiselect label="Countries" [options]="demoMultiselectOptions" [values]="demoMultiselectPreselected" [showChips]="true"></fvdr-multiselect>
+              <div class="anatomy-label anatomy-label--left"  style="left:-56px;top:2px">label</div>
+              <div class="anatomy-label anatomy-label--top"   style="top:-42px;left:16px">chips</div>
+              <div class="anatomy-label anatomy-label--right" style="right:-64px;top:44px">chevron</div>
+              <div class="anatomy-label anatomy-label--left"  style="left:-64px;top:44px">trigger</div>
+            </div>
+          </ng-container>
+
+          <!-- DROPLIST -->
+          <ng-container *ngSwitchCase="'droplist'">
+            <div class="anatomy-wrap anatomy-wrap--droplist">
+              <fvdr-droplist [items]="demoDroplistItems" activeId="copy"></fvdr-droplist>
+              <div class="anatomy-label anatomy-label--left"  style="left:-56px;top:12px">panel</div>
+              <div class="anatomy-label anatomy-label--right" style="right:-52px;top:12px">item</div>
+              <div class="anatomy-label anatomy-label--right" style="right:-80px;top:52px">right text</div>
+              <div class="anatomy-label anatomy-label--left"  style="left:-48px;bottom:12px">icon</div>
+              <div class="dim-h" style="bottom:-28px;left:0;width:16px">16</div>
+            </div>
+          </ng-container>
+
+          <!-- COUNTER -->
+          <ng-container *ngSwitchCase="'counter'">
+            <div class="anatomy-wrap anatomy-wrap--counter">
+              <fvdr-counter [value]="5"></fvdr-counter>
+              <fvdr-counter [value]="42" size="m" variant="primary"></fvdr-counter>
+              <fvdr-counter [value]="120" size="m" variant="error"></fvdr-counter>
+              <div class="anatomy-label anatomy-label--top" style="top:-42px;left:50%;transform:translateX(-50%)">pill · number</div>
+              <div class="dim-v" style="right:-40px;top:0;height:20px">20px</div>
+            </div>
+          </ng-container>
+
+          <!-- INLINE MESSAGE -->
+          <ng-container *ngSwitchCase="'inline-message'">
+            <div class="anatomy-wrap anatomy-wrap--inline-message">
+              <fvdr-inline-message variant="warning" message="You have unsaved changes"></fvdr-inline-message>
+              <div class="anatomy-label anatomy-label--top"   style="top:-42px;left:12px">icon</div>
+              <div class="anatomy-label anatomy-label--right" style="right:-52px;top:50%;transform:translateY(-50%)">text</div>
+              <div class="anatomy-label anatomy-label--left"  style="left:-52px;top:50%;transform:translateY(-50%)">root</div>
+            </div>
+          </ng-container>
+
+          <!-- INFO BANNER -->
+          <ng-container *ngSwitchCase="'info-banner'">
+            <div class="anatomy-wrap anatomy-wrap--info-banner">
+              <fvdr-info-banner variant="info" message="Only corporate-level integrations can be enabled."></fvdr-info-banner>
+              <div class="anatomy-label anatomy-label--top"   style="top:-42px;left:14px">icon</div>
+              <div class="anatomy-label anatomy-label--right" style="right:-64px;top:50%;transform:translateY(-50%)">content</div>
+              <div class="anatomy-label anatomy-label--left"  style="left:-52px;top:50%;transform:translateY(-50%)">root</div>
+            </div>
+          </ng-container>
+
+          <!-- TOAST -->
+          <ng-container *ngSwitchCase="'toast'">
+            <div class="anatomy-wrap anatomy-wrap--toast">
+              <div class="mock-toast">
+                <span class="mock-toast__bar"></span>
+                <div class="mock-toast__inner">
+                  <fvdr-icon name="check" class="mock-toast__icon"></fvdr-icon>
+                  <div class="mock-toast__body">
+                    <span class="mock-toast__title">Changes saved</span>
+                    <span class="mock-toast__message">Your updates are now live.</span>
+                  </div>
+                  <fvdr-icon name="close" class="mock-toast__close"></fvdr-icon>
+                </div>
+              </div>
+              <div class="anatomy-label anatomy-label--bottom" style="bottom:-42px;left:6px">accent bar</div>
+              <div class="anatomy-label anatomy-label--top"    style="top:-42px;left:20px">icon</div>
+              <div class="anatomy-label anatomy-label--bottom" style="bottom:-42px;right:6px">body</div>
+              <div class="anatomy-label anatomy-label--right"  style="right:-52px;top:14px">close</div>
+              <div class="dim-label" style="bottom:-60px;left:0">4px</div>
+            </div>
+          </ng-container>
+
+          <!-- DROP AREA -->
+          <ng-container *ngSwitchCase="'drop-area'">
+            <div class="anatomy-wrap anatomy-wrap--drop-area">
+              <fvdr-drop-area title="Drag & drop files here" subtitle="or click to browse" accept=".pdf, .docx"></fvdr-drop-area>
+              <div class="anatomy-label anatomy-label--top"   style="top:-42px;left:50%;transform:translateX(-50%)">icon</div>
+              <div class="anatomy-label anatomy-label--right" style="right:-56px;top:50%;transform:translateY(-50%)">text</div>
+              <div class="anatomy-label anatomy-label--left"  style="left:-52px;top:50%;transform:translateY(-50%)">zone</div>
+            </div>
+          </ng-container>
+
+          <!-- NUMBER STEPPER -->
+          <ng-container *ngSwitchCase="'number-stepper'">
+            <div class="anatomy-wrap anatomy-wrap--stepper">
+              <fvdr-number-stepper [(ngModel)]="demoStepperVal"></fvdr-number-stepper>
+              <div class="anatomy-label anatomy-label--left"  style="left:-76px;top:50%;transform:translateY(-50%)">decrement</div>
+              <div class="anatomy-label anatomy-label--right" style="right:-64px;top:50%;transform:translateY(-50%)">increment</div>
+              <div class="anatomy-label anatomy-label--top"   style="top:-42px;left:50%;transform:translateX(-50%)">value</div>
+              <div class="dim-h" style="bottom:-28px;left:0;width:36px">36</div>
+            </div>
+          </ng-container>
+
+          <!-- RANGE -->
+          <ng-container *ngSwitchCase="'range'">
+            <div class="anatomy-wrap anatomy-wrap--range">
+              <fvdr-range label="Budget" [(ngModel)]="demoRangeVal"></fvdr-range>
+              <div class="anatomy-label anatomy-label--top"    style="top:-42px;right:6px">value</div>
+              <div class="anatomy-label anatomy-label--bottom" style="bottom:-42px;left:74px">thumb</div>
+              <div class="anatomy-label anatomy-label--left"   style="left:-44px;bottom:6px">track</div>
+            </div>
+          </ng-container>
+
+          <!-- PROGRESS -->
+          <ng-container *ngSwitchCase="'progress'">
+            <div class="anatomy-wrap anatomy-wrap--progress">
+              <fvdr-progress [value]="60" [showValue]="true" label="Uploading"></fvdr-progress>
+              <div class="anatomy-label anatomy-label--top"    style="top:-42px;left:6px">label</div>
+              <div class="anatomy-label anatomy-label--top"    style="top:-42px;right:6px">value</div>
+              <div class="anatomy-label anatomy-label--bottom" style="bottom:-42px;left:2px">fill</div>
+              <div class="anatomy-label anatomy-label--bottom" style="bottom:-42px;right:2px">track</div>
+            </div>
+          </ng-container>
+
+          <!-- FILE ICON -->
+          <ng-container *ngSwitchCase="'file-icon'">
+            <div class="anatomy-wrap anatomy-wrap--file-icon">
+              <fvdr-file-icon type="pdf"></fvdr-file-icon>
+              <fvdr-file-icon type="xls"></fvdr-file-icon>
+              <fvdr-file-icon type="folder-colored"></fvdr-file-icon>
+              <div class="anatomy-label anatomy-label--top" style="top:-42px;left:50%;transform:translateX(-50%)">icon glyph</div>
+              <div class="dim-h" style="bottom:-26px;left:0;width:20px">20px</div>
+            </div>
+          </ng-container>
+
+          <!-- REDACTION MARK CARD -->
+          <ng-container *ngSwitchCase="'redaction-mark-card'">
+            <div class="anatomy-wrap anatomy-wrap--rmc">
+              <fvdr-redaction-mark-card style="display:block;width:280px" type="personal-name" title="Andrew State" pageLabel="Page 1" status="draft" groupedBy="category"></fvdr-redaction-mark-card>
+              <div class="anatomy-label anatomy-label--left"   style="left:-48px;top:50%;transform:translateY(-50%)">icon</div>
+              <div class="anatomy-label anatomy-label--top"    style="top:-42px;left:44px">title</div>
+              <div class="anatomy-label anatomy-label--right"  style="right:-56px;top:50%;transform:translateY(-50%)">status</div>
+              <div class="anatomy-label anatomy-label--bottom" style="bottom:-42px;left:44px">subtitle</div>
+            </div>
+          </ng-container>
+
+          <!-- TABLE -->
+          <ng-container *ngSwitchCase="'table'">
+            <div class="anatomy-wrap anatomy-wrap--table">
+              <fvdr-table [columns]="demoTableCols" [data]="demoTableData"></fvdr-table>
+              <div class="anatomy-label anatomy-label--top"   style="top:-42px;left:24px">header</div>
+              <div class="anatomy-label anatomy-label--top"   style="top:-42px;right:60px">sortable</div>
+              <div class="anatomy-label anatomy-label--left"  style="left:-44px;top:64px">row</div>
+              <div class="anatomy-label anatomy-label--right" style="right:-48px;top:64px">cell</div>
+            </div>
+          </ng-container>
+
+          <!-- TREE -->
+          <ng-container *ngSwitchCase="'tree'">
+            <div class="anatomy-wrap anatomy-wrap--tree">
+              <div class="mock-tree">
+                <div class="mock-tree__node">
+                  <fvdr-icon name="chevron-down" class="mock-tree__chevron"></fvdr-icon>
+                  <fvdr-icon name="folder" class="mock-tree__icon"></fvdr-icon>
+                  <span class="mock-tree__label">Documents</span>
+                </div>
+                <div class="mock-tree__node" style="padding-left:36px">
+                  <fvdr-icon name="chevron-right" class="mock-tree__chevron"></fvdr-icon>
+                  <fvdr-icon name="folder" class="mock-tree__icon"></fvdr-icon>
+                  <span class="mock-tree__label">Contracts</span>
+                </div>
+                <div class="mock-tree__node mock-tree__node--sel" style="padding-left:36px">
+                  <span class="mock-tree__spacer"></span>
+                  <fvdr-icon name="reports" class="mock-tree__icon"></fvdr-icon>
+                  <span class="mock-tree__label">NDA_signed.pdf</span>
+                </div>
+              </div>
+              <div class="anatomy-label anatomy-label--right" style="right:-64px;top:8px">node row</div>
+              <div class="anatomy-label anatomy-label--top"   style="top:-42px;left:2px">chevron</div>
+              <div class="anatomy-label anatomy-label--left"  style="left:-64px;bottom:8px">selected</div>
+              <div class="dim-h" style="bottom:-28px;left:0;width:36px">indent</div>
+            </div>
+          </ng-container>
+
+          <!-- CALENDAR -->
+          <ng-container *ngSwitchCase="'calendar'">
+            <div class="anatomy-wrap anatomy-wrap--calendar">
+              <fvdr-calendar></fvdr-calendar>
+              <div class="anatomy-label anatomy-label--top"    style="top:-42px;left:50%;transform:translateX(-50%)">header</div>
+              <div class="anatomy-label anatomy-label--left"   style="left:-72px;top:58px">weekdays</div>
+              <div class="anatomy-label anatomy-label--right"  style="right:-64px;top:112px">day cell</div>
+              <div class="anatomy-label anatomy-label--bottom" style="bottom:-42px;left:50%;transform:translateX(-50%)">today · selected</div>
+            </div>
+          </ng-container>
+
+          <!-- DATEPICKER -->
+          <ng-container *ngSwitchCase="'datepicker'">
+            <div class="anatomy-wrap anatomy-wrap--dp">
+              <div class="mock-dropdown">
+                <div class="mock-dropdown__trigger">
+                  <span class="mock-dropdown__value" style="color:var(--color-text-primary)">15.01.2026</span>
+                  <fvdr-icon name="calendar" style="font-size:var(--font-size-base, 14px);color:var(--color-text-secondary)"></fvdr-icon>
+                </div>
+                <div class="mock-dp__panel">
+                  <fvdr-calendar></fvdr-calendar>
+                </div>
+              </div>
+              <div class="anatomy-label anatomy-label--left"  style="left:-102px;top:12px">trigger</div>
+              <div class="anatomy-label anatomy-label--right" style="right:-52px;top:12px">icon</div>
+              <div class="anatomy-label anatomy-label--right" style="right:-52px;top:96px">panel</div>
+              <div class="dim-v" style="left:-22px;top:0;height:40px">40px</div>
+            </div>
+          </ng-container>
+
+          <!-- TIMEPICKER -->
+          <ng-container *ngSwitchCase="'timepicker'">
+            <div class="anatomy-wrap anatomy-wrap--tp">
+              <div class="mock-dropdown">
+                <div class="mock-dropdown__trigger">
+                  <span class="mock-dropdown__value" style="color:var(--color-text-primary)">09:30</span>
+                  <fvdr-icon name="clock" style="font-size:var(--font-size-base, 14px);color:var(--color-text-secondary)"></fvdr-icon>
+                </div>
+                <div class="mock-dropdown__panel">
+                  <div class="mock-dropdown__option">09:00</div>
+                  <div class="mock-dropdown__option">09:15</div>
+                  <div class="mock-dropdown__option mock-dropdown__option--selected">09:30</div>
+                  <div class="mock-dropdown__option">09:45</div>
+                  <div class="mock-dropdown__option">10:00</div>
+                </div>
+              </div>
+              <div class="anatomy-label anatomy-label--left"  style="left:-102px;top:12px">trigger</div>
+              <div class="anatomy-label anatomy-label--right" style="right:-52px;top:12px">clock</div>
+              <div class="anatomy-label anatomy-label--right" style="right:-64px;top:74px">options</div>
+              <div class="anatomy-label anatomy-label--right" style="right:-72px;top:118px">selected</div>
+              <div class="dim-v" style="left:-22px;top:0;height:40px">40px</div>
+            </div>
+          </ng-container>
+
+          <!-- TEXT EDITOR -->
+          <ng-container *ngSwitchCase="'text-editor'">
+            <div class="anatomy-wrap anatomy-wrap--editor">
+              <div class="mock-editor">
+                <div class="mock-editor__toolbar">
+                  <span class="mock-editor__tool" style="font-weight:700">B</span>
+                  <span class="mock-editor__tool" style="font-style:italic">I</span>
+                  <span class="mock-editor__tool" style="text-decoration:underline">U</span>
+                  <span class="mock-editor__sep"></span>
+                  <span class="mock-editor__tool">•</span>
+                  <span class="mock-editor__tool">1.</span>
+                  <span class="mock-editor__sep"></span>
+                  <fvdr-icon name="link" class="mock-editor__tool"></fvdr-icon>
+                </div>
+                <div class="mock-editor__content">
+                  <span class="mock-editor__line"></span>
+                  <span class="mock-editor__line mock-editor__line--short"></span>
+                  <span class="mock-editor__line"></span>
+                </div>
+              </div>
+              <div class="anatomy-label anatomy-label--top"   style="top:-42px;left:50%;transform:translateX(-50%)">toolbar</div>
+              <div class="anatomy-label anatomy-label--right" style="right:-60px;bottom:24px">content</div>
+              <div class="anatomy-label anatomy-label--left"  style="left:-64px;top:50%;transform:translateY(-50%)">container</div>
+            </div>
+          </ng-container>
+
+          <!-- GHOST BUTTON -->
+          <ng-container *ngSwitchCase="'ghost-btn'">
+            <div class="anatomy-wrap anatomy-wrap--ghost-btn">
+              <fvdr-ghost-btn label="Invite viewers" shortcut="Shift"></fvdr-ghost-btn>
+              <div class="anatomy-label anatomy-label--top"    style="top:-42px;left:6px">icon</div>
+              <div class="anatomy-label anatomy-label--top"    style="top:-42px;left:64px">label</div>
+              <div class="anatomy-label anatomy-label--right"  style="right:-64px;top:50%;transform:translateY(-50%)">shortcut</div>
+              <div class="anatomy-label anatomy-label--bottom" style="bottom:-42px;left:40px">container</div>
+              <div class="anatomy-label anatomy-label--bottom" style="bottom:-42px;right:44px">arrow</div>
+              <div class="dim-v" style="left:-24px;top:0;height:40px">40px</div>
+            </div>
+          </ng-container>
+
+          <!-- FLOATING PANEL -->
+          <ng-container *ngSwitchCase="'floating-panel'">
+            <div class="anatomy-wrap anatomy-wrap--floating-panel">
+              <fvdr-floating-panel [items]="demoFloatingPanelItems" orientation="horizontal" size="big"></fvdr-floating-panel>
+              <div class="anatomy-label anatomy-label--top"    style="top:-42px;left:50%;transform:translateX(-50%)">panel container</div>
+              <div class="anatomy-label anatomy-label--bottom" style="bottom:-42px;left:20px">ghost button</div>
+              <div class="anatomy-label anatomy-label--right"  style="right:-44px;top:50%;transform:translateY(-50%)">icon</div>
+            </div>
+          </ng-container>
+
+          <!-- FILTER BUTTON -->
+          <ng-container *ngSwitchCase="'filter-btn'">
+            <div class="anatomy-wrap anatomy-wrap--filter-btn">
+              <fvdr-filter-btn label="Category" color="blue" [showIcon]="true" [showStatus]="true" [showCounter]="true" counter="10" [showArrow]="true"></fvdr-filter-btn>
+              <div class="anatomy-label anatomy-label--top"    style="top:-42px;left:6px">icon</div>
+              <div class="anatomy-label anatomy-label--top"    style="top:-42px;left:50px">label</div>
+              <div class="anatomy-label anatomy-label--top"    style="top:-42px;right:40px">counter</div>
+              <div class="anatomy-label anatomy-label--right"  style="right:-52px;top:50%;transform:translateY(-50%)">arrow</div>
+              <div class="anatomy-label anatomy-label--bottom" style="bottom:-42px;left:50%;transform:translateX(-50%)">container · status dot</div>
+              <div class="dim-v" style="left:-24px;top:0;height:40px">40px</div>
+            </div>
+          </ng-container>
+
           <ng-container *ngSwitchDefault>
             <div class="anatomy-preview-empty">Live anatomy preview coming soon for this component.</div>
           </ng-container>
@@ -2387,6 +2737,56 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
       white-space: nowrap;
     }
 
+    /* ── Mock toast (anatomy preview — real fvdr-toast is fixed at 400px, too wide for this box) ── */
+    .mock-toast {
+      display: flex;
+      align-items: stretch;
+      width: 280px;
+      border-radius: var(--radius-sm, 4px);
+      background: var(--color-stone-50, #fafafa);
+      box-shadow: var(--shadow-toast, 0 4px 24px rgba(0,0,0,0.14));
+      overflow: hidden;
+    }
+    .mock-toast__bar {
+      flex-shrink: 0;
+      width: 4px;
+      background: var(--color-alert-success, var(--color-primary-500));
+    }
+    .mock-toast__inner {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--space-3, 12px);
+      padding: var(--space-3, 12px) var(--space-4, 16px);
+      flex: 1;
+    }
+    .mock-toast__icon {
+      font-size: 18px;
+      color: var(--color-alert-success, var(--color-primary-500));
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .mock-toast__body {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      flex: 1;
+    }
+    .mock-toast__title {
+      font-size: var(--font-size-sm, 13px);
+      font-weight: 600;
+      color: var(--color-text-primary, #1f2129);
+    }
+    .mock-toast__message {
+      font-size: var(--font-size-sm, 13px);
+      color: var(--color-text-secondary, #73757f);
+    }
+    .mock-toast__close {
+      font-size: 14px;
+      color: var(--color-text-placeholder, #9c9ea8);
+      flex-shrink: 0;
+      cursor: pointer;
+    }
+
     /* ── Mock modal (anatomy preview) ── */
     .mock-modal {
       background: var(--color-bg-page, #fff);
@@ -2732,6 +3132,86 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
       width: 7px; height: 7px; border-radius: 9999px; background: currentColor;
       flex-shrink: 0;
     }
+
+    /* ── Group A anatomy wraps (live components) ── */
+    .anatomy-wrap--textarea    { width: 240px; }
+    .anatomy-wrap--search      { width: 240px; }
+    .anatomy-wrap--phone       { width: 240px; }
+    .anatomy-wrap--multiselect { width: 260px; }
+    .anatomy-wrap--range       { width: 240px; }
+    .anatomy-wrap--progress    { width: 240px; }
+    .anatomy-wrap--info-banner { width: 320px; }
+    .anatomy-wrap--drop-area   { width: 300px; }
+    .anatomy-wrap--toast       { width: 400px; }
+    .anatomy-wrap--dp          { width: 280px; }
+    .anatomy-wrap--tp          { width: 200px; }
+    .anatomy-wrap--tree        { width: 240px; }
+    .anatomy-wrap--editor      { width: 300px; }
+    .anatomy-wrap--table       { width: 480px; }
+    /* Force block-level so inner width:100% fills the wrap */
+    .anatomy-wrap--textarea fvdr-textarea,
+    .anatomy-wrap--search fvdr-search,
+    .anatomy-wrap--phone fvdr-phone-input,
+    .anatomy-wrap--multiselect fvdr-multiselect,
+    .anatomy-wrap--range fvdr-range,
+    .anatomy-wrap--progress fvdr-progress,
+    .anatomy-wrap--info-banner fvdr-info-banner,
+    .anatomy-wrap--drop-area fvdr-drop-area,
+    .anatomy-wrap--table fvdr-table { display: block; }
+    /* Counter / file-icon rows */
+    .anatomy-wrap--counter,
+    .anatomy-wrap--file-icon { display: inline-flex; align-items: center; gap: 20px; }
+
+    /* ── Mock tree (anatomy) ── */
+    .mock-tree {
+      width: 100%;
+      background: var(--color-stone-0, #fff);
+      border: 1px solid var(--color-divider, #dee0eb);
+      border-radius: var(--radius-sm, 4px);
+      padding: var(--space-1, 4px) 0;
+      overflow: hidden;
+    }
+    .mock-tree__node {
+      display: flex; align-items: center; gap: 6px;
+      height: 36px; padding: 0 12px;
+      font-size: var(--font-size-sm, 13px); color: var(--color-text-primary, #1f2129);
+    }
+    .mock-tree__node--sel { background: var(--color-primary-50, #ebf8ef); }
+    .mock-tree__node--sel .mock-tree__label { color: var(--color-primary-500, #2c9c74); font-weight: 600; }
+    .mock-tree__chevron { font-size: var(--font-size-xs, 12px); color: var(--color-text-secondary, #5f616a); flex-shrink: 0; }
+    .mock-tree__icon { font-size: var(--font-size-base, 14px); color: var(--color-text-secondary, #5f616a); flex-shrink: 0; }
+    .mock-tree__spacer { width: 12px; flex-shrink: 0; }
+    .mock-tree__label { flex: 1; }
+
+    /* ── Mock text editor (anatomy) ── */
+    .mock-editor {
+      width: 100%;
+      border: 1.5px solid var(--color-stone-400, #dee0eb);
+      border-radius: var(--radius-sm, 4px);
+      background: var(--color-stone-0, #fff);
+      overflow: hidden;
+    }
+    .mock-editor__toolbar {
+      display: flex; align-items: center; gap: 4px;
+      height: 40px; padding: 0 10px;
+      border-bottom: 1px solid var(--color-divider, #dee0eb);
+    }
+    .mock-editor__tool {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-width: 24px; height: 24px; padding: 0 4px;
+      border-radius: var(--radius-sm, 4px);
+      font-size: var(--font-size-sm, 13px); color: var(--color-text-secondary, #5f616a);
+    }
+    .mock-editor__sep { width: 1px; height: 18px; background: var(--color-divider, #dee0eb); margin: 0 4px; }
+    .mock-editor__content {
+      display: flex; flex-direction: column; gap: 10px;
+      padding: 14px; min-height: 96px;
+    }
+    .mock-editor__line { height: 8px; border-radius: 4px; background: var(--color-stone-300, #eceef9); }
+    .mock-editor__line--short { width: 60%; }
+
+    /* ── Datepicker panel spacing (reuses mock-dropdown + live calendar) ── */
+    .mock-dp__panel { margin-top: 4px; }
 
     /* ── Navigation example frame — sidebar at natural height ── */
     .nav-example-frame {

@@ -921,7 +921,12 @@ const textarea: ComponentDocEntry = {
     'A multi-line text input with auto-grow support, character count, and validation states. Shares visual language with fvdr-input.',
   whenToUse: ['Collecting multi-line free-form text such as descriptions, notes, or messages.'],
   whenNotToUse: [],
-  anatomy: [],
+  anatomy: [
+    { index: 1, part: 'Label',        spec: 'caption2 · color:--color-text-secondary · optional required asterisk' },
+    { index: 2, part: 'Textarea box', spec: 'min-height:80px · border:1.5px --color-stone-400 · radius:4px · padding:8px 12px · resize:vertical' },
+    { index: 3, part: 'Char counter', spec: 'Optional (maxlength) · caption1 · right-aligned · "0 / N"' },
+    { index: 4, part: 'Helper text',  spec: 'caption1 · secondary · turns --color-error-600 on error' },
+  ],
   tokens: [
     { token: '--color-border-input',        value: '#bbbdc8', usage: 'Default border color' },
     { token: '--color-interactive-primary', value: '#2c9c74', usage: 'Focus border color' },
@@ -942,7 +947,12 @@ const search: ComponentDocEntry = {
     'A specialised input pre-configured with a search icon, clear button, and debounced output for filtering lists or data tables.',
   whenToUse: ['Filtering a list or table by a text query.'],
   whenNotToUse: [],
-  anatomy: [],
+  anatomy: [
+    { index: 1, part: 'Search icon',  spec: '16px · --color-text-placeholder · margin-left:12px' },
+    { index: 2, part: 'Input',        spec: 'flex:1 · base-s font · transparent bg · padding:0 8px' },
+    { index: 3, part: 'Field / root', spec: 'height:32/40/48px · border:1.5px --color-stone-400 · radius:4px' },
+    { index: 4, part: 'Clear button', spec: 'Optional (when value) · close icon · 28px wide' },
+  ],
   tokens: [
     { token: '--color-border-input',     value: '#bbbdc8', usage: 'Default border' },
     { token: '--color-text-placeholder', value: '#b0b3c0', usage: 'Placeholder color' },
@@ -963,7 +973,13 @@ const calendar: ComponentDocEntry = {
     'A standalone month-grid calendar for selecting a single date or date range. Used internally by Datepicker.',
   whenToUse: ['Inline date selection when a popup datepicker would be too compact.'],
   whenNotToUse: [],
-  anatomy: [],
+  anatomy: [
+    { index: 1, part: 'Header',       spec: 'Month Year label + prev/next chevron nav buttons' },
+    { index: 2, part: 'Weekday row',  spec: '7 columns · Mon–Sun · caption day-name labels' },
+    { index: 3, part: 'Day cell',     spec: '~32×32px · radius:50% when selected' },
+    { index: 4, part: 'Selected day', spec: 'bg:--color-primary-500 · white text' },
+    { index: 5, part: 'Today',        spec: '1px --color-primary-500 border ring' },
+  ],
   tokens: [
     { token: '--color-interactive-primary', value: '#2c9c74', usage: 'Selected day background' },
     { token: '--color-hover-bg',            value: '#eef0f8', usage: 'Day hover background' },
@@ -984,7 +1000,12 @@ const datepicker: ComponentDocEntry = {
     'An input that opens a floating fvdr-calendar panel for date selection. Formats output using Angular DatePipe.',
   whenToUse: ['Collecting a date via a compact field that expands on demand.'],
   whenNotToUse: [],
-  anatomy: [],
+  anatomy: [
+    { index: 1, part: 'Trigger',       spec: 'height:40px · border:1.5px --color-stone-400 · radius:4px · shows DD.MM.YYYY' },
+    { index: 2, part: 'Calendar icon', spec: '16px · right side of the trigger field' },
+    { index: 3, part: 'Panel',         spec: 'Floating fvdr-calendar below the trigger · shadow-popover' },
+    { index: 4, part: 'Selected date', spec: 'bg:--color-primary-500 · white text in day cell' },
+  ],
   tokens: [
     { token: '--color-border-input',        value: '#bbbdc8', usage: 'Trigger border' },
     { token: '--color-interactive-primary', value: '#2c9c74', usage: 'Selected date highlight' },
@@ -1005,7 +1026,12 @@ const timepicker: ComponentDocEntry = {
     'A time input that offers either a scroll-wheel panel or typed HH:MM entry with AM/PM toggle.',
   whenToUse: ['Collecting a time-of-day value in a scheduling or reminder form.'],
   whenNotToUse: [],
-  anatomy: [],
+  anatomy: [
+    { index: 1, part: 'Trigger',         spec: 'input field (S/M/L) · clock icon on the right' },
+    { index: 2, part: 'Clock icon',      spec: '16px · --color-text-secondary' },
+    { index: 3, part: 'Dropdown',        spec: 'scrollable popover of 15-minute time options' },
+    { index: 4, part: 'Selected option', spec: 'bg:--color-primary-50 · primary text' },
+  ],
   tokens: [
     { token: '--color-border-input',        value: '#bbbdc8', usage: 'Trigger border' },
     { token: '--color-interactive-primary', value: '#2c9c74', usage: 'Selected time highlight' },
@@ -1026,7 +1052,12 @@ const phoneInput: ComponentDocEntry = {
     'A phone number field with a country-code prefix dropdown and automatic formatting as the user types.',
   whenToUse: ['Collecting an international phone number in a registration or contact form.'],
   whenNotToUse: [],
-  anatomy: [],
+  anatomy: [
+    { index: 1, part: 'Country selector', spec: 'flag + calling code + chevron · hover bg:--color-hover-bg' },
+    { index: 2, part: 'Divider',          spec: '1px × 20px · --color-stone-400' },
+    { index: 3, part: 'Number input',     spec: 'flex:1 · base-s font · tel type' },
+    { index: 4, part: 'Wrapper / root',   spec: 'height:40px · border:1.5px --color-stone-400 · radius:4px' },
+  ],
   tokens: [
     { token: '--color-border-input',     value: '#bbbdc8', usage: 'Field border' },
     { token: '--color-text-placeholder', value: '#b0b3c0', usage: 'Placeholder color' },
@@ -1047,7 +1078,12 @@ const textEditor: ComponentDocEntry = {
     'A rich-text editor with a minimal toolbar (bold, italic, lists, links). Outputs HTML or markdown depending on configuration.',
   whenToUse: ['Editing formatted content such as email templates, notes, or documentation.'],
   whenNotToUse: [],
-  anatomy: [],
+  anatomy: [
+    { index: 1, part: 'Label',        spec: 'caption2 · secondary · optional' },
+    { index: 2, part: 'Toolbar',      spec: 'top bar · white bg · 1px --color-divider bottom border · format buttons' },
+    { index: 3, part: 'Content area', spec: 'editable body · base font · min-height:120px' },
+    { index: 4, part: 'Container',    spec: 'border:1.5px --color-stone-400 · radius:4px · focus:--color-primary-500' },
+  ],
   tokens: [
     { token: '--color-border',              value: '#dee0eb', usage: 'Editor container border' },
     { token: '--color-interactive-primary', value: '#2c9c74', usage: 'Active toolbar button indicator' },
@@ -1068,7 +1104,12 @@ const radio: ComponentDocEntry = {
     'A group of mutually exclusive options where exactly one can be selected at a time. Use fvdr-radio-group as the container.',
   whenToUse: ['Selecting exactly one option from 2–5 visible choices.'],
   whenNotToUse: [],
-  anatomy: [],
+  anatomy: [
+    { index: 1, part: 'Circle', spec: '18×18px · border:1.5px --color-stone-400 · --color-primary-500 when checked' },
+    { index: 2, part: 'Dot',    spec: '8×8px · --color-primary-500 · shown when selected' },
+    { index: 3, part: 'Label',  spec: 'base-s · --color-text-primary · gap:8px' },
+    { index: 4, part: 'Group',  spec: 'vertical (gap:8px) or horizontal (gap:16px)' },
+  ],
   tokens: [
     { token: '--color-interactive-primary', value: '#2c9c74', usage: 'Selected radio button fill' },
     { token: '--color-border-input',        value: '#bbbdc8', usage: 'Unselected radio border' },
@@ -1093,7 +1134,12 @@ const segment: ComponentDocEntry = {
     'A compact button-group control for switching between 2–4 mutually exclusive options, rendered as a pill or boxed strip.',
   whenToUse: ['Switching between a small number of view modes or filter states inline.'],
   whenNotToUse: [],
-  anatomy: [],
+  anatomy: [
+    { index: 1, part: 'Track',        spec: 'inline-flex row of item buttons · radius:4px on the ends' },
+    { index: 2, part: 'Item',         spec: 'padding:8px 16px · base-m · bg:--color-stone-200' },
+    { index: 3, part: 'Active item',  spec: 'bg:--color-primary-500 · white text · border --color-primary-500' },
+    { index: 4, part: 'Icon / count', spec: 'Optional 16px icon + count badge (table variant)' },
+  ],
   tokens: [
     { token: '--color-interactive-primary', value: '#2c9c74', usage: 'Active segment background' },
     { token: '--color-border',              value: '#dee0eb', usage: 'Segment group border' },
@@ -1159,7 +1205,13 @@ const multiselect: ComponentDocEntry = {
     'A dropdown that allows selecting multiple options, displaying selections as fvdr-chip tokens inside the trigger.',
   whenToUse: ['Selecting multiple values from a predefined list.'],
   whenNotToUse: [],
-  anatomy: [],
+  anatomy: [
+    { index: 1, part: 'Label',   spec: 'caption2 · secondary · optional required *' },
+    { index: 2, part: 'Trigger', spec: 'text-field style · shows chips or "N selected"' },
+    { index: 3, part: 'Chips',   spec: 'selected values as tokens · maxChips before "+N"' },
+    { index: 4, part: 'Clear',   spec: 'bulk clear button shown when there is a selection' },
+    { index: 5, part: 'Chevron', spec: 'chevron-down · rotates when the panel is open' },
+  ],
   tokens: [
     { token: '--color-border-input',        value: '#bbbdc8', usage: 'Trigger border' },
     { token: '--color-interactive-primary', value: '#2c9c74', usage: 'Selected item check and chip tint' },
@@ -1180,7 +1232,13 @@ const droplist: ComponentDocEntry = {
     'A drag-and-drop sortable list container. Wraps Angular CDK DragDropModule with design-system styled handles and drop zones.',
   whenToUse: ['Reordering a list of items by drag and drop.'],
   whenNotToUse: [],
-  anatomy: [],
+  anatomy: [
+    { index: 1, part: 'Panel',       spec: 'white bg · border:1px --color-stone-400 · radius:4px · shadow-popover' },
+    { index: 2, part: 'Item',        spec: 'height:40px · padding:0 16px · gap:8px' },
+    { index: 3, part: 'Icon',        spec: 'leading fvdr-icon (non-checkbox mode)' },
+    { index: 4, part: 'Right text',  spec: 'shortcut / meta · secondary · right-aligned' },
+    { index: 5, part: 'Active item', spec: 'bg:--color-primary-50 · check icon' },
+  ],
   tokens: [
     { token: '--color-border',       value: '#dee0eb', usage: 'Drop zone placeholder border' },
     { token: '--color-selected-row', value: '#ebf8ef', usage: 'Dragged item placeholder highlight' },
@@ -1201,7 +1259,10 @@ const counter: ComponentDocEntry = {
     'An animated numeric display that counts up or down to a target value. Used for KPI cards and summary stats.',
   whenToUse: ['Highlighting a key metric on a dashboard or summary card.'],
   whenNotToUse: [],
-  anatomy: [],
+  anatomy: [
+    { index: 1, part: 'Pill',   spec: 'min-width=height (16px S / 20px M) · radius:full · padding:0 4px' },
+    { index: 2, part: 'Number', spec: 'caption2 font · centered · "99+" max display' },
+  ],
   tokens: [
     { token: '--color-text-primary',   value: '#1f2129', usage: 'Counter number color' },
     { token: '--font-size-lg',         value: '16px',    usage: 'Counter base font-size (scales up)' },
@@ -1222,7 +1283,11 @@ const inlineMessage: ComponentDocEntry = {
     'A contextual feedback strip with an icon and text, rendered inline within a form or content area. Supports info, success, warning, and error variants.',
   whenToUse: ['Displaying contextual validation or guidance directly adjacent to the relevant UI.'],
   whenNotToUse: [],
-  anatomy: [],
+  anatomy: [
+    { index: 1, part: 'Root', spec: 'inline-flex · gap:8px · radius:4px · tinted bg by variant' },
+    { index: 2, part: 'Icon', spec: '16px status icon · severity color · flex-shrink:0' },
+    { index: 3, part: 'Text', spec: '--color-text-primary · size 14/15/16px by S/M/L' },
+  ],
   tokens: [
     { token: '--color-danger',              value: '#e54430', usage: 'Error variant background tint and icon' },
     { token: '--color-interactive-primary', value: '#2c9c74', usage: 'Success variant icon' },
@@ -1243,7 +1308,11 @@ const infoBanner: ComponentDocEntry = {
     'A full-width informational strip pinned to the top of a page or section. Used for trial notices, maintenance warnings, and system announcements.',
   whenToUse: ['Surfacing a persistent site-wide notice that all users must see.'],
   whenNotToUse: [],
-  anatomy: [],
+  anatomy: [
+    { index: 1, part: 'Root',    spec: 'flex · gap:8px · padding:12px 16px · radius:8px · 1px border' },
+    { index: 2, part: 'Icon',    spec: '16px info circle · severity color' },
+    { index: 3, part: 'Content', spec: 'optional bold title + message · base-s' },
+  ],
   tokens: [
     { token: '--color-feature-bg',          value: '#ebf4fd', usage: 'Info banner background' },
     { token: '--color-interactive-primary', value: '#2c9c74', usage: 'CTA link color' },
@@ -1264,7 +1333,12 @@ const toast: ComponentDocEntry = {
     'A non-blocking notification that appears at a corner of the screen and auto-dismisses. Injected programmatically via ToastService.',
   whenToUse: ['Confirming a completed action (saved, copied, deleted) without blocking the UI.'],
   whenNotToUse: ['Critical errors that require a decision — use a Modal or Confirmation dialog instead.'],
-  anatomy: [],
+  anatomy: [
+    { index: 1, part: 'Accent bar', spec: '4px · left edge · variant color · rounded-left' },
+    { index: 2, part: 'Icon',       spec: '24px · variant color' },
+    { index: 3, part: 'Body',       spec: 'optional title (600) + message · 16px/24' },
+    { index: 4, part: 'Close',      spec: '24px close button · --color-text-secondary' },
+  ],
   tokens: [
     { token: '--color-stone-0',        value: '#ffffff', usage: 'Toast surface' },
     { token: '--color-alert-success',  value: '#2c9c74', usage: 'Success bar + icon' },
@@ -1290,7 +1364,12 @@ const table: ComponentDocEntry = {
     'A data table with sortable columns, row selection checkboxes, pagination, and optional row actions menu. Consumes a column definition array.',
   whenToUse: ['Displaying structured tabular data with sort and pagination controls.'],
   whenNotToUse: [],
-  anatomy: [],
+  anatomy: [
+    { index: 1, part: 'Header row',      spec: 'height:40px · bg:--color-stone-100 · 1px --color-divider bottom' },
+    { index: 2, part: 'Sortable header', spec: 'chevron sort icon · clickable label' },
+    { index: 3, part: 'Body row',        spec: 'height:48px · hover:--color-hover-bg · selected:--color-primary-50' },
+    { index: 4, part: 'Cell',            spec: 'padding:0 16px · base font' },
+  ],
   tokens: [
     { token: '--color-border',        value: '#dee0eb', usage: 'Row divider and header border' },
     { token: '--color-selected-row',  value: '#ebf8ef', usage: 'Selected row background' },
@@ -1311,7 +1390,13 @@ const tree: ComponentDocEntry = {
     'A hierarchical tree view with expand/collapse nodes, checkboxes for multi-selection, and lazy-loading support.',
   whenToUse: ['Navigating or selecting from a nested hierarchical data structure.'],
   whenNotToUse: [],
-  anatomy: [],
+  anatomy: [
+    { index: 1, part: 'Node row',     spec: 'height:36px · radius:4px · hover:--color-hover-bg' },
+    { index: 2, part: 'Chevron',      spec: '20px toggle · chevron-right/down · only when node has children' },
+    { index: 3, part: 'Indent',       spec: '16px base + 20px per level' },
+    { index: 4, part: 'Icon + label', spec: '16px file/nav icon + base-s label' },
+    { index: 5, part: 'Selected',     spec: 'bg:--color-primary-50 · --color-primary-500 label' },
+  ],
   tokens: [
     { token: '--color-hover-bg',            value: '#eef0f8', usage: 'Node hover background' },
     { token: '--color-interactive-primary', value: '#2c9c74', usage: 'Selected node indicator' },
@@ -1332,7 +1417,12 @@ const dropArea: ComponentDocEntry = {
     'A file upload zone that accepts drag-and-drop and click-to-browse interactions. Displays file previews and upload progress.',
   whenToUse: ['Collecting file uploads in a form with visual drag-and-drop affordance.'],
   whenNotToUse: [],
-  anatomy: [],
+  anatomy: [
+    { index: 1, part: 'Zone',     spec: '1.5px dashed --color-stone-400 · radius:8px · bg:--color-stone-100 · padding:32px 24px' },
+    { index: 2, part: 'Icon',     spec: '24px upload · --color-primary-500' },
+    { index: 3, part: 'Title',    spec: 'base-s semibold · --color-text-primary' },
+    { index: 4, part: 'Subtitle', spec: 'caption1 secondary + accepted types (disabled color)' },
+  ],
   tokens: [
     { token: '--color-border',              value: '#dee0eb', usage: 'Drop zone dashed border' },
     { token: '--color-interactive-primary', value: '#2c9c74', usage: 'Drag-over active border and icon' },
@@ -1353,7 +1443,12 @@ const numberStepper: ComponentDocEntry = {
     'A numeric input with increment and decrement buttons. Supports min, max, and step constraints.',
   whenToUse: ['Adjusting a bounded numeric value such as quantity, duration, or seat count.'],
   whenNotToUse: [],
-  anatomy: [],
+  anatomy: [
+    { index: 1, part: 'Decrement',   spec: '36px button · minus icon · disabled at min' },
+    { index: 2, part: 'Value input', spec: 'centered number · 1px --color-stone-400 side borders' },
+    { index: 3, part: 'Increment',   spec: '36px button · plus icon · disabled at max' },
+    { index: 4, part: 'Wrapper',     spec: 'height:40px · border:1.5px --color-stone-400 · radius:4px' },
+  ],
   tokens: [
     { token: '--color-border-input',        value: '#bbbdc8', usage: 'Input border' },
     { token: '--color-interactive-primary', value: '#2c9c74', usage: 'Stepper button icon color' },
@@ -1374,7 +1469,12 @@ const range: ComponentDocEntry = {
     'A slider for selecting a value or range within defined bounds. Supports single-thumb and dual-thumb (range) modes.',
   whenToUse: ['Selecting a value from a continuous numeric range like price, volume, or zoom level.'],
   whenNotToUse: [],
-  anatomy: [],
+  anatomy: [
+    { index: 1, part: 'Track', spec: 'height:4px · radius:2px · --color-stone-300 (unfilled)' },
+    { index: 2, part: 'Fill',  spec: '--color-primary-500 gradient up to the current value' },
+    { index: 3, part: 'Thumb', spec: '18×18px · white · 2px --color-primary-500 border · shadow' },
+    { index: 4, part: 'Label', spec: 'optional caption2 label + current value' },
+  ],
   tokens: [
     { token: '--color-interactive-primary', value: '#2c9c74', usage: 'Track fill and thumb color' },
     { token: '--color-border',              value: '#dee0eb', usage: 'Track background (unfilled)' },
@@ -1395,7 +1495,11 @@ const progress: ComponentDocEntry = {
     'A horizontal progress bar for deterministic operations. Supports labelled percentage, striped animation for indeterminate state, and success/error colour variants.',
   whenToUse: ['Visualising the completion percentage of a multi-step operation or file upload.'],
   whenNotToUse: [],
-  anatomy: [],
+  anatomy: [
+    { index: 1, part: 'Header',   spec: 'optional label (caption2) + value% (caption1)' },
+    { index: 2, part: 'Track',    spec: 'height:8px · radius:full · bg:--color-stone-300' },
+    { index: 3, part: 'Fill bar', spec: '--color-primary-500 · width:value% · 0.3s transition' },
+  ],
   tokens: [
     { token: '--color-interactive-primary', value: '#2c9c74', usage: 'Progress fill color (default)' },
     { token: '--color-danger',              value: '#e54430', usage: 'Error state fill color' },
@@ -1517,7 +1621,10 @@ const fileIcon: ComponentDocEntry = {
     'A color-coded file-type icon derived from a file extension or MIME type. Covers 20+ common types including PDF, XLSX, DOCX, PNG, and MP4.',
   whenToUse: ['Representing a file attachment or asset in a list or card.'],
   whenNotToUse: [],
-  anatomy: [],
+  anatomy: [
+    { index: 1, part: 'Icon glyph', spec: '20×18px SVG asset · type-specific colored icon' },
+    { index: 2, part: 'Host',       spec: '20×20px inline-flex · centered · flex-shrink:0' },
+  ],
   tokens: [
     { token: '--color-text-primary',   value: '#1f2129', usage: 'Generic file icon fallback color' },
     { token: '--color-feature-bg',     value: '#ebf4fd', usage: 'Icon container background (info tint)' },
@@ -1705,7 +1812,13 @@ const redactionMarkCard: ComponentDocEntry = {
     'File or folder rows (use File Icon + list row)',
     'Selecting from a fixed set of options (use Dropdown or Checkbox)',
   ],
-  anatomy: [],
+  anatomy: [
+    { index: 1, part: 'Type icon',     spec: '16px · --color-text-secondary · tints when selected' },
+    { index: 2, part: 'Title',         spec: '14px/20 · --color-text-primary · ellipsis' },
+    { index: 3, part: 'Subtitle',      spec: '12px/16 · --color-text-secondary (type or page)' },
+    { index: 4, part: 'Status square', spec: '8×8px · radius:2px · draft (orange) / applied (green)' },
+    { index: 5, part: 'Delete',        spec: 'trash button · revealed on hover · error color' },
+  ],
   tokens: [
     { token: '#FFC694', value: '#FFC694', usage: 'Draft status square fill' },
     { token: '#B1EAC2', value: '#B1EAC2', usage: 'Applied status square fill' },
