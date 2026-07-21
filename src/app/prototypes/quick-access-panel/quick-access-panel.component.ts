@@ -34,6 +34,8 @@ interface TableRow {
   redaction: 'applied' | 'applied-drafted' | 'drafted' | 'none';
 }
 
+type ResizableColId = 'idx' | 'name' | 'notes' | 'size' | 'pub' | 'red';
+
 @Component({
   selector: 'fvdr-quick-access-panel',
   standalone: true,
@@ -158,29 +160,71 @@ interface TableRow {
             </div>
 
             <!-- ── Table ── -->
-            <div class="tbl-wrap">
+            <div class="tbl-wrap" [class.is-col-resizing]="!!resizingCol">
 
               <!-- Header row -->
-              <div class="tbl-row tbl-row--header">
+              <div class="tbl-row tbl-row--header" [style.grid-template-columns]="gridTemplateColumns">
                 <div class="col-idx">
-                  <span class="th-label">Index</span>
+                  <span class="th-label" data-col-measure="idx">Index</span>
+                  <span class="col-resize-handle"
+                        [class.col-resize-handle--active]="resizingCol === 'idx'"
+                        role="separator" aria-orientation="vertical" aria-label="Resize column Index"
+                        tabindex="0"
+                        (mousedown)="startColResize($event, 'idx')"
+                        (keydown)="onColResizeKeydown($event, 'idx')"
+                        (dblclick)="autoFitColumn('idx')"></span>
                 </div>
                 <div class="col-name">
-                  <span class="th-label">Name</span>
+                  <span class="th-label" data-col-measure="name">Name</span>
+                  <span class="col-resize-handle"
+                        [class.col-resize-handle--active]="resizingCol === 'name'"
+                        role="separator" aria-orientation="vertical" aria-label="Resize column Name"
+                        tabindex="0"
+                        (mousedown)="startColResize($event, 'name')"
+                        (keydown)="onColResizeKeydown($event, 'name')"
+                        (dblclick)="autoFitColumn('name')"></span>
                 </div>
                 <div class="col-notes">
-                  <span class="th-label">Notes</span>
+                  <span class="th-label" data-col-measure="notes">Notes</span>
+                  <span class="col-resize-handle"
+                        [class.col-resize-handle--active]="resizingCol === 'notes'"
+                        role="separator" aria-orientation="vertical" aria-label="Resize column Notes"
+                        tabindex="0"
+                        (mousedown)="startColResize($event, 'notes')"
+                        (keydown)="onColResizeKeydown($event, 'notes')"
+                        (dblclick)="autoFitColumn('notes')"></span>
                 </div>
                 <div class="col-size">
-                  <span class="th-label">Size</span>
+                  <span class="th-label" data-col-measure="size">Size</span>
                   <fvdr-icon name="sort" class="th-sort"></fvdr-icon>
+                  <span class="col-resize-handle"
+                        [class.col-resize-handle--active]="resizingCol === 'size'"
+                        role="separator" aria-orientation="vertical" aria-label="Resize column Size"
+                        tabindex="0"
+                        (mousedown)="startColResize($event, 'size')"
+                        (keydown)="onColResizeKeydown($event, 'size')"
+                        (dblclick)="autoFitColumn('size')"></span>
                 </div>
                 <div class="col-pub">
-                  <span class="th-label">Publishing</span>
+                  <span class="th-label" data-col-measure="pub">Publishing</span>
+                  <span class="col-resize-handle"
+                        [class.col-resize-handle--active]="resizingCol === 'pub'"
+                        role="separator" aria-orientation="vertical" aria-label="Resize column Publishing"
+                        tabindex="0"
+                        (mousedown)="startColResize($event, 'pub')"
+                        (keydown)="onColResizeKeydown($event, 'pub')"
+                        (dblclick)="autoFitColumn('pub')"></span>
                 </div>
                 <div class="col-red">
-                  <span class="th-label">Redaction</span>
+                  <span class="th-label" data-col-measure="red">Redaction</span>
                   <fvdr-icon name="sort" class="th-sort"></fvdr-icon>
+                  <span class="col-resize-handle"
+                        [class.col-resize-handle--active]="resizingCol === 'red'"
+                        role="separator" aria-orientation="vertical" aria-label="Resize column Redaction"
+                        tabindex="0"
+                        (mousedown)="startColResize($event, 'red')"
+                        (keydown)="onColResizeKeydown($event, 'red')"
+                        (dblclick)="autoFitColumn('red')"></span>
                 </div>
                 <div class="col-act">
                   <button class="icon-btn"><fvdr-icon name="filter"></fvdr-icon></button>
@@ -188,27 +232,27 @@ interface TableRow {
               </div>
 
               <!-- Data rows -->
-              <div *ngFor="let row of tableRows" class="tbl-row">
+              <div *ngFor="let row of tableRows" class="tbl-row" [style.grid-template-columns]="gridTemplateColumns">
                 <!-- Index: doc icon + number -->
                 <div class="col-idx">
                   <fvdr-file-icon type="doc" class="doc-icon"></fvdr-file-icon>
-                  <span class="td-idx">{{ row.index }}</span>
+                  <span class="td-idx" data-col-measure="idx">{{ row.index }}</span>
                 </div>
 
                 <!-- Name -->
                 <div class="col-name">
-                  <span class="td-name">{{ row.name }}</span>
+                  <span class="td-name" data-col-measure="name">{{ row.name }}</span>
                 </div>
 
                 <!-- Notes counter -->
                 <div class="col-notes">
-                  <span class="notes-badge">{{ row.notes }}</span>
+                  <span class="notes-badge" data-col-measure="notes">{{ row.notes }}</span>
                 </div>
 
                 <!-- Size (two-line) -->
                 <div class="col-size">
-                  <span class="td-size-main">{{ row.size }}</span>
-                  <span class="td-size-sub">{{ row.files }}</span>
+                  <span class="td-size-main" data-col-measure="size">{{ row.size }}</span>
+                  <span class="td-size-sub" data-col-measure="size">{{ row.files }}</span>
                 </div>
 
                 <!-- Publishing icon -->
@@ -222,7 +266,7 @@ interface TableRow {
 
                 <!-- Redaction chip -->
                 <div class="col-red">
-                  <span class="red-chip" [ngClass]="'red-chip--' + row.redaction">
+                  <span class="red-chip" data-col-measure="red" [ngClass]="'red-chip--' + row.redaction">
                     {{ redactionLabel(row.redaction) }}
                   </span>
                 </div>
@@ -492,14 +536,14 @@ interface TableRow {
       display: flex;
       flex-direction: column;
       background: var(--color-stone-0);
-      overflow: hidden;
+      overflow: auto;
       min-width: 0;
     }
 
     .tbl-row {
       display: grid;
-      grid-template-columns: 94px 1fr 72px 121px 127px 172px 80px;
       align-items: center;
+      min-width: max-content;
     }
     .tbl-row:not(.tbl-row--header):hover { background: var(--color-hover-bg); }
 
@@ -514,6 +558,7 @@ interface TableRow {
 
     /* Header cells */
     .tbl-row--header > div {
+      position: relative;
       display: flex;
       align-items: center;
       gap: var(--space-2);
@@ -524,8 +569,45 @@ interface TableRow {
       font-weight: 600;
       color: var(--color-text-primary);
       white-space: nowrap;
+      flex-shrink: 0;
     }
-    .th-sort { font-size: var(--font-size-base, 14px); color: var(--color-text-secondary); }
+    .th-sort { font-size: var(--font-size-base, 14px); color: var(--color-text-secondary); flex-shrink: 0; }
+
+    /* Column resize handle */
+    .col-resize-handle {
+      position: absolute;
+      top: 0; bottom: 0;
+      right: -3px;
+      width: 6px;
+      cursor: col-resize;
+      z-index: 2;
+      outline: none;
+    }
+    .col-resize-handle::after {
+      content: '';
+      position: absolute;
+      top: 0; bottom: 0;
+      left: 50%;
+      width: 2px;
+      transform: translateX(-50%);
+      background: transparent;
+      transition: background 0.12s ease;
+    }
+    .col-resize-handle:hover::after,
+    .col-resize-handle:focus-visible::after,
+    .col-resize-handle--active::after {
+      background: var(--color-stone-400);
+    }
+    .col-resize-handle:focus-visible {
+      outline: 2px solid var(--color-primary-500);
+      outline-offset: -2px;
+      border-radius: var(--radius-xs);
+    }
+    .tbl-wrap.is-col-resizing { cursor: col-resize; user-select: none; }
+
+    @media (max-width: 767px) {
+      .col-resize-handle { display: none; }
+    }
 
     /* Data cells */
     .tbl-row:not(.tbl-row--header) > div {
@@ -742,6 +824,9 @@ export class QuickAccessPanelComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.tracker.trackPageView('quick-access-panel');
+    this.loadColumnWidths();
+    this.updateResponsiveState();
+    window.addEventListener('resize', this.onWindowResize);
   }
 
   ngOnDestroy(): void {
@@ -749,6 +834,138 @@ export class QuickAccessPanelComponent implements OnInit, OnDestroy {
     this.stopResize();
     document.removeEventListener('mousemove', this.onMouseMove);
     document.removeEventListener('mouseup',   this.onMouseUp);
+    this.stopColResize();
+    window.removeEventListener('resize', this.onWindowResize);
+  }
+
+  // ── Column resize (Documents table) ─────────────────────────────────────
+
+  private readonly COLS_STORAGE_KEY = 'fvdr-quick-access-panel:col-widths';
+  private readonly COL_DEFAULTS: Record<ResizableColId, number> = { idx: 94, name: 280, notes: 72, size: 121, pub: 127, red: 172 };
+  private readonly COL_MIN: Record<ResizableColId, number>      = { idx: 64, name: 120, notes: 48, size: 80,  pub: 80,  red: 100 };
+  private readonly COL_MAX: Record<ResizableColId, number>      = { idx: 240, name: 640, notes: 200, size: 300, pub: 300, red: 320 };
+  /** Fixed content (icon + gap) that precedes the measured text in a cell, added on auto-fit. */
+  private readonly COL_MEASURE_OFFSET: Record<ResizableColId, number> = { idx: 28, name: 0, notes: 0, size: 0, pub: 0, red: 0 };
+
+  colWidths: Record<ResizableColId, number> = { ...this.COL_DEFAULTS };
+  resizingCol: ResizableColId | null = null;
+  isMobileViewport = false;
+  private colStartX = 0;
+  private colStartWidth = 0;
+  private pendingColWidth: number | null = null;
+  private colRafScheduled = false;
+
+  get gridTemplateColumns(): string {
+    const c = this.colWidths;
+    return `${c.idx}px minmax(${c.name}px, 1fr) ${c.notes}px ${c.size}px ${c.pub}px ${c.red}px 80px`;
+  }
+
+  private onWindowResize = () => this.updateResponsiveState();
+
+  private updateResponsiveState(): void {
+    this.isMobileViewport = window.innerWidth < 768;
+  }
+
+  private clampColWidth(id: ResizableColId, value: number): number {
+    return Math.min(this.COL_MAX[id], Math.max(this.COL_MIN[id], Math.round(value)));
+  }
+
+  startColResize(event: MouseEvent, colId: ResizableColId): void {
+    if (this.isMobileViewport) return;
+    event.preventDefault();
+    event.stopPropagation();
+    this.resizingCol = colId;
+    this.colStartX = event.clientX;
+    this.colStartWidth = this.colWidths[colId];
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+    document.addEventListener('mousemove', this.onColMouseMove);
+    document.addEventListener('mouseup', this.onColMouseUp);
+  }
+
+  private onColMouseMove = (e: MouseEvent) => {
+    if (!this.resizingCol) return;
+    const id = this.resizingCol;
+    const delta = e.clientX - this.colStartX;
+    this.pendingColWidth = this.clampColWidth(id, this.colStartWidth + delta);
+    if (!this.colRafScheduled) {
+      this.colRafScheduled = true;
+      requestAnimationFrame(() => {
+        this.colRafScheduled = false;
+        if (this.resizingCol && this.pendingColWidth !== null) {
+          this.colWidths = { ...this.colWidths, [this.resizingCol]: this.pendingColWidth };
+        }
+      });
+    }
+  };
+
+  private onColMouseUp = () => {
+    if (this.resizingCol) {
+      // Commit synchronously in case the last mousemove's rAF hasn't fired yet —
+      // otherwise a fast drag-and-release can persist a stale, pre-final width.
+      if (this.pendingColWidth !== null) {
+        this.colWidths = { ...this.colWidths, [this.resizingCol]: this.pendingColWidth };
+      }
+      this.saveColumnWidths();
+    }
+    this.pendingColWidth = null;
+    this.stopColResize();
+  };
+
+  private stopColResize(): void {
+    this.resizingCol = null;
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+    document.removeEventListener('mousemove', this.onColMouseMove);
+    document.removeEventListener('mouseup', this.onColMouseUp);
+  }
+
+  onColResizeKeydown(event: KeyboardEvent, colId: ResizableColId): void {
+    if (this.isMobileViewport) return;
+    const step = event.shiftKey ? 32 : 8;
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      this.colWidths = { ...this.colWidths, [colId]: this.clampColWidth(colId, this.colWidths[colId] - step) };
+      this.saveColumnWidths();
+    } else if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      this.colWidths = { ...this.colWidths, [colId]: this.clampColWidth(colId, this.colWidths[colId] + step) };
+      this.saveColumnWidths();
+    }
+  }
+
+  autoFitColumn(colId: ResizableColId): void {
+    if (this.isMobileViewport) return;
+    const els = Array.from(document.querySelectorAll<HTMLElement>(`[data-col-measure="${colId}"]`));
+    const widest = els.length ? Math.max(...els.map(el => el.scrollWidth)) : this.COL_MIN[colId];
+    const cellPadding = 32; // --space-4 on both sides of the cell
+    const target = widest + this.COL_MEASURE_OFFSET[colId] + cellPadding;
+    this.colWidths = { ...this.colWidths, [colId]: this.clampColWidth(colId, target) };
+    this.saveColumnWidths();
+  }
+
+  private loadColumnWidths(): void {
+    try {
+      const raw = sessionStorage.getItem(this.COLS_STORAGE_KEY);
+      if (!raw) return;
+      const saved = JSON.parse(raw) as Partial<Record<ResizableColId, number>>;
+      const merged = { ...this.COL_DEFAULTS };
+      (Object.keys(merged) as ResizableColId[]).forEach(id => {
+        const v = saved[id];
+        if (typeof v === 'number') merged[id] = this.clampColWidth(id, v);
+      });
+      this.colWidths = merged;
+    } catch {
+      // corrupted sessionStorage entry — fall back to defaults
+    }
+  }
+
+  private saveColumnWidths(): void {
+    try {
+      sessionStorage.setItem(this.COLS_STORAGE_KEY, JSON.stringify(this.colWidths));
+    } catch {
+      // sessionStorage unavailable (private mode / quota) — resize still works in-memory for this session
+    }
   }
 
   startResize(event: MouseEvent): void {
