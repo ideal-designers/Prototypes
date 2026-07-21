@@ -163,7 +163,7 @@ type ResizableColId = 'idx' | 'name' | 'notes' | 'size' | 'pub' | 'red';
 
               <!-- Header row -->
               <div class="tbl-row tbl-row--header" [style.grid-template-columns]="gridTemplateColumns">
-                <div class="col-idx">
+                <div class="col-idx" [class.col-hover]="hoveredCol === 'idx'" (mouseenter)="hoveredCol = 'idx'" (mouseleave)="hoveredCol = null">
                   <span class="th-label" data-col-measure="idx">Index</span>
                   <span class="col-resize-handle"
                         [class.col-resize-handle--active]="resizingCol === 'idx'"
@@ -173,7 +173,7 @@ type ResizableColId = 'idx' | 'name' | 'notes' | 'size' | 'pub' | 'red';
                         (keydown)="onColResizeKeydown($event, 'idx')"
                         (dblclick)="autoFitColumn('idx')"></span>
                 </div>
-                <div class="col-name">
+                <div class="col-name" [class.col-hover]="hoveredCol === 'name'" (mouseenter)="hoveredCol = 'name'" (mouseleave)="hoveredCol = null">
                   <span class="th-label" data-col-measure="name">Name</span>
                   <span class="col-resize-handle"
                         [class.col-resize-handle--active]="resizingCol === 'name'"
@@ -183,7 +183,7 @@ type ResizableColId = 'idx' | 'name' | 'notes' | 'size' | 'pub' | 'red';
                         (keydown)="onColResizeKeydown($event, 'name')"
                         (dblclick)="autoFitColumn('name')"></span>
                 </div>
-                <div class="col-notes">
+                <div class="col-notes" [class.col-hover]="hoveredCol === 'notes'" (mouseenter)="hoveredCol = 'notes'" (mouseleave)="hoveredCol = null">
                   <span class="th-label" data-col-measure="notes">Notes</span>
                   <span class="col-resize-handle"
                         [class.col-resize-handle--active]="resizingCol === 'notes'"
@@ -193,7 +193,7 @@ type ResizableColId = 'idx' | 'name' | 'notes' | 'size' | 'pub' | 'red';
                         (keydown)="onColResizeKeydown($event, 'notes')"
                         (dblclick)="autoFitColumn('notes')"></span>
                 </div>
-                <div class="col-size">
+                <div class="col-size" [class.col-hover]="hoveredCol === 'size'" (mouseenter)="hoveredCol = 'size'" (mouseleave)="hoveredCol = null">
                   <span class="th-label" data-col-measure="size">Size</span>
                   <fvdr-icon name="sort" class="th-sort"></fvdr-icon>
                   <span class="col-resize-handle"
@@ -204,7 +204,7 @@ type ResizableColId = 'idx' | 'name' | 'notes' | 'size' | 'pub' | 'red';
                         (keydown)="onColResizeKeydown($event, 'size')"
                         (dblclick)="autoFitColumn('size')"></span>
                 </div>
-                <div class="col-pub">
+                <div class="col-pub" [class.col-hover]="hoveredCol === 'pub'" (mouseenter)="hoveredCol = 'pub'" (mouseleave)="hoveredCol = null">
                   <span class="th-label" data-col-measure="pub">Publishing</span>
                   <span class="col-resize-handle"
                         [class.col-resize-handle--active]="resizingCol === 'pub'"
@@ -214,7 +214,7 @@ type ResizableColId = 'idx' | 'name' | 'notes' | 'size' | 'pub' | 'red';
                         (keydown)="onColResizeKeydown($event, 'pub')"
                         (dblclick)="autoFitColumn('pub')"></span>
                 </div>
-                <div class="col-red">
+                <div class="col-red" [class.col-hover]="hoveredCol === 'red'" (mouseenter)="hoveredCol = 'red'" (mouseleave)="hoveredCol = null">
                   <span class="th-label" data-col-measure="red">Redaction</span>
                   <fvdr-icon name="sort" class="th-sort"></fvdr-icon>
                   <span class="col-resize-handle"
@@ -233,29 +233,29 @@ type ResizableColId = 'idx' | 'name' | 'notes' | 'size' | 'pub' | 'red';
               <!-- Data rows -->
               <div *ngFor="let row of tableRows" class="tbl-row" [style.grid-template-columns]="gridTemplateColumns">
                 <!-- Index: doc icon + number -->
-                <div class="col-idx">
+                <div class="col-idx" [class.col-hover]="hoveredCol === 'idx'">
                   <fvdr-file-icon type="pdf" class="doc-icon"></fvdr-file-icon>
                   <span class="td-idx" data-col-measure="idx">{{ row.index }}</span>
                 </div>
 
                 <!-- Name -->
-                <div class="col-name">
+                <div class="col-name" [class.col-hover]="hoveredCol === 'name'">
                   <span class="td-name" data-col-measure="name">{{ row.name }}</span>
                 </div>
 
                 <!-- Notes counter -->
-                <div class="col-notes">
+                <div class="col-notes" [class.col-hover]="hoveredCol === 'notes'">
                   <span class="notes-badge" data-col-measure="notes">{{ row.notes }}</span>
                 </div>
 
                 <!-- Size (two-line) -->
-                <div class="col-size">
+                <div class="col-size" [class.col-hover]="hoveredCol === 'size'">
                   <span class="td-size-main" data-col-measure="size">{{ row.size }}</span>
                   <span class="td-size-sub" data-col-measure="size">{{ row.files }}</span>
                 </div>
 
                 <!-- Publishing icon -->
-                <div class="col-pub">
+                <div class="col-pub" [class.col-hover]="hoveredCol === 'pub'">
                   <fvdr-icon
                     [name]="row.published ? 'finished' : 'cross-circle'"
                     [class.pub-yes]="row.published"
@@ -264,7 +264,7 @@ type ResizableColId = 'idx' | 'name' | 'notes' | 'size' | 'pub' | 'red';
                 </div>
 
                 <!-- Redaction chip -->
-                <div class="col-red">
+                <div class="col-red" [class.col-hover]="hoveredCol === 'red'">
                   <span class="red-chip" data-col-measure="red" [ngClass]="'red-chip--' + row.redaction">
                     {{ redactionLabel(row.redaction) }}
                   </span>
@@ -527,7 +527,6 @@ type ResizableColId = 'idx' | 'name' | 'notes' | 'size' | 'pub' | 'red';
       display: flex;
       flex-direction: column;
       background: var(--color-stone-0);
-      border: 1px solid var(--color-divider);
       overflow: auto;
       min-width: 0;
     }
@@ -536,10 +535,14 @@ type ResizableColId = 'idx' | 'name' | 'notes' | 'size' | 'pub' | 'red';
       display: grid;
       align-items: center;
       min-width: max-content;
-      border-bottom: 1px solid var(--color-divider);
     }
     .tbl-row:not(.tbl-row--header):hover { background: var(--color-hover-bg); }
-    .tbl-row > div:not(:last-child) { border-right: 1px solid var(--color-divider); }
+
+    /* Hovering a column's header reveals that column's borders (header + all rows) */
+    .col-hover {
+      border-left: 1px solid var(--color-divider);
+      border-right: 1px solid var(--color-divider);
+    }
 
     .tbl-row--header {
       background: var(--color-stone-200);
@@ -549,7 +552,6 @@ type ResizableColId = 'idx' | 'name' | 'notes' | 'size' | 'pub' | 'red';
       z-index: 1;
     }
     .tbl-row:not(.tbl-row--header) { min-height: 44px; }
-    .tbl-row:not(.tbl-row--header):last-child { border-bottom: none; }
 
     /* Header cells */
     .tbl-row--header > div {
@@ -847,6 +849,7 @@ export class QuickAccessPanelComponent implements OnInit, OnDestroy {
 
   colWidths: Record<ResizableColId, number> = { ...this.COL_DEFAULTS };
   resizingCol: ResizableColId | null = null;
+  hoveredCol: ResizableColId | null = null;
   isMobileViewport = false;
   private colStartX = 0;
   private colStartWidth = 0;
