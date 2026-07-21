@@ -522,10 +522,11 @@ type ResizableColId = 'idx' | 'name' | 'notes' | 'size' | 'pub' | 'red';
     .qa-handle-line {
       width: 2px;
       background: transparent;
-      transition: background 0.15s ease;
+      transition: background 0.12s ease, width 0.12s ease;
     }
     .qa-handle--active .qa-handle-line {
-      background: var(--color-stone-400);
+      width: 3px;
+      background: var(--color-primary-500);
     }
 
     /* ──────────────────────────────────────────
@@ -591,12 +592,15 @@ type ResizableColId = 'idx' | 'name' | 'notes' | 'size' | 'pub' | 'red';
       width: 2px;
       transform: translateX(-50%);
       background: transparent;
-      transition: background 0.12s ease;
+      transition: background 0.12s ease, width 0.12s ease;
     }
     .col-resize-handle:hover::after,
-    .col-resize-handle:focus-visible::after,
+    .col-resize-handle:focus-visible::after {
+      background: var(--color-primary-500);
+    }
     .col-resize-handle--active::after {
-      background: var(--color-stone-400);
+      width: 3px;
+      background: var(--color-primary-500);
     }
     .col-resize-handle:focus-visible {
       outline: 2px solid var(--color-primary-500);
