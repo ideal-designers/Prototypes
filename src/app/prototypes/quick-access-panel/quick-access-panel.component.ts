@@ -134,9 +134,10 @@ type ResizableColId = 'idx' | 'name' | 'notes' | 'size' | 'pub' | 'red';
 
                       <!-- Level 0: project badge; others: folder icon -->
                       <span *ngIf="node.level === 0" class="qa-project-badge">RN</span>
-                      <span *ngIf="node.level > 0" class="qa-folder">
-                        <fvdr-icon name="folder"></fvdr-icon>
-                      </span>
+                      <fvdr-file-icon *ngIf="node.level > 0"
+                                      class="qa-folder"
+                                      [type]="node.hasChildren && node.expanded ? 'folder-open' : 'folder-colored'">
+                      </fvdr-file-icon>
 
                       <!-- Index -->
                       <span *ngIf="node.index" class="qa-idx">{{ node.index }}</span>
@@ -163,7 +164,7 @@ type ResizableColId = 'idx' | 'name' | 'notes' | 'size' | 'pub' | 'red';
 
               <!-- Header row -->
               <div class="tbl-row tbl-row--header" [style.grid-template-columns]="gridTemplateColumns">
-                <div class="col-idx" [class.col-hover]="hoveredCol === 'idx'" (mouseenter)="hoveredCol = 'idx'" (mouseleave)="hoveredCol = null">
+                <div class="col-idx" (mouseenter)="onColHeaderEnter($event, 'idx')" (mouseleave)="onColHeaderLeave()">
                   <span class="th-label" data-col-measure="idx">Index</span>
                   <span class="col-resize-handle"
                         [class.col-resize-handle--active]="resizingCol === 'idx'"
@@ -173,7 +174,7 @@ type ResizableColId = 'idx' | 'name' | 'notes' | 'size' | 'pub' | 'red';
                         (keydown)="onColResizeKeydown($event, 'idx')"
                         (dblclick)="autoFitColumn('idx')"></span>
                 </div>
-                <div class="col-name" [class.col-hover]="hoveredCol === 'name'" (mouseenter)="hoveredCol = 'name'" (mouseleave)="hoveredCol = null">
+                <div class="col-name" (mouseenter)="onColHeaderEnter($event, 'name')" (mouseleave)="onColHeaderLeave()">
                   <span class="th-label" data-col-measure="name">Name</span>
                   <span class="col-resize-handle"
                         [class.col-resize-handle--active]="resizingCol === 'name'"
@@ -183,7 +184,7 @@ type ResizableColId = 'idx' | 'name' | 'notes' | 'size' | 'pub' | 'red';
                         (keydown)="onColResizeKeydown($event, 'name')"
                         (dblclick)="autoFitColumn('name')"></span>
                 </div>
-                <div class="col-notes" [class.col-hover]="hoveredCol === 'notes'" (mouseenter)="hoveredCol = 'notes'" (mouseleave)="hoveredCol = null">
+                <div class="col-notes" (mouseenter)="onColHeaderEnter($event, 'notes')" (mouseleave)="onColHeaderLeave()">
                   <span class="th-label" data-col-measure="notes">Notes</span>
                   <span class="col-resize-handle"
                         [class.col-resize-handle--active]="resizingCol === 'notes'"
@@ -193,7 +194,7 @@ type ResizableColId = 'idx' | 'name' | 'notes' | 'size' | 'pub' | 'red';
                         (keydown)="onColResizeKeydown($event, 'notes')"
                         (dblclick)="autoFitColumn('notes')"></span>
                 </div>
-                <div class="col-size" [class.col-hover]="hoveredCol === 'size'" (mouseenter)="hoveredCol = 'size'" (mouseleave)="hoveredCol = null">
+                <div class="col-size" (mouseenter)="onColHeaderEnter($event, 'size')" (mouseleave)="onColHeaderLeave()">
                   <span class="th-label" data-col-measure="size">Size</span>
                   <fvdr-icon name="sort" class="th-sort"></fvdr-icon>
                   <span class="col-resize-handle"
@@ -204,7 +205,7 @@ type ResizableColId = 'idx' | 'name' | 'notes' | 'size' | 'pub' | 'red';
                         (keydown)="onColResizeKeydown($event, 'size')"
                         (dblclick)="autoFitColumn('size')"></span>
                 </div>
-                <div class="col-pub" [class.col-hover]="hoveredCol === 'pub'" (mouseenter)="hoveredCol = 'pub'" (mouseleave)="hoveredCol = null">
+                <div class="col-pub" (mouseenter)="onColHeaderEnter($event, 'pub')" (mouseleave)="onColHeaderLeave()">
                   <span class="th-label" data-col-measure="pub">Publishing</span>
                   <span class="col-resize-handle"
                         [class.col-resize-handle--active]="resizingCol === 'pub'"
@@ -214,7 +215,7 @@ type ResizableColId = 'idx' | 'name' | 'notes' | 'size' | 'pub' | 'red';
                         (keydown)="onColResizeKeydown($event, 'pub')"
                         (dblclick)="autoFitColumn('pub')"></span>
                 </div>
-                <div class="col-red" [class.col-hover]="hoveredCol === 'red'" (mouseenter)="hoveredCol = 'red'" (mouseleave)="hoveredCol = null">
+                <div class="col-red" (mouseenter)="onColHeaderEnter($event, 'red')" (mouseleave)="onColHeaderLeave()">
                   <span class="th-label" data-col-measure="red">Redaction</span>
                   <fvdr-icon name="sort" class="th-sort"></fvdr-icon>
                   <span class="col-resize-handle"
@@ -233,29 +234,29 @@ type ResizableColId = 'idx' | 'name' | 'notes' | 'size' | 'pub' | 'red';
               <!-- Data rows -->
               <div *ngFor="let row of tableRows" class="tbl-row" [style.grid-template-columns]="gridTemplateColumns">
                 <!-- Index: doc icon + number -->
-                <div class="col-idx" [class.col-hover]="hoveredCol === 'idx'">
+                <div class="col-idx">
                   <fvdr-file-icon type="pdf" class="doc-icon"></fvdr-file-icon>
                   <span class="td-idx" data-col-measure="idx">{{ row.index }}</span>
                 </div>
 
                 <!-- Name -->
-                <div class="col-name" [class.col-hover]="hoveredCol === 'name'">
+                <div class="col-name">
                   <span class="td-name" data-col-measure="name">{{ row.name }}</span>
                 </div>
 
                 <!-- Notes counter -->
-                <div class="col-notes" [class.col-hover]="hoveredCol === 'notes'">
+                <div class="col-notes">
                   <span class="notes-badge" data-col-measure="notes">{{ row.notes }}</span>
                 </div>
 
                 <!-- Size (two-line) -->
-                <div class="col-size" [class.col-hover]="hoveredCol === 'size'">
+                <div class="col-size">
                   <span class="td-size-main" data-col-measure="size">{{ row.size }}</span>
                   <span class="td-size-sub" data-col-measure="size">{{ row.files }}</span>
                 </div>
 
                 <!-- Publishing icon -->
-                <div class="col-pub" [class.col-hover]="hoveredCol === 'pub'">
+                <div class="col-pub">
                   <fvdr-icon
                     [name]="row.published ? 'finished' : 'cross-circle'"
                     [class.pub-yes]="row.published"
@@ -264,7 +265,7 @@ type ResizableColId = 'idx' | 'name' | 'notes' | 'size' | 'pub' | 'red';
                 </div>
 
                 <!-- Redaction chip -->
-                <div class="col-red" [class.col-hover]="hoveredCol === 'red'">
+                <div class="col-red">
                   <span class="red-chip" data-col-measure="red" [ngClass]="'red-chip--' + row.redaction">
                     {{ redactionLabel(row.redaction) }}
                   </span>
@@ -273,6 +274,12 @@ type ResizableColId = 'idx' | 'name' | 'notes' | 'size' | 'pub' | 'red';
                 <!-- Actions (empty cell) -->
                 <div class="col-act"></div>
               </div>
+
+              <!-- Column hover indicator: one solid line per column edge, like the qa-panel resize handle -->
+              <ng-container *ngIf="hoveredColRect">
+                <div class="col-hover-line" [style.left.px]="hoveredColRect.left" [style.height.px]="hoveredColRect.height"></div>
+                <div class="col-hover-line" [style.left.px]="hoveredColRect.left + hoveredColRect.width" [style.height.px]="hoveredColRect.height"></div>
+              </ng-container>
 
             </div><!-- /tbl-wrap -->
 
@@ -476,9 +483,7 @@ type ResizableColId = 'idx' | 'name' | 'notes' | 'size' | 'pub' | 'red';
     .qa-folder {
       display: flex;
       align-items: center;
-      font-size: var(--font-size-xl, 18px);
       flex-shrink: 0;
-      color: var(--color-primary-500);
     }
 
     .qa-idx {
@@ -523,6 +528,7 @@ type ResizableColId = 'idx' | 'name' | 'notes' | 'size' | 'pub' | 'red';
        Table
     ────────────────────────────────────────── */
     .tbl-wrap {
+      position: relative;
       flex: 1;
       display: flex;
       flex-direction: column;
@@ -538,10 +544,15 @@ type ResizableColId = 'idx' | 'name' | 'notes' | 'size' | 'pub' | 'red';
     }
     .tbl-row:not(.tbl-row--header):hover { background: var(--color-hover-bg); }
 
-    /* Hovering a column's header reveals that column's borders (header + all rows) */
-    .col-hover {
-      border-left: 1px solid var(--color-divider);
-      border-right: 1px solid var(--color-divider);
+    /* Hovering a column's header reveals one solid line per edge, spanning header + all rows
+       — same visual language as the qa-panel resize handle, not a per-cell border. */
+    .col-hover-line {
+      position: absolute;
+      top: 0;
+      width: 1px;
+      background: var(--color-divider);
+      pointer-events: none;
+      z-index: 2;
     }
 
     .tbl-row--header {
@@ -849,7 +860,7 @@ export class QuickAccessPanelComponent implements OnInit, OnDestroy {
 
   colWidths: Record<ResizableColId, number> = { ...this.COL_DEFAULTS };
   resizingCol: ResizableColId | null = null;
-  hoveredCol: ResizableColId | null = null;
+  hoveredColRect: { left: number; width: number; height: number } | null = null;
   isMobileViewport = false;
   private colStartX = 0;
   private colStartWidth = 0;
@@ -871,11 +882,28 @@ export class QuickAccessPanelComponent implements OnInit, OnDestroy {
     return Math.min(this.COL_MAX[id], Math.max(this.COL_MIN[id], Math.round(value)));
   }
 
+  onColHeaderEnter(event: MouseEvent, _colId: ResizableColId): void {
+    if (this.isMobileViewport || this.resizingCol) return;
+    const cell = event.currentTarget as HTMLElement;
+    const wrap = cell.closest('.tbl-wrap') as HTMLElement | null;
+    if (!wrap) return;
+    this.hoveredColRect = {
+      left: cell.offsetLeft,
+      width: cell.offsetWidth,
+      height: wrap.scrollHeight,
+    };
+  }
+
+  onColHeaderLeave(): void {
+    this.hoveredColRect = null;
+  }
+
   startColResize(event: MouseEvent, colId: ResizableColId): void {
     if (this.isMobileViewport) return;
     event.preventDefault();
     event.stopPropagation();
     this.resizingCol = colId;
+    this.hoveredColRect = null;
     this.colStartX = event.clientX;
     this.colStartWidth = this.colWidths[colId];
     document.body.style.cursor = 'col-resize';

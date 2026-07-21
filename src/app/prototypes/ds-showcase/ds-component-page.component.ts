@@ -1868,6 +1868,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
             <div class="examples-row examples-row--wrap">
               <div class="example-labeled"><fvdr-file-icon type="folder"></fvdr-file-icon><span>folder</span></div>
               <div class="example-labeled"><fvdr-file-icon type="folder-colored"></fvdr-file-icon><span>colored</span></div>
+              <div class="example-labeled"><fvdr-file-icon type="folder-open"></fvdr-file-icon><span>open</span></div>
               <div class="example-labeled"><fvdr-file-icon type="folder-locked"></fvdr-file-icon><span>locked</span></div>
               <div class="example-labeled"><fvdr-file-icon type="folder-files"></fvdr-file-icon><span>files</span></div>
               <div class="example-labeled"><fvdr-file-icon type="folder-requests"></fvdr-file-icon><span>requests</span></div>
