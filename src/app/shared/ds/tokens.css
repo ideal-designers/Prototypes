@@ -77,6 +77,7 @@
   --color-info-50:  #BDD9F8;
   --color-info-500: #358CEB;
   --color-info-800: #0D4786;
+  --color-feature-bg: #EBF4FD;  /* Info variant / feature icon background tint */
 
   /* ─────────────────────────────────────────
      SEMANTIC (Text, UI, Severity)

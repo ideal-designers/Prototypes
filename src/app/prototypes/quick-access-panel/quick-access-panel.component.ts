@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DS_COMPONENTS } from '../../shared/ds';
+import type { SidebarNavItem, HeaderAction } from '../../shared/ds';
 import { FvdrIconName } from '../../shared/ds/icons/icons';
 import { TrackerService } from '../../services/tracker.service';
 
@@ -33,14 +34,6 @@ interface TableRow {
   redaction: 'applied' | 'applied-drafted' | 'drafted' | 'none';
 }
 
-interface NavItem {
-  id: string;
-  icon: FvdrIconName;
-  iconActive: FvdrIconName;
-  active: boolean;
-  title: string;
-}
-
 @Component({
   selector: 'fvdr-quick-access-panel',
   standalone: true,
@@ -48,58 +41,25 @@ interface NavItem {
   template: `
     <div class="page-layout">
 
-      <!-- ── Sidebar 72px ── -->
-      <nav class="sidebar sidebar--collapsed">
-        <div class="account-switcher">
-          <div class="project-badge-nav">RN</div>
-        </div>
-
-        <div class="nav-list">
-          <button *ngFor="let item of navItems"
-            class="nav-item"
-            [class.nav-item--active]="item.active"
-            [title]="item.title">
-            <span class="nav-icon-zone">
-              <fvdr-icon class="icon-default" [name]="item.icon"></fvdr-icon>
-              <fvdr-icon class="icon-active"  [name]="item.iconActive"></fvdr-icon>
-            </span>
-          </button>
-        </div>
-
-        <div class="sidebar-bottom">
-          <div class="sidebar-logo-sm">
-            <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-              <rect width="32" height="32" rx="3" fill="#084D4B"/>
-              <path fill-rule="evenodd" clip-rule="evenodd"
-                d="M6 16C6 21.523 10.477 26 16 26C21.522 26 26 21.522 26 16C26 10.477 21.522 6 16 6C10.477 6 6 10.477 6 16ZM24 16C24 20.418 20.418 24 16 24C15.729 24 15.462 23.983 15.2 23.95C18.357 23.557 20.8 20.864 20.8 17.6C20.8 14.336 18.357 11.643 15.2 11.25C15.462 11.217 15.729 11.2 16 11.2C20.418 11.2 24 14.582 24 17.6V16ZM8 16C8 14.674 9.074 13.6 10.4 13.6C11.726 13.6 12.8 14.674 12.8 16C12.8 17.326 11.726 18.4 10.4 18.4C9.074 18.4 8.001 17.326 8 16Z"
-                fill="#8CEAA7"/>
-            </svg>
-          </div>
-          <button class="collapse-btn" title="Expand">
-            <fvdr-icon name="angle-double-right"></fvdr-icon>
-          </button>
-        </div>
-      </nav>
+      <!-- ── Sidebar ── -->
+      <fvdr-sidebar-nav
+        variant="vdr"
+        accountName="Conference Room"
+        [items]="navItems"
+        [(collapsed)]="sidebarCollapsed"
+        (itemClick)="onNavClick($event)"
+      />
 
       <!-- ── Main area ── -->
       <div class="main-area">
 
         <!-- ── Header 64px ── -->
-        <header class="page-header">
-          <fvdr-breadcrumbs [items]="breadcrumbItems" />
-          <div class="header-actions">
-            <button class="icon-btn" title="Dark mode">
-              <fvdr-icon name="theme-dark"></fvdr-icon>
-            </button>
-            <button class="icon-btn" title="Help">
-              <fvdr-icon name="help"></fvdr-icon>
-            </button>
-            <button class="icon-btn" title="View">
-              <fvdr-icon name="overview"></fvdr-icon>
-            </button>
-            <div class="user-avatar">LZ</div>
-          </div>
-        </header>
+        <fvdr-header
+          [breadcrumbs]="breadcrumbItems"
+          [actions]="headerActions"
+          userName="LZ"
+          (actionClick)="onHeaderAction($event)"
+        />
 
         <!-- ── Content ── -->
         <div class="content-wrap">
@@ -231,9 +191,7 @@ interface NavItem {
               <div *ngFor="let row of tableRows" class="tbl-row">
                 <!-- Index: doc icon + number -->
                 <div class="col-idx">
-                  <span class="doc-icon">
-                    <img src="https://www.figma.com/api/mcp/asset/a2470176-e359-453c-a5b0-c0840361c949" width="20" height="20" alt="file">
-                  </span>
+                  <fvdr-file-icon type="doc" class="doc-icon"></fvdr-file-icon>
                   <span class="td-idx">{{ row.index }}</span>
                 </div>
 
@@ -288,8 +246,7 @@ interface NavItem {
       color: var(--color-text-primary);
       height: 100vh;
       overflow: hidden;
-      --color-dodger-blue-50: var(--color-feature-bg, #ebf4fd);
-      --color-locked-chip: var(--color-stone-300, #ececec);
+      --color-dodger-blue-50: var(--color-feature-bg);
     }
 
     /* ──────────────────────────────────────────
@@ -302,102 +259,6 @@ interface NavItem {
     }
 
     /* ──────────────────────────────────────────
-       Sidebar (72px, icon-only)
-    ────────────────────────────────────────── */
-    .sidebar {
-      display: flex;
-      flex-direction: column;
-      flex-shrink: 0;
-      width: 280px;
-      background: var(--color-stone-200);
-      border-right: 1px solid var(--color-divider);
-      transition: width 0.22s ease;
-      overflow: hidden;
-    }
-    .sidebar--collapsed { width: 72px; }
-
-    .account-switcher {
-      display: flex;
-      align-items: center;
-      padding: 12px var(--space-4);
-      flex-shrink: 0;
-    }
-
-    .project-badge-nav {
-      width: 40px;
-      height: 40px;
-      background: var(--color-primary-500);
-      border-radius: var(--radius-sm);
-      color: white;
-      font-size: var(--text-caption1-size);
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-    }
-
-    .nav-list {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-6);
-      padding: var(--space-6) 0;
-      overflow: hidden;
-    }
-
-    .nav-item {
-      display: flex;
-      align-items: center;
-      height: 32px;
-      border: none;
-      background: transparent;
-      cursor: pointer;
-      padding: 0;
-      width: 100%;
-      color: var(--color-text-secondary);
-    }
-    .nav-item:hover { color: var(--color-text-primary); }
-    .nav-item--active { color: var(--color-primary-500); font-weight: 600; }
-
-    .nav-icon-zone {
-      width: 72px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      font-size: var(--font-size-4xl, 24px);
-      position: relative;
-    }
-
-    .icon-default, .icon-active { position: absolute; }
-    .icon-active { display: none; }
-    .nav-item--active .icon-default { display: none; }
-    .nav-item--active .icon-active  { display: block; }
-
-    .sidebar-bottom {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: var(--space-6) var(--space-4) var(--space-6) 19px;
-      flex-shrink: 0;
-    }
-    .sidebar-logo-sm { display: flex; align-items: center; }
-    .collapse-btn {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 32px;
-      height: 32px;
-      border: none;
-      background: transparent;
-      cursor: pointer;
-      color: var(--color-text-secondary);
-      border-radius: var(--radius-sm);
-    }
-    .collapse-btn:hover { background: var(--color-hover-bg); color: var(--color-text-primary); }
-
-    /* ──────────────────────────────────────────
        Main area
     ────────────────────────────────────────── */
     .main-area {
@@ -406,40 +267,6 @@ interface NavItem {
       flex-direction: column;
       min-width: 0;
       overflow: hidden;
-    }
-
-    /* ──────────────────────────────────────────
-       Header 64px
-    ────────────────────────────────────────── */
-    .page-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      height: 64px;
-      padding: 0 var(--space-6);
-      border-bottom: 1px solid var(--color-divider);
-      background: var(--color-stone-0);
-      flex-shrink: 0;
-    }
-
-
-    .header-actions {
-      display: flex;
-      align-items: center;
-      gap: var(--space-2);
-    }
-
-    .user-avatar {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      background: var(--color-primary-500);
-      color: white;
-      font-size: var(--text-caption1-size);
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      justify-content: center;
     }
 
     /* ──────────────────────────────────────────
@@ -768,7 +595,7 @@ interface NavItem {
     .red-chip--applied         { background: var(--color-primary-50); }
     .red-chip--applied-drafted { background: var(--color-dodger-blue-50); }
     .red-chip--drafted         { background: var(--color-stone-300); }
-    .red-chip--none            { background: var(--color-locked-chip); }
+    .red-chip--none            { background: var(--color-stone-300); }
 
     /* Actions col */
     .col-act { justify-content: flex-end; }
@@ -810,15 +637,30 @@ export class QuickAccessPanelComponent implements OnInit, OnDestroy {
   private startX = 0;
   private startWidth = 0;
 
-  navItems: NavItem[] = [
-    { id: 'overview',     icon: 'nav-overview',      iconActive: 'nav-overview-active',      active: false, title: 'Dashboard'     },
-    { id: 'projects',     icon: 'nav-projects',      iconActive: 'nav-projects-active',      active: true,  title: 'Documents'     },
-    { id: 'reports',      icon: 'nav-reports',        iconActive: 'nav-reports-active',       active: false, title: 'Reports'       },
-    { id: 'participants', icon: 'nav-participants',   iconActive: 'nav-participants-active',  active: false, title: 'Participants'  },
-    { id: 'api',          icon: 'nav-api',            iconActive: 'nav-api-active',           active: false, title: 'Q&A'           },
-    { id: 'settings',     icon: 'nav-settings',       iconActive: 'nav-settings-active',      active: false, title: 'Settings'      },
-    { id: 'trash',        icon: 'trash',              iconActive: 'trash',                    active: false, title: 'Trash'         },
+  sidebarCollapsed = true;
+
+  navItems: SidebarNavItem[] = [
+    { id: 'overview',     icon: 'nav-overview',      iconActive: 'nav-overview-active',      label: 'Dashboard',    active: false },
+    { id: 'projects',     icon: 'nav-projects',      iconActive: 'nav-projects-active',      label: 'Documents',    active: true  },
+    { id: 'reports',      icon: 'nav-reports',       iconActive: 'nav-reports-active',       label: 'Reports',      active: false },
+    { id: 'participants', icon: 'nav-participants',  iconActive: 'nav-participants-active',   label: 'Participants', active: false },
+    { id: 'api',          icon: 'nav-api',           iconActive: 'nav-api-active',            label: 'Q&A',          active: false },
+    { id: 'settings',     icon: 'nav-settings',       iconActive: 'nav-settings-active',      label: 'Settings',     active: false },
+    { id: 'trash',        icon: 'trash',             iconActive: 'trash',                     label: 'Trash',        active: false },
   ];
+
+  headerActions: HeaderAction[] = [
+    { id: 'theme',    icon: 'theme-dark' },
+    { id: 'help',     icon: 'help'       },
+    { id: 'overview', icon: 'overview'   },
+  ];
+
+  onNavClick(item: SidebarNavItem): void {
+    this.navItems.forEach(n => n.active = false);
+    item.active = true;
+  }
+
+  onHeaderAction(_id: string): void {}
 
   shortcuts: ShortcutItem[] = [
     { id: 's1', label: 'Recently viewed', icon: 'clock',  hovered: false },
