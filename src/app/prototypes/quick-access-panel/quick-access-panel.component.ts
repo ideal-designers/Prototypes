@@ -69,15 +69,14 @@ type ResizableColId = 'idx' | 'name' | 'notes' | 'size' | 'pub' | 'red';
           <!-- Toolbar -->
           <div class="toolbar">
             <div class="toolbar-left">
-              <fvdr-btn label="Add" variant="primary"   size="m"></fvdr-btn>
-              <fvdr-btn label="Download"      variant="secondary" size="m"></fvdr-btn>
-              <fvdr-btn label="Project index" variant="secondary" size="m"></fvdr-btn>
-              <button class="icon-btn toolbar-more"><fvdr-icon name="more"></fvdr-icon></button>
+              <fvdr-btn label="Add" variant="primary"   size="m" iconName="plus"></fvdr-btn>
+              <fvdr-btn label="Download"      variant="secondary" size="m" iconName="download"></fvdr-btn>
+              <fvdr-btn label="Project index" variant="secondary" size="m" iconName="action-list"></fvdr-btn>
+              <fvdr-btn variant="secondary" size="m" [iconOnly]="true" iconName="more" ariaLabel="More actions"></fvdr-btn>
             </div>
             <div class="toolbar-right">
-              <fvdr-btn label="View as" variant="ghost" size="m"></fvdr-btn>
-              <fvdr-search placeholder="Search"></fvdr-search>
-              <button class="icon-btn"><fvdr-icon name="filter"></fvdr-icon></button>
+              <fvdr-btn label="View as" variant="secondary" size="m" iconName="view-as"></fvdr-btn>
+              <fvdr-search placeholder="Search" [filter]="true"></fvdr-search>
             </div>
           </div>
 
@@ -235,7 +234,7 @@ type ResizableColId = 'idx' | 'name' | 'notes' | 'size' | 'pub' | 'red';
               <div *ngFor="let row of tableRows" class="tbl-row" [style.grid-template-columns]="gridTemplateColumns">
                 <!-- Index: doc icon + number -->
                 <div class="col-idx">
-                  <fvdr-file-icon type="doc" class="doc-icon"></fvdr-file-icon>
+                  <fvdr-file-icon type="pdf" class="doc-icon"></fvdr-file-icon>
                   <span class="td-idx" data-col-measure="idx">{{ row.index }}</span>
                 </div>
 
@@ -258,7 +257,7 @@ type ResizableColId = 'idx' | 'name' | 'notes' | 'size' | 'pub' | 'red';
                 <!-- Publishing icon -->
                 <div class="col-pub">
                   <fvdr-icon
-                    [name]="row.published ? 'finished' : 'cancel'"
+                    [name]="row.published ? 'finished' : 'cross-circle'"
                     [class.pub-yes]="row.published"
                     [class.pub-no]="!row.published">
                   </fvdr-icon>
@@ -339,15 +338,6 @@ type ResizableColId = 'idx' | 'name' | 'notes' | 'size' | 'pub' | 'red';
     }
     .toolbar-left  { display: flex; gap: var(--space-3); align-items: center; }
     .toolbar-right { display: flex; gap: var(--space-3); align-items: center; }
-    .toolbar-more {
-      display: flex; align-items: center; justify-content: center;
-      width: 40px; height: 40px;
-      border: 1.5px solid var(--color-divider);
-      border-radius: var(--radius-sm);
-      background: transparent; cursor: pointer;
-      color: var(--color-text-secondary);
-    }
-    .toolbar-more:hover { background: var(--color-hover-bg); }
 
     /* ──────────────────────────────────────────
        Content row (QA + Table)

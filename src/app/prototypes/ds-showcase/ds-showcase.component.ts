@@ -1216,7 +1216,7 @@ export class DsShowcaseComponent implements OnInit, OnDestroy {
   iconNames: import('../../shared/ds').FvdrIconName[] = [
     // 16x16 — General UI
     'angle-double-left','angle-double-right','attention','bell','billing',
-    'cancel','check','chevron-down','chevron-left','chevron-right','chevron-up',
+    'cancel','cross-circle','check','chevron-down','chevron-left','chevron-right','chevron-up',
     'close','download','drag','edit','error','filter','finished','folder',
     'info','link','lock-close','lock-open','minus','more','move',
     'overview','participants','plus','reports','search','settings',
