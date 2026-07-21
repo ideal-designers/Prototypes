@@ -527,6 +527,7 @@ type ResizableColId = 'idx' | 'name' | 'notes' | 'size' | 'pub' | 'red';
       display: flex;
       flex-direction: column;
       background: var(--color-stone-0);
+      border: 1px solid var(--color-divider);
       overflow: auto;
       min-width: 0;
     }
@@ -535,8 +536,10 @@ type ResizableColId = 'idx' | 'name' | 'notes' | 'size' | 'pub' | 'red';
       display: grid;
       align-items: center;
       min-width: max-content;
+      border-bottom: 1px solid var(--color-divider);
     }
     .tbl-row:not(.tbl-row--header):hover { background: var(--color-hover-bg); }
+    .tbl-row > div:not(:last-child) { border-right: 1px solid var(--color-divider); }
 
     .tbl-row--header {
       background: var(--color-stone-200);
@@ -546,6 +549,7 @@ type ResizableColId = 'idx' | 'name' | 'notes' | 'size' | 'pub' | 'red';
       z-index: 1;
     }
     .tbl-row:not(.tbl-row--header) { min-height: 44px; }
+    .tbl-row:not(.tbl-row--header):last-child { border-bottom: none; }
 
     /* Header cells */
     .tbl-row--header > div {
