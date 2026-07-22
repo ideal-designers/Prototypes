@@ -28,7 +28,7 @@ type FmtKey = 'bold' | 'color' | 'highlight' | 'list' | 'align';
         class="replica-stage"
         [ngStyle]="{
           '--gap-toolbar': gapToolbar + 'px',
-          '--pad-inside': padInside + 'px'
+          '--gap-icon-caret': gapIconCaret + 'px'
         }"
       >
         <div class="answer-block">
@@ -116,15 +116,15 @@ type FmtKey = 'bold' | 'color' | 'highlight' | 'list' | 'align';
         <p class="playground-note">
           Кожен toolbar-тул із дропдауном (Bold, Text color, Highlight, List, Align) — це <b>дві окремі кнопки</b>
           (іконка + caret), як і в проді, без розділювачів між ними. Керування навмисно обмежене двома речами,
-          які безпечно можна прибити в реальному коді: гап між елементами тулбара і паддінг усередині кожного
-          елемента.
+          які безпечно можна прибити в реальному коді: гап між елементами тулбара і гап усередині спліт-кнопки
+          між іконкою та стрілкою.
         </p>
         <div class="playground-grid">
           <div class="control">
             <fvdr-range [(ngModel)]="gapToolbar" [min]="0" [max]="16" [label]="'Gap between toolbar elements — ' + gapToolbar + 'px'" [showValue]="false"></fvdr-range>
           </div>
           <div class="control">
-            <fvdr-range [(ngModel)]="padInside" [min]="0" [max]="14" [label]="'Padding inside each toolbar element — ' + padInside + 'px'" [showValue]="false"></fvdr-range>
+            <fvdr-range [(ngModel)]="gapIconCaret" [min]="0" [max]="12" [label]="'Gap between icon and caret (within a button) — ' + gapIconCaret + 'px'" [showValue]="false"></fvdr-range>
           </div>
         </div>
       </div>
@@ -247,6 +247,9 @@ type FmtKey = 'bold' | 'color' | 'highlight' | 'list' | 'align';
     .tool-group:hover,
     .tool-group:focus-within { background: var(--primitive-dark-stone-300, #33383b); color: var(--primitive-dark-stone-1000, #fff); }
     .tool-group--pressed { background: var(--primitive-dark-stone-300, #33383b); color: var(--color-primary-500, #2C9C74); }
+    /* Only the split (icon+caret) pair gets a controllable internal gap — a plain
+       group is a single button and has nothing to space out. */
+    .tool-group--split { gap: var(--gap-icon-caret, 0px); }
 
     /* Sub-buttons never carry their own background/radius — the wrapping .tool-group
        renders one continuous pill regardless of which part (icon or caret) is hovered. */
@@ -259,7 +262,7 @@ type FmtKey = 'bold' | 'color' | 'highlight' | 'list' | 'align';
       color: inherit;
       cursor: pointer;
       font: inherit;
-      padding: var(--pad-inside, 6px);
+      padding: 6px;
     }
     .tool-group--split .tool-part--caret { opacity: 0.7; }
     .tool-part--text {
@@ -382,7 +385,7 @@ export class QnaAnswerEditorComponent implements OnInit, OnDestroy {
 
   // Spacing playground state — bound as CSS custom properties on .replica-stage
   gapToolbar = 4;
-  padInside = 6;
+  gapIconCaret = 0;
 
   ngOnInit(): void {
     this.tracker.trackPageView('qna-answer-editor');
