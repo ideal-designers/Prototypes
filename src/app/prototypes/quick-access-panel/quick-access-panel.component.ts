@@ -248,10 +248,13 @@ type ResizableColId = 'idx' | 'name' | 'notes' | 'size' | 'pub' | 'red';
                   </fvdr-icon>
                 </div>
 
-                <!-- Redaction chip -->
+                <!-- Redaction chip + label -->
                 <div class="col-red">
-                  <span class="red-chip" data-col-measure="red" [ngClass]="'red-chip--' + row.redaction">
-                    {{ redactionLabel(row.redaction) }}
+                  <span class="red-chip-group" data-col-measure="red">
+                    <span class="red-chip" [ngClass]="'red-chip--' + row.redaction">
+                      {{ redactionLabel(row.redaction) }}
+                    </span>
+                    <fvdr-chip label="Label" variant="default"></fvdr-chip>
                   </span>
                 </div>
 
@@ -639,6 +642,12 @@ type ResizableColId = 'idx' | 'name' | 'notes' | 'size' | 'pub' | 'red';
 
     /* Redaction chips */
     .col-red {}
+    .red-chip-group {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-2);
+      min-width: 0;
+    }
     .red-chip {
       display: inline-flex;
       align-items: center;
@@ -887,7 +896,7 @@ export class QuickAccessPanelComponent implements OnInit, OnDestroy {
   // ── Column resize (Documents table) ─────────────────────────────────────
 
   private readonly COLS_STORAGE_KEY = 'fvdr-quick-access-panel:col-widths';
-  private readonly COL_DEFAULTS: Record<ResizableColId, number> = { idx: 94, name: 280, notes: 72, size: 121, pub: 127, red: 172 };
+  private readonly COL_DEFAULTS: Record<ResizableColId, number> = { idx: 94, name: 280, notes: 72, size: 121, pub: 127, red: 260 };
   private readonly COL_MIN: Record<ResizableColId, number>      = { idx: 64, name: 120, notes: 48, size: 80,  pub: 80,  red: 100 };
   private readonly COL_MAX: Record<ResizableColId, number>      = { idx: 240, name: 640, notes: 200, size: 300, pub: 300, red: 320 };
   /** Fixed content (icon + gap) that precedes the measured text in a cell, added on auto-fit. */
