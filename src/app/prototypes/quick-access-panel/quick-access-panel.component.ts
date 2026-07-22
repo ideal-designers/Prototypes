@@ -77,7 +77,7 @@ type ResizableColId = 'idx' | 'name' | 'notes' | 'size' | 'pub' | 'red';
           <div class="content-row">
 
             <!-- ── Quick Access Panel ── -->
-            <div class="qa-panel">
+            <div class="qa-panel" [style.width.px]="panelCollapsed ? null : panelWidthPx">
 
               <!-- Collapsed-all rail: mirrors the real product's "Collapse all" state -->
               <div class="qa-rail" *ngIf="panelCollapsed">
