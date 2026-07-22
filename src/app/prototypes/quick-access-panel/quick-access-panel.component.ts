@@ -96,6 +96,7 @@ type ResizableColId = 'idx' | 'name' | 'notes' | 'size' | 'pub' | 'red';
                   [items]="shortcuts"
                   [(collapsed)]="shortcutsCollapsed"
                   [showCollapseAll]="true"
+                  [width]="panelWidthPx"
                   (itemClick)="onShortcutClick($event)"
                   (collapseAllClick)="panelCollapsed = true"
                 ></fvdr-quick-access-menu>
@@ -131,6 +132,15 @@ type ResizableColId = 'idx' | 'name' | 'notes' | 'size' | 'pub' | 'red';
                   </ng-container>
                 </div>
               </ng-container>
+
+              <!-- Resize handle -->
+              <div class="qa-panel-handle"
+                   *ngIf="!panelCollapsed"
+                   [class.qa-panel-handle--active]="isResizingPanel"
+                   role="separator" aria-orientation="vertical" aria-label="Resize Quick access panel"
+                   tabindex="0"
+                   (mousedown)="startPanelResize($event)"
+                   (keydown)="onPanelResizeKeydown($event)"></div>
             </div>
 
             <!-- ── Table ── -->
@@ -249,10 +259,17 @@ type ResizableColId = 'idx' | 'name' | 'notes' | 'size' | 'pub' | 'red';
                 <div class="col-act"></div>
               </div>
 
-              <!-- Column hover indicator: one solid line per column edge, like the qa-panel resize handle -->
+              <!-- Column hover indicator: one solid line per column edge. Stays and turns green
+                   while that column is actively being resized (right line tracks the live width). -->
               <ng-container *ngIf="hoveredColRect">
-                <div class="col-hover-line" [style.left.px]="hoveredColRect.left" [style.height.px]="hoveredColRect.height"></div>
-                <div class="col-hover-line" [style.left.px]="hoveredColRect.left + hoveredColRect.width" [style.height.px]="hoveredColRect.height"></div>
+                <div class="col-hover-line"
+                     [class.col-hover-line--active]="resizingCol === hoveredColRect.colId"
+                     [style.left.px]="hoveredColRect.left"
+                     [style.height.px]="hoveredColRect.height"></div>
+                <div class="col-hover-line"
+                     [class.col-hover-line--active]="resizingCol === hoveredColRect.colId"
+                     [style.left.px]="hoveredColRect.left + colWidths[hoveredColRect.colId]"
+                     [style.height.px]="hoveredColRect.height"></div>
               </ng-container>
 
             </div><!-- /tbl-wrap -->
@@ -336,14 +353,50 @@ type ResizableColId = 'idx' | 'name' | 'notes' | 'size' | 'pub' | 'red';
        Quick Access Panel
     ────────────────────────────────────────── */
     .qa-panel {
+      position: relative;
       display: flex;
       flex-direction: column;
       flex-shrink: 0;
       background: var(--color-stone-0);
-      overflow: hidden;
     }
 
     fvdr-quick-access-menu { flex-shrink: 0; }
+
+    /* Resize handle — same hover/active language as the table's column handles */
+    .qa-panel-handle {
+      position: absolute;
+      top: 0; bottom: 0;
+      right: -3px;
+      width: 6px;
+      cursor: col-resize;
+      z-index: 5;
+      outline: none;
+    }
+    .qa-panel-handle::after {
+      content: '';
+      position: absolute;
+      top: 0; bottom: 0;
+      left: 50%;
+      width: 1px;
+      transform: translateX(-50%);
+      background: transparent;
+      transition: background 0.1s ease, width 0.1s ease;
+    }
+    .qa-panel-handle:hover::after,
+    .qa-panel-handle:focus-visible::after {
+      background: var(--color-divider);
+    }
+    .qa-panel-handle--active::after {
+      width: 3px;
+      background: var(--color-primary-500);
+    }
+    .qa-panel-handle:focus-visible {
+      outline: 2px solid var(--color-primary-500);
+      outline-offset: -2px;
+    }
+    @media (max-width: 767px) {
+      .qa-panel-handle { display: none; }
+    }
 
     /* Collapsed-all rail — mirrors the real product's "Collapse all" state */
     .qa-rail {
@@ -460,6 +513,11 @@ type ResizableColId = 'idx' | 'name' | 'notes' | 'size' | 'pub' | 'red';
       background: var(--color-divider);
       pointer-events: none;
       z-index: 2;
+      transition: background 0.1s ease, width 0.1s ease;
+    }
+    .col-hover-line--active {
+      width: 3px;
+      background: var(--color-primary-500);
     }
 
     .tbl-row--header {
@@ -636,6 +694,76 @@ export class QuickAccessPanelComponent implements OnInit, OnDestroy {
   /** "Collapse quick filters" state — owned by <fvdr-quick-access-menu>'s own [(collapsed)] binding. */
   shortcutsCollapsed = false;
 
+  // ── Quick Access panel width resize ───────────────────────────────────────
+  panelWidthPx = 340;
+  isResizingPanel = false;
+  private readonly PANEL_MIN = 200;
+  private readonly PANEL_MAX = 560;
+  private panelStartX = 0;
+  private panelStartWidth = 0;
+  private pendingPanelWidth: number | null = null;
+  private panelRafScheduled = false;
+
+  private clampPanelWidth(value: number): number {
+    return Math.min(this.PANEL_MAX, Math.max(this.PANEL_MIN, Math.round(value)));
+  }
+
+  startPanelResize(event: MouseEvent): void {
+    if (this.isMobileViewport) return;
+    event.preventDefault();
+    this.isResizingPanel = true;
+    this.panelStartX = event.clientX;
+    this.panelStartWidth = this.panelWidthPx;
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+    document.addEventListener('mousemove', this.onPanelMouseMove);
+    document.addEventListener('mouseup', this.onPanelMouseUp);
+  }
+
+  private onPanelMouseMove = (e: MouseEvent) => {
+    if (!this.isResizingPanel) return;
+    const delta = e.clientX - this.panelStartX;
+    this.pendingPanelWidth = this.clampPanelWidth(this.panelStartWidth + delta);
+    if (!this.panelRafScheduled) {
+      this.panelRafScheduled = true;
+      requestAnimationFrame(() => {
+        this.panelRafScheduled = false;
+        if (this.isResizingPanel && this.pendingPanelWidth !== null) {
+          this.panelWidthPx = this.pendingPanelWidth;
+        }
+      });
+    }
+  };
+
+  private onPanelMouseUp = () => {
+    // Commit synchronously in case the last mousemove's rAF hasn't fired yet.
+    if (this.isResizingPanel && this.pendingPanelWidth !== null) {
+      this.panelWidthPx = this.pendingPanelWidth;
+    }
+    this.pendingPanelWidth = null;
+    this.stopPanelResize();
+  };
+
+  private stopPanelResize(): void {
+    this.isResizingPanel = false;
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+    document.removeEventListener('mousemove', this.onPanelMouseMove);
+    document.removeEventListener('mouseup', this.onPanelMouseUp);
+  }
+
+  onPanelResizeKeydown(event: KeyboardEvent): void {
+    if (this.isMobileViewport) return;
+    const step = event.shiftKey ? 32 : 8;
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      this.panelWidthPx = this.clampPanelWidth(this.panelWidthPx - step);
+    } else if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      this.panelWidthPx = this.clampPanelWidth(this.panelWidthPx + step);
+    }
+  }
+
   sidebarCollapsed = true;
 
   navItems: SidebarNavItem[] = [
@@ -752,6 +880,7 @@ export class QuickAccessPanelComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.tracker.destroyListeners();
     this.stopColResize();
+    this.stopPanelResize();
     window.removeEventListener('resize', this.onWindowResize);
   }
 
@@ -766,7 +895,7 @@ export class QuickAccessPanelComponent implements OnInit, OnDestroy {
 
   colWidths: Record<ResizableColId, number> = { ...this.COL_DEFAULTS };
   resizingCol: ResizableColId | null = null;
-  hoveredColRect: { left: number; width: number; height: number } | null = null;
+  hoveredColRect: { colId: ResizableColId; left: number; height: number } | null = null;
   isMobileViewport = false;
   private colStartX = 0;
   private colStartWidth = 0;
@@ -791,19 +920,22 @@ export class QuickAccessPanelComponent implements OnInit, OnDestroy {
     return Math.min(this.COL_MAX[id], Math.max(this.COL_MIN[id], Math.round(value)));
   }
 
-  onColHeaderEnter(event: MouseEvent, _colId: ResizableColId): void {
+  onColHeaderEnter(event: MouseEvent, colId: ResizableColId): void {
     if (this.isMobileViewport || this.resizingCol) return;
     const cell = event.currentTarget as HTMLElement;
     const wrap = cell.closest('.tbl-wrap') as HTMLElement | null;
     if (!wrap) return;
     this.hoveredColRect = {
+      colId,
       left: cell.offsetLeft,
-      width: cell.offsetWidth,
       height: wrap.scrollHeight,
     };
   }
 
   onColHeaderLeave(): void {
+    // While actively resizing, the cursor moves away from the header cell —
+    // keep the line pinned (and green, via resizingCol) until the drag ends.
+    if (this.resizingCol) return;
     this.hoveredColRect = null;
   }
 
@@ -812,7 +944,7 @@ export class QuickAccessPanelComponent implements OnInit, OnDestroy {
     event.preventDefault();
     event.stopPropagation();
     this.resizingCol = colId;
-    this.hoveredColRect = null;
+    // hoveredColRect stays — it's what renders the (now green) full-height line during the drag.
     this.colStartX = event.clientX;
     this.colStartWidth = this.colWidths[colId];
     document.body.style.cursor = 'col-resize';
@@ -852,6 +984,7 @@ export class QuickAccessPanelComponent implements OnInit, OnDestroy {
 
   private stopColResize(): void {
     this.resizingCol = null;
+    this.hoveredColRect = null;
     document.body.style.cursor = '';
     document.body.style.userSelect = '';
     document.removeEventListener('mousemove', this.onColMouseMove);

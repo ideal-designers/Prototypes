@@ -28,13 +28,16 @@ export interface QuickAccessItem {
  *   above a tree/table you also want to collapse together):
  *   <fvdr-quick-access-menu [items]="shortcuts" [(collapsed)]="menuCollapsed"
  *     [showCollapseAll]="true" (collapseAllClick)="collapseWholePanel()" />
+ *
+ *   [width] defaults to 340 (the DS spec width) — bind it to make the panel
+ *   resizable from outside (the component itself has no resize handle).
  */
 @Component({
   selector: 'fvdr-quick-access-menu',
   standalone: true,
   imports: [CommonModule, FvdrIconComponent],
   template: `
-    <div class="qa-menu">
+    <div class="qa-menu" [style.width.px]="width">
 
       <!-- Header -->
       <div class="qa-header">
@@ -84,7 +87,6 @@ export interface QuickAccessItem {
 
     /* ── Shell ── */
     .qa-menu {
-      width: 340px;
       display: flex;
       flex-direction: column;
       background: var(--color-stone-0, #fff);
@@ -209,6 +211,8 @@ export class QuickAccessMenuComponent {
   @Input()  collapsed = false;
   /** Shows a second header button for collapsing whatever sits below this menu (e.g. a tree) along with it. */
   @Input()  showCollapseAll = false;
+  /** Panel width in px. Defaults to the DS spec width; override when the consumer makes this panel resizable. */
+  @Input()  width = 340;
   @Output() collapsedChange = new EventEmitter<boolean>();
   @Output() itemClick = new EventEmitter<QuickAccessItem>();
   @Output() collapseAllClick = new EventEmitter<void>();
