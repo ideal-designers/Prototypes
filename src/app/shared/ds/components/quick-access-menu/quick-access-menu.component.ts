@@ -45,7 +45,7 @@ export interface QuickAccessItem {
           <span class="qa-header__title">Quick access</span>
           <div class="qa-header__actions">
             <button class="qa-icon-btn" title="Collapse quick filters" (click)="toggleCollapse()">
-              <fvdr-icon name="angle-double-left" />
+              <fvdr-icon name="collapse" />
             </button>
             <button *ngIf="showCollapseAll" class="qa-icon-btn" title="Collapse all" (click)="collapseAllClick.emit()">
               <fvdr-icon name="chevron-left" />
@@ -59,7 +59,7 @@ export interface QuickAccessItem {
               <fvdr-icon [name]="item.icon" />
             </button>
             <button class="qa-icon-btn qa-icon-btn--expand" title="Expand quick filters" (click)="toggleCollapse()">
-              <fvdr-icon name="angle-double-right" />
+              <fvdr-icon name="expand" />
             </button>
           </div>
         </ng-template>
