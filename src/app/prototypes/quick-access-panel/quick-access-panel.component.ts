@@ -148,7 +148,10 @@ type ResizableColId = 'idx' | 'name' | 'notes' | 'size' | 'pub' | 'red';
 
               <!-- Header row -->
               <div class="tbl-row tbl-row--header" [style.grid-template-columns]="gridTemplateColumns">
-                <div class="col-idx" (mouseenter)="onColHeaderEnter($event, 'idx')" (mouseleave)="onColHeaderLeave()">
+                <div class="col-idx"
+                     [class.th-hover]="hoveredColRect?.colId === 'idx'"
+                     [class.th-active]="resizingCol === 'idx'"
+                     (mouseenter)="onColHeaderEnter($event, 'idx')" (mouseleave)="onColHeaderLeave()">
                   <span class="th-label" data-col-measure="idx">Index</span>
                   <span class="col-resize-handle"
                         [class.col-resize-handle--active]="resizingCol === 'idx'"
@@ -158,7 +161,10 @@ type ResizableColId = 'idx' | 'name' | 'notes' | 'size' | 'pub' | 'red';
                         (keydown)="onColResizeKeydown($event, 'idx')"
                         (dblclick)="autoFitColumn('idx')"></span>
                 </div>
-                <div class="col-name" (mouseenter)="onColHeaderEnter($event, 'name')" (mouseleave)="onColHeaderLeave()">
+                <div class="col-name"
+                     [class.th-hover]="hoveredColRect?.colId === 'name'"
+                     [class.th-active]="resizingCol === 'name'"
+                     (mouseenter)="onColHeaderEnter($event, 'name')" (mouseleave)="onColHeaderLeave()">
                   <span class="th-label" data-col-measure="name">Name</span>
                   <span class="col-resize-handle"
                         [class.col-resize-handle--active]="resizingCol === 'name'"
@@ -168,7 +174,10 @@ type ResizableColId = 'idx' | 'name' | 'notes' | 'size' | 'pub' | 'red';
                         (keydown)="onColResizeKeydown($event, 'name')"
                         (dblclick)="autoFitColumn('name')"></span>
                 </div>
-                <div class="col-notes" (mouseenter)="onColHeaderEnter($event, 'notes')" (mouseleave)="onColHeaderLeave()">
+                <div class="col-notes"
+                     [class.th-hover]="hoveredColRect?.colId === 'notes'"
+                     [class.th-active]="resizingCol === 'notes'"
+                     (mouseenter)="onColHeaderEnter($event, 'notes')" (mouseleave)="onColHeaderLeave()">
                   <span class="th-label" data-col-measure="notes">Notes</span>
                   <span class="col-resize-handle"
                         [class.col-resize-handle--active]="resizingCol === 'notes'"
@@ -178,7 +187,10 @@ type ResizableColId = 'idx' | 'name' | 'notes' | 'size' | 'pub' | 'red';
                         (keydown)="onColResizeKeydown($event, 'notes')"
                         (dblclick)="autoFitColumn('notes')"></span>
                 </div>
-                <div class="col-size" (mouseenter)="onColHeaderEnter($event, 'size')" (mouseleave)="onColHeaderLeave()">
+                <div class="col-size"
+                     [class.th-hover]="hoveredColRect?.colId === 'size'"
+                     [class.th-active]="resizingCol === 'size'"
+                     (mouseenter)="onColHeaderEnter($event, 'size')" (mouseleave)="onColHeaderLeave()">
                   <span class="th-label" data-col-measure="size">Size</span>
                   <fvdr-icon name="sort" class="th-sort"></fvdr-icon>
                   <span class="col-resize-handle"
@@ -189,7 +201,10 @@ type ResizableColId = 'idx' | 'name' | 'notes' | 'size' | 'pub' | 'red';
                         (keydown)="onColResizeKeydown($event, 'size')"
                         (dblclick)="autoFitColumn('size')"></span>
                 </div>
-                <div class="col-pub" (mouseenter)="onColHeaderEnter($event, 'pub')" (mouseleave)="onColHeaderLeave()">
+                <div class="col-pub"
+                     [class.th-hover]="hoveredColRect?.colId === 'pub'"
+                     [class.th-active]="resizingCol === 'pub'"
+                     (mouseenter)="onColHeaderEnter($event, 'pub')" (mouseleave)="onColHeaderLeave()">
                   <span class="th-label" data-col-measure="pub">Publishing</span>
                   <span class="col-resize-handle"
                         [class.col-resize-handle--active]="resizingCol === 'pub'"
@@ -199,7 +214,10 @@ type ResizableColId = 'idx' | 'name' | 'notes' | 'size' | 'pub' | 'red';
                         (keydown)="onColResizeKeydown($event, 'pub')"
                         (dblclick)="autoFitColumn('pub')"></span>
                 </div>
-                <div class="col-red" (mouseenter)="onColHeaderEnter($event, 'red')" (mouseleave)="onColHeaderLeave()">
+                <div class="col-red"
+                     [class.th-hover]="hoveredColRect?.colId === 'red'"
+                     [class.th-active]="resizingCol === 'red'"
+                     (mouseenter)="onColHeaderEnter($event, 'red')" (mouseleave)="onColHeaderLeave()">
                   <span class="th-label" data-col-measure="red">Redaction</span>
                   <fvdr-icon name="sort" class="th-sort"></fvdr-icon>
                   <span class="col-resize-handle"
@@ -391,7 +409,7 @@ type ResizableColId = 'idx' | 'name' | 'notes' | 'size' | 'pub' | 'red';
     }
     .qa-panel-handle--active::after {
       width: 3px;
-      background: var(--color-primary-500);
+      background: var(--chip-bg-green);
     }
     .qa-panel-handle:focus-visible {
       outline: 2px solid var(--color-primary-500);
@@ -540,6 +558,9 @@ type ResizableColId = 'idx' | 'name' | 'notes' | 'size' | 'pub' | 'red';
       gap: var(--space-2);
       padding: 0 var(--space-4);
     }
+    /* Hovering a header cell tints it; actively resizing that column tints it green instead. */
+    .th-hover  { background: var(--color-hover-bg); }
+    .th-active { background: var(--chip-bg-green); }
     .th-label {
       font-size: var(--font-size-base);
       font-weight: 600;
