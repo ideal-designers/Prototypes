@@ -81,14 +81,13 @@ type ResizableColId = 'idx' | 'name' | 'notes' | 'size' | 'pub' | 'red';
 
               <!-- Collapsed-all rail: mirrors the real product's "Collapse all" state -->
               <div class="qa-rail" *ngIf="panelCollapsed">
-                <button class="icon-btn" *ngFor="let s of shortcuts" [title]="s.label" (click)="onShortcutClick(s)">
-                  <fvdr-icon [name]="s.icon"></fvdr-icon>
-                </button>
-                <div class="qa-rail-divider"></div>
-                <span class="qa-project-badge" title="Conference Room">RN</span>
                 <button class="icon-btn" title="Expand" (click)="panelCollapsed = false">
                   <fvdr-icon name="chevron-right"></fvdr-icon>
                 </button>
+                <button class="icon-btn" *ngFor="let s of shortcuts" [title]="s.label" (click)="onShortcutClick(s)">
+                  <fvdr-icon [name]="s.icon"></fvdr-icon>
+                </button>
+                <span class="qa-project-badge" title="Conference Room">RN</span>
               </div>
 
               <ng-container *ngIf="!panelCollapsed">
@@ -429,13 +428,6 @@ type ResizableColId = 'idx' | 'name' | 'notes' | 'size' | 'pub' | 'red';
       padding: var(--space-4) 0;
       flex-shrink: 0;
     }
-    .qa-rail-divider {
-      width: 24px;
-      height: 1px;
-      background: var(--color-divider);
-      margin: var(--space-2) 0;
-    }
-
     /* Tree */
     .qa-tree {
       flex: 1;
