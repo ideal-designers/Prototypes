@@ -264,7 +264,11 @@ type FmtKey = 'bold' | 'color' | 'highlight' | 'list' | 'align';
       font: inherit;
       padding: 6px;
     }
-    .tool-group--split .tool-part--caret { opacity: 0.7; }
+    /* The touching sides of the icon/caret pair get less padding than the outer
+       sides, so the default (gap: 0) reading is a tight pair, not two full-size
+       buttons mashed together — the gap slider then opens space on top of this. */
+    .tool-group--split .tool-part--icon { padding-right: 2px; }
+    .tool-group--split .tool-part--caret { padding-left: 2px; opacity: 0.7; }
     .tool-part--text {
       font-family: var(--font-family);
       font-size: var(--font-size-sm, 13px);
