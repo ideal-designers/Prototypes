@@ -57,7 +57,6 @@ type FmtKey = 'bold' | 'color' | 'highlight' | 'list' | 'align';
                   <span class="tool-caret" [innerHTML]="icons.caret"></span>
                 </button>
               </div>
-              <span class="tool-divider"></span>
               <div class="tool-group tool-group--plain">
                 <button type="button" class="tool-part tool-part--icon" (click)="clearFormatting()" aria-label="Clear formatting" title="Clear formatting">
                   <span class="tool-icon" [innerHTML]="icons.clearFormat"></span>
@@ -116,9 +115,9 @@ type FmtKey = 'bold' | 'color' | 'highlight' | 'list' | 'align';
         <h2 class="playground-title">Spacing playground</h2>
         <p class="playground-note">
           Кожен toolbar-тул із дропдауном (Bold, Text color, Highlight, List, Align) — це <b>дві окремі кнопки</b>
-          (іконка + caret), як і в проді — з тонкою розділювальною лінією між ними. Керування навмисно обмежене
-          двома речами, які безпечно можна прибити в реальному коді: гап між елементами тулбара і паддінг
-          усередині кожного елемента.
+          (іконка + caret), як і в проді, без розділювачів між ними. Керування навмисно обмежене двома речами,
+          які безпечно можна прибити в реальному коді: гап між елементами тулбара і паддінг усередині кожного
+          елемента.
         </p>
         <div class="playground-grid">
           <div class="control">
@@ -235,13 +234,6 @@ type FmtKey = 'bold' | 'color' | 'highlight' | 'list' | 'align';
     }
     .toolbar-left { display: flex; align-items: center; gap: var(--gap-toolbar, 4px); }
 
-    .tool-divider {
-      width: 1px;
-      align-self: stretch;
-      background: var(--primitive-dark-stone-300, #33383b);
-      margin: 0 var(--space-1, 4px);
-    }
-
     /* Each toolbar element (a plain button, or an icon+caret split pair) is one
        flex child — the gap above is the only thing controlling space between them. */
     .tool-group {
@@ -257,8 +249,7 @@ type FmtKey = 'bold' | 'color' | 'highlight' | 'list' | 'align';
     .tool-group--pressed { background: var(--primitive-dark-stone-300, #33383b); color: var(--color-primary-500, #2C9C74); }
 
     /* Sub-buttons never carry their own background/radius — the wrapping .tool-group
-       renders one continuous pill regardless of which part (icon or caret) is hovered.
-       A thin hairline between the two parts is what reads as "split" at rest. */
+       renders one continuous pill regardless of which part (icon or caret) is hovered. */
     .tool-part {
       appearance: none;
       background: transparent;
@@ -269,9 +260,6 @@ type FmtKey = 'bold' | 'color' | 'highlight' | 'list' | 'align';
       cursor: pointer;
       font: inherit;
       padding: var(--pad-inside, 6px);
-    }
-    .tool-group--split .tool-part--icon {
-      border-right: 1px solid var(--primitive-dark-stone-400, #40464a);
     }
     .tool-group--split .tool-part--caret { opacity: 0.7; }
     .tool-part--text {
