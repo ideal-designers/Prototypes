@@ -141,6 +141,11 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./prototypes/global-ai/global-ai.component').then(m => m.GlobalAiComponent),
   },
+    {
+    path: 'qna-answer-editor',
+    loadComponent: () =>
+      import('./prototypes/qna-answer-editor/qna-answer-editor.component').then(m => m.QnaAnswerEditorComponent),
+  },
   // PROTO_ROUTES_PLACEHOLDER
   {
     path: '**',
