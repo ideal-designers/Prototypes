@@ -409,7 +409,7 @@ type ResizableColId = 'idx' | 'name' | 'notes' | 'size' | 'pub' | 'red';
     }
     .qa-panel-handle--active::after {
       width: 3px;
-      background: var(--chip-bg-green);
+      background: var(--color-primary-50);
     }
     .qa-panel-handle:focus-visible {
       outline: 2px solid var(--color-primary-500);
@@ -537,13 +537,13 @@ type ResizableColId = 'idx' | 'name' | 'notes' | 'size' | 'pub' | 'red';
       transition: background 0.1s ease, width 0.1s ease;
     }
     .col-hover-line--active {
-      width: 3px;
       background: var(--color-primary-500);
     }
 
     .tbl-row--header {
       background: var(--color-stone-200);
       min-height: 48px;
+      align-items: stretch;
       position: sticky;
       top: 0;
       z-index: 1;
