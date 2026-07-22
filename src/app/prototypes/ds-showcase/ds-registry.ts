@@ -1571,9 +1571,9 @@ const quickAccessMenu: ComponentDocEntry = {
   status: 'stable',
   figmaNode: '36673-1987',
   description:
-    'A collapsible shortcut panel placed alongside the sidebar. Displays a labeled header with expand/close controls and a vertical list of shortcut items (Recent, Favorites, New, Notes). Active item is highlighted with a green tint; hover uses a blue-gray tint.',
+    'A collapsible shortcut panel placed alongside the sidebar. Displays a labeled header with expand/close controls and a vertical list of shortcut items (Recently viewed, Newly uploaded, Unpublished, Favorites). Active item is highlighted with a green tint; hover uses a blue-gray tint. Collapsing keeps the panel\'s width fixed and swaps the item list for an icon-only row — it never shrinks the panel itself.',
   whenToUse: [
-    'Provide quick access to frequently used sections (Recent, Favorites) inside the document workspace',
+    'Provide quick access to frequently used sections (Recently viewed, Favorites) inside the document workspace',
     'When the user needs a persistent, dismissible filter panel on the left of the content area',
   ],
   whenNotToUse: [
@@ -1600,14 +1600,26 @@ const quickAccessMenu: ComponentDocEntry = {
   [(collapsed)]="menuCollapsed"
   (itemClick)="onShortcut($event)"
   (closed)="menuVisible = false"
+/>
+
+<!-- With a secondary "collapse everything below it too" control -->
+<fvdr-quick-access-menu
+  [items]="shortcuts"
+  [(collapsed)]="menuCollapsed"
+  [showCollapseAll]="true"
+  (collapseAllClick)="collapseWholePanel()"
 />`,
   claudePrompt:
     'Use fvdr-quick-access-menu for a collapsible shortcut panel. Import: @fvdr/ui/quick-access-menu. ' +
     '@Input() items: QuickAccessItem[] — each: { id, label, icon: FvdrIconName, active? }. ' +
-    'Default items: Recent (clock), Favorites (sort), New (upload), Notes (file-text). ' +
+    'Default items match the real product exactly: Recently viewed (history), Newly uploaded (upload), ' +
+    'Unpublished (cross-circle), Favorites (star). ' +
     '@Input() collapsed: boolean — two-way via [(collapsed)]. ' +
-    '@Output() itemClick emits QuickAccessItem. @Output() closed emits void. ' +
-    'Panel width: 340px expanded, auto when collapsed (icon-only header). ' +
+    '@Input() showCollapseAll: boolean — shows a second header button for collapsing a sibling element ' +
+    '(e.g. a tree placed below this menu) together with it; the component itself has no concept of that ' +
+    'sibling, the parent handles hiding it via (collapseAllClick). ' +
+    '@Output() itemClick emits QuickAccessItem. @Output() collapseAllClick emits void. @Output() closed emits void. ' +
+    'Panel width: always 340px — collapsing swaps the item list for an icon-only row, it never shrinks the panel. ' +
     'Active item: bg #ebf8ef, icon color primary-500. Hover: bg #eceef9.',
 };
 

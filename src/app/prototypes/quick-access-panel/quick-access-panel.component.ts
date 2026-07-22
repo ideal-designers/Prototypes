@@ -2,16 +2,9 @@ import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DS_COMPONENTS } from '../../shared/ds';
-import type { SidebarNavItem, HeaderAction } from '../../shared/ds';
+import type { SidebarNavItem, HeaderAction, QuickAccessItem } from '../../shared/ds';
 import { FvdrIconName } from '../../shared/ds/icons/icons';
 import { TrackerService } from '../../services/tracker.service';
-
-interface ShortcutItem {
-  id: string;
-  label: string;
-  icon: FvdrIconName;
-  hovered: boolean;
-}
 
 interface TreeNode {
   id: string;
@@ -84,38 +77,28 @@ type ResizableColId = 'idx' | 'name' | 'notes' | 'size' | 'pub' | 'red';
           <div class="content-row">
 
             <!-- ── Quick Access Panel ── -->
-            <div class="qa-panel"
-                 [style.width.px]="panelWidth"
-                 [class.is-resizing]="isResizing">
+            <div class="qa-panel">
 
-              <div class="qa-content">
+              <!-- Collapsed-all rail: mirrors the real product's "Collapse all" state -->
+              <div class="qa-rail" *ngIf="panelCollapsed">
+                <button class="icon-btn" *ngFor="let s of shortcuts" [title]="s.label" (click)="onShortcutClick(s)">
+                  <fvdr-icon [name]="s.icon"></fvdr-icon>
+                </button>
+                <div class="qa-rail-divider"></div>
+                <span class="qa-project-badge" title="Conference Room">RN</span>
+                <button class="icon-btn" title="Expand" (click)="panelCollapsed = false">
+                  <fvdr-icon name="chevron-right"></fvdr-icon>
+                </button>
+              </div>
 
-                <!-- QA Header -->
-                <div class="qa-header">
-                  <span class="qa-title">Quick access</span>
-                  <div class="qa-header-btns">
-                    <button class="icon-btn" title="Collapse">
-                      <fvdr-icon name="angle-double-left"></fvdr-icon>
-                    </button>
-                    <button class="icon-btn" title="Navigate back">
-                      <fvdr-icon name="chevron-left"></fvdr-icon>
-                    </button>
-                  </div>
-                </div>
-
-                <!-- Shortcuts -->
-                <div class="qa-shortcuts">
-                  <div *ngFor="let s of shortcuts"
-                       class="qa-sc-row"
-                       (mouseenter)="s.hovered = true"
-                       (mouseleave)="s.hovered = false">
-                    <span class="qa-sc-icon"><fvdr-icon [name]="s.icon"></fvdr-icon></span>
-                    <span class="qa-sc-label">{{ s.label }}</span>
-                    <button *ngIf="s.hovered" class="icon-btn qa-sc-add" title="Add">
-                      <fvdr-icon name="plus"></fvdr-icon>
-                    </button>
-                  </div>
-                </div>
+              <ng-container *ngIf="!panelCollapsed">
+                <fvdr-quick-access-menu
+                  [items]="shortcuts"
+                  [(collapsed)]="shortcutsCollapsed"
+                  [showCollapseAll]="true"
+                  (itemClick)="onShortcutClick($event)"
+                  (collapseAllClick)="panelCollapsed = true"
+                ></fvdr-quick-access-menu>
 
                 <!-- Folder tree -->
                 <div class="qa-tree">
@@ -147,16 +130,7 @@ type ResizableColId = 'idx' | 'name' | 'notes' | 'size' | 'pub' | 'red';
                     </div>
                   </ng-container>
                 </div>
-              </div>
-
-              <!-- Resize handle -->
-              <div class="qa-handle"
-                   [class.qa-handle--active]="handleHovered || isResizing"
-                   (mouseenter)="handleHovered = true"
-                   (mouseleave)="!isResizing && (handleHovered = false)"
-                   (mousedown)="startResize($event)">
-                <div class="qa-handle-line"></div>
-              </div>
+              </ng-container>
             </div>
 
             <!-- ── Table ── -->
@@ -363,74 +337,29 @@ type ResizableColId = 'idx' | 'name' | 'notes' | 'size' | 'pub' | 'red';
     ────────────────────────────────────────── */
     .qa-panel {
       display: flex;
+      flex-direction: column;
       flex-shrink: 0;
-      position: relative;
       background: var(--color-stone-0);
-      min-width: 200px;
-      max-width: 560px;
       overflow: hidden;
     }
-    .qa-panel.is-resizing { cursor: col-resize; user-select: none; }
 
-    .qa-content {
-      flex: 1;
+    fvdr-quick-access-menu { flex-shrink: 0; }
+
+    /* Collapsed-all rail — mirrors the real product's "Collapse all" state */
+    .qa-rail {
       display: flex;
       flex-direction: column;
-      overflow: hidden;
-      min-width: 0;
-    }
-
-    /* QA Header */
-    .qa-header {
-      display: flex;
       align-items: center;
-      justify-content: space-between;
-      height: 48px;
-      padding: 0 var(--space-4);
-      background: var(--color-stone-200);
+      gap: var(--space-1);
+      width: 56px;
+      padding: var(--space-4) 0;
       flex-shrink: 0;
     }
-    .qa-title {
-      font-size: var(--font-size-base);
-      font-weight: 600;
-      color: var(--color-text-primary);
-    }
-    .qa-header-btns { display: flex; gap: var(--space-2); align-items: center; }
-
-    /* Shortcuts */
-    .qa-shortcuts {
-      flex-shrink: 0;
-      display: flex;
-      flex-direction: column;
-      border-bottom: 1px solid var(--color-divider);
-    }
-    .qa-sc-row {
-      display: flex;
-      align-items: center;
-      height: 40px;
-      padding: 0 var(--space-4);
-      gap: var(--space-4);
-      cursor: pointer;
-      position: relative;
-    }
-    .qa-sc-row:hover { background: var(--color-hover-bg); }
-    .qa-sc-icon {
-      display: flex; align-items: center;
-      font-size: var(--font-size-lg, 16px);
-      color: var(--color-text-secondary);
-      flex-shrink: 0;
-    }
-    .qa-sc-label {
-      flex: 1;
-      font-size: var(--font-size-base);
-      color: var(--color-text-primary);
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    .qa-sc-add {
-      margin-left: auto;
-      opacity: 1;
+    .qa-rail-divider {
+      width: 24px;
+      height: 1px;
+      background: var(--color-divider);
+      margin: var(--space-2) 0;
     }
 
     /* Tree */
@@ -500,28 +429,6 @@ type ResizableColId = 'idx' | 'name' | 'notes' | 'size' | 'pub' | 'red';
       text-overflow: ellipsis;
       white-space: nowrap;
       min-width: 0;
-    }
-
-    /* Resize handle */
-    .qa-handle {
-      position: absolute;
-      right: -4px;
-      top: 0; bottom: 0;
-      width: 8px;
-      cursor: col-resize;
-      z-index: 10;
-      display: flex;
-      align-items: stretch;
-      justify-content: center;
-    }
-    .qa-handle-line {
-      width: 2px;
-      background: transparent;
-      transition: background 0.12s ease, width 0.12s ease;
-    }
-    .qa-handle--active .qa-handle-line {
-      width: 3px;
-      background: var(--color-primary-500);
     }
 
     /* ──────────────────────────────────────────
@@ -724,11 +631,10 @@ export class QuickAccessPanelComponent implements OnInit, OnDestroy {
     { id: 'all', label: 'All' },
   ];
 
-  panelWidth = 320;
-  isResizing = false;
-  handleHovered = false;
-  private startX = 0;
-  private startWidth = 0;
+  /** "Collapse all" state — mirrors the real product: shrinks shortcuts + tree to an icon-only rail. */
+  panelCollapsed = false;
+  /** "Collapse quick filters" state — owned by <fvdr-quick-access-menu>'s own [(collapsed)] binding. */
+  shortcutsCollapsed = false;
 
   sidebarCollapsed = true;
 
@@ -755,12 +661,15 @@ export class QuickAccessPanelComponent implements OnInit, OnDestroy {
 
   onHeaderAction(_id: string): void {}
 
-  shortcuts: ShortcutItem[] = [
-    { id: 's1', label: 'Recently viewed', icon: 'clock',  hovered: false },
-    { id: 's2', label: 'Unpublished',      icon: 'cancel', hovered: false },
-    { id: 's3', label: 'Newly upload',    icon: 'upload', hovered: false },
-    { id: 's4', label: 'Favorites',       icon: 'sort',   hovered: false },
+  // Matches the real product's Quick Access shortcuts exactly (content, order, icons).
+  shortcuts: QuickAccessItem[] = [
+    { id: 'recent',      label: 'Recently viewed', icon: 'history'      as FvdrIconName },
+    { id: 'uploaded',    label: 'Newly uploaded',  icon: 'upload'       as FvdrIconName },
+    { id: 'unpublished', label: 'Unpublished',     icon: 'cross-circle' as FvdrIconName },
+    { id: 'favorites',   label: 'Favorites',       icon: 'star'         as FvdrIconName },
   ];
+
+  onShortcutClick(_item: QuickAccessItem): void {}
 
   allNodes: TreeNode[] = [
     { id: 'rn',      index: '',      label: 'Conference Room',                                  level: 0, expanded: true,  hasChildren: true,  isActive: false },
@@ -842,9 +751,6 @@ export class QuickAccessPanelComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.tracker.destroyListeners();
-    this.stopResize();
-    document.removeEventListener('mousemove', this.onMouseMove);
-    document.removeEventListener('mouseup',   this.onMouseUp);
     this.stopColResize();
     window.removeEventListener('resize', this.onWindowResize);
   }
@@ -869,7 +775,10 @@ export class QuickAccessPanelComponent implements OnInit, OnDestroy {
 
   get gridTemplateColumns(): string {
     const c = this.colWidths;
-    return `${c.idx}px minmax(${c.name}px, 1fr) ${c.notes}px ${c.size}px ${c.pub}px ${c.red}px 80px`;
+    // Every column is a plain fixed-px track (no flex/minmax) so resize is
+    // identical for all of them: a column's left edge never moves, only its
+    // own right edge grows/shrinks, shifting columns to its right.
+    return `${c.idx}px ${c.name}px ${c.notes}px ${c.size}px ${c.pub}px ${c.red}px 80px`;
   }
 
   private onWindowResize = () => this.updateResponsiveState();
@@ -997,29 +906,4 @@ export class QuickAccessPanelComponent implements OnInit, OnDestroy {
     }
   }
 
-  startResize(event: MouseEvent): void {
-    event.preventDefault();
-    this.isResizing = true;
-    this.startX = event.clientX;
-    this.startWidth = this.panelWidth;
-    this.handleHovered = true;
-    document.addEventListener('mousemove', this.onMouseMove);
-    document.addEventListener('mouseup',   this.onMouseUp);
-  }
-
-  private onMouseMove = (e: MouseEvent) => {
-    const delta = e.clientX - this.startX;
-    this.panelWidth = Math.min(560, Math.max(200, this.startWidth + delta));
-  };
-
-  private onMouseUp = () => {
-    this.isResizing = false;
-    this.handleHovered = false;
-    document.removeEventListener('mousemove', this.onMouseMove);
-    document.removeEventListener('mouseup',   this.onMouseUp);
-  };
-
-  private stopResize(): void {
-    this.isResizing = false;
-  }
 }

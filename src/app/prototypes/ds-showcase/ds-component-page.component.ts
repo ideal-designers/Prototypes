@@ -1168,9 +1168,15 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
             </div>
           </div>
           <div class="examples-group">
-            <h3 class="examples-group__title">Collapsed (icon-only header)</h3>
+            <h3 class="examples-group__title">Collapsed (icon-only row, same width)</h3>
             <div class="examples-row">
               <fvdr-quick-access-menu [items]="demoQaItems" [collapsed]="true"></fvdr-quick-access-menu>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">With collapse-all control</h3>
+            <div class="examples-row">
+              <fvdr-quick-access-menu [items]="demoQaItems" [collapsed]="false" [showCollapseAll]="true"></fvdr-quick-access-menu>
             </div>
           </div>
         </ng-container>
@@ -3644,18 +3650,18 @@ export class DsComponentPageComponent implements OnInit, OnDestroy {
     { id: 'settings',    label: 'Settings',     icon: 'nav-settings'      as any, iconActive: 'nav-settings-active'      as any, active: false },
   ];
 
-  // ── Quick Access Menu demo data ──
+  // ── Quick Access Menu demo data (matches the real product's shortcuts) ──
   demoQaItems = [
-    { id: 'recent',    label: 'Recent',    icon: 'clock'  as any, active: false },
-    { id: 'favorites', label: 'Favorites', icon: 'sort'   as any, active: false },
-    { id: 'new',       label: 'New',       icon: 'upload' as any, active: false },
-    { id: 'notes',     label: 'Notes',     icon: 'note'   as any, active: false },
+    { id: 'recent',      label: 'Recently viewed', icon: 'history'      as any, active: false },
+    { id: 'uploaded',    label: 'Newly uploaded',  icon: 'upload'       as any, active: false },
+    { id: 'unpublished', label: 'Unpublished',     icon: 'cross-circle' as any, active: false },
+    { id: 'favorites',   label: 'Favorites',       icon: 'star'         as any, active: false },
   ];
   demoQaItemsActive = [
-    { id: 'recent',    label: 'Recent',    icon: 'clock'  as any, active: true  },
-    { id: 'favorites', label: 'Favorites', icon: 'sort'   as any, active: false },
-    { id: 'new',       label: 'New',       icon: 'upload' as any, active: false },
-    { id: 'notes',     label: 'Notes',     icon: 'note'   as any, active: false },
+    { id: 'recent',      label: 'Recently viewed', icon: 'history'      as any, active: true  },
+    { id: 'uploaded',    label: 'Newly uploaded',  icon: 'upload'       as any, active: false },
+    { id: 'unpublished', label: 'Unpublished',     icon: 'cross-circle' as any, active: false },
+    { id: 'favorites',   label: 'Favorites',       icon: 'star'         as any, active: false },
   ];
 
   // ── Radio demo data ──

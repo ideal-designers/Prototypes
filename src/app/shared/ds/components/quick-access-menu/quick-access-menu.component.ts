@@ -23,21 +23,29 @@ export interface QuickAccessItem {
  *     [(collapsed)]="menuCollapsed"
  *     (itemClick)="onShortcut($event)"
  *   />
+ *
+ *   With a secondary "collapse everything" control (e.g. when this menu sits
+ *   above a tree/table you also want to collapse together):
+ *   <fvdr-quick-access-menu [items]="shortcuts" [(collapsed)]="menuCollapsed"
+ *     [showCollapseAll]="true" (collapseAllClick)="collapseWholePanel()" />
  */
 @Component({
   selector: 'fvdr-quick-access-menu',
   standalone: true,
   imports: [CommonModule, FvdrIconComponent],
   template: `
-    <div class="qa-menu" [class.qa-menu--collapsed]="collapsed">
+    <div class="qa-menu">
 
       <!-- Header -->
       <div class="qa-header">
         <ng-container *ngIf="!collapsed; else collapsedHeader">
           <span class="qa-header__title">Quick access</span>
           <div class="qa-header__actions">
-            <button class="qa-icon-btn" title="Collapse" (click)="toggleCollapse()">
+            <button class="qa-icon-btn" title="Collapse quick filters" (click)="toggleCollapse()">
               <fvdr-icon name="angle-double-left" />
+            </button>
+            <button *ngIf="showCollapseAll" class="qa-icon-btn" title="Collapse all" (click)="collapseAllClick.emit()">
+              <fvdr-icon name="chevron-left" />
             </button>
           </div>
         </ng-container>
@@ -47,7 +55,7 @@ export interface QuickAccessItem {
             <button class="qa-icon-btn" *ngFor="let item of items" [title]="item.label" (click)="itemClick.emit(item)">
               <fvdr-icon [name]="item.icon" />
             </button>
-            <button class="qa-icon-btn qa-icon-btn--expand" title="Expand" (click)="toggleCollapse()">
+            <button class="qa-icon-btn qa-icon-btn--expand" title="Expand quick filters" (click)="toggleCollapse()">
               <fvdr-icon name="angle-double-right" />
             </button>
           </div>
@@ -84,10 +92,6 @@ export interface QuickAccessItem {
       overflow: hidden;
       font-family: var(--font-family);
     }
-    .qa-menu--collapsed {
-      width: auto;
-    }
-
     /* ── Header ── */
     .qa-header {
       height: 48px;
@@ -100,11 +104,6 @@ export interface QuickAccessItem {
       border-radius: var(--radius-sm, 4px);
       flex-shrink: 0;
     }
-    .qa-menu--collapsed .qa-header {
-      padding: 0 8px;
-      justify-content: center;
-    }
-
     .qa-header__title {
       font-size: var(--font-size-base, 14px);
       font-weight: 600;
@@ -202,14 +201,17 @@ export interface QuickAccessItem {
 })
 export class QuickAccessMenuComponent {
   @Input() items: QuickAccessItem[] = [
-    { id: 'recent',    label: 'Recent',    icon: 'clock'  as FvdrIconName },
-    { id: 'favorites', label: 'Favorites', icon: 'sort'   as FvdrIconName },
-    { id: 'new',       label: 'New',       icon: 'upload' as FvdrIconName },
-    { id: 'notes',     label: 'Notes',     icon: 'note'   as FvdrIconName },
+    { id: 'recent',       label: 'Recently viewed', icon: 'history'      as FvdrIconName },
+    { id: 'uploaded',     label: 'Newly uploaded',  icon: 'upload'       as FvdrIconName },
+    { id: 'unpublished',  label: 'Unpublished',     icon: 'cross-circle' as FvdrIconName },
+    { id: 'favorites',    label: 'Favorites',       icon: 'star'         as FvdrIconName },
   ];
   @Input()  collapsed = false;
+  /** Shows a second header button for collapsing whatever sits below this menu (e.g. a tree) along with it. */
+  @Input()  showCollapseAll = false;
   @Output() collapsedChange = new EventEmitter<boolean>();
   @Output() itemClick = new EventEmitter<QuickAccessItem>();
+  @Output() collapseAllClick = new EventEmitter<void>();
   @Output() closed = new EventEmitter<void>();
 
   onItemClick(item: QuickAccessItem): void {

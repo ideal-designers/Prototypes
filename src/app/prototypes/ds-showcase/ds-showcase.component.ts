@@ -1220,7 +1220,7 @@ export class DsShowcaseComponent implements OnInit, OnDestroy {
     'close','download','drag','edit','error','filter','finished','folder',
     'info','link','lock-close','lock-open','minus','more','move',
     'overview','participants','plus','reports','search','settings',
-    'share','sort','spinner','storage','trash','upload','warning',
+    'share','sort','spinner','star','storage','trash','upload','warning',
     'calendar','clock',
     // 16x16 — Common actions
     'copy','eye','eye-slash','envelope','history',
