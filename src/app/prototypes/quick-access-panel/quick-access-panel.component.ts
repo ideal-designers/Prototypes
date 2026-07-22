@@ -84,7 +84,13 @@ type ResizableColId = 'idx' | 'name' | 'notes' | 'size' | 'pub' | 'red';
                 <button class="icon-btn" title="Expand" (click)="panelCollapsed = false">
                   <fvdr-icon name="chevron-right"></fvdr-icon>
                 </button>
-                <button class="icon-btn" *ngFor="let s of shortcuts" [title]="s.label" (click)="onShortcutClick(s)">
+                <button
+                  class="icon-btn"
+                  *ngFor="let s of shortcuts"
+                  [class.icon-btn--active]="s.active"
+                  [title]="s.label"
+                  (click)="onShortcutClick(s)"
+                >
                   <fvdr-icon [name]="s.icon"></fvdr-icon>
                 </button>
                 <span class="qa-project-badge" title="Conference Room">RN</span>
@@ -701,6 +707,13 @@ type ResizableColId = 'idx' | 'name' | 'notes' | 'size' | 'pub' | 'red';
       background: var(--color-hover-bg);
       color: var(--color-text-primary);
     }
+    .icon-btn--active {
+      background: var(--color-stone-400, #dee0eb);
+      color: var(--color-text-primary);
+    }
+    .icon-btn--active:hover {
+      background: var(--color-stone-400, #dee0eb);
+    }
   `],
 })
 export class QuickAccessPanelComponent implements OnInit, OnDestroy {
@@ -819,7 +832,10 @@ export class QuickAccessPanelComponent implements OnInit, OnDestroy {
     { id: 'favorites',   label: 'Favorites',       icon: 'star'         as FvdrIconName },
   ];
 
-  onShortcutClick(_item: QuickAccessItem): void {}
+  onShortcutClick(item: QuickAccessItem): void {
+    this.shortcuts.forEach(s => s.active = false);
+    item.active = true;
+  }
 
   allNodes: TreeNode[] = [
     { id: 'rn',      index: '',      label: 'Conference Room',                                  level: 0, expanded: true,  hasChildren: true,  isActive: false },

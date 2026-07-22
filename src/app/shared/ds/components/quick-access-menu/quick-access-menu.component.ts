@@ -55,7 +55,13 @@ export interface QuickAccessItem {
 
         <ng-template #collapsedHeader>
           <div class="qa-header__collapsed-icons">
-            <button class="qa-icon-btn" *ngFor="let item of items" [title]="item.label" (click)="itemClick.emit(item)">
+            <button
+              class="qa-icon-btn"
+              *ngFor="let item of items"
+              [class.qa-icon-btn--active]="item.active"
+              [title]="item.label"
+              (click)="onItemClick(item)"
+            >
               <fvdr-icon [name]="item.icon" />
             </button>
             <button class="qa-icon-btn qa-icon-btn--expand" title="Expand quick filters" (click)="toggleCollapse()">
@@ -145,6 +151,13 @@ export interface QuickAccessItem {
     .qa-icon-btn:hover {
       background: var(--color-hover-bg, #eceef9);
       color: var(--color-text-primary, #1f2129);
+    }
+    .qa-icon-btn--active {
+      background: var(--color-stone-400, #dee0eb);
+      color: var(--color-text-primary, #1f2129);
+    }
+    .qa-icon-btn--active:hover {
+      background: var(--color-stone-400, #dee0eb);
     }
 
     /* ── Items list ── */
