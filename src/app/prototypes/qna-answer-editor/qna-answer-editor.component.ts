@@ -27,14 +27,8 @@ type FmtKey = 'bold' | 'color' | 'highlight' | 'list' | 'align';
       <div
         class="replica-stage"
         [ngStyle]="{
-          '--stage-pad': stagePad + 'px',
-          '--card-pad-x': cardPadX + 'px',
-          '--gap-base': gapBase + 'px',
-          '--gap-split-extra': gapSplitExtra + 'px',
-          '--row-pad-y': rowPadY + 'px',
-          '--textarea-pad': textareaPad + 'px',
-          '--footer-gap': footerGap + 'px',
-          '--tabs-gap': tabsGap + 'px'
+          '--gap-toolbar': gapToolbar + 'px',
+          '--pad-inside': padInside + 'px'
         }"
       >
         <div class="answer-block">
@@ -122,34 +116,16 @@ type FmtKey = 'bold' | 'color' | 'highlight' | 'list' | 'align';
         <h2 class="playground-title">Spacing playground</h2>
         <p class="playground-note">
           Кожен toolbar-тул із дропдауном (Bold, Text color, Highlight, List, Align) — це <b>дві окремі кнопки</b>
-          (іконка + caret), як і в проді. Тому й точковий відступ під конкретну кнопку інженерія не приб'є —
-          безпечно можна керувати лише двома речами: загальним гапом між усіма кнопками, і окремим гапом
-          після кнопок типу «split» (з дропдауном).
+          (іконка + caret), як і в проді — з тонкою розділювальною лінією між ними. Керування навмисно обмежене
+          двома речами, які безпечно можна прибити в реальному коді: гап між елементами тулбара і паддінг
+          усередині кожного елемента.
         </p>
         <div class="playground-grid">
           <div class="control">
-            <fvdr-range [(ngModel)]="stagePad" [min]="8" [max]="48" [label]="'Stage padding (outer) — ' + stagePad + 'px'" [showValue]="false"></fvdr-range>
+            <fvdr-range [(ngModel)]="gapToolbar" [min]="0" [max]="16" [label]="'Gap between toolbar elements — ' + gapToolbar + 'px'" [showValue]="false"></fvdr-range>
           </div>
           <div class="control">
-            <fvdr-range [(ngModel)]="cardPadX" [min]="0" [max]="24" [label]="'Toolbar/textarea padding X — ' + cardPadX + 'px'" [showValue]="false"></fvdr-range>
-          </div>
-          <div class="control">
-            <fvdr-range [(ngModel)]="gapBase" [min]="0" [max]="16" [label]="'Base gap — between ALL buttons — ' + gapBase + 'px'" [showValue]="false"></fvdr-range>
-          </div>
-          <div class="control">
-            <fvdr-range [(ngModel)]="gapSplitExtra" [min]="0" [max]="16" [label]="'Extra gap — after split (dropdown) buttons — ' + gapSplitExtra + 'px'" [showValue]="false"></fvdr-range>
-          </div>
-          <div class="control">
-            <fvdr-range [(ngModel)]="rowPadY" [min]="0" [max]="20" [label]="'Toolbar row padding Y — ' + rowPadY + 'px'" [showValue]="false"></fvdr-range>
-          </div>
-          <div class="control">
-            <fvdr-range [(ngModel)]="textareaPad" [min]="0" [max]="24" [label]="'Textarea padding — ' + textareaPad + 'px'" [showValue]="false"></fvdr-range>
-          </div>
-          <div class="control">
-            <fvdr-range [(ngModel)]="footerGap" [min]="0" [max]="20" [label]="'Footer gap — ' + footerGap + 'px'" [showValue]="false"></fvdr-range>
-          </div>
-          <div class="control">
-            <fvdr-range [(ngModel)]="tabsGap" [min]="8" [max]="40" [label]="'Tabs gap — ' + tabsGap + 'px'" [showValue]="false"></fvdr-range>
+            <fvdr-range [(ngModel)]="padInside" [min]="0" [max]="14" [label]="'Padding inside each toolbar element — ' + padInside + 'px'" [showValue]="false"></fvdr-range>
           </div>
         </div>
       </div>
@@ -192,7 +168,7 @@ type FmtKey = 'bold' | 'color' | 'highlight' | 'list' | 'align';
       max-width: 720px;
       background: var(--primitive-dark-stone-0, #1f2129);
       border-radius: var(--radius-lg, 12px);
-      padding: var(--stage-pad, 32px);
+      padding: var(--space-8, 32px);
     }
 
     .answer-block { display: flex; flex-direction: column; }
@@ -200,7 +176,7 @@ type FmtKey = 'bold' | 'color' | 'highlight' | 'list' | 'align';
     .tabs {
       display: flex;
       align-items: flex-end;
-      gap: var(--tabs-gap, 24px);
+      gap: var(--space-6, 24px);
       padding: 0 var(--space-1, 4px);
     }
     .tab {
@@ -241,24 +217,23 @@ type FmtKey = 'bold' | 'color' | 'highlight' | 'list' | 'align';
     }
 
     /*
-     * Toolbar spacing follows the two rules that are actually safe to implement
-     * against the real (dynamically rendered) toolbar: a general gap that applies
-     * between every button, and an extra gap applied only to a button *type*
-     * (split/dropdown groups) — never a one-off offset pinned to a specific
-     * button instance or DOM index.
+     * Toolbar spacing exposes exactly the two levers that are safe to implement
+     * against the real (dynamically rendered) toolbar: the gap between toolbar
+     * elements, and the padding inside each element — never a one-off offset
+     * pinned to one specific button instance or DOM index.
      */
     .toolbar {
       display: flex;
       align-items: center;
-      gap: var(--gap-base, 2px);
-      padding: var(--row-pad-y, 8px) var(--card-pad-x, 12px);
+      gap: var(--gap-toolbar, 4px);
+      padding: var(--space-2, 8px) var(--space-3, 12px);
     }
     .toolbar--top { border-bottom: 1px solid var(--primitive-dark-stone-300, #33383b); }
     .toolbar--bottom {
       border-top: 1px solid var(--primitive-dark-stone-300, #33383b);
       justify-content: space-between;
     }
-    .toolbar-left { display: flex; align-items: center; gap: var(--gap-base, 2px); }
+    .toolbar-left { display: flex; align-items: center; gap: var(--gap-toolbar, 4px); }
 
     .tool-divider {
       width: 1px;
@@ -267,8 +242,8 @@ type FmtKey = 'bold' | 'color' | 'highlight' | 'list' | 'align';
       margin: 0 var(--space-1, 4px);
     }
 
-    /* Rule 1 (general): every group — split or plain — sits var(--gap-base) apart via the flex gap above. */
-    /* Rule 2 (by type): split groups additionally get var(--gap-split-extra) of breathing room after their caret. */
+    /* Each toolbar element (a plain button, or an icon+caret split pair) is one
+       flex child — the gap above is the only thing controlling space between them. */
     .tool-group {
       display: flex;
       align-items: stretch;
@@ -277,13 +252,13 @@ type FmtKey = 'bold' | 'color' | 'highlight' | 'list' | 'align';
       cursor: pointer;
       transition: background 0.12s ease, color 0.12s ease;
     }
-    .tool-group--split { margin-right: var(--gap-split-extra, 0px); }
     .tool-group:hover,
     .tool-group:focus-within { background: var(--primitive-dark-stone-300, #33383b); color: var(--primitive-dark-stone-1000, #fff); }
     .tool-group--pressed { background: var(--primitive-dark-stone-300, #33383b); color: var(--color-primary-500, #2C9C74); }
 
     /* Sub-buttons never carry their own background/radius — the wrapping .tool-group
-       renders one continuous pill regardless of which part (icon or caret) is hovered. */
+       renders one continuous pill regardless of which part (icon or caret) is hovered.
+       A thin hairline between the two parts is what reads as "split" at rest. */
     .tool-part {
       appearance: none;
       background: transparent;
@@ -293,14 +268,16 @@ type FmtKey = 'bold' | 'color' | 'highlight' | 'list' | 'align';
       color: inherit;
       cursor: pointer;
       font: inherit;
+      padding: var(--pad-inside, 6px);
     }
-    .tool-part--icon { padding: 5px 6px; }
-    .tool-group--split .tool-part--caret { padding: 5px 3px 5px 0; opacity: 0.7; }
+    .tool-group--split .tool-part--icon {
+      border-right: 1px solid var(--primitive-dark-stone-400, #40464a);
+    }
+    .tool-group--split .tool-part--caret { opacity: 0.7; }
     .tool-part--text {
       font-family: var(--font-family);
       font-size: var(--font-size-sm, 13px);
       font-weight: 600;
-      padding: 5px 8px;
     }
     .tool-icon { display: flex; width: 16px; height: 16px; }
     .tool-icon ::ng-deep svg { width: 100%; height: 100%; }
@@ -314,7 +291,7 @@ type FmtKey = 'bold' | 'color' | 'highlight' | 'list' | 'align';
       outline: none;
       resize: none;
       min-height: 96px;
-      padding: var(--textarea-pad, 12px) var(--card-pad-x, 12px);
+      padding: var(--space-3, 12px);
       font-family: var(--font-family);
       font-size: var(--font-size-md, 14px);
       line-height: 1.5;
@@ -348,7 +325,7 @@ type FmtKey = 'bold' | 'color' | 'highlight' | 'list' | 'align';
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-top: var(--footer-gap, 8px);
+      margin-top: var(--space-2, 8px);
       padding: 0 var(--space-1, 4px);
       font-family: var(--font-family);
       font-size: var(--text-caption1-size, 12px);
@@ -416,14 +393,8 @@ export class QnaAnswerEditorComponent implements OnInit, OnDestroy {
   ];
 
   // Spacing playground state — bound as CSS custom properties on .replica-stage
-  stagePad = 32;
-  cardPadX = 12;
-  gapBase = 2;
-  gapSplitExtra = 6;
-  rowPadY = 8;
-  textareaPad = 12;
-  footerGap = 8;
-  tabsGap = 24;
+  gapToolbar = 4;
+  padInside = 6;
 
   ngOnInit(): void {
     this.tracker.trackPageView('qna-answer-editor');
