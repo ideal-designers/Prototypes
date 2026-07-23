@@ -64,7 +64,11 @@ export interface QuickAccessItem {
             >
               <fvdr-icon [name]="item.icon" />
             </button>
-            <button class="qa-icon-btn qa-icon-btn--expand" title="Expand quick filters" (click)="toggleCollapse()">
+            <button
+              class="qa-icon-btn qa-icon-btn--expand"
+              title="Expand quick filters"
+              (click)="toggleCollapse()"
+            >
               <fvdr-icon name="expand" />
             </button>
           </div>
@@ -129,6 +133,7 @@ export interface QuickAccessItem {
       display: flex;
       gap: 4px;
       align-items: center;
+      width: 100%;
     }
 
     /* ── Icon button ── */
@@ -158,6 +163,9 @@ export interface QuickAccessItem {
     }
     .qa-icon-btn--active:hover {
       background: var(--color-stone-400, #dee0eb);
+    }
+    .qa-icon-btn--expand {
+      margin-left: auto;
     }
 
     /* ── Items list ── */

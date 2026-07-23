@@ -433,10 +433,11 @@ type ResizableColId = 'idx' | 'name' | 'notes' | 'size' | 'pub' | 'red';
       align-items: center;
       gap: var(--space-1);
       width: 56px;
-      padding: var(--space-4) 0;
+      padding: 0 0 var(--space-4) 0;
       flex-shrink: 0;
     }
-    /* Header slot — keeps the same gray backing as the table header, per Figma (node 25829-66434) */
+    /* Header slot — flush with the table header row (same y as .tbl-row--header),
+       keeps the same gray backing per Figma (node 25829-66434) */
     .qa-rail-header {
       display: flex;
       align-items: center;
@@ -446,7 +447,7 @@ type ResizableColId = 'idx' | 'name' | 'notes' | 'size' | 'pub' | 'red';
       background: var(--color-stone-200, #f7f7f7);
       border-radius: var(--radius-sm, 4px);
       flex-shrink: 0;
-      margin-bottom: var(--space-2);
+      margin-bottom: var(--space-4);
     }
     /* Tree */
     .qa-tree {
