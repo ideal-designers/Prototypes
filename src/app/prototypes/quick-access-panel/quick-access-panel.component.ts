@@ -664,7 +664,7 @@ type ResizableColId = 'idx' | 'name' | 'notes' | 'size' | 'pub' | 'red';
     }
 
     /* Size col (two-line) */
-    .col-size { flex-direction: column; align-items: flex-start; justify-content: center; gap: 2px; }
+    .tbl-row:not(.tbl-row--header) > .col-size { flex-direction: column; align-items: flex-start; justify-content: center; gap: 2px; }
     .tbl-row--header .col-size { flex-direction: row; align-items: center; gap: var(--space-2); }
     .td-size-main { font-size: var(--text-caption1-size); color: var(--color-text-primary); line-height: 16px; }
     .td-size-sub  { font-size: var(--text-caption1-size); color: var(--color-text-secondary); line-height: 16px; }
