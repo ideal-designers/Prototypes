@@ -81,9 +81,11 @@ type ResizableColId = 'idx' | 'name' | 'notes' | 'size' | 'pub' | 'red';
 
               <!-- Collapsed-all rail: mirrors the real product's "Collapse all" state -->
               <div class="qa-rail" *ngIf="panelCollapsed">
-                <button class="icon-btn" title="Expand" (click)="panelCollapsed = false">
-                  <fvdr-icon name="chevron-right"></fvdr-icon>
-                </button>
+                <div class="qa-rail-header">
+                  <button class="icon-btn" title="Expand" (click)="panelCollapsed = false">
+                    <fvdr-icon name="chevron-right"></fvdr-icon>
+                  </button>
+                </div>
                 <button
                   class="icon-btn"
                   *ngFor="let s of shortcuts"
@@ -433,6 +435,18 @@ type ResizableColId = 'idx' | 'name' | 'notes' | 'size' | 'pub' | 'red';
       width: 56px;
       padding: var(--space-4) 0;
       flex-shrink: 0;
+    }
+    /* Header slot — keeps the same gray backing as the table header, per Figma (node 25829-66434) */
+    .qa-rail-header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 48px;
+      height: 48px;
+      background: var(--color-stone-200, #f7f7f7);
+      border-radius: var(--radius-sm, 4px);
+      flex-shrink: 0;
+      margin-bottom: var(--space-2);
     }
     /* Tree */
     .qa-tree {
