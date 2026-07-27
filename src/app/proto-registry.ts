@@ -139,5 +139,19 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
     status: 'wip',
     description: 'Global AI Assistant — full-screen chat with streaming steps, document search answers and citations',
   },
+    {
+    slug: 'permissions-legend',
+    title: 'Permissions matrix — Legend & Coach mark',
+    figma: 'https://www.figma.com/design/E2LJ0seWC3c1bJrgenukSS/Permissions-%F0%9F%94%90?node-id=10-219397',
+    status: 'wip',
+    description: 'VDSN-32: persistent legend, hover tooltips for permission columns and bar segments, and a first-use coach mark for novice admins',
+  },
+    {
+    slug: 'added-column-hover',
+    title: 'Documents — Added column hover',
+    figma: 'https://www.figma.com/design/h9MR3O7N3kLV2xl2MGQDxs/Documents?node-id=27217-95905',
+    status: 'wip',
+    description: 'Documents table: hovering the Added column reveals the uploader\'s name + email with copy actions, and an icon to open their user card',
+  },
   // REGISTRY_PLACEHOLDER
 ];

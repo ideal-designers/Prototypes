@@ -151,6 +151,16 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./prototypes/ai-assistant/ai-assistant.component').then(m => m.AiAssistantComponent),
   },
+    {
+    path: 'permissions-legend',
+    loadComponent: () =>
+      import('./prototypes/permissions-legend/permissions-legend.component').then(m => m.PermissionsLegendComponent),
+  },
+    {
+    path: 'added-column-hover',
+    loadComponent: () =>
+      import('./prototypes/added-column-hover/added-column-hover.component').then(m => m.AddedColumnHoverComponent),
+  },
   // PROTO_ROUTES_PLACEHOLDER
   {
     path: '**',
