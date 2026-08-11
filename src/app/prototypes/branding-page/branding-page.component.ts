@@ -26,6 +26,8 @@ type AssetKind = 'logo' | 'background';
   template: `
 <div class="bp-layout"
   [style.--color-primary-50]="appliedColor50"
+  [style.--color-primary-100]="appliedColor100"
+  [style.--color-primary-400]="appliedColor400"
   [style.--color-primary-500]="appliedColor"
   [style.--color-primary-600]="appliedColor600"
   [style.--color-primary-700]="appliedColor700">
@@ -606,6 +608,12 @@ export class BrandingPageComponent implements OnInit, OnDestroy {
   }
   get appliedColor50(): string {
     return this.isDefaultColor ? '#EBF8EF' : this.mix(this.saved.themeColor, '#FFFFFF', 0.90);
+  }
+  get appliedColor100(): string {
+    return this.isDefaultColor ? '#AAE2BA' : this.mix(this.saved.themeColor, '#FFFFFF', 0.62);
+  }
+  get appliedColor400(): string {
+    return this.isDefaultColor ? '#5AC778' : this.mix(this.saved.themeColor, '#FFFFFF', 0.22);
   }
   private get isDefaultColor(): boolean {
     return this.saved.themeColor.toUpperCase() === BrandingPageComponent.DEFAULT_HEX;
