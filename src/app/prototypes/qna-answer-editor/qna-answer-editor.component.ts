@@ -175,7 +175,6 @@ type FmtKey = 'bold' | 'color' | 'highlight' | 'list' | 'align';
     .tabs {
       display: flex;
       align-items: flex-end;
-      gap: var(--space-6, 24px);
       padding: 0 var(--space-1, 4px);
     }
     .tab {
@@ -184,7 +183,7 @@ type FmtKey = 'bold' | 'color' | 'highlight' | 'list' | 'align';
       border: 1.5px solid transparent;
       border-bottom: none;
       border-radius: var(--radius-sm, 4px) var(--radius-sm, 4px) 0 0;
-      padding: var(--space-2, 8px) var(--space-1, 4px) var(--space-3, 12px);
+      padding: var(--space-2, 8px) var(--space-6, 24px) var(--space-3, 12px);
       margin-bottom: -1.5px;
       font-family: var(--font-family);
       font-size: var(--font-size-md, 14px);
