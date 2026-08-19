@@ -132,5 +132,12 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
     status: 'wip',
     description: 'Modified rich-text answer editor from QnA threads (Answer / Internal note)',
   },
+    {
+    slug: 'ai-assistant',
+    title: 'AI Assistant',
+    figma: '4692-38886',
+    status: 'wip',
+    description: 'Global AI Assistant — full-screen chat with streaming steps, document search answers and citations',
+  },
   // REGISTRY_PLACEHOLDER
 ];

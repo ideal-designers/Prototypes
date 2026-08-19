@@ -161,6 +161,12 @@ export type FvdrIconName =
   | 'toast-error'
   | 'toast-warning'
   | 'toast-info'
+  // ── AI assistant (16x16) ───────────────────────────
+  | 'mic'
+  | 'send'
+  | 'thumbs-up'
+  | 'thumbs-down'
+  | 'refresh'
 ;
 
 export const FVDR_ICONS: Record<FvdrIconName, string> = {
@@ -330,4 +336,11 @@ export const FVDR_ICONS: Record<FvdrIconName, string> = {
   'toast-error': `<svg viewBox="0 0 20 20" fill="none"><path d="M14.1444 0H5.85556L0 5.85556V14.1444L5.85556 20H14.1444L20 14.1444V5.85556L14.1444 0ZM17.7778 13.2222L13.2222 17.7778H6.77778L2.22222 13.2222V6.77778L6.77778 2.22222H13.2222L17.7778 6.77778V13.2222Z" fill="currentColor"/><path d="M10 15.5556C10.6136 15.5556 11.1111 15.0581 11.1111 14.4444C11.1111 13.8308 10.6136 13.3333 10 13.3333C9.38635 13.3333 8.88889 13.8308 8.88889 14.4444C8.88889 15.0581 9.38635 15.5556 10 15.5556Z" fill="currentColor"/><path d="M8.88889 5H11.1111V12.2222H8.88889V5Z" fill="currentColor"/></svg>`,
   'toast-warning': `<svg viewBox="0 0 20 20" fill="none"><path d="M10 4.98333L16.8455 17.1564H3.15455L10 4.98333ZM10 1.25L0 19.0278H20L10 1.25ZM10.9091 14.3494H9.09091V16.2208H10.9091V14.3494ZM10.9091 8.73538H9.09091V12.4781H10.9091V8.73538Z" fill="currentColor"/></svg>`,
   'toast-info': `<svg viewBox="0 0 20 20" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M0 10C0 4.48 4.47 0 9.99 0C15.52 0 20 4.48 20 10C20 15.52 15.52 20 9.99 20C4.47 20 0 15.52 0 10ZM2 10C2 14.42 5.58 18 10 18C14.42 18 18 14.42 18 10C18 5.58 14.42 2 10 2C5.58 2 2 5.58 2 10ZM11.001 7H9.00098V5H11.001V7ZM11.001 15H9.00098L9.00098 9H11.001L11.001 15Z" fill="currentColor"/></svg>`,
+
+  // ── AI assistant (16x16) ───────────────────────────────────────────────────
+  'mic': `<svg viewBox="0 0 16 16" fill="none"><path d="M8 1C6.895 1 6 1.895 6 3V8C6 9.105 6.895 10 8 10C9.105 10 10 9.105 10 8V3C10 1.895 9.105 1 8 1Z" fill="currentColor"/><path d="M3 7H4.4C4.4 8.988 6.012 10.6 8 10.6C9.988 10.6 11.6 8.988 11.6 7H13C13 9.474 11.204 11.529 8.7 11.93V14H7.3V11.93C4.796 11.529 3 9.474 3 7Z" fill="currentColor"/></svg>`,
+  'send': `<svg viewBox="0 0 16 16" fill="none"><path d="M1 14.2L15 8L1 1.8V6.7L9.6 8L1 9.3V14.2Z" fill="currentColor"/></svg>`,
+  'thumbs-up': `<svg viewBox="0 0 16 16" fill="none"><path d="M1 6.5H4V15H1V6.5Z" fill="currentColor"/><path d="M5 6.5L8.3 1.3C8.5 1 8.9 0.9 9.2 1.1C10 1.6 10.4 2.6 10.2 3.5L9.7 6H13.3C14.3 6 15.1 6.9 14.9 7.9L14 12.9C13.8 13.9 13 14.6 12 14.6H5V6.5Z" fill="currentColor"/></svg>`,
+  'thumbs-down': `<svg viewBox="0 0 16 16" fill="none"><path d="M1 1H4V9.5H1V1Z" fill="currentColor"/><path d="M5 9.5L8.3 14.7C8.5 15 8.9 15.1 9.2 14.9C10 14.4 10.4 13.4 10.2 12.5L9.7 10H13.3C14.3 10 15.1 9.1 14.9 8.1L14 3.1C13.8 2.1 13 1.4 12 1.4H5V9.5Z" fill="currentColor"/></svg>`,
+  'refresh': `<svg viewBox="0 0 16 16" fill="none"><path d="M8 2V0.5L5.2 2.9L8 5.3V3.5C10.485 3.5 12.5 5.515 12.5 8C12.5 10.485 10.485 12.5 8 12.5C5.515 12.5 3.5 10.485 3.5 8H2C2 11.314 4.686 14 8 14C11.314 14 14 11.314 14 8C14 4.686 11.314 2 8 2Z" fill="currentColor"/></svg>`,
 };
