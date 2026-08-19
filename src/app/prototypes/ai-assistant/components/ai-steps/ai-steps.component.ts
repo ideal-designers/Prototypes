@@ -16,7 +16,7 @@ import { AiStep } from '../../models/ai-step.model';
     <div class="steps">
       <!-- Live header -->
       <div class="steps__live" *ngIf="streaming">
-        <span class="steps__mark steps__mark--spin"><fvdr-icon name="api"></fvdr-icon></span>
+        <span class="steps__mark steps__mark--spin"><fvdr-icon name="ai-assistant"></fvdr-icon></span>
         <span class="steps__live-label">{{ liveLabel }}</span>
         <button type="button" class="steps__stop" (click)="stopped.emit()">Stop</button>
       </div>
@@ -28,7 +28,7 @@ import { AiStep } from '../../models/ai-step.model';
         *ngIf="!streaming && steps.length"
         (click)="toggled.emit()"
       >
-        <span class="steps__mark"><fvdr-icon name="api"></fvdr-icon></span>
+        <span class="steps__mark"><fvdr-icon name="ai-assistant"></fvdr-icon></span>
         <span>{{ cancelled ? 'Stopped after' : 'Completed' }} {{ steps.length }} {{ steps.length === 1 ? 'step' : 'steps' }}</span>
         <fvdr-icon
           name="chevron-right"

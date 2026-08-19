@@ -9,6 +9,7 @@ import {
 import { AiConversationService } from '../services/ai-conversation.service';
 import { AiConversationComponent } from '../components/ai-conversation/ai-conversation.component';
 import { MOCK_DATA_ROOM } from '../data/mock-data';
+import { vdrNavItems } from '../data/vdr-nav';
 
 /** Full-screen shell — product chrome + AI conversation rail + centered transcript. */
 @Component({
@@ -41,10 +42,10 @@ import { MOCK_DATA_ROOM } from '../data/mock-data';
 
       <!-- Conversation rail -->
       <aside class="rail">
-        <div class="rail__action">
+        <div class="rail__action rail__action--primary">
           <fvdr-btn
             label="New chat"
-            variant="secondary"
+            variant="ghost"
             size="m"
             iconName="plus"
             (clicked)="onNewChat()"
@@ -55,7 +56,7 @@ import { MOCK_DATA_ROOM } from '../data/mock-data';
             label="Add project"
             variant="ghost"
             size="m"
-            iconName="add-folder"
+            iconName="add-project"
             (clicked)="onAddProject()"
           ></fvdr-btn>
         </div>
@@ -106,6 +107,10 @@ import { MOCK_DATA_ROOM } from '../data/mock-data';
     }
     .rail__action { display: flex; }
     .rail__action ::ng-deep .btn { width: 100%; justify-content: flex-start; }
+    /* Both rail buttons are ghost — "New chat" stays the lead affordance via brand colour + weight. */
+    .rail__action--primary ::ng-deep .btn { color: var(--color-primary-500); }
+    .rail__action--primary ::ng-deep .btn:hover:not(:disabled) { color: var(--color-primary-600); }
+    .rail__action--primary ::ng-deep .btn__label { font-weight: var(--font-weight-semi, 600); }
 
     .rail__section { display: flex; flex-direction: column; gap: var(--space-2); margin-top: var(--space-4); }
     .rail__label {
@@ -151,18 +156,12 @@ export class AiFullscreenComponent {
   ];
 
   headerActions: HeaderAction[] = [
-    { id: 'dock', icon: 'collapse', label: 'Dock' },
+    { id: 'dock', icon: 'ai-assistant', label: 'Dock' },
     { id: 'theme', icon: 'theme-dark' },
     { id: 'bell', icon: 'bell', badge: 2 },
   ];
 
-  navItems: SidebarNavItem[] = [
-    { id: 'overview', label: 'Overview', icon: 'nav-overview', iconActive: 'nav-overview-active' },
-    { id: 'documents', label: 'Documents', icon: 'nav-projects', iconActive: 'nav-projects-active' },
-    { id: 'ai', label: 'AI Assistant', icon: 'api', iconActive: 'api', active: true },
-    { id: 'participants', label: 'Participants', icon: 'nav-participants', iconActive: 'nav-participants-active' },
-    { id: 'reports', label: 'Reports', icon: 'nav-reports', iconActive: 'nav-reports-active' },
-  ];
+  navItems: SidebarNavItem[] = vdrNavItems('ai');
 
   onNewChat(): void {
     this.conv.newChat();

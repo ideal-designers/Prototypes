@@ -20,7 +20,7 @@ const WIN_HEIGHT = 560;
   template: `
     <div class="win" [style.left.px]="x" [style.top.px]="y">
       <header class="win__head" (mousedown)="startDrag($event)">
-        <span class="win__mark"><fvdr-icon name="api"></fvdr-icon></span>
+        <span class="win__mark"><fvdr-icon name="ai-assistant"></fvdr-icon></span>
         <span class="win__title" [attr.title]="conv.seededTitle()">{{ conv.seededTitle() }}</span>
 
         <button type="button" class="win__btn" title="New chat" (click)="conv.newChat()">

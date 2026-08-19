@@ -10,6 +10,7 @@ import {
 } from '../../../../shared/ds';
 import { AiConversationService } from '../../services/ai-conversation.service';
 import { MOCK_DATA_ROOM, PERMITTED_DOCUMENTS } from '../../data/mock-data';
+import { vdrNavItems } from '../../data/vdr-nav';
 import { MockDocument, MockFolder } from '../../models/mock-doc.model';
 import { AiSidebarComponent } from '../../shells/ai-sidebar.component';
 import { AiFloatingComponent } from '../../shells/ai-floating.component';
@@ -54,7 +55,7 @@ import { AiFloatingComponent } from '../../shells/ai-floating.component';
           </div>
 
           <button type="button" class="docs-ai" (click)="openSidebar()">
-            <fvdr-icon name="api"></fvdr-icon>
+            <fvdr-icon name="ai-assistant"></fvdr-icon>
             <span>Ask AI</span>
           </button>
         </header>
@@ -70,7 +71,7 @@ import { AiFloatingComponent } from '../../shells/ai-floating.component';
               [attr.title]="'Ask AI about ' + f.name"
               (click)="openFloating(f)"
             >
-              <fvdr-icon name="api"></fvdr-icon>
+              <fvdr-icon name="ai-assistant"></fvdr-icon>
               <span>Ask AI</span>
             </button>
           </div>
@@ -199,18 +200,12 @@ export class MockDocumentsViewComponent {
   ];
 
   headerActions: HeaderAction[] = [
-    { id: 'ai', icon: 'api', label: 'AI' },
+    { id: 'ai', icon: 'ai-assistant', label: 'AI' },
     { id: 'theme', icon: 'theme-dark' },
     { id: 'bell', icon: 'bell', badge: 2 },
   ];
 
-  navItems: SidebarNavItem[] = [
-    { id: 'overview', label: 'Overview', icon: 'nav-overview', iconActive: 'nav-overview-active' },
-    { id: 'documents', label: 'Documents', icon: 'nav-projects', iconActive: 'nav-projects-active', active: true },
-    { id: 'ai', label: 'AI Assistant', icon: 'api', iconActive: 'api' },
-    { id: 'participants', label: 'Participants', icon: 'nav-participants', iconActive: 'nav-participants-active' },
-    { id: 'reports', label: 'Reports', icon: 'nav-reports', iconActive: 'nav-reports-active' },
-  ];
+  navItems: SidebarNavItem[] = vdrNavItems('documents');
 
   countIn(folder: MockFolder): number {
     return this.documents.filter(d => d.folderPath === folder.name).length;

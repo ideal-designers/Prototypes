@@ -17,7 +17,7 @@ import { AiComposerComponent } from '../ai-composer/ai-composer.component';
     <div class="conv">
       <!-- ── Empty state ── -->
       <div class="empty" *ngIf="conv.isEmpty(); else transcript">
-        <span class="empty__mark"><fvdr-icon name="api"></fvdr-icon></span>
+        <span class="empty__mark"><fvdr-icon name="ai-assistant"></fvdr-icon></span>
         <h1 class="empty__title">How can I help you today?</h1>
 
         <fvdr-ai-composer

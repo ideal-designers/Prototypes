@@ -15,7 +15,7 @@ import { AiConversationComponent } from '../components/ai-conversation/ai-conver
   template: `
     <aside class="panel">
       <header class="panel__head">
-        <span class="panel__mark"><fvdr-icon name="api"></fvdr-icon></span>
+        <span class="panel__mark"><fvdr-icon name="ai-assistant"></fvdr-icon></span>
         <span class="panel__title">{{ conv.seededTitle() }}</span>
 
         <button type="button" class="panel__btn" title="Pop out to full screen" (click)="conv.setShell('fullscreen')">
