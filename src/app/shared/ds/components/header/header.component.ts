@@ -84,6 +84,8 @@ export interface BreadcrumbItem {
 
       <!-- Right -->
       <div class="header__right">
+        <!-- Custom controls projected by the consumer (e.g. fvdr-ask-ideon) -->
+        <ng-content select="[header-actions]"></ng-content>
         <button
           *ngFor="let action of actions"
           class="header__action"

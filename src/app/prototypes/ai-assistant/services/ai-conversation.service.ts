@@ -90,6 +90,8 @@ export class AiConversationService {
   }
 
   addUserMessage(text: string): ChatMessage {
+    // The first prompt becomes the chat title (shells truncate it with an ellipsis).
+    if (!this.messages().length) this.seededTitle.set(text);
     return this.addMessage({
       id: uid('u'),
       role: 'user',
@@ -138,8 +140,9 @@ export class AiConversationService {
     );
   }
 
-  completeMessage(id: string, answer: AnswerPayload, text: string): void {
-    this.patchMessage(id, { answer, text, streaming: false, done: true, stepsExpanded: false });
+  /** `thoughtMs` is the measured streaming duration, rendered as "Thought for Ns". */
+  completeMessage(id: string, answer: AnswerPayload, text: string, thoughtMs = 0): void {
+    this.patchMessage(id, { answer, text, streaming: false, done: true, stepsExpanded: false, thoughtMs });
   }
 
   cancelMessage(id: string): void {

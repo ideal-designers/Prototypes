@@ -89,8 +89,9 @@ import { DS_COMPONENTS, ToastService } from '../../../../shared/ds';
       border-radius: var(--radius-md);
     }
     .composer__btn--send:hover { background: var(--color-primary-600); color: var(--color-stone-0); }
+    /* Empty / streaming — the send stays green, just muted (per design). */
     .composer__btn--send:disabled {
-      background: var(--color-stone-400); color: var(--color-stone-0);
+      background: var(--color-primary-200); color: var(--color-stone-0);
       cursor: not-allowed;
     }
   `],
@@ -98,7 +99,7 @@ import { DS_COMPONENTS, ToastService } from '../../../../shared/ds';
 export class AiComposerComponent {
   private toast = inject(ToastService);
 
-  @Input() placeholder = 'Ask anything about the documents in this data room…';
+  @Input() placeholder = 'Ask AI assistant anything ...';
   /** True while a response is streaming — send is disabled. */
   @Input() busy = false;
   @Output() submitted = new EventEmitter<string>();

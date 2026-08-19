@@ -42,7 +42,9 @@ import { AiFloatingComponent } from '../../shells/ai-floating.component';
       [showMenu]="false"
       userName="DT"
       (actionClick)="onHeaderAction($event)"
-    ></fvdr-header>
+    >
+      <fvdr-ask-ideon header-actions (clicked)="openFloating()"></fvdr-ask-ideon>
+    </fvdr-header>
 
     <div class="docs-body">
       <section class="docs-col">
@@ -54,7 +56,7 @@ import { AiFloatingComponent } from '../../shells/ai-floating.component';
             <span class="docs-path__leaf">Documents</span>
           </div>
 
-          <button type="button" class="docs-ai" (click)="openSidebar()">
+          <button type="button" class="docs-ai" (click)="openFloating()">
             <fvdr-icon name="ai-assistant"></fvdr-icon>
             <span>Ask AI</span>
           </button>
@@ -69,7 +71,7 @@ import { AiFloatingComponent } from '../../shells/ai-floating.component';
               type="button"
               class="docs-folder__ai"
               [attr.title]="'Ask AI about ' + f.name"
-              (click)="openFloating(f)"
+              (click)="openFloatingForFolder(f)"
             >
               <fvdr-icon name="ai-assistant"></fvdr-icon>
               <span>Ask AI</span>
@@ -200,7 +202,6 @@ export class MockDocumentsViewComponent {
   ];
 
   headerActions: HeaderAction[] = [
-    { id: 'ai', icon: 'ai-assistant', label: 'AI' },
     { id: 'theme', icon: 'theme-dark' },
     { id: 'bell', icon: 'bell', badge: 2 },
   ];
@@ -213,15 +214,15 @@ export class MockDocumentsViewComponent {
 
   // ── Assistant entry points ──
 
-  /** Sparkle in the local header — docks the assistant to the right. */
-  openSidebar(): void {
+  /** Ask Ideon / local sparkle — always opens the floating window, scoped to the whole room. */
+  openFloating(): void {
     this.conv.resetScope();
     this.conv.seededTitle.set('New AI chat');
-    this.conv.setShell('sidebar');
+    this.conv.setShell('floating');
   }
 
   /** Folder action — opens a floating window pre-scoped to that folder. */
-  openFloating(folder: MockFolder): void {
+  openFloatingForFolder(folder: MockFolder): void {
     this.conv.setScope({ kind: 'folder', label: folder.name, folderName: folder.name });
     this.conv.seededTitle.set(`Find the documents in the “${folder.name}” folder`);
     this.conv.setShell('floating');
@@ -232,7 +233,6 @@ export class MockDocumentsViewComponent {
   }
 
   onHeaderAction(id: string): void {
-    if (id === 'ai') this.openSidebar();
     if (id === 'theme') this.conv.toggleDark();
   }
 

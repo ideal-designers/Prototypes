@@ -21,6 +21,8 @@ export interface ChatMessage {
   cancelled?: boolean;
   /** Steps block expanded/collapsed (auto-collapses when done). */
   stepsExpanded?: boolean;
+  /** Assistant only — wall-clock time the streamed reasoning took, for "Thought for Ns". */
+  thoughtMs?: number;
 }
 
 /** Entry in the left rail's "Recents" list. */

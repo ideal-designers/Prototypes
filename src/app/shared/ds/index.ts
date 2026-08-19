@@ -49,6 +49,7 @@
  *   <fvdr-ghost-btn>           → Ghost button (circle-plus icon, optional label + shortcut, S/M)
  *   <fvdr-floating-panel>      → Floating toolbar of ghost buttons (vertical/horizontal × big/small)
  *   <fvdr-filter-btn>          → Filter button (12 colors, M/S, status dot, counter, arrow)
+ *   <fvdr-ask-ideon>           → Branded 'Ask Ideon' AI pill (glass + animated mesh gradient)
  *
  * Usage in prototype:
  *   import { DS_COMPONENTS } from '../../shared/ds';
@@ -103,6 +104,7 @@ import { RedactionMarkCardComponent } from './components/redaction-mark-card/red
 import { GhostBtnComponent } from './components/ghost-btn/ghost-btn.component';
 import { FloatingPanelComponent } from './components/floating-panel/floating-panel.component';
 import { FilterBtnComponent } from './components/filter-btn/filter-btn.component';
+import { AskIdeonComponent } from './components/ask-ideon/ask-ideon.component';
 
 // ─── Re-exports ───────────────────────────────────────────────────────────────
 
@@ -226,6 +228,8 @@ export type { FloatingPanelItem, FloatingPanelOrientation, FloatingPanelSize } f
 export { FilterBtnComponent } from './components/filter-btn/filter-btn.component';
 export type { FilterBtnSize, FilterBtnColor } from './components/filter-btn/filter-btn.component';
 
+export { AskIdeonComponent } from './components/ask-ideon/ask-ideon.component';
+
 /** Convenience array — spread into component imports[] */
 export const DS_COMPONENTS = [
   // Original
@@ -281,4 +285,5 @@ export const DS_COMPONENTS = [
   GhostBtnComponent,
   FloatingPanelComponent,
   FilterBtnComponent,
+  AskIdeonComponent,
 ];

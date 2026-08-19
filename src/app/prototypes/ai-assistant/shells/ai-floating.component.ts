@@ -20,24 +20,19 @@ const WIN_HEIGHT = 560;
   template: `
     <div class="win" [style.left.px]="x" [style.top.px]="y">
       <header class="win__head" (mousedown)="startDrag($event)">
-        <span class="win__mark"><fvdr-icon name="ai-assistant"></fvdr-icon></span>
         <span class="win__title" [attr.title]="conv.seededTitle()">{{ conv.seededTitle() }}</span>
 
         <button type="button" class="win__btn" title="New chat" (click)="conv.newChat()">
-          <fvdr-icon name="plus"></fvdr-icon>
+          <fvdr-icon name="note-add"></fvdr-icon>
         </button>
-        <button type="button" class="win__btn" title="Dock to the side" (click)="conv.setShell('sidebar')">
-          <fvdr-icon name="expand"></fvdr-icon>
+        <!-- Glyph shows the current display mode; clicking docks the chat to the side. -->
+        <button type="button" class="win__btn" title="Dock to the side panel" (click)="conv.setShell('sidebar')">
+          <fvdr-icon name="panel-window"></fvdr-icon>
         </button>
         <button type="button" class="win__btn" title="Close" (click)="conv.setShell('documents')">
           <fvdr-icon name="close"></fvdr-icon>
         </button>
       </header>
-
-      <div class="win__scope">
-        <fvdr-icon name="folder"></fvdr-icon>
-        <span>Scope: {{ conv.currentScope() }}</span>
-      </div>
 
       <div class="win__body">
         <fvdr-ai-conversation [compact]="true"></fvdr-ai-conversation>
@@ -65,32 +60,22 @@ const WIN_HEIGHT = 560;
       cursor: move; user-select: none;
       flex-shrink: 0;
     }
-    .win__mark { display: inline-flex; color: var(--color-primary-500); font-size: var(--font-size-lg, 16px); }
     .win__title {
       flex: 1; min-width: 0;
-      font-size: var(--font-size-base, 14px);
+      font-size: var(--font-size-md, 15px);
       font-weight: var(--font-weight-semi, 600);
       color: var(--color-text-primary);
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
     .win__btn {
       display: inline-flex; align-items: center; justify-content: center;
-      width: 26px; height: 26px; padding: 0;
+      width: 28px; height: 28px; padding: 0;
       border: none; background: transparent; cursor: pointer;
       border-radius: var(--radius-sm);
       color: var(--color-text-secondary);
-      font-size: var(--font-size-sm, 13px);
+      font-size: var(--font-size-base, 14px);
     }
     .win__btn:hover { background: var(--color-hover-bg); color: var(--color-text-primary); }
-
-    .win__scope {
-      display: flex; align-items: center; gap: var(--space-2);
-      padding: var(--space-2) var(--space-4);
-      background: var(--color-stone-200);
-      color: var(--color-text-secondary);
-      font-size: var(--font-size-xs, 12px);
-      flex-shrink: 0;
-    }
 
     .win__body { flex: 1; min-height: 0; padding: 0 var(--space-4); }
   `],

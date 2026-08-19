@@ -15,14 +15,14 @@ import { AiConversationComponent } from '../components/ai-conversation/ai-conver
   template: `
     <aside class="panel">
       <header class="panel__head">
-        <span class="panel__mark"><fvdr-icon name="ai-assistant"></fvdr-icon></span>
-        <span class="panel__title">{{ conv.seededTitle() }}</span>
+        <span class="panel__title" [attr.title]="conv.seededTitle()">{{ conv.seededTitle() }}</span>
 
-        <button type="button" class="panel__btn" title="Pop out to full screen" (click)="conv.setShell('fullscreen')">
-          <fvdr-icon name="expand"></fvdr-icon>
+        <button type="button" class="panel__btn" title="New chat" (click)="conv.newChat()">
+          <fvdr-icon name="note-add"></fvdr-icon>
         </button>
+        <!-- Glyph shows the current display mode; clicking undocks the chat. -->
         <button type="button" class="panel__btn" title="Undock to a floating window" (click)="conv.setShell('floating')">
-          <fvdr-icon name="collapse"></fvdr-icon>
+          <fvdr-icon name="panel-right"></fvdr-icon>
         </button>
         <button type="button" class="panel__btn" title="Close" (click)="conv.setShell('documents')">
           <fvdr-icon name="close"></fvdr-icon>
@@ -50,7 +50,6 @@ import { AiConversationComponent } from '../components/ai-conversation/ai-conver
       border-bottom: 1px solid var(--color-divider);
       flex-shrink: 0;
     }
-    .panel__mark { display: inline-flex; color: var(--color-primary-500); font-size: var(--font-size-lg, 16px); }
     .panel__title {
       flex: 1; min-width: 0;
       font-size: var(--font-size-md, 15px);
@@ -65,6 +64,7 @@ import { AiConversationComponent } from '../components/ai-conversation/ai-conver
       border-radius: var(--radius-sm);
       color: var(--color-text-secondary);
       font-size: var(--font-size-base, 14px);
+      flex-shrink: 0;
     }
     .panel__btn:hover { background: var(--color-hover-bg); color: var(--color-text-primary); }
 

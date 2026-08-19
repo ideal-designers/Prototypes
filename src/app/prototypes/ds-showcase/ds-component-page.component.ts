@@ -812,6 +812,17 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
             </div>
           </ng-container>
 
+          <!-- ASK IDEON -->
+          <ng-container *ngSwitchCase="'ask-ideon'">
+            <div class="anatomy-wrap anatomy-wrap--ask-ideon">
+              <fvdr-ask-ideon></fvdr-ask-ideon>
+              <div class="anatomy-label anatomy-label--top"    style="top:-52px;left:-46px">sparkle icon</div>
+              <div class="anatomy-label anatomy-label--top"    style="top:-52px;right:-20px">label</div>
+              <div class="anatomy-label anatomy-label--bottom" style="bottom:-42px;left:50%;transform:translateX(-50%)">capsule · mesh gradient · glass layer</div>
+              <div class="dim-v" style="left:-24px;top:0;height:36px">36px</div>
+            </div>
+          </ng-container>
+
           <ng-container *ngSwitchDefault>
             <div class="anatomy-preview-empty">Live anatomy preview coming soon for this component.</div>
           </ng-container>
@@ -2148,6 +2159,40 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
                 size="big"
                 (itemClicked)="onFpItemClick($event)">
               </fvdr-floating-panel>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- ═══ ASK IDEON ═══ -->
+        <ng-container *ngSwitchCase="'ask-ideon'">
+
+          <div class="example-block">
+            <p class="example-label">Default</p>
+            <div class="example-row">
+              <fvdr-ask-ideon (clicked)="onAskIdeon()"></fvdr-ask-ideon>
+            </div>
+          </div>
+
+          <div class="example-block">
+            <p class="example-label">Custom label</p>
+            <div class="example-row">
+              <fvdr-ask-ideon label="Ask Ideon about this file" (clicked)="onAskIdeon()"></fvdr-ask-ideon>
+            </div>
+          </div>
+
+          <div class="example-block">
+            <p class="example-label">Disabled</p>
+            <div class="example-row">
+              <fvdr-ask-ideon [disabled]="true"></fvdr-ask-ideon>
+            </div>
+          </div>
+
+          <div class="example-block">
+            <p class="example-label">In an app header</p>
+            <div class="example-row" style="display:block">
+              <fvdr-header [breadcrumbs]="demoHeaderBreadcrumbs" [actions]="demoHeaderActions" userName="DT">
+                <fvdr-ask-ideon header-actions (clicked)="onAskIdeon()"></fvdr-ask-ideon>
+              </fvdr-header>
             </div>
           </div>
         </ng-container>
@@ -3911,6 +3956,10 @@ export class DsComponentPageComponent implements OnInit, OnDestroy {
     { id: 'bell',   icon: 'bell' as any,   badge: 3 },
     { id: 'search', icon: 'search' as any },
   ];
+  onAskIdeon(): void {
+    this.toastSvc.show({ variant: 'info', message: 'Ideon would open here' });
+  }
+
   demoHeaderBreadcrumbs = [
     { id: 'settings', label: 'Settings' },
     { id: 'api-keys', label: 'API Keys' },

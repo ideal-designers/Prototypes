@@ -156,7 +156,6 @@ export class AiFullscreenComponent {
   ];
 
   headerActions: HeaderAction[] = [
-    { id: 'dock', icon: 'ai-assistant', label: 'Dock' },
     { id: 'theme', icon: 'theme-dark' },
     { id: 'bell', icon: 'bell', badge: 2 },
   ];
@@ -177,7 +176,6 @@ export class AiFullscreenComponent {
   }
 
   onHeaderAction(id: string): void {
-    if (id === 'dock') this.conv.setShell('sidebar');
     if (id === 'theme') this.conv.toggleDark();
   }
 }

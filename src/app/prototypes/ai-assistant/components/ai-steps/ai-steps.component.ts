@@ -6,7 +6,7 @@ import { AiStep } from '../../models/ai-step.model';
 /**
  * Streaming reasoning block.
  *   · streaming  → animated ✦ + live header + step rows appearing one by one + Stop
- *   · completed  → single "Completed N steps ›" row, click to audit every step
+ *   · completed  → single "Thought for Ns" row, click to audit every step (VDR traceability)
  */
 @Component({
   selector: 'fvdr-ai-steps',
@@ -21,20 +21,16 @@ import { AiStep } from '../../models/ai-step.model';
         <button type="button" class="steps__stop" (click)="stopped.emit()">Stop</button>
       </div>
 
-      <!-- Collapsed summary -->
+      <!-- Collapsed summary — still expands to the full audit trail -->
       <button
         type="button"
         class="steps__summary"
         *ngIf="!streaming && steps.length"
+        [attr.aria-expanded]="expanded"
+        [attr.title]="expanded ? 'Hide the reasoning steps' : 'Show the reasoning steps'"
         (click)="toggled.emit()"
       >
-        <span class="steps__mark"><fvdr-icon name="ai-assistant"></fvdr-icon></span>
-        <span>{{ cancelled ? 'Stopped after' : 'Completed' }} {{ steps.length }} {{ steps.length === 1 ? 'step' : 'steps' }}</span>
-        <fvdr-icon
-          name="chevron-right"
-          class="steps__caret"
-          [class.steps__caret--open]="expanded"
-        ></fvdr-icon>
+        <span>{{ summaryLabel }}</span>
       </button>
 
       <!-- Step rows -->
@@ -88,15 +84,10 @@ import { AiStep } from '../../models/ai-step.model';
       border: none; background: transparent; cursor: pointer;
       padding: 0; margin: 0;
       font-family: var(--font-family);
-      font-size: var(--font-size-sm, 13px);
+      font-size: var(--font-size-base, 14px);
       color: var(--color-text-secondary);
     }
-    .steps__summary:hover { color: var(--color-text-primary); }
-    .steps__caret {
-      font-size: var(--font-size-xs, 12px);
-      transition: transform 0.15s ease;
-    }
-    .steps__caret--open { transform: rotate(90deg); }
+    .steps__summary:hover { color: var(--color-text-primary); text-decoration: underline; }
 
     .steps__list {
       list-style: none; margin: 0; padding: 0 0 0 var(--space-5);
@@ -124,11 +115,21 @@ export class AiStepsComponent {
   @Input() streaming = false;
   @Input() expanded = false;
   @Input() cancelled = false;
+  /** Measured streaming duration of the turn. */
+  @Input() thoughtMs = 0;
 
   @Output() toggled = new EventEmitter<void>();
   @Output() stopped = new EventEmitter<void>();
 
   get liveLabel(): string {
     return this.steps.at(-1)?.label ?? 'Thinking';
+  }
+
+  /** "Thought for 3s" — never "0s"; a stopped turn keeps reporting the step count. */
+  get summaryLabel(): string {
+    if (this.cancelled) {
+      return `Stopped after ${this.steps.length} ${this.steps.length === 1 ? 'step' : 'steps'}`;
+    }
+    return `Thought for ${Math.max(1, Math.round(this.thoughtMs / 1000))}s`;
   }
 }

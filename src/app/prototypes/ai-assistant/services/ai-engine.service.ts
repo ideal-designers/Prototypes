@@ -99,6 +99,7 @@ export class AiEngineService {
 
     this.stoppedFor = null;
     this.streaming.set(true);
+    const startedAt = Date.now();
 
     for (const s of plan.steps) {
       await streamDelay();
@@ -110,7 +111,12 @@ export class AiEngineService {
       this.conv.cancelMessage(assistant.id);
     } else {
       await streamDelay();
-      this.conv.completeMessage(assistant.id, plan.answer, this.toPlainText(plan.answer));
+      this.conv.completeMessage(
+        assistant.id,
+        plan.answer,
+        this.toPlainText(plan.answer),
+        Date.now() - startedAt,
+      );
       plan.effect?.();
     }
 
@@ -251,7 +257,7 @@ export class AiEngineService {
         kind: 'table',
         summary: `Here is the full list of ${label} found in ${this.conv.currentScope()} (${docs.length} total):`,
         docs,
-        followUp: 'Would you like me to summarize these documents or export the list?',
+        followUp: 'Let me know if you’d like me to summarize, compare, or open any of these documents.',
         permissionNote: filtered ? PERMISSION_NOTE : undefined,
       },
     };

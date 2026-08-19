@@ -15,6 +15,7 @@ import { AiStepsComponent } from '../ai-steps/ai-steps.component';
 import { AiAnswerProseComponent } from '../ai-answer-prose/ai-answer-prose.component';
 import { AiAnswerDocComponent } from '../ai-answer-doc/ai-answer-doc.component';
 import { AiAnswerTableComponent } from '../ai-answer-table/ai-answer-table.component';
+import { AiAnswerDocListComponent } from '../ai-answer-doc-list/ai-answer-doc-list.component';
 import { AiAnswerSummaryComponent } from '../ai-answer-summary/ai-answer-summary.component';
 import { AiAnswerDdReportComponent } from '../ai-answer-dd-report/ai-answer-dd-report.component';
 import { AiAnswerProjectComponent } from '../ai-answer-project/ai-answer-project.component';
@@ -30,6 +31,7 @@ import { AiAnswerProjectComponent } from '../ai-answer-project/ai-answer-project
     AiAnswerProseComponent,
     AiAnswerDocComponent,
     AiAnswerTableComponent,
+    AiAnswerDocListComponent,
     AiAnswerSummaryComponent,
     AiAnswerDdReportComponent,
     AiAnswerProjectComponent,
@@ -47,6 +49,7 @@ import { AiAnswerProjectComponent } from '../ai-answer-project/ai-answer-project
         [streaming]="!!message.streaming"
         [expanded]="!!message.stepsExpanded"
         [cancelled]="!!message.cancelled"
+        [thoughtMs]="message.thoughtMs || 0"
         (toggled)="stepsToggled.emit()"
         (stopped)="stopRequested.emit()"
       ></fvdr-ai-steps>
@@ -63,10 +66,17 @@ import { AiAnswerProjectComponent } from '../ai-answer-project/ai-answer-project
           (folderOpened)="folderOpened.emit($event)"
         ></fvdr-ai-answer-doc>
 
-        <fvdr-ai-answer-table
-          *ngIf="table as t"
+        <!-- Narrow shells render the numbered list; full screen keeps the table. -->
+        <fvdr-ai-answer-doc-list
+          *ngIf="tableCompact as t"
           [answer]="t"
-          [compact]="compact"
+          (docOpened)="docOpened.emit($event)"
+          (folderOpened)="folderOpened.emit($event)"
+        ></fvdr-ai-answer-doc-list>
+
+        <fvdr-ai-answer-table
+          *ngIf="tableFull as t"
+          [answer]="t"
           (docOpened)="docOpened.emit($event)"
           (folderOpened)="folderOpened.emit($event)"
         ></fvdr-ai-answer-table>
@@ -165,7 +175,7 @@ export class AiMessageComponent {
   private toast = inject(ToastService);
 
   @Input({ required: true }) message!: ChatMessage;
-  /** Narrow shells render a reduced result table. */
+  /** Narrow shells (docked / floating) render the compact answer variants. */
   @Input() compact = false;
 
   @Output() stepsToggled = new EventEmitter<void>();
@@ -184,9 +194,16 @@ export class AiMessageComponent {
     return a?.kind === 'singleDoc' ? a : null;
   }
 
-  get table(): TableAnswer | null {
+  /** Multi-document result in a narrow shell → numbered list. */
+  get tableCompact(): TableAnswer | null {
     const a = this.message.answer;
-    return a?.kind === 'table' ? a : null;
+    return this.compact && a?.kind === 'table' ? a : null;
+  }
+
+  /** Same payload in the full-screen shell → full result table. */
+  get tableFull(): TableAnswer | null {
+    const a = this.message.answer;
+    return !this.compact && a?.kind === 'table' ? a : null;
   }
 
   get summary(): SummaryAnswer | null {

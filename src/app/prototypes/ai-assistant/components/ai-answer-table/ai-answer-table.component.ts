@@ -122,7 +122,12 @@ interface DocPreview {
 })
 export class AiAnswerTableComponent {
   @Input({ required: true }) answer!: TableAnswer;
-  /** True inside the docked / floating shells. */
+  /**
+   * Reduced column set for narrow containers. Currently unbound: the docked and
+   * floating shells render `fvdr-ai-answer-doc-list` instead of this table, so
+   * nothing sets it today — kept for reuse if the table ever returns to a
+   * narrow container.
+   */
   @Input() compact = false;
   @Output() docOpened = new EventEmitter<MockDocument>();
   @Output() folderOpened = new EventEmitter<string>();

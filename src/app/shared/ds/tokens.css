@@ -281,3 +281,53 @@
   --shadow-card-hover: 0 4px 12px rgba(0, 0, 0, 0.4);
   --shadow-popover:    0 4px 16px rgba(0, 0, 0, 0.4);
 }
+
+/* ─────────────────────────────────────────
+   ASK IDEON — branded global AI entry point
+   Iridescent mesh palette + glass surface.
+   No semantic token covers an iridescent wash, so the palette lives here as
+   the single source of truth; fvdr-ask-ideon references these only.
+   ───────────────────────────────────────── */
+:root {
+  --gradient-ideon-1: #7C5CFF;  /* violet */
+  --gradient-ideon-2: #35C3F3;  /* cyan   */
+  --gradient-ideon-3: #2C9C74;  /* brand green */
+  --gradient-ideon-4: #FF8FB1;  /* rose   */
+
+  --ideon-surface:            rgba(255, 255, 255, 0.62);
+  --ideon-surface-hover:      rgba(255, 255, 255, 0.5);
+  --ideon-border:             rgba(255, 255, 255, 0.75);
+  --ideon-shadow:             0 2px 10px rgba(31, 33, 41, 0.12);
+  --ideon-shadow-hover:       0 4px 16px rgba(31, 33, 41, 0.18);
+  --ideon-mesh-opacity:       0.5;
+  --ideon-mesh-opacity-hover: 0.75;
+
+  /* Glass read: specular sweep, top-lit inner edges, chromatic border ring */
+  --ideon-shine:        rgba(255, 255, 255, 0.95);
+  --ideon-inner-top:    rgba(255, 255, 255, 0.7);
+  --ideon-inner-bottom: rgba(31, 33, 41, 0.08);
+  --ideon-edge: linear-gradient(135deg,
+    rgba(124, 92, 255, 0.5) 0%,
+    rgba(53, 195, 243, 0.4) 35%,
+    rgba(44, 156, 116, 0.4) 65%,
+    rgba(255, 143, 177, 0.5) 100%);
+}
+
+.dark-theme {
+  --ideon-surface:            rgba(41, 45, 47, 0.55);
+  --ideon-surface-hover:      rgba(41, 45, 47, 0.42);
+  --ideon-border:             rgba(255, 255, 255, 0.16);
+  --ideon-shadow:             0 2px 10px rgba(0, 0, 0, 0.45);
+  --ideon-shadow-hover:       0 4px 18px rgba(0, 0, 0, 0.55);
+  --ideon-mesh-opacity:       0.45;
+  --ideon-mesh-opacity-hover: 0.68;
+
+  --ideon-shine:        rgba(255, 255, 255, 0.38);
+  --ideon-inner-top:    rgba(255, 255, 255, 0.22);
+  --ideon-inner-bottom: rgba(0, 0, 0, 0.28);
+  --ideon-edge: linear-gradient(135deg,
+    rgba(124, 92, 255, 0.55) 0%,
+    rgba(53, 195, 243, 0.45) 35%,
+    rgba(44, 156, 116, 0.45) 65%,
+    rgba(255, 143, 177, 0.55) 100%);
+}

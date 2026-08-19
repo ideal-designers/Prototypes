@@ -1921,6 +1921,66 @@ const filterBtn: ComponentDocEntry = {
   claudePrompt: 'Use fvdr-filter-btn for a color-coded filter toggle. @Input() label:string="Filter". @Input() size:"M"|"S"="M". @Input() color:"default"|"stone"|"blue"|"yellow"|"orange"|"lime"|"teal"|"indigo"|"purple"|"magenta"|"danger"|"coffee"="default". @Input() selected:boolean. @Input() disabled:boolean. @Input() showIcon:boolean=true (SVG leading icon). @Input() iconPath:string (SVG path d=, default=color-picker target). @Input() showStatus:boolean (color dot). @Input() showCounter:boolean; counter:string. @Input() showArrow:boolean (chevron). @Output() clicked.',
 };
 
+const askIdeon: ComponentDocEntry = {
+  id: 'ask-ideon',
+  name: 'Ask Ideon',
+  selector: 'fvdr-ask-ideon',
+  category: 'controls',
+  status: 'beta',
+  description:
+    'Branded entry point for Ideon, the global AI assistant. A fully-rounded glass pill with a sparkle glyph, sitting on a slowly drifting iridescent mesh gradient.',
+  whenToUse: [
+    'Opening the AI assistant from an app header or page toolbar',
+    'A single, prominent, branded AI entry point on a screen',
+    'Anywhere the AI needs to read as a product feature, not a generic icon button',
+  ],
+  whenNotToUse: [
+    'Repeated per-row or per-item AI actions (use an icon button)',
+    'Non-AI actions — the treatment is reserved for Ideon',
+    'More than once on the same screen — it stops reading as the primary entry point',
+  ],
+  anatomy: [
+    { index: 1, part: 'Container',     spec: 'height: 36px · padding: 0 16px · border-radius: 9999px · 1px translucent border' },
+    { index: 2, part: 'Mesh gradient', spec: '::before · 4 blurred radial blobs · drifts on transform, 32s ease-in-out alternate' },
+    { index: 3, part: 'Glass layer',   spec: '::after · translucent surface + backdrop-filter blur(6px) saturate(160%)' },
+    { index: 4, part: 'Icon',          spec: '16px ai-assistant sparkle · --color-primary-500' },
+    { index: 5, part: 'Label',         spec: 'font-size: 14px · weight 600 · --color-text-primary' },
+  ],
+  states: [
+    { name: 'Default',         description: 'Mesh at 55% opacity behind the frosted surface' },
+    { name: 'Hover',           description: 'Mesh intensifies to 80%, surface clears slightly, pill lifts 1px' },
+    { name: 'Active',          description: 'Pill presses down (scale 0.98)' },
+    { name: 'Focus-visible',   description: '2px primary outline with 2px offset' },
+    { name: 'Disabled',        description: 'Mesh frozen at 20%, label and icon go to disabled text colour' },
+    { name: 'Reduced motion',  description: 'Drift animation removed — gradient renders static' },
+  ],
+  tokens: [
+    { token: '--gradient-ideon-1', value: '#7C5CFF', usage: 'Mesh blob — violet' },
+    { token: '--gradient-ideon-2', value: '#35C3F3', usage: 'Mesh blob — cyan' },
+    { token: '--gradient-ideon-3', value: '#2C9C74', usage: 'Mesh blob — brand green' },
+    { token: '--gradient-ideon-4', value: '#FF8FB1', usage: 'Mesh blob — rose' },
+    { token: '--ideon-surface',    value: 'rgba(255,255,255,0.62)', usage: 'Frosted glass tint (dark theme overrides)' },
+    { token: '--ideon-border',     value: 'rgba(255,255,255,0.75)', usage: 'Translucent 1px border' },
+    { token: '--ideon-shadow',     value: '0 2px 10px rgba(31,33,41,0.12)', usage: 'Outer lift shadow' },
+    { token: '--radius-full',      value: '9999px', usage: 'Capsule radius' },
+    { token: '--color-primary-500', value: '#2C9C74', usage: 'Sparkle icon colour' },
+    { token: '--color-text-primary', value: '#1F2129', usage: 'Label colour' },
+  ],
+  usedIn: ['AI Assistant prototype header', 'Documents view header'],
+  relatedComponents: ['fvdr-btn', 'fvdr-icon'],
+  codeSnippet: `<!-- Default -->
+<fvdr-ask-ideon (clicked)="openAssistant()"></fvdr-ask-ideon>
+
+<!-- Custom label -->
+<fvdr-ask-ideon label="Ask Ideon about this file"></fvdr-ask-ideon>
+
+<!-- Projected into the app header -->
+<fvdr-header [breadcrumbs]="breadcrumbs" [actions]="headerActions">
+  <fvdr-ask-ideon header-actions (clicked)="openAssistant()"></fvdr-ask-ideon>
+</fvdr-header>`,
+  claudePrompt: "Use fvdr-ask-ideon for the branded global AI entry point. @Input() label:string='Ask Ideon'. @Input() disabled:boolean. @Output() clicked. Glass capsule with an animated iridescent mesh gradient; palette comes from --gradient-ideon-* / --ideon-* in tokens.css and can be overridden on the host. Project it into fvdr-header with the [header-actions] attribute. Never use it for non-AI actions or repeated row-level actions.",
+};
+
 // ─────────────────────────────────────────────────────────────────────────────
 // REGISTRY EXPORT
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1969,6 +2029,7 @@ export const DS_REGISTRY: ComponentDocEntry[] = [
   ghostBtn,
   floatingPanel,
   filterBtn,
+  askIdeon,
 ];
 
 export const DS_CATEGORIES: { id: ComponentCategory; label: string }[] = [
