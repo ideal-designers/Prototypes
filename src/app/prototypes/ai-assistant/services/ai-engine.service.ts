@@ -9,6 +9,7 @@ import {
 } from '../models/ai-scenario.model';
 import { MockDocument } from '../models/mock-doc.model';
 import { MOCK_DATA_ROOM, MOCK_DOCUMENTS, PERMITTED_DOCUMENTS } from '../data/mock-data';
+import { AiLlmService, LlmResult } from './ai-llm.service';
 
 interface AiPlan {
   scenario: AiScenarioId;
@@ -83,6 +84,7 @@ function isPendingSignature(status?: string): boolean {
 @Injectable()
 export class AiEngineService {
   private conv = inject(AiConversationService);
+  private llm = inject(AiLlmService);
 
   readonly streaming = signal(false);
   private stoppedFor: string | null = null;
@@ -94,7 +96,16 @@ export class AiEngineService {
 
     this.conv.addUserMessage(text);
     const assistant = this.conv.addAssistantMessage();
-    const plan = this.plan(text);
+    let plan = this.plan(text);
+
+    // Hybrid: the four demo scenarios stay scripted so a demo can't drift. Only
+    // off-script questions reach the model, and the request runs while the steps
+    // stream so the model's latency hides inside the existing animation.
+    const pending =
+      plan.scenario === 'fallback'
+        ? this.llm.ask(text, this.scopeDocuments(), this.conv.currentScope())
+        : null;
+
     this.conv.patchMessage(assistant.id, { scenario: plan.scenario });
 
     this.stoppedFor = null;
@@ -110,7 +121,13 @@ export class AiEngineService {
     if (this.stoppedFor === assistant.id) {
       this.conv.cancelMessage(assistant.id);
     } else {
+      // A null result (no key, offline, rate limit) leaves the scripted plan in
+      // place, so the prototype degrades instead of showing an error.
+      const live = pending ? await pending : null;
+      if (live) plan = this.livePlan(live, plan);
+
       await streamDelay();
+      this.conv.patchMessage(assistant.id, { scenario: plan.scenario });
       this.conv.completeMessage(
         assistant.id,
         plan.answer,
@@ -277,6 +294,54 @@ export class AiEngineService {
         followUp: 'Would you like me to broaden the search to the whole data room, or check a different project?',
         permissionNote: filtered ? PERMISSION_NOTE : undefined,
       },
+    };
+  }
+
+  /**
+   * Maps a model result onto the existing renderers. The model only chooses the
+   * intent and which documents apply — the citations, table and metadata are still
+   * drawn from mock data, so an answer can never cite a document that isn't there.
+   */
+  private livePlan(live: LlmResult, scripted: AiPlan): AiPlan {
+    const byId = new Map(this.scopeDocuments().map((d) => [d.id, d]));
+    const docs = live.documentIds.map((id) => byId.get(id)).filter((d): d is MockDocument => !!d);
+    const followUp = live.followUp || undefined;
+
+    // Reuse the scripted builders wherever the intent has a richer renderer, so
+    // the model can't produce a shape the UI doesn't know how to draw.
+    if (live.intent === 'signatures') return this.signaturesPlan();
+    if (live.intent === 'report') return this.ddReportPlan(live.text);
+
+    if (live.intent === 'summarize' && docs.length) {
+      return {
+        scenario: 'B',
+        steps: scripted.steps,
+        answer: {
+          kind: 'summary',
+          scopeLabel: this.conv.currentScope(),
+          overview: live.text,
+          groups: [
+            {
+              title: this.conv.currentScope(),
+              points: docs.map((d) => ({ text: d.gist || d.name, source: d })),
+            },
+          ],
+          followUp,
+        },
+      };
+    }
+
+    if (live.intent === 'find' && docs.length === 1) {
+      return { ...this.singleDocPlan(docs[0], false), steps: scripted.steps };
+    }
+    if (live.intent === 'find' && docs.length > 1) {
+      return { ...this.tablePlan(live.text, docs, false), steps: scripted.steps };
+    }
+
+    return {
+      scenario: live.intent === 'none' ? 'fallback' : 'A',
+      steps: scripted.steps,
+      answer: { kind: 'prose', text: live.text, followUp },
     };
   }
 

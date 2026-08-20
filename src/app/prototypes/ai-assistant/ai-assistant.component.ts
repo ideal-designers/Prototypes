@@ -4,6 +4,7 @@ import { DS_COMPONENTS, ToastService } from '../../shared/ds';
 import { TrackerService } from '../../services/tracker.service';
 import { AiConversationService } from './services/ai-conversation.service';
 import { AiEngineService } from './services/ai-engine.service';
+import { AiLlmService } from './services/ai-llm.service';
 import { AiFullscreenComponent } from './shells/ai-fullscreen.component';
 import { MockDocumentsViewComponent } from './components/mock-documents-view/mock-documents-view.component';
 import { CreateProjectModalComponent } from './components/create-project-modal/create-project-modal.component';
@@ -26,7 +27,7 @@ import { ProjectAnswer } from './models/ai-scenario.model';
     MockDocumentsViewComponent,
     CreateProjectModalComponent,
   ],
-  providers: [AiConversationService, AiEngineService],
+  providers: [AiConversationService, AiEngineService, AiLlmService],
   template: `
     <fvdr-ai-fullscreen *ngIf="conv.shell() === 'fullscreen'"></fvdr-ai-fullscreen>
 
