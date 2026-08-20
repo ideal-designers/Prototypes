@@ -31,7 +31,7 @@ import { VdrActionBarComponent } from '../vdr-action-bar.component';
         <tr>
           <th class="dtable__th" *ngFor="let c of columns" [style.width]="c.width">{{ c.label }}</th>
           <th class="dtable__th dtable__th--tools">
-            <span class="icon-btn" title="Customize columns"><fvdr-icon name="table-view"></fvdr-icon></span>
+            <fvdr-ghost-btn size="small" icon="table-view" tooltip="Customize columns" [disabled]="true"></fvdr-ghost-btn>
           </th>
         </tr>
       </thead>
@@ -87,13 +87,15 @@ import { VdrActionBarComponent } from '../vdr-action-bar.component';
     </div>
 
     <!-- ── Entitlement ───────────────────────────────────────────────── -->
-    <div class="panel gate">
-      <span class="gate__glyph"><fvdr-icon name="finished"></fvdr-icon></span>
-      <p class="gate__text">
-        This feature is available only with a <strong>Premier</strong> or higher subscription.
-        <button type="button" class="link gate__link">Learn more</button>
-      </p>
-    </div>
+    <fvdr-card class="gate">
+      <div class="gate__row">
+        <span class="gate__glyph"><fvdr-icon name="finished"></fvdr-icon></span>
+        <p class="gate__text">
+          This feature is available only with a <strong>Premier</strong> or higher subscription.
+          <button type="button" class="link gate__link">Learn more</button>
+        </p>
+      </div>
+    </fvdr-card>
   </div>
 </div>
   `,
@@ -114,7 +116,7 @@ import { VdrActionBarComponent } from '../vdr-action-bar.component';
       color: var(--color-text-secondary);
     }
 
-    .gate { display: flex; align-items: flex-start; gap: var(--space-3); padding: var(--space-4); }
+    .gate__row { display: flex; align-items: flex-start; gap: var(--space-3); }
     .gate__glyph { display: inline-flex; color: var(--color-primary-500); font-size: var(--font-size-lg, 16px); }
     .gate__text {
       margin: 0;

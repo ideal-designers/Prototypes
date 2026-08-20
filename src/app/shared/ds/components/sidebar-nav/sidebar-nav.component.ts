@@ -105,8 +105,12 @@ const VARIANT_CONFIG: Record<SidebarNavVariant, { bg: string; label: string }> =
     >
 
       <!-- ── Account switcher ──────────────────────────────── -->
-      <div class="account-switcher" (click)="accountClick.emit()">
-        <div class="account-logo" [style.background]="cfg.bg">{{ cfg.label }}</div>
+      <div
+        class="account-switcher"
+        [attr.title]="isVisuallyCollapsed ? accountName : null"
+        (click)="accountClick.emit()"
+      >
+        <div class="account-logo" [style.background]="cfg.bg">{{ accountMark || cfg.label }}</div>
         <ng-container *ngIf="!isVisuallyCollapsed">
           <span class="account-name">{{ accountName }}</span>
           <fvdr-icon name="chevron-down" class="account-chevron" />
@@ -345,6 +349,9 @@ const VARIANT_CONFIG: Record<SidebarNavVariant, { bg: string; label: string }> =
     .nav-item {
       display: flex; align-items: center;
       width: 100%; height: 32px;
+      /* The list is a flex column: without this, a nav set taller than the
+         sidebar squashes its rows to 0px instead of letting .nav-list scroll. */
+      flex-shrink: 0;
       padding: 0 24px 0 0;
       background: transparent; border: none; cursor: pointer;
       color: var(--color-text-primary);
@@ -391,9 +398,11 @@ const VARIANT_CONFIG: Record<SidebarNavVariant, { bg: string; label: string }> =
     .nav-subitems {
       display: flex; flex-direction: column; gap: 10px;
       background: var(--color-stone-100);
+      flex-shrink: 0;
     }
     .nav-subitem {
       height: 32px; padding: 0 16px 0 72px;
+      flex-shrink: 0;
       background: none; border: none; cursor: pointer;
       font-size: var(--font-size-base, 14px); font-weight: 400;
       font-family: var(--font-family);
@@ -437,6 +446,11 @@ const VARIANT_CONFIG: Record<SidebarNavVariant, { bg: string; label: string }> =
 export class SidebarNavComponent implements OnInit {
   @Input() variant: SidebarNavVariant = 'ca';
   @Input() accountName = 'Account';
+  /**
+   * Two-letter mark shown in the account badge. Defaults to the variant label
+   * (VDR/CA/INT) — override it with e.g. project initials.
+   */
+  @Input() accountMark = '';
   @Input() items: SidebarNavItem[] = [];
   /** Desktop: explicit collapsed state from parent. Tablet/mobile: managed internally. */
   @Input() collapsed = false;

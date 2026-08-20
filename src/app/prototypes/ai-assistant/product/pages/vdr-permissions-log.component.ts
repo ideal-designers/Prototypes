@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { DS_COMPONENTS, DropdownOption } from '../../../../shared/ds';
-import { MOCK_DATA_ROOM, MOCK_FOLDERS, MOCK_PROJECT_MARK } from '../../data/mock-data';
+import { DS_COMPONENTS, DropdownOption, TreeNode } from '../../../../shared/ds';
+import { PROJECT_NODE_ID, projectTree } from '../data/project-tree';
 import { VdrEmptyStateComponent } from '../vdr-empty-state.component';
 
 /**
@@ -22,11 +22,7 @@ import { VdrEmptyStateComponent } from '../vdr-empty-state.component';
   <!-- ── Filters ─────────────────────────────────────────────────────── -->
   <div class="row row--wrap">
     <span class="label">Period</span>
-    <span class="field">
-      <span>Aug 14, 2026 – Aug 20, 2026</span>
-      <button type="button" class="field__icon-btn" title="Clear"><fvdr-icon name="close"></fvdr-icon></button>
-      <span class="field__icon"><fvdr-icon name="calendar"></fvdr-icon></span>
-    </span>
+    <fvdr-filter-btn size="S" icon="calendar" label="Aug 14, 2026 – Aug 20, 2026" [clearable]="true"></fvdr-filter-btn>
 
     <div class="filter-select">
       <fvdr-dropdown [options]="groupOptions" placeholder="Target group" size="s"></fvdr-dropdown>
@@ -44,24 +40,14 @@ import { VdrEmptyStateComponent } from '../vdr-empty-state.component';
   <!-- ── Documents pane + results ────────────────────────────────────── -->
   <div class="perm">
 
-    <div class="panel perm__docs">
-      <div class="panel__head"><span class="panel__title">Documents</span></div>
-      <div class="panel__body perm__docs-body">
+    <fvdr-card title="Documents" class="perm__docs">
+      <div class="perm__docs-body">
         <fvdr-search placeholder="Search" size="s"></fvdr-search>
         <div class="perm__tree">
-          <button type="button" class="qa-row qa-row--selected">
-            <fvdr-icon name="chevron-down" class="qa-row__icon"></fvdr-icon>
-            <span class="proj-mark">{{ projectMark }}</span>
-            <span>{{ projectName }}</span>
-          </button>
-          <button type="button" class="qa-row qa-row--child" *ngFor="let f of folders">
-            <fvdr-icon name="chevron-right" class="qa-row__icon"></fvdr-icon>
-            <span class="qa-row__icon"><fvdr-icon name="folder"></fvdr-icon></span>
-            <span>{{ f.name }}</span>
-          </button>
+          <fvdr-tree [nodes]="tree" [selectedId]="selectedNode"></fvdr-tree>
         </div>
       </div>
-    </div>
+    </fvdr-card>
 
     <div class="perm__main">
       <fvdr-vdr-empty-state
@@ -87,18 +73,18 @@ import { VdrEmptyStateComponent } from '../vdr-empty-state.component';
     .filter-select { width: 180px; }
 
     .perm { display: flex; gap: var(--space-4); align-items: flex-start; }
-    .perm__docs { flex: 0 0 325px; }
+    .perm__docs { flex: 0 0 340px; }
     .perm__main { flex: 1; min-width: 0; }
 
     .perm__docs-body { display: flex; flex-direction: column; gap: var(--space-3); }
+    /* The tree rows run to the card's edges, as the product's pane does. */
     .perm__tree { margin: 0 calc(var(--space-4) * -1); }
   `],
 })
 export class VdrPermissionsLogComponent {
   /** Project tree — the same room the assistant answers from. */
-  readonly projectName = MOCK_DATA_ROOM.name;
-  readonly projectMark = MOCK_PROJECT_MARK;
-  readonly folders = MOCK_FOLDERS;
+  readonly tree: TreeNode[] = projectTree();
+  readonly selectedNode = PROJECT_NODE_ID;
 
   readonly groupOptions: DropdownOption[] = [
     { value: 'admins', label: 'Administrators' },

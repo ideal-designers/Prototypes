@@ -6,7 +6,10 @@ import type { FvdrIconName } from '../../icons/icons';
 export interface QuickAccessItem {
   id: string;
   label: string;
-  icon: FvdrIconName;
+  /** Leading icon. Optional — count-only shortcut lists (Q&A) have no icons. */
+  icon?: FvdrIconName;
+  /** Trailing count, right-aligned (e.g. "Unanswered 10"). */
+  count?: number;
   active?: boolean;
 }
 
@@ -31,6 +34,13 @@ export interface QuickAccessItem {
  *
  *   [width] defaults to 340 (the DS spec width) — bind it to make the panel
  *   resizable from outside (the component itself has no resize handle).
+ *
+ *   Content projected into the default slot renders under the shortcut list and
+ *   stays visible while the shortcuts are collapsed — that is where the
+ *   product's project tree lives:
+ *   <fvdr-quick-access-menu [items]="shortcuts" [showClose]="true" (closed)="hide()">
+ *     <fvdr-tree [nodes]="projectTree" [selectedId]="selected" />
+ *   </fvdr-quick-access-menu>
  */
 @Component({
   selector: 'fvdr-quick-access-menu',
@@ -44,6 +54,9 @@ export interface QuickAccessItem {
         <ng-container *ngIf="!collapsed; else collapsedHeader">
           <span class="qa-header__title">Quick access</span>
           <div class="qa-header__actions">
+            <button *ngIf="showClose" class="qa-icon-btn" title="Close" (click)="closed.emit()">
+              <fvdr-icon name="close" />
+            </button>
             <button class="qa-icon-btn" title="Collapse quick filters" (click)="toggleCollapse()">
               <fvdr-icon name="collapse" />
             </button>
@@ -62,7 +75,8 @@ export interface QuickAccessItem {
               [title]="item.label"
               (click)="onItemClick(item)"
             >
-              <fvdr-icon [name]="item.icon" />
+              <fvdr-icon *ngIf="item.icon" [name]="item.icon" />
+              <span *ngIf="!item.icon" class="qa-icon-btn__text">{{ item.count }}</span>
             </button>
             <button
               class="qa-icon-btn qa-icon-btn--expand"
@@ -83,11 +97,21 @@ export interface QuickAccessItem {
           [class.qa-item--active]="item.active"
           (click)="onItemClick(item)"
         >
-          <span class="qa-item__icon">
+          <span class="qa-item__icon" *ngIf="item.icon">
             <fvdr-icon [name]="item.icon" />
           </span>
           <span class="qa-item__label">{{ item.label }}</span>
+          <span class="qa-item__count" *ngIf="item.count !== undefined">{{ item.count }}</span>
         </button>
+      </div>
+
+      <!--
+        Anything the panel hosts under the shortcuts — typically an fvdr-tree of
+        the project's folders. Stays visible when the shortcut list is collapsed,
+        the way the product's Quick access pane behaves.
+      -->
+      <div class="qa-slot">
+        <ng-content></ng-content>
       </div>
 
     </div>
@@ -168,6 +192,11 @@ export interface QuickAccessItem {
       margin-left: auto;
     }
 
+    .qa-icon-btn__text {
+      font-size: var(--font-size-xs, 12px);
+      font-weight: 600;
+    }
+
     /* ── Items list ── */
     .qa-items {
       display: flex;
@@ -220,6 +249,16 @@ export interface QuickAccessItem {
       white-space: nowrap;
       min-width: 0;
     }
+
+    .qa-item__count {
+      margin-left: auto;
+      color: var(--color-text-secondary, #5f616a);
+      font-size: var(--font-size-xs, 12px);
+      flex-shrink: 0;
+    }
+
+    /* ── Projected content (e.g. a project tree) ── */
+    .qa-slot { display: flex; flex-direction: column; min-height: 0; }
   `],
 })
 export class QuickAccessMenuComponent {
@@ -230,6 +269,8 @@ export class QuickAccessMenuComponent {
     { id: 'favorites',    label: 'Favorites',       icon: 'star'         as FvdrIconName },
   ];
   @Input()  collapsed = false;
+  /** Shows the header close button, which emits (closed). */
+  @Input()  showClose = false;
   /** Shows a second header button for collapsing whatever sits below this menu (e.g. a tree) along with it. */
   @Input()  showCollapseAll = false;
   /** Panel width in px. Defaults to the DS spec width; override when the consumer makes this panel resizable. */

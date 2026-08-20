@@ -583,6 +583,25 @@ import type { ComponentDocEntry } from './ds-registry';
               <p style="font-size: var(--font-size-base, 14px); color: var(--color-text-secondary); margin: 0;">Hover to see shadow effect.</p>
             </fvdr-card>
           </div>
+
+          <!-- Header actions slot + equal heights in a flex row -->
+          <div class="section__desc">
+            The card fills its host element, so cards in a flex row share the height of the tallest one.
+            Controls next to the title go in the <code>[card-header-actions]</code> slot.
+          </div>
+          <div class="row" style="gap: 12px; align-items: stretch;">
+            <fvdr-card title="Summary" style="flex: 0 0 220px;">
+              <p style="font-size: var(--font-size-base, 14px); color: var(--color-text-secondary); margin: 0;">Short card.</p>
+            </fvdr-card>
+            <fvdr-card title="Over the period" style="flex: 1;">
+              <fvdr-ghost-btn card-header-actions size="small" icon="chart-bar" tooltip="Bar chart" [selected]="true" />
+              <fvdr-ghost-btn card-header-actions size="small" icon="chart-line" tooltip="Line chart" />
+              <p style="font-size: var(--font-size-base, 14px); color: var(--color-text-secondary); margin: 0;">
+                Taller card — two lines of body copy, a header action pair on the right,<br />
+                and the neighbour matches its height.
+              </p>
+            </fvdr-card>
+          </div>
         </section>
 
         <!-- ── HEADER ── -->

@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { DS_COMPONENTS } from '../../../../shared/ds';
-import { MOCK_DATA_ROOM, MOCK_FOLDERS, MOCK_PROJECT_MARK } from '../../data/mock-data';
+import { DS_COMPONENTS, TreeNode } from '../../../../shared/ds';
+import { PROJECT_NODE_ID, projectTree } from '../data/project-tree';
 import { VdrEmptyStateComponent } from '../vdr-empty-state.component';
 
 /**
@@ -22,11 +22,7 @@ import { VdrEmptyStateComponent } from '../vdr-empty-state.component';
   <!-- ── Filters ─────────────────────────────────────────────────────── -->
   <div class="row row--wrap">
     <span class="label">Period</span>
-    <span class="field">
-      <span>Aug 14, 2026 – Aug 20, 2026</span>
-      <button type="button" class="field__icon-btn" title="Clear"><fvdr-icon name="close"></fvdr-icon></button>
-      <span class="field__icon"><fvdr-icon name="calendar"></fvdr-icon></span>
-    </span>
+    <fvdr-filter-btn size="S" icon="calendar" label="Aug 14, 2026 – Aug 20, 2026" [clearable]="true"></fvdr-filter-btn>
 
     <span class="label">Overview on</span>
     <button type="button" class="inline-select">
@@ -43,57 +39,41 @@ import { VdrEmptyStateComponent } from '../vdr-empty-state.component';
   <!-- ── Three panels ────────────────────────────────────────────────── -->
   <div class="ovw">
 
-    <div class="panel ovw__docs">
-      <div class="panel__head"><span class="panel__title">Documents</span></div>
-      <div class="panel__body ovw__docs-body">
+    <fvdr-card title="Documents" class="ovw__docs">
+      <div class="ovw__docs-body">
         <fvdr-search placeholder="Search" size="s"></fvdr-search>
         <div class="ovw__tree">
-          <button type="button" class="qa-row qa-row--selected">
-            <fvdr-icon name="chevron-down" class="qa-row__icon"></fvdr-icon>
-            <span class="proj-mark">{{ projectMark }}</span>
-            <span>{{ projectName }}</span>
-          </button>
-          <button type="button" class="qa-row qa-row--child" *ngFor="let f of folders">
-            <fvdr-icon name="chevron-right" class="qa-row__icon"></fvdr-icon>
-            <span class="qa-row__icon"><fvdr-icon name="folder"></fvdr-icon></span>
-            <span>{{ f.name }}</span>
-          </button>
+          <fvdr-tree [nodes]="tree" [selectedId]="selectedNode"></fvdr-tree>
         </div>
       </div>
-    </div>
+    </fvdr-card>
 
-    <div class="panel ovw__summary">
-      <div class="panel__head"><span class="panel__title">Summary</span></div>
-      <div class="panel__body">
-        <div class="metrics">
-          <div class="metrics__cell" *ngFor="let m of metrics">
-            <span class="metric">{{ m.value }}</span>
-            <span class="label">{{ m.label }}</span>
-          </div>
+    <fvdr-card title="Summary" class="ovw__summary">
+      <div class="metrics">
+        <div class="metrics__cell" *ngFor="let m of metrics">
+          <span class="metric">{{ m.value }}</span>
+          <span class="label">{{ m.label }}</span>
         </div>
       </div>
-    </div>
+    </fvdr-card>
 
-    <div class="panel ovw__chart">
-      <div class="panel__head"><span class="panel__title">Dynamics of viewing time</span></div>
-      <div class="panel__body">
-        <svg class="chart" viewBox="0 0 640 200" aria-hidden="true">
-          <g class="chart__grid" stroke-width="1">
-            <line x1="52" y1="20" x2="620" y2="20" />
-            <line x1="52" y1="90" x2="620" y2="90" />
-            <line x1="52" y1="160" x2="620" y2="160" />
-          </g>
-          <g class="chart__axis" text-anchor="end">
-            <text x="42" y="24">1m</text>
-            <text x="42" y="94">0.5m</text>
-            <text x="42" y="164">0m</text>
-          </g>
-          <g class="chart__axis" text-anchor="middle">
-            <text *ngFor="let d of days; let i = index" [attr.x]="68 + i * 91" y="186">{{ d }}</text>
-          </g>
-        </svg>
-      </div>
-    </div>
+    <fvdr-card title="Dynamics of viewing time" class="ovw__chart">
+      <svg class="chart" viewBox="0 0 640 200" aria-hidden="true">
+        <g class="chart__grid" stroke-width="1">
+          <line x1="52" y1="20" x2="620" y2="20" />
+          <line x1="52" y1="90" x2="620" y2="90" />
+          <line x1="52" y1="160" x2="620" y2="160" />
+        </g>
+        <g class="chart__axis" text-anchor="end">
+          <text x="42" y="24">1m</text>
+          <text x="42" y="94">0.5m</text>
+          <text x="42" y="164">0m</text>
+        </g>
+        <g class="chart__axis" text-anchor="middle">
+          <text *ngFor="let d of days; let i = index" [attr.x]="68 + i * 91" y="186">{{ d }}</text>
+        </g>
+      </svg>
+    </fvdr-card>
   </div>
 
   <!-- ── No participant data ─────────────────────────────────────────── -->
@@ -117,11 +97,12 @@ import { VdrEmptyStateComponent } from '../vdr-empty-state.component';
     :host { display: block; }
 
     .ovw { display: flex; gap: var(--space-4); align-items: stretch; }
-    .ovw__docs { flex: 0 0 325px; }
+    .ovw__docs { flex: 0 0 340px; }
     .ovw__summary { flex: 0 0 340px; }
     .ovw__chart { flex: 1; min-width: 0; }
 
     .ovw__docs-body { display: flex; flex-direction: column; gap: var(--space-3); }
+    /* The tree rows run to the card's edges, as the product's pane does. */
     .ovw__tree { margin: 0 calc(var(--space-4) * -1); }
 
     .metrics { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
@@ -130,9 +111,8 @@ import { VdrEmptyStateComponent } from '../vdr-empty-state.component';
 })
 export class VdrDocumentsOverviewComponent {
   /** Project tree — the same room the assistant answers from. */
-  readonly projectName = MOCK_DATA_ROOM.name;
-  readonly projectMark = MOCK_PROJECT_MARK;
-  readonly folders = MOCK_FOLDERS;
+  readonly tree: TreeNode[] = projectTree();
+  readonly selectedNode = PROJECT_NODE_ID;
 
   readonly metrics = [
     { value: '0m', label: 'Total viewing time' },

@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, EventEmitter, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { VdrPageId } from '../data/product-nav';
 import { VdrActionBarComponent, VdrActionBarButton } from '../vdr-action-bar.component';
 import { VdrEmptyStateComponent } from '../vdr-empty-state.component';
 import { VdrQuickAccessComponent } from '../vdr-quick-access.component';
@@ -26,7 +27,7 @@ import { VdrQuickAccessComponent } from '../vdr-quick-access.component';
 
   <div class="two-pane">
     <aside class="two-pane__side">
-      <fvdr-vdr-quick-access selected="recent"></fvdr-vdr-quick-access>
+      <fvdr-vdr-quick-access selected="recent" (navigate)="navigate.emit($event)"></fvdr-vdr-quick-access>
     </aside>
 
     <section class="two-pane__main">
@@ -61,5 +62,11 @@ import { VdrQuickAccessComponent } from '../vdr-quick-access.component';
   `],
 })
 export class VdrRecentComponent {
+  /**
+   * Quick access shortcut clicked — Documents › Recently viewed / Newly uploaded
+   * / Favorites live in that pane, not in the sidebar, so the page bubbles the
+   * request up instead of navigating itself.
+   */
+  @Output() navigate = new EventEmitter<VdrPageId>();
   readonly secondaries: VdrActionBarButton[] = [{ id: 'index', label: 'Project index' }];
 }

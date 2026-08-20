@@ -1,100 +1,76 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import {
-  DS_COMPONENTS,
-  SidebarNavItem,
-  BreadcrumbItem,
-  HeaderAction,
-} from '../../../shared/ds';
+import { DS_COMPONENTS } from '../../../shared/ds';
 import { AiConversationService } from '../services/ai-conversation.service';
 import { AiConversationComponent } from '../components/ai-conversation/ai-conversation.component';
-import { MOCK_DATA_ROOM } from '../data/mock-data';
-import { vdrNavItems } from '../data/vdr-nav';
 
-/** Full-screen shell — product chrome + AI conversation rail + centered transcript. */
+/**
+ * Full-page assistant — the `'ai'` product page, rendered inside `vdr-shell`
+ * like every other page, so the product sidebar and top bar are identical
+ * wherever you navigate.
+ *
+ * Owns only the assistant's own UI: the 280px conversation rail (new chat, add
+ * project, recents) plus the centered transcript column. It fills the height
+ * the shell gives it and scrolls internally.
+ */
 @Component({
   selector: 'fvdr-ai-fullscreen',
   standalone: true,
   imports: [CommonModule, ...DS_COMPONENTS, AiConversationComponent],
   template: `
-<div class="ai-shell">
+<div class="ai-page">
 
-  <!-- ── Room sidebar ─────────────────────────────────────────────── -->
-  <fvdr-sidebar-nav
-    variant="vdr"
-    [accountName]="room.name"
-    [items]="navItems"
-    [(collapsed)]="sidebarCollapsed"
-    (itemClick)="onNavClick($event)"
-  ></fvdr-sidebar-nav>
-
-  <!-- ── Main ─────────────────────────────────────────────────────── -->
-  <div class="ai-main">
-    <fvdr-header
-      [breadcrumbs]="breadcrumbs"
-      [actions]="headerActions"
-      [showMenu]="false"
-      userName="DT"
-      (actionClick)="onHeaderAction($event)"
-    ></fvdr-header>
-
-    <div class="ai-body">
-
-      <!-- Conversation rail -->
-      <aside class="rail">
-        <div class="rail__action rail__action--primary">
-          <fvdr-btn
-            label="New chat"
-            variant="ghost"
-            size="m"
-            iconName="plus"
-            (clicked)="onNewChat()"
-          ></fvdr-btn>
-        </div>
-        <div class="rail__action">
-          <fvdr-btn
-            label="Add project"
-            variant="ghost"
-            size="m"
-            iconName="add-project"
-            (clicked)="onAddProject()"
-          ></fvdr-btn>
-        </div>
-
-        <div class="rail__section">
-          <span class="rail__label">Recents</span>
-          <ul class="rail__list">
-            <li *ngFor="let r of conv.recents()">
-              <button
-                type="button"
-                class="rail__item"
-                [class.rail__item--active]="conv.activeChatId() === r.id"
-                (click)="conv.openRecent(r.id)"
-              >
-                <span class="rail__item-title">{{ r.title }}</span>
-                <span class="rail__item-meta">{{ r.updatedAt }}</span>
-              </button>
-            </li>
-          </ul>
-        </div>
-      </aside>
-
-      <!-- Conversation column -->
-      <main class="ai-col">
-        <div class="ai-col__inner">
-          <fvdr-ai-conversation></fvdr-ai-conversation>
-        </div>
-      </main>
+  <!-- ── Conversation rail — second, inner rail beside the product rail ── -->
+  <aside class="rail">
+    <div class="rail__action rail__action--primary">
+      <fvdr-btn
+        label="New chat"
+        variant="ghost"
+        size="m"
+        iconName="plus"
+        (clicked)="onNewChat()"
+      ></fvdr-btn>
     </div>
-  </div>
+    <div class="rail__action">
+      <fvdr-btn
+        label="Add project"
+        variant="ghost"
+        size="m"
+        iconName="add-project"
+        (clicked)="onAddProject()"
+      ></fvdr-btn>
+    </div>
+
+    <div class="rail__section">
+      <span class="rail__label">Recents</span>
+      <ul class="rail__list">
+        <li *ngFor="let r of conv.recents()">
+          <button
+            type="button"
+            class="rail__item"
+            [class.rail__item--active]="conv.activeChatId() === r.id"
+            (click)="conv.openRecent(r.id)"
+          >
+            <span class="rail__item-title">{{ r.title }}</span>
+            <span class="rail__item-meta">{{ r.updatedAt }}</span>
+          </button>
+        </li>
+      </ul>
+    </div>
+  </aside>
+
+  <!-- Conversation column -->
+  <main class="ai-col">
+    <div class="ai-col__inner">
+      <fvdr-ai-conversation></fvdr-ai-conversation>
+    </div>
+  </main>
 </div>
   `,
   styles: [`
-    :host { display: block; height: 100vh; font-family: var(--font-family); color: var(--color-text-primary); }
+    :host { display: block; height: 100%; font-family: var(--font-family); color: var(--color-text-primary); }
 
-    .ai-shell { display: flex; height: 100vh; overflow: hidden; background: var(--color-stone-0); }
-    .ai-main { flex: 1; display: flex; flex-direction: column; min-width: 0; min-height: 0; }
-    .ai-body { flex: 1; display: flex; min-height: 0; }
+    .ai-page { display: flex; height: 100%; min-height: 0; background: var(--color-stone-0); }
 
     /* ── Conversation rail ── */
     .rail {
@@ -104,6 +80,7 @@ import { vdrNavItems } from '../data/vdr-nav';
       border-right: 1px solid var(--color-divider);
       background: var(--color-stone-0);
       overflow-y: auto;
+      box-sizing: border-box;
     }
     .rail__action { display: flex; }
     .rail__action ::ng-deep .btn { width: 100%; justify-content: flex-start; }
@@ -142,25 +119,17 @@ import { vdrNavItems } from '../data/vdr-nav';
     /* ── Conversation column ── */
     .ai-col { flex: 1; min-width: 0; display: flex; justify-content: center; padding: 0 var(--space-8); }
     .ai-col__inner { width: 100%; max-width: 1040px; height: 100%; min-height: 0; }
+
+    /* Two rails plus the column get tight on 1280-class screens: narrow the
+       conversation rail instead of hiding it, so recents stay reachable. */
+    @media (max-width: 1360px) {
+      .rail { width: 240px; }
+      .ai-col { padding: 0 var(--space-5); }
+    }
   `],
 })
 export class AiFullscreenComponent {
   readonly conv = inject(AiConversationService);
-
-  readonly room = MOCK_DATA_ROOM;
-  sidebarCollapsed = false;
-
-  breadcrumbs: BreadcrumbItem[] = [
-    { id: 'room', label: 'Nike' },
-    { id: 'ai', label: 'AI Assistant' },
-  ];
-
-  headerActions: HeaderAction[] = [
-    { id: 'theme', icon: 'theme-dark' },
-    { id: 'bell', icon: 'bell', badge: 2 },
-  ];
-
-  navItems: SidebarNavItem[] = vdrNavItems('ai');
 
   onNewChat(): void {
     this.conv.newChat();
@@ -169,13 +138,5 @@ export class AiFullscreenComponent {
   /** Scenario D — adding a project starts from the same confirmed-creation dialog. */
   onAddProject(): void {
     this.conv.requestCreateProject('');
-  }
-
-  onNavClick(item: SidebarNavItem): void {
-    if (item.id === 'documents') this.conv.setShell('documents');
-  }
-
-  onHeaderAction(id: string): void {
-    if (id === 'theme') this.conv.toggleDark();
   }
 }

@@ -26,11 +26,7 @@ import { DS_COMPONENTS, DropdownOption } from '../../../../shared/ds';
 
   <!-- ── Filters ─────────────────────────────────────────────────────── -->
   <div class="row row--wrap">
-    <span class="field">
-      <span>Aug 14, 2026 – Aug 20, 2026</span>
-      <button type="button" class="field__icon-btn" title="Clear"><fvdr-icon name="close"></fvdr-icon></button>
-      <span class="field__icon"><fvdr-icon name="calendar"></fvdr-icon></span>
-    </span>
+    <fvdr-filter-btn size="S" icon="calendar" label="Aug 14, 2026 – Aug 20, 2026" [clearable]="true"></fvdr-filter-btn>
 
     <div class="filter-select">
       <fvdr-dropdown [options]="actionOptions" placeholder="Action" size="s"></fvdr-dropdown>
@@ -39,10 +35,7 @@ import { DS_COMPONENTS, DropdownOption } from '../../../../shared/ds';
       <fvdr-dropdown [options]="authorOptions" placeholder="Author" size="s"></fvdr-dropdown>
     </div>
 
-    <button type="button" class="link">
-      <fvdr-icon name="filter"></fvdr-icon>
-      Clear all
-    </button>
+    <fvdr-filter-btn size="S" icon="filter" label="Clear all"></fvdr-filter-btn>
 
     <span class="spacer"></span>
 
@@ -60,9 +53,7 @@ import { DS_COMPONENTS, DropdownOption } from '../../../../shared/ds';
           <th class="log__th" style="width: 220px">Action</th>
           <th class="log__th">Description</th>
           <th class="log__th log__th--tools">
-            <button type="button" class="icon-btn" title="Customize columns">
-              <fvdr-icon name="table-view"></fvdr-icon>
-            </button>
+            <fvdr-ghost-btn size="small" icon="table-view" tooltip="Customize columns"></fvdr-ghost-btn>
           </th>
         </tr>
       </thead>

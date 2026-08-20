@@ -22,24 +22,28 @@ const WIN_HEIGHT = 560;
       <header class="win__head" (mousedown)="startDrag($event)">
         <span class="win__title" [attr.title]="conv.seededTitle()">{{ conv.seededTitle() }}</span>
 
-        <button type="button" class="win__btn" title="New chat" (click)="conv.newChat()">
-          <fvdr-icon name="new-session"></fvdr-icon>
-        </button>
+        <fvdr-ghost-btn
+          size="small"
+          icon="new-session"
+          tooltip="New chat"
+          (clicked)="conv.newChat()"
+        ></fvdr-ghost-btn>
         <!-- Glyph shows the current display mode; clicking docks the chat to the side.
              Hidden below the docking breakpoint — there is no room for a drawer, so
              offering a toggle that silently does nothing would be worse than no toggle. -->
-        <button
+        <fvdr-ghost-btn
           *ngIf="conv.canDock()"
-          type="button"
-          class="win__btn"
-          title="Dock to the side panel"
-          (click)="conv.setShell('sidebar')"
-        >
-          <fvdr-icon name="floating-mode"></fvdr-icon>
-        </button>
-        <button type="button" class="win__btn" title="Close" (click)="conv.setShell('documents')">
-          <fvdr-icon name="close"></fvdr-icon>
-        </button>
+          size="small"
+          icon="floating-mode"
+          tooltip="Dock to the side panel"
+          (clicked)="conv.setShell('sidebar')"
+        ></fvdr-ghost-btn>
+        <fvdr-ghost-btn
+          size="small"
+          icon="close"
+          tooltip="Close"
+          (clicked)="conv.setShell('none')"
+        ></fvdr-ghost-btn>
       </header>
 
       <div class="win__body">
@@ -75,16 +79,6 @@ const WIN_HEIGHT = 560;
       color: var(--color-text-primary);
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
-    .win__btn {
-      display: inline-flex; align-items: center; justify-content: center;
-      width: 28px; height: 28px; padding: 0;
-      border: none; background: transparent; cursor: pointer;
-      border-radius: var(--radius-sm);
-      color: var(--color-text-secondary);
-      font-size: var(--font-size-base, 14px);
-    }
-    .win__btn:hover { background: var(--color-hover-bg); color: var(--color-text-primary); }
-
     .win__body { flex: 1; min-height: 0; padding: 0 var(--space-4); }
   `],
 })

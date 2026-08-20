@@ -23,6 +23,10 @@ export type CardSelector = 'none' | 'checkbox' | 'radio';
  *
  *   <fvdr-card title="Active card" [active]="true">...</fvdr-card>
  *   <fvdr-card [noPadding]="true">...</fvdr-card>
+ *
+ *   Header controls go in the [card-header-actions] slot, next to the title.
+ *   The card fills its host element, so in a flex row every card matches the
+ *   tallest one.
  */
 @Component({
   selector: 'fvdr-card',
@@ -46,8 +50,13 @@ export type CardSelector = 'none' | 'checkbox' | 'radio';
     </div>
   `,
   styles: [`
+    /* The card fills its host, so cards laid out in a flex row or grid share
+       one height instead of each hugging its own content. */
+    :host { display: flex; flex-direction: column; }
+
     /* DS: State=default → border 1px #DEE0EB, radius 4px */
     .card {
+      flex: 1 1 auto;
       background: var(--color-stone-0);
       border: 1px solid var(--color-stone-400);  /* #DEE0EB */
       border-radius: var(--radius-sm);            /* 4px */

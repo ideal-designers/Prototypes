@@ -48,9 +48,12 @@ import { VdrActionBarComponent, VdrActionBarButton } from '../vdr-action-bar.com
         </ng-template>
       </fvdr-table>
 
-      <button type="button" class="icon-btn table-wrap__cols" title="Customize columns">
-        <fvdr-icon name="table-view"></fvdr-icon>
-      </button>
+      <fvdr-ghost-btn
+        class="table-wrap__cols"
+        size="small"
+        icon="table-view"
+        tooltip="Customize columns"
+      ></fvdr-ghost-btn>
     </div>
   </div>
 </div>

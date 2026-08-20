@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
-import { DS_COMPONENTS, ToastService, ToastAction, FloatingPanelItem, FilterBtnColor, RedactionMarkPage, FvdrPlanName, FVDR_PLAN_NAMES } from '../../shared/ds';
+import { DS_COMPONENTS, ToastService, ToastAction, FloatingPanelItem, FilterBtnColor, RedactionMarkPage, FvdrPlanName, FVDR_PLAN_NAMES, SidebarNavItem } from '../../shared/ds';
 import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, ComponentCategory } from './ds-registry';
 
 @Component({
@@ -1159,6 +1159,41 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
               <fvdr-sidebar-nav variant="internal" accountName="Internal Tool" [items]="demoNavItems" [collapsed]="true"  style="height:880px;"></fvdr-sidebar-nav>
             </div>
           </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">
+              FVDR left menu — full VDR set with nested sub-navigation (Figma 36673-1986)
+            </h3>
+            <p class="examples-group__note">
+              Sub-navigation lives in the sidebar, not in page tabs: Documents, Reports and Settings
+              are groups whose sub-items are indented, icon-less and bold when active. The chevron
+              points up while a group is open. This is the same item tree the VDR product ships.
+            </p>
+            <div class="nav-example-frame" style="height:880px;">
+              <fvdr-sidebar-nav
+                variant="vdr"
+                accountName="Nike"
+                accountMark="NI"
+                [items]="demoVdrNavItems"
+                [collapsed]="false"
+                style="height:880px;"
+              ></fvdr-sidebar-nav>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">
+              Same menu collapsed — 72px icon-only is this component's collapsed mode
+            </h3>
+            <div class="nav-example-frame" style="height:880px;">
+              <fvdr-sidebar-nav
+                variant="vdr"
+                accountName="Nike"
+                accountMark="NI"
+                [items]="demoVdrNavItemsCollapsed"
+                [collapsed]="true"
+                style="height:880px;"
+              ></fvdr-sidebar-nav>
+            </div>
+          </div>
         </ng-container>
 
         <!-- QUICK ACCESS MENU -->
@@ -1188,6 +1223,20 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
             <h3 class="examples-group__title">With collapse-all control</h3>
             <div class="examples-row">
               <fvdr-quick-access-menu [items]="demoQaItems" [collapsed]="false" [showCollapseAll]="true"></fvdr-quick-access-menu>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Close button + project tree in the default slot</h3>
+            <div class="examples-row">
+              <fvdr-quick-access-menu [items]="demoQaItems" [collapsed]="false" [showClose]="true">
+                <fvdr-tree [nodes]="demoProjectTree" selectedId="project"></fvdr-tree>
+              </fvdr-quick-access-menu>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Count-only shortcuts (no icons)</h3>
+            <div class="examples-row">
+              <fvdr-quick-access-menu [items]="demoQaCounts" [collapsed]="false"></fvdr-quick-access-menu>
             </div>
           </div>
         </ng-container>
@@ -1864,6 +1913,14 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
             <h3 class="examples-group__title">File tree</h3>
             <fvdr-tree [nodes]="demoTreeNodes"></fvdr-tree>
           </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Project tree — root mark, open on first render</h3>
+            <fvdr-tree [nodes]="demoProjectTree" selectedId="project"></fvdr-tree>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">With checkboxes (group / permission tree)</h3>
+            <fvdr-tree [nodes]="demoGroupTree" [checkboxes]="true"></fvdr-tree>
+          </div>
         </ng-container>
 
         <!-- DROP AREA -->
@@ -2027,6 +2084,31 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
 
         <!-- GHOST BTN -->
         <ng-container *ngSwitchCase="'ghost-btn'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">DS icons ([icon] + [tooltip]) — table and card-header chrome</h3>
+            <div class="examples-row" style="gap:24px; align-items:center; flex-wrap:wrap">
+              <div class="example-labeled">
+                <fvdr-ghost-btn size="small" icon="table-view" tooltip="Customize columns"></fvdr-ghost-btn>
+                <span>Customize columns</span>
+              </div>
+              <div class="example-labeled">
+                <fvdr-ghost-btn size="small" icon="chart-bar" tooltip="Bar chart" [selected]="true"></fvdr-ghost-btn>
+                <span>Toggle — on</span>
+              </div>
+              <div class="example-labeled">
+                <fvdr-ghost-btn size="small" icon="chart-line" tooltip="Line chart"></fvdr-ghost-btn>
+                <span>Toggle — off</span>
+              </div>
+              <div class="example-labeled">
+                <fvdr-ghost-btn size="small" icon="close" tooltip="Close"></fvdr-ghost-btn>
+                <span>Close</span>
+              </div>
+              <div class="example-labeled">
+                <fvdr-ghost-btn size="big" icon="new-session" tooltip="New chat"></fvdr-ghost-btn>
+                <span>Big</span>
+              </div>
+            </div>
+          </div>
           <div class="examples-group">
             <h3 class="examples-group__title">Icon only</h3>
             <div class="examples-row" style="gap:24px; align-items:center; flex-wrap:wrap">
@@ -2199,6 +2281,16 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
 
         <!-- ═══ FILTER BUTTON ═══ -->
         <ng-container *ngSwitchCase="'filter-btn'">
+
+          <!-- DS icon + clearable -->
+          <div class="example-block">
+            <p class="example-label">DS icon ([icon]) + clearable — an applied filter</p>
+            <div class="example-row" style="flex-wrap:wrap; gap:16px">
+              <fvdr-filter-btn size="S" icon="calendar" label="Aug 14, 2026 – Aug 20, 2026" [clearable]="true"></fvdr-filter-btn>
+              <fvdr-filter-btn size="S" icon="filter" label="Clear all"></fvdr-filter-btn>
+              <fvdr-filter-btn size="M" icon="calendar" label="Period" [clearable]="true" [selected]="true"></fvdr-filter-btn>
+            </div>
+          </div>
 
           <!-- All 12 colors — default state -->
           <div class="example-block">
@@ -3287,6 +3379,14 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
       margin-bottom: 28px;
     }
 
+    .examples-group__note {
+      font-size: var(--font-size-base, 14px);
+      line-height: 20px;
+      color: var(--color-text-secondary, #73757f);
+      margin: 0 0 12px;
+      max-width: 760px;
+    }
+
     .examples-group__title {
       font-size: var(--font-size-sm, 13px);
       font-weight: 700;
@@ -3707,6 +3807,76 @@ export class DsComponentPageComponent implements OnInit, OnDestroy {
     { id: 'uploaded',    label: 'Newly uploaded',  icon: 'upload'       as any, active: false },
     { id: 'unpublished', label: 'Unpublished',     icon: 'cross-circle' as any, active: false },
     { id: 'favorites',   label: 'Favorites',       icon: 'star'         as any, active: false },
+  ];
+
+  /**
+   * The VDR product's own left menu: sub-navigation as nested sub-items.
+   * Two copies because fvdr-sidebar-nav writes `active`/`open` back onto the
+   * array it is given, and the two examples must not fight over that state.
+   */
+  private static vdrNav(open: boolean): SidebarNavItem[] {
+    return [
+      { id: 'dashboard', label: 'Dashboard', icon: 'nav-overview' as any, iconActive: 'nav-overview-active' as any },
+      { id: 'documents', label: 'Documents', icon: 'documents' as any, iconActive: 'documents-active' as any, children: [
+        { id: 'all', label: 'All' },
+        { id: 'notes', label: 'Notes' },
+        { id: 'links', label: 'External links' },
+        { id: 'signatures', label: 'Signatures' },
+      ]},
+      { id: 'ai', label: 'AI Assistant', icon: 'ideon-default' as any, iconActive: 'ideon' as any },
+      { id: 'ddc', label: 'Due diligence checklist', icon: 'nav-checklist' as any, iconActive: 'nav-checklist' as any },
+      { id: 'participants', label: 'Participants', icon: 'users-groups' as any, iconActive: 'users-groups-active' as any },
+      { id: 'permissions', label: 'Permissions', icon: 'nav-permissions' as any, iconActive: 'nav-permissions-active' as any },
+      { id: 'qa', label: 'Q&A', icon: 'nav-qa' as any, iconActive: 'nav-qa-active' as any },
+      { id: 'reports', label: 'Reports', icon: 'nav-reports' as any, iconActive: 'nav-reports-active' as any, active: open, open, children: [
+        { id: 'activity-log', label: 'Activity log', active: open },
+        { id: 'docs-overview', label: 'Documents overview' },
+        { id: 'engagement', label: 'Engagement matrix' },
+        { id: 'storage', label: 'Data storage' },
+        { id: 'perm-log', label: 'Permissions log' },
+        { id: 'subscriptions', label: 'Subscriptions' },
+      ]},
+      { id: 'settings', label: 'Settings', icon: 'nav-settings' as any, iconActive: 'nav-settings-active' as any, children: [
+        { id: 'personal', label: 'Personal' },
+        { id: 'project', label: 'Project' },
+      ]},
+      { id: 'archiving', label: 'Project archiving', icon: 'nav-archiving' as any, iconActive: 'nav-archiving-active' as any },
+      { id: 'recycle', label: 'Recycle bin', icon: 'recycle-bin' as any, iconActive: 'recycle-bin-active' as any },
+    ];
+  }
+  // Expanded example: Reports open with Activity log active.
+  demoVdrNavItems = DsComponentPageComponent.vdrNav(true);
+  // Collapsed example: same tree, Documents active.
+  demoVdrNavItemsCollapsed = (() => {
+    const items = DsComponentPageComponent.vdrNav(false);
+    items[1].active = true;
+    return items;
+  })();
+
+  // ── Project tree: branded root mark, open on first render ──
+  demoProjectTree = [
+    {
+      id: 'project', label: 'Nike', mark: 'NI', expanded: true,
+      children: [
+        { id: 'f1', label: '1 ODM intellectual property', fileType: 'folder-colored' as any,
+          children: [{ id: 'd1', label: 'Guidelines.pdf', fileType: 'pdf' as any }] },
+        { id: 'f2', label: '2 Intellectual property', fileType: 'folder-colored' as any },
+      ],
+    },
+  ];
+
+  // ── Group tree with checkboxes ──
+  demoGroupTree = [
+    { id: 'admins', label: 'Administrators', icon: 'group' as any, checked: true },
+    { id: 'buyers', label: 'Buyers', icon: 'group' as any },
+  ];
+
+  // ── Count-only quick-access shortcuts (Q&A) ──
+  demoQaCounts = [
+    { id: 'all',       label: 'All',             count: 20, active: true },
+    { id: 'action',    label: 'Action required', count: 2 },
+    { id: 'assigned',  label: 'Assigned',        count: 6 },
+    { id: 'unanswered',label: 'Unanswered',      count: 10 },
   ];
 
   // ── Radio demo data ──

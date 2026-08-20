@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, EventEmitter, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { VdrPageId } from '../data/product-nav';
 import { DS_COMPONENTS, FvdrIconName } from '../../../../shared/ds';
 import { FOLDER_ROLLUPS, MOCK_DATA_ROOM } from '../../data/mock-data';
 import {
@@ -51,7 +52,7 @@ interface UploadRow {
 
   <div class="two-pane">
     <aside class="two-pane__side">
-      <fvdr-vdr-quick-access selected="uploads"></fvdr-vdr-quick-access>
+      <fvdr-vdr-quick-access selected="uploads" (navigate)="navigate.emit($event)"></fvdr-vdr-quick-access>
     </aside>
 
     <section class="two-pane__main">
@@ -65,9 +66,7 @@ interface UploadRow {
             <th class="dtable__th" style="width: 130px">Added on</th>
             <th class="dtable__th" style="width: 90px">Notes</th>
             <th class="dtable__th dtable__th--tools">
-              <button type="button" class="icon-btn" title="Customize columns">
-                <fvdr-icon name="table-view"></fvdr-icon>
-              </button>
+              <fvdr-ghost-btn size="small" icon="table-view" tooltip="Customize columns"></fvdr-ghost-btn>
             </th>
           </tr>
         </thead>
@@ -120,6 +119,12 @@ interface UploadRow {
   `],
 })
 export class VdrUploadsComponent {
+  /**
+   * Quick access shortcut clicked — Documents › Recently viewed / Newly uploaded
+   * / Favorites live in that pane, not in the sidebar, so the page bubbles the
+   * request up instead of navigating itself.
+   */
+  @Output() navigate = new EventEmitter<VdrPageId>();
   readonly secondaries: VdrActionBarButton[] = [{ id: 'index', label: 'Project index' }];
 
   /** Folder row, then its documents — as the product lists a fresh upload batch. */

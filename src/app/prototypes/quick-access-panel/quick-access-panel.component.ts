@@ -93,7 +93,7 @@ type ResizableColId = 'idx' | 'name' | 'notes' | 'size' | 'pub' | 'red';
                   [title]="s.label"
                   (click)="onShortcutClick(s)"
                 >
-                  <fvdr-icon [name]="s.icon"></fvdr-icon>
+                  <fvdr-icon *ngIf="s.icon" [name]="s.icon"></fvdr-icon>
                 </button>
                 <span class="qa-project-badge" title="Conference Room">RN</span>
               </div>

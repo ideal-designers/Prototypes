@@ -17,16 +17,25 @@ import { AiConversationComponent } from '../components/ai-conversation/ai-conver
       <header class="panel__head">
         <span class="panel__title" [attr.title]="conv.seededTitle()">{{ conv.seededTitle() }}</span>
 
-        <button type="button" class="panel__btn" title="New chat" (click)="conv.newChat()">
-          <fvdr-icon name="new-session"></fvdr-icon>
-        </button>
+        <fvdr-ghost-btn
+          size="small"
+          icon="new-session"
+          tooltip="New chat"
+          (clicked)="conv.newChat()"
+        ></fvdr-ghost-btn>
         <!-- Glyph shows the current display mode; clicking undocks the chat. -->
-        <button type="button" class="panel__btn" title="Undock to a floating window" (click)="conv.setShell('floating')">
-          <fvdr-icon name="sidebar-mode"></fvdr-icon>
-        </button>
-        <button type="button" class="panel__btn" title="Close" (click)="conv.setShell('documents')">
-          <fvdr-icon name="close"></fvdr-icon>
-        </button>
+        <fvdr-ghost-btn
+          size="small"
+          icon="sidebar-mode"
+          tooltip="Undock to a floating window"
+          (clicked)="conv.setShell('floating')"
+        ></fvdr-ghost-btn>
+        <fvdr-ghost-btn
+          size="small"
+          icon="close"
+          tooltip="Close"
+          (clicked)="conv.setShell('none')"
+        ></fvdr-ghost-btn>
       </header>
 
       <div class="panel__body">
@@ -57,17 +66,6 @@ import { AiConversationComponent } from '../components/ai-conversation/ai-conver
       color: var(--color-text-primary);
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
-    .panel__btn {
-      display: inline-flex; align-items: center; justify-content: center;
-      width: 28px; height: 28px; padding: 0;
-      border: none; background: transparent; cursor: pointer;
-      border-radius: var(--radius-sm);
-      color: var(--color-text-secondary);
-      font-size: var(--font-size-base, 14px);
-      flex-shrink: 0;
-    }
-    .panel__btn:hover { background: var(--color-hover-bg); color: var(--color-text-primary); }
-
     .panel__body { flex: 1; min-height: 0; padding: 0 var(--space-4); }
   `],
 })

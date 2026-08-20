@@ -1,6 +1,8 @@
 import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SafeHtml } from '@angular/platform-browser';
+import { FvdrIconComponent } from '../../icons/icon.component';
+import type { FvdrIconName } from '../../icons/icons';
 
 /**
  * fvdr-filter-btn — Filter button with color variants.
@@ -23,10 +25,11 @@ import { SafeHtml } from '@angular/platform-browser';
  *   teal | indigo | purple | magenta | danger | coffee
  *
  * ── Optional parts ───────────────────────────────────────────
- *   [showIcon]    → leading SVG icon (configurable via [iconPath])
+ *   [showIcon]    → leading icon ([icon] DS name, or [iconPath] SVG path)
  *   [showStatus]  → 8×8 colored dot (color depends on [color])
  *   [showCounter] → secondary text badge (e.g. "10")
  *   [showArrow]   → chevron-down arrow
+ *   [clearable]   → trailing ✕ that emits (cleared) — an applied, removable filter
  */
 
 export type FilterBtnSize  = 'M' | 'S';
@@ -71,7 +74,7 @@ const ARROW_PATH =
 @Component({
   selector: 'fvdr-filter-btn',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FvdrIconComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <button
@@ -84,9 +87,10 @@ const ARROW_PATH =
       [style.borderColor]="selected ? colorTokens.border : null"
       (click)="clicked.emit()">
 
-      <!-- Leading icon: SafeHtml override or path-based SVG -->
-      <span *ngIf="showIcon && iconHtml" class="fb-icon-html" [innerHTML]="iconHtml"></span>
-      <svg *ngIf="showIcon && !iconHtml"
+      <!-- Leading icon: DS icon name, SafeHtml override, or path-based SVG -->
+      <fvdr-icon *ngIf="showIcon && icon" class="fb-icon fb-icon--ds" [name]="icon" />
+      <span *ngIf="showIcon && !icon && iconHtml" class="fb-icon-html" [innerHTML]="iconHtml"></span>
+      <svg *ngIf="showIcon && !icon && !iconHtml"
            class="fb-icon"
            [attr.width]="size === 'M' ? 16 : 14"
            [attr.height]="size === 'M' ? 16 : 14"
@@ -106,6 +110,21 @@ const ARROW_PATH =
 
       <!-- Counter badge (secondary text) -->
       <span *ngIf="showCounter && counter" class="fb-counter">{{ counter }}</span>
+
+      <!-- Clear (✕) — removes an applied filter.
+           A span, not a button: this sits inside the filter button itself and
+           nested buttons are invalid HTML. -->
+      <span
+        *ngIf="clearable"
+        class="fb-clear"
+        role="button"
+        tabindex="0"
+        title="Clear"
+        aria-label="Clear"
+        (click)="$event.stopPropagation(); cleared.emit()"
+        (keydown.enter)="$event.stopPropagation(); cleared.emit()">
+        <fvdr-icon name="close" />
+      </span>
 
       <!-- Chevron-down arrow -->
       <svg *ngIf="showArrow"
@@ -154,6 +173,13 @@ const ARROW_PATH =
       flex-shrink: 0;
       color: var(--color-stone-700, #73757F);
     }
+    .fb-icon--ds {
+      display: inline-flex;
+      align-items: center;
+      font-size: var(--font-size-base, 14px);
+    }
+    .fb--m .fb-icon--ds { font-size: var(--font-size-lg, 16px); }
+    .fb--selected .fb-icon--ds { color: var(--color-primary-500, #2C9C74); }
     .fb-icon-html {
       display: flex;
       align-items: center;
@@ -188,6 +214,21 @@ const ARROW_PATH =
       color: var(--color-text-primary, #1F2129);
     }
 
+    /* ── Clear ──────────────────────────────────────────────  */
+    .fb-clear {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      color: var(--color-stone-700, #73757F);
+      font-size: var(--font-size-base, 14px);
+      flex-shrink: 0;
+    }
+    .fb-clear:hover { color: var(--color-text-primary, #1F2129); }
+
     /* ── Arrow ──────────────────────────────────────────────  */
     .fb-arrow {
       flex-shrink: 0;
@@ -218,6 +259,12 @@ export class FilterBtnComponent {
   /** Show leading icon (default: true) */
   @Input() showIcon = true;
 
+  /** Leading icon from the DS set — preferred over [iconPath] / [iconHtml] */
+  @Input() icon?: FvdrIconName;
+
+  /** Show a trailing ✕ that emits (cleared) — for an applied, removable filter */
+  @Input() clearable = false;
+
   /** SVG path `d` attribute for the leading icon */
   @Input() iconPath: string = DEFAULT_ICON_PATH;
 
@@ -237,6 +284,7 @@ export class FilterBtnComponent {
   @Input() showArrow = false;
 
   @Output() clicked = new EventEmitter<void>();
+  @Output() cleared = new EventEmitter<void>();
 
   /** Resolved color tokens for the current [color] */
   get colorTokens(): ColorTokens {

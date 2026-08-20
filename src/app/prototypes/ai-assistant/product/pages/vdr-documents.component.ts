@@ -1,5 +1,6 @@
 import { Component, EventEmitter, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { VdrPageId } from '../data/product-nav';
 import { DS_COMPONENTS, TableColumn } from '../../../../shared/ds';
 import { FOLDER_ROLLUPS } from '../../data/mock-data';
 import { folderDisplayName, formatSizeKb } from '../../models/mock-doc.model';
@@ -37,7 +38,7 @@ import { VdrQuickAccessComponent } from '../vdr-quick-access.component';
 
     <!-- ── Quick access ────────────────────────────────────────────────── -->
     <aside class="two-pane__side">
-      <fvdr-vdr-quick-access selected="project"></fvdr-vdr-quick-access>
+      <fvdr-vdr-quick-access selected="project" (navigate)="navigate.emit($event)"></fvdr-vdr-quick-access>
     </aside>
 
     <!-- ── Document table ─────────────────────────────────────────────── -->
@@ -63,21 +64,22 @@ import { VdrQuickAccessComponent } from '../vdr-quick-access.component';
             always-visible chrome, revealed on row hover / keyboard focus.
           -->
           <ng-template fvdrCell="actions" let-row="row">
-            <button
-              type="button"
-              class="icon-btn row-ask"
-              [attr.title]="'Ask AI about ' + row.fullName"
-              [attr.aria-label]="'Ask AI about ' + row.fullName"
-              (click)="askAiForFolder.emit(row.fullName)"
-            >
-              <fvdr-icon name="ai-assistant"></fvdr-icon>
-            </button>
+            <fvdr-ghost-btn
+              class="row-ask"
+              size="small"
+              icon="ai-assistant"
+              [tooltip]="'Ask AI about ' + row.fullName"
+              (clicked)="askAiForFolder.emit(row.fullName)"
+            ></fvdr-ghost-btn>
           </ng-template>
         </fvdr-table>
 
-        <button type="button" class="icon-btn table-wrap__cols" title="Customize columns">
-          <fvdr-icon name="table-view"></fvdr-icon>
-        </button>
+        <fvdr-ghost-btn
+          class="table-wrap__cols"
+          size="small"
+          icon="table-view"
+          tooltip="Customize columns"
+        ></fvdr-ghost-btn>
       </div>
     </section>
   </div>
@@ -100,6 +102,12 @@ import { VdrQuickAccessComponent } from '../vdr-quick-access.component';
   `],
 })
 export class VdrDocumentsComponent {
+  /**
+   * Quick access shortcut clicked — Documents › Recently viewed / Newly uploaded
+   * / Favorites live in that pane, not in the sidebar, so the page bubbles the
+   * request up instead of navigating itself.
+   */
+  @Output() navigate = new EventEmitter<VdrPageId>();
   /**
    * Folder the user asked the assistant about, from the row-hover action.
    * Bubbled up by fvdr-vdr-shell — the replica never talks to the assistant

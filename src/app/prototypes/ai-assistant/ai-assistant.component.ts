@@ -13,10 +13,14 @@ import { ProjectAnswer } from './models/ai-scenario.model';
 import { VDR_PRODUCT_COMPONENTS, VdrPageId } from './product';
 
 /**
- * Global AI Assistant — routed host and mode switcher.
+ * Global AI Assistant — routed host.
  *
- * Owns the conversation engine, so promoting a chat between the full-screen,
- * docked and floating shells swaps only the container: messages, scope and
+ * Two orthogonal states: `page` is which product page `vdr-shell` shows (the
+ * full-page assistant is just the `'ai'` page), and `conv.shell()` is which
+ * assistant overlay is open on top of it.
+ *
+ * Owns the conversation engine, so promoting a chat between the full page, the
+ * drawer and the floating window swaps only the container: messages, scope and
  * recents live in the services and survive every transition.
  */
 @Component({
@@ -33,10 +37,9 @@ import { VDR_PRODUCT_COMPONENTS, VdrPageId } from './product';
   ],
   providers: [AiConversationService, AiEngineService, AiLlmService],
   template: `
-    <fvdr-ai-fullscreen *ngIf="conv.shell() === 'fullscreen'"></fvdr-ai-fullscreen>
-
-    <!-- Real-product pages — the surface the assistant opens on top of. -->
-    <div class="host" *ngIf="conv.shell() !== 'fullscreen'">
+    <!-- Real-product pages — the full-page assistant is one of them, so the
+         rail and top bar are identical wherever you navigate. -->
+    <div class="host">
       <!-- No rightInset for the drawer: it sits beside the shell in the flex row, so
            the shell (and the Intercom launcher inside it) already reflows. The input
            stays available for a panel that overlays instead of docking. -->
@@ -46,17 +49,26 @@ import { VDR_PRODUCT_COMPONENTS, VdrPageId } from './product';
         (themeToggle)="conv.toggleDark()"
         (askAiForFolder)="openFloatingForFolder($event)"
       >
-        <fvdr-ask-ideon topbar-actions (clicked)="openFloating()"></fvdr-ask-ideon>
+        <!-- Hidden on the assistant's own page: a pill that spawns a floating
+             window over the full-page assistant reads as redundant there. -->
+        <fvdr-ask-ideon
+          *ngIf="page() !== 'ai'"
+          topbar-actions
+          (clicked)="openFloating()"
+        ></fvdr-ask-ideon>
 
         <ng-container [ngSwitch]="page()">
           <fvdr-vdr-dashboard *ngSwitchCase="'dashboard'"></fvdr-vdr-dashboard>
-          <fvdr-vdr-documents *ngSwitchCase="'documents'"></fvdr-vdr-documents>
+          <fvdr-ai-fullscreen *ngSwitchCase="'ai'"></fvdr-ai-fullscreen>
+          <!-- Quick access owns the Recently viewed / Newly uploaded / Favorites
+               entry points, so those pages bubble a page request up here. -->
+          <fvdr-vdr-documents *ngSwitchCase="'documents'" (navigate)="page.set($event)"></fvdr-vdr-documents>
           <fvdr-vdr-notes *ngSwitchCase="'notes'"></fvdr-vdr-notes>
           <fvdr-vdr-shared-links *ngSwitchCase="'shared-links'"></fvdr-vdr-shared-links>
           <fvdr-vdr-signatures *ngSwitchCase="'signatures'"></fvdr-vdr-signatures>
-          <fvdr-vdr-recent *ngSwitchCase="'recent'"></fvdr-vdr-recent>
-          <fvdr-vdr-uploads *ngSwitchCase="'uploads'"></fvdr-vdr-uploads>
-          <fvdr-vdr-favorites *ngSwitchCase="'favorites'"></fvdr-vdr-favorites>
+          <fvdr-vdr-recent *ngSwitchCase="'recent'" (navigate)="page.set($event)"></fvdr-vdr-recent>
+          <fvdr-vdr-uploads *ngSwitchCase="'uploads'" (navigate)="page.set($event)"></fvdr-vdr-uploads>
+          <fvdr-vdr-favorites *ngSwitchCase="'favorites'" (navigate)="page.set($event)"></fvdr-vdr-favorites>
           <fvdr-vdr-dd-checklist *ngSwitchCase="'dd-checklist'"></fvdr-vdr-dd-checklist>
           <fvdr-vdr-participants *ngSwitchCase="'participants'"></fvdr-vdr-participants>
           <fvdr-vdr-permissions *ngSwitchCase="'permissions'"></fvdr-vdr-permissions>
@@ -99,7 +111,7 @@ export class AiAssistantComponent implements OnInit, OnDestroy {
   private toast = inject(ToastService);
   readonly conv = inject(AiConversationService);
 
-  /** Which product page is showing behind the assistant. */
+  /** Which product page is showing — `'ai'` is the full-page assistant. */
   readonly page = signal<VdrPageId>('documents');
 
   @HostBinding('class.dark-theme') get dark(): boolean {

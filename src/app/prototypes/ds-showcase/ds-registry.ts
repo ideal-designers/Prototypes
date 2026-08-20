@@ -1387,8 +1387,11 @@ const tree: ComponentDocEntry = {
   category: 'data',
   status: 'stable',
   description:
-    'A hierarchical tree view with expand/collapse nodes, checkboxes for multi-selection, and lazy-loading support.',
-  whenToUse: ['Navigating or selecting from a nested hierarchical data structure.'],
+    'A hierarchical tree view with expand/collapse nodes, optional checkboxes for multi-selection, colour-coded file icons and a branded mark for project/root rows.',
+  whenToUse: [
+    'Navigating or selecting from a nested hierarchical data structure.',
+    'The project/folder tree under a Quick access panel, on Documents and the Reports pages.',
+  ],
   whenNotToUse: [],
   anatomy: [
     { index: 1, part: 'Node row',     spec: 'height:36px · radius:4px · hover:--color-hover-bg' },
@@ -1396,6 +1399,8 @@ const tree: ComponentDocEntry = {
     { index: 3, part: 'Indent',       spec: '16px base + 20px per level' },
     { index: 4, part: 'Icon + label', spec: '16px file/nav icon + base-s label' },
     { index: 5, part: 'Selected',     spec: 'bg:--color-primary-50 · --color-primary-500 label' },
+    { index: 6, part: 'Checkbox',     spec: 'optional, [checkboxes]=true · fvdr-checkbox per row' },
+    { index: 7, part: 'Root mark',    spec: 'optional node.mark · 20px primary-500 square with initials' },
   ],
   tokens: [
     { token: '--color-hover-bg',            value: '#eef0f8', usage: 'Node hover background' },
@@ -1403,8 +1408,23 @@ const tree: ComponentDocEntry = {
     { token: '--color-border',              value: '#dee0eb', usage: 'Tree connector lines' },
   ],
   usedIn: ['Settings (permission tree)', 'Deal Room (folder structure)'],
-  codeSnippet: `<fvdr-tree [nodes]="treeData" [selectable]="true" (nodeSelected)="onNodeSelect($event)"></fvdr-tree>`,
-  claudePrompt: 'Use fvdr-tree for hierarchical data. Import: @fvdr/ui/tree. @Input() nodes: TreeNode[]. @Output() nodeSelected emits TreeNode.',
+  codeSnippet: `<fvdr-tree [nodes]="treeData" [selectedId]="selectedId" (nodeSelect)="onNodeSelect($event)"></fvdr-tree>
+
+<!-- Project tree: root row with a branded mark, open on first render -->
+<fvdr-tree [nodes]="[
+  { id: 'project', label: 'Nike', mark: 'NI', expanded: true, children: folders }
+]" [selectedId]="'project'"></fvdr-tree>
+
+<!-- Group / permission tree with checkboxes -->
+<fvdr-tree [nodes]="groups" [checkboxes]="true" (nodeCheck)="onCheck($event)"></fvdr-tree>`,
+  claudePrompt:
+    'Use fvdr-tree for hierarchical data. Import: @fvdr/ui/tree. ' +
+    '@Input() nodes: TreeNode[] — { id, label, icon?, fileType?, mark?, expanded?, checked?, children?, disabled? }. ' +
+    'fileType renders the colour-coded fvdr-file-icon (folder-colored, pdf, doc…); mark renders a 20px branded square ' +
+    'with initials instead of an icon (project/root rows); expanded:true opens the node on first render. ' +
+    '@Input() selectedId: string tints the current row. @Input() checkboxes: boolean renders a checkbox per row ' +
+    '(no auto-propagation — the parent owns each node\'s `checked`). ' +
+    '@Output() nodeSelect emits TreeNode. @Output() nodeCheck emits { node, checked }.',
 };
 
 const dropArea: ComponentDocEntry = {
@@ -1521,7 +1541,7 @@ const sidebarNav: ComponentDocEntry = {
     'App-level left sidebar navigation. Supports three product variants (VDR / CA / Internal), an account-switcher header with project name, collapsible sub-items, and an icon-only collapsed mode (280 → 72 px). The bottom bar holds the ideals. logo and a toggle button.',
   whenToUse: [
     'Main navigation in any VDR, CA, or Internal application screen',
-    'When you need collapsible sub-sections (Documents → sub-folders)',
+    'Sub-navigation: Documents / Reports / Settings are groups whose sub-items live in the sidebar (not in page tabs)',
     'When the app needs a persistent left rail that can be collapsed to save space',
   ],
   whenNotToUse: [
@@ -1534,6 +1554,7 @@ const sidebarNav: ComponentDocEntry = {
     { index: 2, part: 'Nav item',          spec: 'height: 40px · icon zone 56px + label · optional chevron-down for groups' },
     { index: 3, part: 'Sub-items',         spec: 'height: 40px · indent: 56px · font-size: var(--font-size-sm, 13px)' },
     { index: 4, part: 'Bottom bar',        spec: 'height: 64px · ideals. logo + collapse button' },
+    { index: 5, part: 'Overflow',          spec: 'rows keep their height; the item list scrolls when the set is taller than the sidebar' },
   ],
   tokens: [
     { token: '--color-stone-100',            value: '#f7f7f7', usage: 'Sidebar background (all zones)' },
@@ -1548,6 +1569,7 @@ const sidebarNav: ComponentDocEntry = {
   codeSnippet: `<fvdr-sidebar-nav
   variant="vdr"
   accountName="Project Alpha"
+  accountMark="PA"
   [items]="navItems"
   [(collapsed)]="sidebarCollapsed"
   (itemClick)="onNavItem($event)"
@@ -1558,8 +1580,11 @@ const sidebarNav: ComponentDocEntry = {
     'Use fvdr-sidebar-nav for the app left navigation rail. Import: @fvdr/ui/sidebar-nav. ' +
     '@Input() variant: "vdr"|"ca"|"internal" — controls the account-badge accent color. ' +
     '@Input() accountName: string — displayed project/account name. ' +
+    '@Input() accountMark: string — overrides the account badge text (variant label by default), e.g. project initials; ' +
+    'the switcher also gets a tooltip with accountName while collapsed. ' +
     '@Input() items: SidebarNavItem[] — each item: { id, label, icon, iconActive, active?, open?, children?: SidebarNavSubItem[] }. ' +
-    '@Input() collapsed: boolean — two-way binding via [(collapsed)]. Width: 280px expanded, 72px collapsed. ' +
+    '@Input() collapsed: boolean — two-way binding via [(collapsed)]. Width: 280px expanded, 72px collapsed; ' +
+    '72px icon-only is this component\'s collapsed mode, not a separate design. ' +
     '@Output() itemClick emits SidebarNavItem. @Output() subItemClick emits { item, subItem }. @Output() accountClick emits void.',
 };
 
@@ -1575,13 +1600,16 @@ const quickAccessMenu: ComponentDocEntry = {
   whenToUse: [
     'Provide quick access to frequently used sections (Recently viewed, Favorites) inside the document workspace',
     'When the user needs a persistent, dismissible filter panel on the left of the content area',
+    'Count-only shortcut lists (Q&A: All 20, Action required 2) — items may carry a [count] instead of an icon',
+    'As the host for the project tree: project the fvdr-tree into the default slot',
   ],
   whenNotToUse: [
     'Primary app navigation — use Sidebar Nav instead',
     'More than 6–8 shortcut items — consider grouping with Tabs',
   ],
   anatomy: [
-    { index: 1, part: 'Header',     spec: 'height: 48px · bg stone-200 · title 14px/600 + action icons' },
+    { index: 1, part: 'Header',     spec: 'height: 48px · bg stone-200 · title 14px/600 + close/collapse icons' },
+    { index: 5, part: 'Slot',       spec: 'default ng-content under the list — the project tree; stays visible when collapsed' },
     { index: 2, part: 'Item row',   spec: 'height: 40px · px-16 py-10 · 16px icon + 14px label' },
     { index: 3, part: 'Active row', spec: 'bg: #ebf8ef (primary-50) · icon color: primary-500' },
     { index: 4, part: 'Hover row',  spec: 'bg: #eceef9 (hover-bg)' },
@@ -1598,9 +1626,13 @@ const quickAccessMenu: ComponentDocEntry = {
   codeSnippet: `<fvdr-quick-access-menu
   [items]="shortcuts"
   [(collapsed)]="menuCollapsed"
+  [showClose]="true"
   (itemClick)="onShortcut($event)"
   (closed)="menuVisible = false"
-/>
+>
+  <!-- Default slot: the project tree, under the shortcut list -->
+  <fvdr-tree [nodes]="projectTree" [selectedId]="'project'" />
+</fvdr-quick-access-menu>
 
 <!-- With a secondary "collapse everything below it too" control -->
 <fvdr-quick-access-menu
@@ -1611,13 +1643,17 @@ const quickAccessMenu: ComponentDocEntry = {
 />`,
   claudePrompt:
     'Use fvdr-quick-access-menu for a collapsible shortcut panel. Import: @fvdr/ui/quick-access-menu. ' +
-    '@Input() items: QuickAccessItem[] — each: { id, label, icon: FvdrIconName, active? }. ' +
+    '@Input() items: QuickAccessItem[] — each: { id, label, icon?: FvdrIconName, count?: number, active? }. ' +
+    'icon is optional and count renders right-aligned, for count-only lists like Q&A. ' +
     'Default items match the real product exactly: Recently viewed (history), Newly uploaded (upload), ' +
     'Unpublished (cross-circle), Favorites (star). ' +
     '@Input() collapsed: boolean — two-way via [(collapsed)]. ' +
     '@Input() showCollapseAll: boolean — shows a second header button for collapsing a sibling element ' +
     '(e.g. a tree placed below this menu) together with it; the component itself has no concept of that ' +
     'sibling, the parent handles hiding it via (collapseAllClick). ' +
+    '@Input() showClose: boolean — renders the header close (X) button, which emits (closed). ' +
+    'Content projected into the default slot renders below the shortcut list and stays visible while the ' +
+    'shortcuts are collapsed — that is where the product puts the project fvdr-tree. ' +
     '@Output() itemClick emits QuickAccessItem. @Output() collapseAllClick emits void. @Output() closed emits void. ' +
     'Panel width: always 340px — collapsing swaps the item list for an icon-only row, it never shrinks the panel. ' +
     'Active item: bg #ebf8ef, icon color primary-500. Hover: bg #eceef9.',
@@ -1706,7 +1742,7 @@ const ghostBtn: ComponentDocEntry = {
   category: 'controls',
   status: 'stable',
   figmaNode: '7023:23051',
-  description: 'Ghost button with circle-plus icon. Two sizes — Big (40px) and Small (32px) — and four interaction states: default, hover, active, selected. Optionally shows a text label, chevron arrow, and keyboard shortcut badge.',
+  description: 'Ghost button with a configurable icon — a DS icon name via [icon], or a raw SVG path via [iconPath]. Two sizes — Big (40px) and Small (32px) — and four interaction states: default, hover, active, selected. Optionally shows a text label, chevron arrow, and keyboard shortcut badge. This is the DS icon-only button for card headers, table chrome and panel headers.',
   whenToUse: [
     'Toolbar action to invite or add viewers to a document',
     'Toggle button to open/collapse a viewers panel',
@@ -1718,7 +1754,7 @@ const ghostBtn: ComponentDocEntry = {
   ],
   anatomy: [
     { index: 1, part: 'Container', spec: 'Transparent rounded button, border-radius 4px' },
-    { index: 2, part: 'Icon',      spec: '16×16 SVG circle with plus sign; color inherits from state' },
+    { index: 2, part: 'Icon',      spec: '16×16 — fvdr-icon when [icon] is set, else the [iconPath] SVG; color inherits from state' },
     { index: 3, part: 'Label',     spec: 'Optional text; 15px/24lh (big), 14px/20lh (small)' },
     { index: 4, part: 'Arrow',     spec: 'Optional chevron-down shown when label is set' },
     { index: 5, part: 'Shortcut',  spec: 'Optional keyboard shortcut badge (e.g. Shift)' },
@@ -1747,8 +1783,15 @@ const ghostBtn: ComponentDocEntry = {
 <fvdr-ghost-btn size="small" [selected]="panelOpen" (clicked)="togglePanel()"></fvdr-ghost-btn>
 
 <!-- With label + shortcut -->
-<fvdr-ghost-btn label="Invite viewers" shortcut="Shift" (clicked)="invite()"></fvdr-ghost-btn>`,
-  claudePrompt: 'Use fvdr-ghost-btn for a ghost button with a configurable icon. @Input() size:"big"|"small"="big". @Input() iconPath:string (SVG path d= attribute, defaults to circle-plus). @Input() label:string (shows text + arrow when set). @Input() shortcut:string (keyboard badge). @Input() selected:boolean (green selected state). @Input() disabled:boolean. @Output() clicked.',
+<fvdr-ghost-btn label="Invite viewers" shortcut="Shift" (clicked)="invite()"></fvdr-ghost-btn>
+
+<!-- Icon-only with a DS icon + tooltip (table / card-header chrome) -->
+<fvdr-ghost-btn size="small" icon="table-view" tooltip="Customize columns"></fvdr-ghost-btn>
+
+<!-- Toggle pair: [selected] is the "on" state -->
+<fvdr-ghost-btn size="small" icon="chart-bar"  tooltip="Bar chart"  [selected]="true"></fvdr-ghost-btn>
+<fvdr-ghost-btn size="small" icon="chart-line" tooltip="Line chart"></fvdr-ghost-btn>`,
+  claudePrompt: 'Use fvdr-ghost-btn for a ghost button with a configurable icon — it is the DS icon-only button (card headers, table chrome, panel headers). @Input() size:"big"|"small"="big". @Input() icon?:FvdrIconName — preferred; renders fvdr-icon and wins over iconPath. @Input() iconPath:string (SVG path d= attribute, defaults to circle-plus) — only for glyphs outside the DS icon set. @Input() tooltip:string — native title, and the accessible name when there is no label. @Input() label:string (shows text + arrow when set). @Input() shortcut:string (keyboard badge). @Input() selected:boolean (green selected state). @Input() disabled:boolean. @Output() clicked.',
 };
 
 const floatingPanel: ComponentDocEntry = {
@@ -1873,11 +1916,13 @@ const filterBtn: ComponentDocEntry = {
   category: 'controls',
   status: 'stable',
   figmaNode: '37844:15398',
-  description: 'Filter button for category-based filtering. Two sizes (M/S), three states (default/hover/selected), 12 color variants. Optional leading icon, status dot, counter badge, and chevron arrow.',
+  description: 'Filter button for category-based filtering. Two sizes (M/S), three states (default/hover/selected), 12 color variants. Optional leading icon (DS icon name or SVG path), status dot, counter badge, chevron arrow, and a trailing clear (X) for an applied filter.',
   whenToUse: [
     'Show an active filter category (e.g. by label group or priority)',
     'Let users toggle filters with color-coded categories',
     'Display a count of active filter items with [counter]',
+    'An applied, removable filter chip — [clearable] adds the trailing X and emits (cleared)',
+    'A report filter that reads as a value, e.g. a period: [icon]="calendar" + the date range as the label',
   ],
   whenNotToUse: [
     'Primary/secondary CTAs — use fvdr-btn instead',
@@ -1886,11 +1931,12 @@ const filterBtn: ComponentDocEntry = {
   ],
   anatomy: [
     { index: 1, part: 'Container', spec: 'White bg + stone-300 border, 4px radius; selected → color-specific bg/border' },
-    { index: 2, part: 'Icon Start', spec: '16px (M) / 14px (S), configurable via [iconPath]' },
+    { index: 2, part: 'Icon Start', spec: '16px (M) / 14px (S) — [icon] DS name, else the [iconPath] SVG' },
     { index: 3, part: 'Status dot', spec: '8×8px rounded 2px, color from [color] variant' },
     { index: 4, part: 'Label',      spec: '15px/16lh (M) · 14px/14lh (S), weight 400' },
     { index: 5, part: 'Counter',    spec: 'Secondary text; turns dark (#1F2129) when selected' },
     { index: 6, part: 'Arrow',      spec: '16px / 14px chevron-down, shown via [showArrow]' },
+    { index: 7, part: 'Clear',      spec: 'Trailing X shown via [clearable]; emits (cleared), does not fire (clicked)' },
   ],
   states: [
     { name: 'Default',  description: 'White background, stone-300 border' },
@@ -1917,8 +1963,14 @@ const filterBtn: ComponentDocEntry = {
 <!-- Small, danger, with status dot + arrow -->
 <fvdr-filter-btn size="S" label="Danger" color="danger"
   [showStatus]="true" [showArrow]="true">
+</fvdr-filter-btn>
+
+<!-- Applied period filter: DS icon + clearable -->
+<fvdr-filter-btn size="S" icon="calendar"
+  label="Aug 14, 2026 - Aug 20, 2026"
+  [clearable]="true" (cleared)="clearPeriod()">
 </fvdr-filter-btn>`,
-  claudePrompt: 'Use fvdr-filter-btn for a color-coded filter toggle. @Input() label:string="Filter". @Input() size:"M"|"S"="M". @Input() color:"default"|"stone"|"blue"|"yellow"|"orange"|"lime"|"teal"|"indigo"|"purple"|"magenta"|"danger"|"coffee"="default". @Input() selected:boolean. @Input() disabled:boolean. @Input() showIcon:boolean=true (SVG leading icon). @Input() iconPath:string (SVG path d=, default=color-picker target). @Input() showStatus:boolean (color dot). @Input() showCounter:boolean; counter:string. @Input() showArrow:boolean (chevron). @Output() clicked.',
+  claudePrompt: 'Use fvdr-filter-btn for a color-coded filter toggle. @Input() label:string="Filter". @Input() size:"M"|"S"="M". @Input() color:"default"|"stone"|"blue"|"yellow"|"orange"|"lime"|"teal"|"indigo"|"purple"|"magenta"|"danger"|"coffee"="default". @Input() selected:boolean. @Input() disabled:boolean. @Input() showIcon:boolean=true (leading icon). @Input() icon?:FvdrIconName — preferred; renders fvdr-icon instead of the path SVG. @Input() iconPath:string (SVG path d=, default=color-picker target) for glyphs outside the DS set. @Input() clearable:boolean — trailing X that emits (cleared) without firing (clicked); use it for an applied, removable filter. @Input() showStatus:boolean (color dot). @Input() showCounter:boolean; counter:string. @Input() showArrow:boolean (chevron). @Output() clicked.',
 };
 
 const askIdeon: ComponentDocEntry = {

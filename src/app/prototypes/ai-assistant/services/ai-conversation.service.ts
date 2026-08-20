@@ -13,8 +13,12 @@ const uid = (prefix: string): string => `${prefix}-${Date.now().toString(36)}-${
  */
 export const BP_DOCKABLE = 1440;
 
-/** Which shell is currently rendered. `documents` = mock host page with no assistant open. */
-export type AiShell = 'fullscreen' | 'documents' | 'sidebar' | 'floating';
+/**
+ * Which assistant overlay is open on top of the current product page. `none` =
+ * no overlay. The full-page assistant is not a shell — it is a product page
+ * (`VdrPageId` `'ai'`) reached from the rail, so the two are independent.
+ */
+export type AiShell = 'none' | 'sidebar' | 'floating';
 
 /** Retrieval scope of the active chat. */
 export interface AiScope {
@@ -39,8 +43,8 @@ export class AiConversationService {
   readonly recents = signal<RecentChat[]>([...MOCK_RECENTS]);
   readonly activeChatId = signal<string | null>(null);
 
-  /** Presentation mode — the mode-promotion switcher reads this. */
-  readonly shell = signal<AiShell>('fullscreen');
+  /** Overlay mode — the mode-promotion switcher reads this. */
+  readonly shell = signal<AiShell>('none');
   /** Title shown by the floating window, seeded from the context it was opened from. */
   readonly seededTitle = signal<string>('New AI chat');
   readonly isDark = signal(false);

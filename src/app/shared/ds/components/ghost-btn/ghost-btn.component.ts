@@ -1,5 +1,7 @@
 import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FvdrIconComponent } from '../../icons/icon.component';
+import type { FvdrIconName } from '../../icons/icons';
 
 /**
  * fvdr-ghost-btn — Ghost button with configurable icon.
@@ -23,6 +25,8 @@ import { CommonModule } from '@angular/common';
  *   [label]    → shows text + chevron-down arrow
  *   [shortcut] → keyboard shortcut badge (e.g. 'Shift')
  *   [iconPath] → SVG <path d="..."> string; defaults to circle-plus
+ *   [icon]     → DS icon name (FvdrIconName); wins over [iconPath]
+ *   [tooltip]  → native title + accessible name, for icon-only buttons
  */
 export type GhostBtnSize = 'big' | 'small';
 
@@ -35,7 +39,7 @@ const DEFAULT_ICON_PATH =
 @Component({
   selector: 'fvdr-ghost-btn',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FvdrIconComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <button
@@ -45,10 +49,15 @@ const DEFAULT_ICON_PATH =
       [class.vb--labeled]="!!label"
       [class.vb--selected]="selected"
       [disabled]="disabled"
+      [attr.title]="tooltip || null"
+      [attr.aria-label]="!label && tooltip ? tooltip : null"
       (click)="clicked.emit()">
 
+      <!-- Icon from the DS set (preferred) -->
+      <fvdr-icon *ngIf="icon" class="vb-icon vb-icon--ds" [name]="icon" />
+
       <!-- Icon (16×16, configurable via [iconPath]) -->
-      <svg class="vb-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+      <svg *ngIf="!icon" class="vb-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
         <path [attr.d]="iconPath" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd"/>
       </svg>
 
@@ -101,6 +110,8 @@ const DEFAULT_ICON_PATH =
 
     /* ── Icon (default) ── */
     .vb-icon  { flex-shrink: 0; color: var(--color-stone-700, #73757F); }
+    /* DS icon sizes itself off font-size (1em) */
+    .vb-icon--ds { display: inline-flex; font-size: var(--font-size-lg, 16px); }
     .vb-arrow { flex-shrink: 0; color: var(--color-stone-700, #73757F); }
 
     /* ── Icon selected → always green ── */
@@ -145,8 +156,14 @@ export class GhostBtnComponent {
   /** Button size: 'big' (40px, default) or 'small' (32px). */
   @Input() size: GhostBtnSize = 'big';
 
+  /** DS icon name. When set it replaces the [iconPath] SVG. */
+  @Input() icon?: FvdrIconName;
+
   /** SVG path `d` attribute for the icon. Defaults to circle-plus. */
   @Input() iconPath: string = DEFAULT_ICON_PATH;
+
+  /** Native tooltip; also the accessible name when the button has no label. */
+  @Input() tooltip = '';
 
   /** Text label. When set → shows text + chevron arrow. */
   @Input() label = '';

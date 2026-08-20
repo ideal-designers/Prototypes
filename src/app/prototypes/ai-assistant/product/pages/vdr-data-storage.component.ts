@@ -71,82 +71,71 @@ const CHART_STEP_X = 150;
   <div class="storage">
 
     <!-- ── Summary: donut + legend ───────────────────────────────────── -->
-    <div class="panel storage__summary">
-      <div class="panel__head"><span class="panel__title">Summary</span></div>
-      <div class="panel__body">
-        <div class="donut-wrap">
-          <svg class="donut" viewBox="0 0 160 160" width="160" height="160" aria-hidden="true">
-            <circle cx="80" cy="80" [attr.r]="radius" fill="none" stroke-width="20" class="donut__track" />
-            <g transform="rotate(-90 80 80)">
-              <circle
-                *ngFor="let s of segments"
-                cx="80"
-                cy="80"
-                [attr.r]="radius"
-                fill="none"
-                stroke-width="20"
-                class="donut__seg"
-                [ngClass]="'donut__seg--' + s.key"
-                [attr.stroke-dasharray]="s.dash"
-                [attr.stroke-dashoffset]="s.offset"
-              />
-            </g>
-            <text x="80" y="76" text-anchor="middle" class="donut__value">{{ total }}</text>
-            <text x="80" y="96" text-anchor="middle" class="donut__caption">Total</text>
-          </svg>
-        </div>
+    <fvdr-card title="Summary" class="storage__summary">
+      <div class="donut-wrap">
+        <svg class="donut" viewBox="0 0 160 160" width="160" height="160" aria-hidden="true">
+          <circle cx="80" cy="80" [attr.r]="radius" fill="none" stroke-width="20" class="donut__track" />
+          <g transform="rotate(-90 80 80)">
+            <circle
+              *ngFor="let s of segments"
+              cx="80"
+              cy="80"
+              [attr.r]="radius"
+              fill="none"
+              stroke-width="20"
+              class="donut__seg"
+              [ngClass]="'donut__seg--' + s.key"
+              [attr.stroke-dasharray]="s.dash"
+              [attr.stroke-dashoffset]="s.offset"
+            />
+          </g>
+          <text x="80" y="76" text-anchor="middle" class="donut__value">{{ total }}</text>
+          <text x="80" y="96" text-anchor="middle" class="donut__caption">Total</text>
+        </svg>
+      </div>
 
-        <div class="legend">
-          <div class="legend__row" *ngFor="let t of types">
-            <span class="legend__dot" [ngClass]="'legend__dot--' + t.key"></span>
-            <span class="legend__icon"><fvdr-icon [name]="t.icon"></fvdr-icon></span>
-            <span class="legend__label">{{ t.label }}</span>
-            <span class="muted legend__files">{{ t.files }}</span>
-            <span class="legend__size">{{ t.size }}</span>
-          </div>
+      <div class="legend">
+        <div class="legend__row" *ngFor="let t of types">
+          <span class="legend__dot" [ngClass]="'legend__dot--' + t.key"></span>
+          <span class="legend__icon"><fvdr-icon [name]="t.icon"></fvdr-icon></span>
+          <span class="legend__label">{{ t.label }}</span>
+          <span class="muted legend__files">{{ t.files }}</span>
+          <span class="legend__size">{{ t.size }}</span>
         </div>
       </div>
-    </div>
+    </fvdr-card>
 
     <!-- ── Over the period: line chart + table ───────────────────────── -->
     <div class="storage__main">
-      <div class="panel">
-        <div class="panel__head">
-          <span class="panel__title">Over the period</span>
-          <button type="button" class="inline-select">
-            All time
-            <span class="inline-select__caret"><fvdr-icon name="chevron-down"></fvdr-icon></span>
-          </button>
-        </div>
-        <div class="panel__body">
-          <svg class="chart" viewBox="0 0 1000 200" aria-hidden="true">
-            <g class="chart__grid" stroke-width="1">
-              <line *ngFor="let g of gridLines" x1="52" [attr.y1]="g.y" x2="980" [attr.y2]="g.y" />
-            </g>
-            <g class="chart__axis" text-anchor="end">
-              <text *ngFor="let g of gridLines" x="42" [attr.y]="g.y + 4">{{ g.label }}</text>
-            </g>
+      <fvdr-card title="Over the period">
+        <button card-header-actions type="button" class="inline-select">
+          All time
+          <span class="inline-select__caret"><fvdr-icon name="chevron-down"></fvdr-icon></span>
+        </button>
+        <svg class="chart" viewBox="0 0 1000 200" aria-hidden="true">
+          <g class="chart__grid" stroke-width="1">
+            <line *ngFor="let g of gridLines" x1="52" [attr.y1]="g.y" x2="980" [attr.y2]="g.y" />
+          </g>
+          <g class="chart__axis" text-anchor="end">
+            <text *ngFor="let g of gridLines" x="42" [attr.y]="g.y + 4">{{ g.label }}</text>
+          </g>
 
-            <!-- Flat series with a marker per day -->
-            <polyline class="chart__line" [attr.points]="linePoints" />
-            <circle *ngFor="let p of points" [attr.cx]="p.x" [attr.cy]="p.y" r="3.5" class="chart__point" />
+          <!-- Flat series with a marker per day -->
+          <polyline class="chart__line" [attr.points]="linePoints" />
+          <circle *ngFor="let p of points" [attr.cx]="p.x" [attr.cy]="p.y" r="3.5" class="chart__point" />
 
-            <g class="chart__axis" text-anchor="middle">
-              <text *ngFor="let p of points" [attr.x]="p.x" y="186">{{ p.label }}</text>
-            </g>
-          </svg>
-        </div>
-      </div>
+          <g class="chart__axis" text-anchor="middle">
+            <text *ngFor="let p of points" [attr.x]="p.x" y="186">{{ p.label }}</text>
+          </g>
+        </svg>
+      </fvdr-card>
 
       <table class="dtable">
         <thead>
           <tr>
             <!-- Folder picker the product puts in the leading header cell -->
             <th class="dtable__th dtable__th--picker">
-              <button type="button" class="icon-btn" title="Choose folder">
-                <fvdr-icon name="folder"></fvdr-icon>
-                <fvdr-icon name="chevron-down" class="picker__caret"></fvdr-icon>
-              </button>
+              <fvdr-ghost-btn size="small" icon="folder" tooltip="Choose folder"></fvdr-ghost-btn>
             </th>
             <th class="dtable__th" style="width: 80px">Index</th>
             <th class="dtable__th">Name</th>
@@ -214,8 +203,6 @@ const CHART_STEP_X = 150;
     .chart__point { fill: var(--color-primary-500); }
 
     .dtable__th--picker { width: 56px; }
-    .dtable__th--picker .icon-btn { width: auto; gap: var(--space-1); }
-    .picker__caret { font-size: var(--font-size-xs, 12px); }
   `],
 })
 export class VdrDataStorageComponent {

@@ -36,12 +36,12 @@ export { VdrQuickAccessComponent } from './vdr-quick-access.component';
 export type { VdrQuickAccessRow } from './vdr-quick-access.component';
 
 export {
-  VDR_RAIL_ITEMS,
+  VDR_NAV_ITEMS,
   VDR_PAGES,
-  VDR_PAGE_TABS,
-  railIdFor,
+  navIdFor,
+  isPageId,
 } from './data/product-nav';
-export type { VdrPageId, VdrRailId, VdrRailItem, VdrPageMeta } from './data/product-nav';
+export type { VdrPageId, VdrNavId, VdrNavItem, VdrPageMeta } from './data/product-nav';
 
 import { VdrShellComponent } from './vdr-shell.component';
 import { VdrDashboardComponent } from './pages/vdr-dashboard.component';
