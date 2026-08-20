@@ -17,24 +17,29 @@ import { AiComposerComponent } from '../ai-composer/ai-composer.component';
     <div class="conv">
       <!-- ── Empty state ── -->
       <div class="empty" *ngIf="conv.isEmpty(); else transcript">
-        <span class="empty__mark"><fvdr-icon name="ideon"></fvdr-icon></span>
-        <h1 class="empty__title">How can I help you today?</h1>
+        <div class="empty__intro">
+          <span class="empty__mark"><fvdr-icon name="ideon"></fvdr-icon></span>
+          <h1 class="empty__title">How can I help you today?</h1>
+        </div>
 
-        <fvdr-ai-composer
-          class="empty__composer"
-          [busy]="engine.streaming()"
-          (submitted)="send($event)"
-        ></fvdr-ai-composer>
+        <!-- Composer + prompts travel together so compact shells can dock them. -->
+        <div class="empty__actions">
+          <fvdr-ai-composer
+            class="empty__composer"
+            [busy]="engine.streaming()"
+            (submitted)="send($event)"
+          ></fvdr-ai-composer>
 
-        <div class="empty__chips">
-          <fvdr-chip
-            *ngFor="let s of suggestions()"
-            [label]="s"
-            variant="grey"
-            size="l"
-            [clickable]="true"
-            (clicked)="send(s)"
-          ></fvdr-chip>
+          <div class="empty__chips">
+            <fvdr-chip
+              *ngFor="let s of suggestions()"
+              [label]="s"
+              variant="grey"
+              size="l"
+              [clickable]="true"
+              (clicked)="send(s)"
+            ></fvdr-chip>
+          </div>
         </div>
       </div>
 
@@ -87,6 +92,13 @@ import { AiComposerComponent } from '../ai-composer/ai-composer.component';
       font-weight: var(--font-weight-bold, 700);
       color: var(--color-text-primary);
     }
+    .empty__intro {
+      display: flex; flex-direction: column; align-items: center; gap: var(--space-4);
+    }
+    .empty__actions {
+      width: 100%;
+      display: flex; flex-direction: column; gap: var(--space-4);
+    }
     .empty__composer { width: 100%; }
     .empty__chips {
       display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-2);
@@ -105,7 +117,15 @@ import { AiComposerComponent } from '../ai-composer/ai-composer.component';
     /* ── Compact containers (sidebar ~400px, floating ~490px) ── */
     :host(.conv--compact) .empty { gap: var(--space-3); padding: var(--space-4) 0; }
     :host(.conv--compact) .empty__title { font-size: var(--font-size-2xl, 20px); text-align: center; }
-    :host(.conv--compact) .empty__chips { flex-direction: column; align-items: stretch; }
+    /* In a narrow panel the composer and prompts dock at the bottom, as in the
+       transcript state; the auto margins centre the greeting in whatever is left. */
+    :host(.conv--compact) .empty { justify-content: flex-start; }
+    :host(.conv--compact) .empty__intro { margin: auto 0; }
+    :host(.conv--compact) .empty__actions { flex: 0 0 auto; gap: var(--space-3); }
+    /* Prompts hug the left edge rather than stretching or centring. */
+    :host(.conv--compact) .empty__chips {
+      flex-direction: column; align-items: flex-start; justify-content: flex-start;
+    }
     :host(.conv--compact) .conv__scroll { gap: var(--space-4); padding: var(--space-4) 0; }
     :host(.conv--compact) .conv__dock { padding-bottom: var(--space-4); }
   `],
