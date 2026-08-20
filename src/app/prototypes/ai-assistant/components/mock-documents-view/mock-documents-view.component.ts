@@ -11,7 +11,7 @@ import {
 import { AiConversationService } from '../../services/ai-conversation.service';
 import { MOCK_DATA_ROOM, PERMITTED_DOCUMENTS } from '../../data/mock-data';
 import { vdrNavItems } from '../../data/vdr-nav';
-import { MockDocument, MockFolder } from '../../models/mock-doc.model';
+import { MockDocument } from '../../models/mock-doc.model';
 import { AiSidebarComponent } from '../../shells/ai-sidebar.component';
 import { AiFloatingComponent } from '../../shells/ai-floating.component';
 
@@ -48,42 +48,27 @@ import { AiFloatingComponent } from '../../shells/ai-floating.component';
 
     <div class="docs-body">
       <section class="docs-col">
-        <header class="docs-head">
-          <div class="docs-path">
-            <fvdr-file-icon type="folder-open"></fvdr-file-icon>
-            <span class="docs-path__room">{{ room.name }}</span>
-            <fvdr-icon name="chevron-right" class="docs-path__sep"></fvdr-icon>
-            <span class="docs-path__leaf">Documents</span>
-          </div>
-
-          <button type="button" class="docs-ai" (click)="openFloating()">
-            <fvdr-icon name="ai-assistant"></fvdr-icon>
-            <span>Ask AI</span>
-          </button>
-        </header>
-
-        <div class="docs-folders">
-          <div class="docs-folder" *ngFor="let f of room.folders">
-            <fvdr-file-icon type="folder"></fvdr-file-icon>
-            <span class="docs-folder__name">{{ f.name }}</span>
-            <span class="docs-folder__count">{{ countIn(f) }} documents</span>
-            <button
-              type="button"
-              class="docs-folder__ai"
-              [attr.title]="'Ask AI about ' + f.name"
-              (click)="openFloatingForFolder(f)"
-            >
-              <fvdr-icon name="ai-assistant"></fvdr-icon>
-              <span>Ask AI</span>
-            </button>
-          </div>
-        </div>
-
         <fvdr-table [columns]="columns" [data]="documents">
           <ng-template fvdrCell="name" let-value let-row="row">
             <span class="docs-name">
               <fvdr-file-icon [type]="row.type"></fvdr-file-icon>
               <button type="button" class="docs-link" (click)="onDocClick(row)">{{ value }}</button>
+            </span>
+          </ng-template>
+
+          <!-- Folder cell doubles as the context-seeded assistant entry point. -->
+          <ng-template fvdrCell="folderPath" let-value>
+            <span class="docs-loc">
+              <span class="docs-loc__name">{{ value }}</span>
+              <button
+                type="button"
+                class="docs-loc__ai"
+                [attr.title]="'Ask AI about ' + value"
+                (click)="openFloatingForFolderName(value)"
+              >
+                <fvdr-icon name="ai-assistant"></fvdr-icon>
+                <span>Ask AI</span>
+              </button>
             </span>
           </ng-template>
 
@@ -120,50 +105,27 @@ import { AiFloatingComponent } from '../../shells/ai-floating.component';
       display: flex; flex-direction: column; gap: var(--space-5);
     }
 
-    .docs-head {
-      display: flex; align-items: center; justify-content: space-between;
-      gap: var(--space-4);
-      border-bottom: 1px solid var(--color-divider);
-      padding-bottom: var(--space-3);
-    }
-    .docs-path { display: flex; align-items: center; gap: var(--space-2); }
-    .docs-path__room {
-      font-size: var(--font-size-xl, 18px);
-      font-weight: var(--font-weight-bold, 700);
-      color: var(--color-text-primary);
-    }
-    .docs-path__sep { font-size: var(--font-size-xs, 12px); color: var(--color-stone-600); }
-    .docs-path__leaf { font-size: var(--font-size-md, 15px); color: var(--color-text-secondary); }
-
-    .docs-ai, .docs-folder__ai {
-      display: inline-flex; align-items: center; gap: var(--space-2);
+    /* Location cell — the Ask AI action stays hidden until the row is hovered. */
+    .docs-loc { display: inline-flex; align-items: center; gap: var(--space-2); }
+    .docs-loc__name { color: var(--color-text-secondary); }
+    .docs-loc__ai {
+      display: inline-flex; align-items: center; gap: var(--space-1);
       border: 1px solid var(--color-divider);
       background: var(--color-stone-0);
       color: var(--color-primary-500);
       border-radius: var(--radius-sm);
-      padding: var(--space-2) var(--space-3);
+      padding: var(--space-1) var(--space-2);
       font-family: var(--font-family);
-      font-size: var(--font-size-base, 14px);
+      font-size: var(--font-size-xs, 12px);
       cursor: pointer;
+      opacity: 0; visibility: hidden;
+      transition: opacity 0.12s ease;
     }
-    .docs-ai:hover, .docs-folder__ai:hover {
+    :host ::ng-deep tr:hover .docs-loc__ai,
+    .docs-loc__ai:focus-visible { opacity: 1; visibility: visible; }
+    .docs-loc__ai:hover {
       background: var(--color-primary-50); border-color: var(--color-primary-500);
     }
-
-    .docs-folders { display: flex; flex-direction: column; }
-    .docs-folder {
-      display: flex; align-items: center; gap: var(--space-3);
-      padding: var(--space-2) var(--space-2);
-      border-bottom: 1px solid var(--color-divider);
-    }
-    .docs-folder:hover { background: var(--color-hover-bg); }
-    .docs-folder__name { font-size: var(--font-size-base, 14px); color: var(--color-text-primary); }
-    .docs-folder__count {
-      flex: 1;
-      font-size: var(--font-size-xs, 12px);
-      color: var(--color-text-secondary);
-    }
-    .docs-folder__ai { padding: var(--space-1) var(--space-2); font-size: var(--font-size-xs, 12px); }
 
     .docs-name { display: inline-flex; align-items: center; gap: var(--space-2); }
     .docs-link {
@@ -208,23 +170,19 @@ export class MockDocumentsViewComponent {
 
   navItems: SidebarNavItem[] = vdrNavItems('documents');
 
-  countIn(folder: MockFolder): number {
-    return this.documents.filter(d => d.folderPath === folder.name).length;
-  }
-
   // ── Assistant entry points ──
 
-  /** Ask Ideon / local sparkle — always opens the floating window, scoped to the whole room. */
+  /** Ask Ideon — always opens the floating window, scoped to the whole room. */
   openFloating(): void {
     this.conv.resetScope();
     this.conv.seededTitle.set('New AI chat');
     this.conv.setShell('floating');
   }
 
-  /** Folder action — opens a floating window pre-scoped to that folder. */
-  openFloatingForFolder(folder: MockFolder): void {
-    this.conv.setScope({ kind: 'folder', label: folder.name, folderName: folder.name });
-    this.conv.seededTitle.set(`Find the documents in the “${folder.name}” folder`);
+  /** Location-cell action — opens a floating window pre-scoped to that folder. */
+  openFloatingForFolderName(folderName: string): void {
+    this.conv.setScope({ kind: 'folder', label: folderName, folderName });
+    this.conv.seededTitle.set(`Find the documents in the “${folderName}” folder`);
     this.conv.setShell('floating');
   }
 
