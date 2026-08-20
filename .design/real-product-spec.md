@@ -218,3 +218,89 @@ Not captured. Build as a tabbed settings page matching 2.10's chrome.
 8. **Every list page is a table with Customize columns**, and Reports pages carry
    Export/Subscribe. Assistant answers that produce lists should offer the same
    affordances to feel native.
+
+---
+
+## 4. Sub-pages (captured 2026-08-20, second pass)
+
+All share the shell from §1. Where a page shows the Quick access pane, it is the
+same component as §2.2 with a different row selected (tinted).
+
+### 4.1 `/documents/notes` — breadcrumb `Documents > Notes`
+No action bar, only the right-aligned search. Empty state: clipboard-with-pencil
+illustration, **"You have no notes"**, "All notes to files and folders will appear here".
+No button.
+
+### 4.2 `/documents/shared-links` — breadcrumb `Documents > External links`
+Note the label: **External links**, not "Shared links".
+Table header is rendered but **greyed/disabled**: `Index · Name · Access type ·
+Notifications · Visits · Feedback · Created on · Status` + customize icon, with no rows.
+Below it a three-column feature pitch (no numbers, unlike §2.3): **Share securely**
+/ **Track engagement** / **Manage shared links**, each an illustration + bold title +
+2–3 muted lines. Then an entitlement panel: green glyph + "This feature is available
+only with a **Premier** or higher subscription. Learn more".
+
+### 4.3 `/documents/recent` — breadcrumb `Documents > Recently viewed`
+Action bar: `Project index`, `...`, search (no `+ Add`, no `Download`).
+Quick access pane with **Recently viewed** selected. Empty state right of it:
+stacked-documents illustration with a clock badge, **"You have no recent documents
+yet"**, "Viewed and downloaded documents will appear here".
+
+### 4.4 `/documents/uploads` — breadcrumb `Documents > Newly uploaded`
+Richest page captured — good reference for a populated table.
+Action bar: `Project index`, `...`, search. Quick access with **Newly uploaded**
+selected. Table `Index · Name · Size · Location · Added on · Notes` + customize icon,
+with a full-width group header row **`Last 7 days`**, then rows:
+
+| Index | Name | Size | Location | Added on |
+|---|---|---|---|---|
+| 1 | Get to know VDR (folder) | 3.52 MB / 7 files | test 2 | Aug 14, 2026 |
+| 1.1 | Advantages of using VDR.txt | 2.21 KB / 1 page | 1 Get to know VDR | Aug 14, 2026 |
+| 1.2 | Available document permissions.docx | 52.53 KB / 4 pages | 1 Get to know VDR | Aug 14, 2026 |
+| 1.3 | Guidelines on using VDR efficiently.pdf | 474.7 KB / 5 pages | 1 Get to know VDR | Aug 14, 2026 |
+| 1.4 | Sample balance sheet.xls | 44.5 KB / 12 pages | 1 Get to know VDR | Aug 14, 2026 |
+| 1.5 | Sample financial model.xlsx | 41.3 KB / 8 pages | 1 Get to know VDR | Aug 14, 2026 |
+| 1.6 | Sensitive data redaction.mp4 | 2.85 MB | 1 Get to know VDR | Aug 14, 2026 |
+| 1.7 | The five steps to start with iDeals VDR.jpg | 70.94 KB / 1 page | 1 Get to know VDR | Aug 14, 2026 |
+
+Size is a two-line cell (bytes over page/file count). Location cells carry a small
+folder icon before the name. Each row leads with a file-type icon matched to the
+extension (txt/docx/pdf/xls/xlsx/mp4/jpg).
+
+### 4.5 `/documents/favorites` — breadcrumb `Documents > Favorites`
+Action bar: `Project index`, `...`, search. Quick access with **Favorites** selected.
+Empty state: folder-with-star illustration, **"You have no favorites yet"**,
+"All starred files and folders will appear here".
+
+### 4.6 `/reports/engagement-matrix` — breadcrumb `Reports > Engagement matrix`
+Filter row: `Period` date input, then label `Include deleted groups` + a toggle
+(**on**), right-aligned `Export` + `Subscribe`.
+Left pane **Groups** with an accent text-link `By documents` in its header (a
+pivot switch), a search field, and one tree row: chevron, checkbox, group icon,
+`Administrators`.
+Right: table with a leading folder-dropdown header cell, then `Index · Name · Files ·
+% engaged · Total · Views · Downloads` + customize icon. No rows.
+
+### 4.7 `/reports/data-storage` — breadcrumb `Reports > Data storage`
+Filter row: `Unit:` with two radios `GB` / **`MB`** (MB selected), right-aligned
+`Export` + `Subscribe`.
+Left **Summary** panel: donut chart with `3.52 MB` / `Total` in the hole, segments
+coloured per type, then a legend list — icon + name + file count on the left, size
+right-aligned: Video `1 files` 2.85 MB · PDF `1 files` 0.46 MB · Spreadsheets
+`2 files` 0.08 MB · Images `1 files` 0.07 MB · Documents `2 files` 0.05 MB.
+Right: **Over the period** + accent dropdown `All time`, a flat line chart (y axis
+0–4 MB in 1 MB steps, x Aug 14…Aug 20, a single accent line with point markers),
+and below it a table `Index · Name · # Files · Size` with a leading folder-dropdown
+header cell. Rows: `1 Get to know VDR` / 7 / 3.52 MB, and `test 2` / 0 / `< 0.01 MB`.
+
+### 4.8 `/reports/permissions` — breadcrumb `Reports > Permissions log`
+Label is **Permissions log**.
+Filter row: `Period`, `Target group` select, `Author` select, right-aligned `Export`
++ `Subscribe`. Left pane **Documents**: search + project tree (`test 2` selected,
+child `1 Get to know VDR`). Right: empty state — folder-with-magnifier illustration,
+**"No matching results"**, "Try adjusting the filters or using another search query".
+
+### 4.9 `/reports/subscriptions` — breadcrumb `Reports > Subscriptions`
+No filter row. Empty state: open-envelope illustration with a bell badge,
+**"You have no subscriptions yet"**, "To add subscriptions, create new report in
+Activity log", accent button `Go to activity log`.

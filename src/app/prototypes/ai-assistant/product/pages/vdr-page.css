@@ -150,6 +150,55 @@
   z-index: 1;
 }
 
+/* ── Hand-rolled product table ──────────────────────────────────────────── */
+/* fvdr-table has no concept of the product's full-width group header rows
+   (`Last 7 days`), a greyed-out header with no rows, or affordances inside a
+   header cell, so pages that need those write the table markup and paint it
+   with these classes. Same chrome as the DS table. */
+.dtable { width: 100%; border-collapse: collapse; }
+.dtable__th {
+  height: 40px;
+  padding: 0 var(--space-4);
+  background: var(--color-stone-200);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-base, 14px);
+  font-weight: 600;
+  text-align: left;
+  white-space: nowrap;
+}
+.dtable__th:first-child { border-radius: var(--radius-sm) 0 0 var(--radius-sm); }
+.dtable__th:last-child { border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
+.dtable__th--tools { width: 56px; text-align: right; padding-right: var(--space-2); }
+/* Header rendered but not actionable — External links without the entitlement. */
+.dtable--disabled .dtable__th { color: var(--color-text-disabled); }
+.dtable--disabled .dtable__th .icon-btn { color: var(--color-text-disabled); }
+
+/* Full-width group header row (`Last 7 days`). */
+.dtable__group-cell {
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-stone-100);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm, 13px);
+  font-weight: 600;
+  border-bottom: 1px solid var(--color-divider);
+}
+
+.dtable__td {
+  height: 56px;
+  padding: var(--space-2) var(--space-4);
+  border-bottom: 1px solid var(--color-divider);
+  font-size: var(--font-size-base, 14px);
+  vertical-align: middle;
+}
+.dtable__row:hover .dtable__td { background: var(--color-hover-bg); }
+
+/* ── Documents-family page frame: action-bar strip over a two-pane body ─── */
+.page-bar { padding: var(--space-4) var(--space-6); border-bottom: 1px solid var(--color-divider); }
+
+/* Controls that must render in a given state but never change it (the replica's
+   toggles and radios). */
+.inert { pointer-events: none; }
+
 /* ── Two-pane body (Documents, Q&A, Documents overview) ─────────────────── */
 .two-pane { display: flex; align-items: stretch; min-height: 0; flex: 1; }
 .two-pane__side {

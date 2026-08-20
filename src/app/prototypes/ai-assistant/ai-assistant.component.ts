@@ -44,19 +44,29 @@ import { VDR_PRODUCT_COMPONENTS, VdrPageId } from './product';
         [page]="page()"
         (pageChange)="page.set($event)"
         (themeToggle)="conv.toggleDark()"
+        (askAiForFolder)="openFloatingForFolder($event)"
       >
         <fvdr-ask-ideon topbar-actions (clicked)="openFloating()"></fvdr-ask-ideon>
 
         <ng-container [ngSwitch]="page()">
           <fvdr-vdr-dashboard *ngSwitchCase="'dashboard'"></fvdr-vdr-dashboard>
           <fvdr-vdr-documents *ngSwitchCase="'documents'"></fvdr-vdr-documents>
+          <fvdr-vdr-notes *ngSwitchCase="'notes'"></fvdr-vdr-notes>
+          <fvdr-vdr-shared-links *ngSwitchCase="'shared-links'"></fvdr-vdr-shared-links>
           <fvdr-vdr-signatures *ngSwitchCase="'signatures'"></fvdr-vdr-signatures>
+          <fvdr-vdr-recent *ngSwitchCase="'recent'"></fvdr-vdr-recent>
+          <fvdr-vdr-uploads *ngSwitchCase="'uploads'"></fvdr-vdr-uploads>
+          <fvdr-vdr-favorites *ngSwitchCase="'favorites'"></fvdr-vdr-favorites>
           <fvdr-vdr-dd-checklist *ngSwitchCase="'dd-checklist'"></fvdr-vdr-dd-checklist>
           <fvdr-vdr-participants *ngSwitchCase="'participants'"></fvdr-vdr-participants>
           <fvdr-vdr-permissions *ngSwitchCase="'permissions'"></fvdr-vdr-permissions>
           <fvdr-vdr-qna *ngSwitchCase="'qna'"></fvdr-vdr-qna>
           <fvdr-vdr-activity-log *ngSwitchCase="'activity-log'"></fvdr-vdr-activity-log>
           <fvdr-vdr-documents-overview *ngSwitchCase="'documents-overview'"></fvdr-vdr-documents-overview>
+          <fvdr-vdr-engagement-matrix *ngSwitchCase="'engagement-matrix'"></fvdr-vdr-engagement-matrix>
+          <fvdr-vdr-data-storage *ngSwitchCase="'data-storage'"></fvdr-vdr-data-storage>
+          <fvdr-vdr-permissions-log *ngSwitchCase="'permissions-log'"></fvdr-vdr-permissions-log>
+          <fvdr-vdr-subscriptions *ngSwitchCase="'subscriptions'"></fvdr-vdr-subscriptions>
           <fvdr-vdr-archiving *ngSwitchCase="'archiving'"></fvdr-vdr-archiving>
           <fvdr-vdr-recycle-bin *ngSwitchCase="'recycle-bin'"></fvdr-vdr-recycle-bin>
         </ng-container>
@@ -106,6 +116,13 @@ export class AiAssistantComponent implements OnInit, OnDestroy {
   openFloating(): void {
     this.conv.resetScope();
     this.conv.seededTitle.set('New AI chat');
+    this.conv.setShell('floating');
+  }
+
+  /** Row action on Documents — opens the assistant pre-scoped to that folder. */
+  openFloatingForFolder(folderName: string): void {
+    this.conv.setScope({ kind: 'folder', label: folderName, folderName });
+    this.conv.seededTitle.set(`Find the documents in the “${folderName}” folder`);
     this.conv.setShell('floating');
   }
 

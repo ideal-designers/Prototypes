@@ -1,6 +1,18 @@
-import { Component, EventEmitter, Input, OnChanges, OnInit, Output } from '@angular/core';
+import {
+  AfterContentChecked,
+  Component,
+  ContentChild,
+  EventEmitter,
+  Input,
+  OnChanges,
+  OnDestroy,
+  OnInit,
+  Output,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Subscription } from 'rxjs';
 import { DS_COMPONENTS, TabItem } from '../../../shared/ds';
+import { VdrDocumentsComponent } from './pages/vdr-documents.component';
 import {
   VDR_PAGES,
   VDR_PAGE_TABS,
@@ -158,6 +170,11 @@ import {
     /* Live product tints the active icon and shows no background, no label. */
     .rail__item--active { color: var(--color-primary-500); }
 
+    /* The live rail is darker than the content area. FVDR's dark stone scale is
+       inverted, so stone-200 reads *lighter* than the page there — step down to
+       stone-50, the only stone below the page background. */
+    :host-context(.dark-theme) .rail { background: var(--color-stone-50); }
+
     .rail__brand {
       width: 24px; height: 24px; border-radius: var(--radius-full); flex: none;
       background: radial-gradient(circle at 30% 30%, var(--color-primary-500), var(--color-primary-700));
@@ -195,7 +212,17 @@ import {
     }
     .icon-btn:hover { background: var(--color-hover-bg); color: var(--color-text-primary); }
 
-    .shell__tabs { flex: none; padding: 0 var(--space-6); border-bottom: 1px solid var(--color-divider); }
+    /* Documents has seven tabs and Reports six — scroll the strip rather than
+       wrap it when the window (or a docked assistant panel) squeezes it. */
+    .shell__tabs {
+      flex: none;
+      padding: 0 var(--space-6);
+      border-bottom: 1px solid var(--color-divider);
+      overflow-x: auto;
+      overflow-y: hidden;
+      scrollbar-width: none;
+    }
+    .shell__tabs::-webkit-scrollbar { height: 0; }
 
     .shell__content { flex: 1; min-height: 0; overflow: auto; }
 
@@ -217,7 +244,7 @@ import {
     .intercom:hover { background: var(--color-primary-600); }
   `],
 })
-export class VdrShellComponent implements OnInit, OnChanges {
+export class VdrShellComponent implements OnInit, OnChanges, AfterContentChecked, OnDestroy {
   /** Current page — the host owns it. */
   @Input() page: VdrPageId = 'documents';
   /** Project name, shown as the rail logo tooltip. */
@@ -234,6 +261,12 @@ export class VdrShellComponent implements OnInit, OnChanges {
   @Output() pageChange = new EventEmitter<VdrPageId>();
   /** Top-bar theme toggle — the host owns the actual light/dark state. */
   @Output() themeToggle = new EventEmitter<void>();
+  /**
+   * Folder name from the Documents page's row-hover "Ask AI" action, re-emitted
+   * here so the host can open its assistant scoped to that folder without the
+   * replica knowing anything about the assistant.
+   */
+  @Output() askAiForFolder = new EventEmitter<string>();
 
   readonly railItems = VDR_RAIL_ITEMS;
 
@@ -254,8 +287,27 @@ export class VdrShellComponent implements OnInit, OnChanges {
    */
   tabs: TabItem[] = [];
 
+  /**
+   * The pages are projected content, so the shell cannot bind to the Documents
+   * page's output in a template — it picks the instance up as a content child
+   * and forwards the event. Re-checked because the host swaps pages with
+   * *ngSwitch, which destroys and recreates the instance.
+   */
+  @ContentChild(VdrDocumentsComponent) private documentsPage?: VdrDocumentsComponent;
+  private wiredPage?: VdrDocumentsComponent;
+  private askSub?: Subscription;
+
   ngOnInit(): void { this.syncTabs(); }
   ngOnChanges(): void { this.syncTabs(); }
+
+  ngAfterContentChecked(): void {
+    if (this.documentsPage === this.wiredPage) return;
+    this.askSub?.unsubscribe();
+    this.wiredPage = this.documentsPage;
+    this.askSub = this.documentsPage?.askAiForFolder.subscribe(f => this.askAiForFolder.emit(f));
+  }
+
+  ngOnDestroy(): void { this.askSub?.unsubscribe(); }
 
   private syncTabs(): void {
     this.tabs = (VDR_PAGE_TABS[this.activeRail] ?? []).map(t => ({ id: t.id, label: t.label }));
