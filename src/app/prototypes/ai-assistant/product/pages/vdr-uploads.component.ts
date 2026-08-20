@@ -1,10 +1,17 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DS_COMPONENTS, FvdrIconName } from '../../../../shared/ds';
+import { FOLDER_ROLLUPS, MOCK_DATA_ROOM } from '../../data/mock-data';
+import {
+  DOC_ROW_ICON,
+  folderDisplayName,
+  formatSizeKb,
+  pagesLabel,
+} from '../../models/mock-doc.model';
 import { VdrActionBarComponent, VdrActionBarButton } from '../vdr-action-bar.component';
 import { VdrQuickAccessComponent } from '../vdr-quick-access.component';
 
-/** One captured row of the Newly uploaded list. */
+/** One row of the Newly uploaded list — a folder or one of its documents. */
 interface UploadRow {
   index: string;
   name: string;
@@ -14,12 +21,15 @@ interface UploadRow {
   /** Second line of the size cell — page or file count, absent for video. */
   count?: string;
   location: string;
+  addedOn: string;
 }
 
 /**
  * Documents › Newly uploaded — replica of `.design/real-product-spec.md`
  * section 4.4, the one populated list we captured, so it doubles as the
- * reference for what a realistic document table looks like.
+ * reference for what a realistic document table looks like. Rows come from the
+ * shared corpus in `data/mock-data.ts` — every folder followed by its documents,
+ * the way the product interleaves them.
  *
  * The table is hand-rolled (`.dtable` in vdr-page.css) rather than fvdr-table:
  * the product groups rows under a full-width `Last 7 days` header row, which the
@@ -87,7 +97,7 @@ interface UploadRow {
                 <span>{{ r.location }}</span>
               </span>
             </td>
-            <td class="dtable__td">{{ addedOn }}</td>
+            <td class="dtable__td">{{ r.addedOn }}</td>
             <td class="dtable__td"></td>
             <td class="dtable__td"></td>
           </tr>
@@ -112,17 +122,26 @@ interface UploadRow {
 export class VdrUploadsComponent {
   readonly secondaries: VdrActionBarButton[] = [{ id: 'index', label: 'Project index' }];
 
-  /** Every captured row shares the upload date. */
-  readonly addedOn = 'Aug 14, 2026';
-
-  readonly rows: UploadRow[] = [
-    { index: '1',   name: 'Get to know VDR',                      icon: 'folder',     size: '3.52 MB',  count: '7 files',  location: 'test 2' },
-    { index: '1.1', name: 'Advantages of using VDR.txt',          icon: 'note',       size: '2.21 KB',  count: '1 page',   location: '1 Get to know VDR' },
-    { index: '1.2', name: 'Available document permissions.docx',  icon: 'documents',  size: '52.53 KB', count: '4 pages',  location: '1 Get to know VDR' },
-    { index: '1.3', name: 'Guidelines on using VDR efficiently.pdf', icon: 'perm-pdf', size: '474.7 KB', count: '5 pages', location: '1 Get to know VDR' },
-    { index: '1.4', name: 'Sample balance sheet.xls',             icon: 'table-view', size: '44.5 KB',  count: '12 pages', location: '1 Get to know VDR' },
-    { index: '1.5', name: 'Sample financial model.xlsx',          icon: 'table-view', size: '41.3 KB',  count: '8 pages',  location: '1 Get to know VDR' },
-    { index: '1.6', name: 'Sensitive data redaction.mp4',         icon: 'video',      size: '2.85 MB',                     location: '1 Get to know VDR' },
-    { index: '1.7', name: 'The five steps to start with iDeals VDR.jpg', icon: 'image', size: '70.94 KB', count: '1 page', location: '1 Get to know VDR' },
-  ];
+  /** Folder row, then its documents — as the product lists a fresh upload batch. */
+  readonly rows: UploadRow[] = FOLDER_ROLLUPS.flatMap(r => [
+    {
+      index: r.folder.index,
+      name: folderDisplayName(r.folder.name),
+      icon: 'folder' as FvdrIconName,
+      size: formatSizeKb(r.sizeKb),
+      count: r.files + (r.files === 1 ? ' file' : ' files'),
+      location: MOCK_DATA_ROOM.name,
+      addedOn: r.folder.addedOn,
+    },
+    ...r.documents.map(d => ({
+      index: d.index,
+      name: d.name,
+      icon: DOC_ROW_ICON[d.type],
+      size: d.sizeLabel,
+      // Video carries no page count, so the second line is simply omitted.
+      count: d.pages ? pagesLabel(d.pages) : undefined,
+      location: d.folderPath,
+      addedOn: d.addedOn,
+    })),
+  ]);
 }

@@ -2,7 +2,11 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DS_COMPONENTS } from '../../../../shared/ds';
 import { DdClaim, DdReportAnswer } from '../../models/ai-scenario.model';
-import { MockDocument } from '../../models/mock-doc.model';
+import {
+  DOC_FILE_ICON,
+  MockDocType,
+  MockDocument,
+} from '../../models/mock-doc.model';
 
 /** Scenario C2 — sectioned due-diligence draft with a citation on every claim. */
 @Component({
@@ -42,7 +46,7 @@ import { MockDocument } from '../../models/mock-doc.model';
               *ngIf="c.sourceDoc || c.sourceFolder"
               (click)="onCite(c)"
             >
-              <fvdr-file-icon [type]="c.sourceDoc ? c.sourceDoc.type : 'folder'"></fvdr-file-icon>
+              <fvdr-file-icon [type]="c.sourceDoc ? fileIcon(c.sourceDoc.type) : 'folder'"></fvdr-file-icon>
               <span>{{ c.sourceDoc ? c.sourceDoc.name : c.sourceFolder }}</span>
             </button>
           </li>
@@ -117,6 +121,11 @@ export class AiAnswerDdReportComponent {
   @Output() docOpened = new EventEmitter<MockDocument>();
   @Output() folderOpened = new EventEmitter<string>();
   @Output() exported = new EventEmitter<void>();
+
+  /** DS file-icon glyph for a document extension. */
+  fileIcon(type: MockDocType) {
+    return DOC_FILE_ICON[type];
+  }
 
   onCite(claim: DdClaim): void {
     if (claim.sourceDoc) this.docOpened.emit(claim.sourceDoc);

@@ -2,7 +2,12 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DS_COMPONENTS } from '../../../../shared/ds';
 import { TableAnswer } from '../../models/ai-scenario.model';
-import { MockDocument } from '../../models/mock-doc.model';
+import {
+  DOC_FILE_ICON,
+  MockDocType,
+  MockDocument,
+  docSizeMeta,
+} from '../../models/mock-doc.model';
 
 /** Keep in sync with `.preview { width }`. */
 const PREVIEW_WIDTH = 280;
@@ -32,7 +37,7 @@ interface DocPreview {
         <li class="docs__item" *ngFor="let d of answer.docs; let i = index">
           <div class="docs__head">
             <span class="docs__marker">{{ i + 1 }}.</span>
-            <fvdr-file-icon [type]="d.type"></fvdr-file-icon>
+            <fvdr-file-icon [type]="fileIcon(d.type)"></fvdr-file-icon>
             <button
               type="button"
               class="docs__link"
@@ -71,11 +76,11 @@ interface DocPreview {
       [style.top.px]="p.top"
       [style.left.px]="p.left"
     >
-      <div class="preview__thumb"><fvdr-file-icon [type]="p.doc.type"></fvdr-file-icon></div>
+      <div class="preview__thumb"><fvdr-file-icon [type]="fileIcon(p.doc.type)"></fvdr-file-icon></div>
       <div class="preview__body">
         <span class="preview__title">{{ p.doc.name }}</span>
         <span class="preview__row">Location: {{ p.doc.folderPath }}</span>
-        <span class="preview__row">Size: {{ p.doc.sizeLabel }} · {{ p.doc.pages }} pages</span>
+        <span class="preview__row">Size: {{ sizeMeta(p.doc) }}</span>
         <span class="preview__row">Added on: {{ p.doc.addedOn }}</span>
       </div>
     </div>
@@ -167,6 +172,16 @@ export class AiAnswerDocListComponent {
   @Output() folderOpened = new EventEmitter<string>();
 
   preview: DocPreview | null = null;
+
+  /** DS file-icon glyph for a document extension. */
+  fileIcon(type: MockDocType) {
+    return DOC_FILE_ICON[type];
+  }
+
+  /** "412.05 KB · 24 pages", or just the size when the file has no page count. */
+  sizeMeta(doc: MockDocument): string {
+    return docSizeMeta(doc);
+  }
 
   /** Scenario C1 swaps the Size line for the signature status. */
   get signatures(): boolean {

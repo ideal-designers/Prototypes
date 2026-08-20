@@ -1,6 +1,13 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DS_COMPONENTS, FvdrIconName, RadioOption } from '../../../../shared/ds';
+import {
+  FOLDER_ROLLUPS,
+  MOCK_DATA_ROOM,
+  MOCK_PROJECT_MARK,
+  PERMITTED_DOCUMENTS,
+} from '../../data/mock-data';
+import { MockDocType, folderDisplayName } from '../../models/mock-doc.model';
 
 /** One row of the Summary legend, which also drives a donut segment. */
 interface StorageType {
@@ -13,26 +20,35 @@ interface StorageType {
   value: number;
 }
 
+/** Report category per extension — the product groups the room's types this way. */
+const CATEGORIES: { key: string; label: string; icon: FvdrIconName; types: MockDocType[] }[] = [
+  { key: 'video',        label: 'Video',        icon: 'video',      types: ['mp4'] },
+  { key: 'pdf',          label: 'PDF',          icon: 'perm-pdf',   types: ['pdf'] },
+  { key: 'spreadsheets', label: 'Spreadsheets', icon: 'table-view', types: ['xls', 'xlsx'] },
+  { key: 'images',       label: 'Images',       icon: 'image',      types: ['jpg'] },
+  { key: 'documents',    label: 'Documents',    icon: 'documents',  types: ['docx', 'txt'] },
+];
+
 /** Donut radius and circumference — the dash geometry is derived from these. */
 const DONUT_R = 62;
 const DONUT_C = 2 * Math.PI * DONUT_R;
 
-/** Line-chart geometry: 0–4 MB over the y axis, one point per captured day. */
+/** Line-chart geometry: one point per captured day, y axis 0 → axisMax. */
 const CHART_ZERO_Y = 170;
-const CHART_MB_STEP = 37.5;
+const CHART_HEIGHT = 150;
 const CHART_FIRST_X = 80;
 const CHART_STEP_X = 150;
-/** Flat series: the project has held 3.52 MB across the whole period. */
-const CHART_VALUE = 3.52;
 
 /**
  * Reports › Data storage — replica of `.design/real-product-spec.md` section
  * 4.7: the GB/MB unit radios, the Summary donut with its per-type legend, the
  * "Over the period" line chart, and the per-folder storage table.
  *
- * Both charts are static inline SVG (no chart library): the donut segments are
- * derived from the legend's captured sizes, and the line is flat at 3.52 MB with
- * a marker per day. Every control is inert.
+ * Both charts are static inline SVG (no chart library). The legend, the donut
+ * segments and the per-folder table all aggregate the shared corpus in
+ * `data/mock-data.ts`, so the numbers here match the documents the assistant
+ * cites; the line stays flat at the room total with a marker per day. Every
+ * control is inert.
  */
 @Component({
   selector: 'fvdr-vdr-data-storage',
@@ -145,7 +161,7 @@ const CHART_VALUE = 3.52;
             <td class="dtable__td">
               <span class="cell-name">
                 <span class="cell-icon" *ngIf="!r.project"><fvdr-icon name="folder"></fvdr-icon></span>
-                <span class="proj-mark" *ngIf="r.project">T2</span>
+                <span class="proj-mark" *ngIf="r.project">{{ projectMark }}</span>
                 <span>{{ r.name }}</span>
               </span>
             </td>
@@ -204,42 +220,69 @@ const CHART_VALUE = 3.52;
 })
 export class VdrDataStorageComponent {
   readonly radius = DONUT_R;
-  readonly total = '3.52 MB';
+  readonly projectMark = MOCK_PROJECT_MARK;
 
   readonly unitOptions: RadioOption[] = [
     { value: 'gb', label: 'GB' },
     { value: 'mb', label: 'MB' },
   ];
 
-  readonly types: StorageType[] = [
-    { key: 'video',        label: 'Video',        icon: 'video',      files: '1 files', size: '2.85 MB', value: 2.85 },
-    { key: 'pdf',          label: 'PDF',          icon: 'perm-pdf',   files: '1 files', size: '0.46 MB', value: 0.46 },
-    { key: 'spreadsheets', label: 'Spreadsheets', icon: 'table-view', files: '2 files', size: '0.08 MB', value: 0.08 },
-    { key: 'images',       label: 'Images',       icon: 'image',      files: '1 files', size: '0.07 MB', value: 0.07 },
-    { key: 'documents',    label: 'Documents',    icon: 'documents',  files: '2 files', size: '0.05 MB', value: 0.05 },
-  ];
+  /**
+   * Legend rows, largest first as the product orders them. Sizes are rounded to
+   * the two decimals the MB unit shows, and the donut hole prints the sum of
+   * those rounded rows so the total always equals what the legend adds up to.
+   */
+  readonly types: StorageType[] = CATEGORIES
+    .map(c => {
+      const docs = PERMITTED_DOCUMENTS.filter(d => c.types.includes(d.type));
+      const mb = Number((docs.reduce((acc, d) => acc + d.sizeKb, 0) / 1024).toFixed(2));
+      return {
+        key: c.key,
+        label: c.label,
+        icon: c.icon,
+        // The product writes "1 files" — keep its own phrasing.
+        files: docs.length + ' files',
+        size: mb.toFixed(2) + ' MB',
+        value: mb,
+      };
+    })
+    .filter(t => t.value > 0)
+    .sort((a, b) => b.value - a.value);
 
-  /** Donut dash geometry, derived from the captured per-type sizes. */
+  readonly totalMb = Number(this.types.reduce((acc, t) => acc + t.value, 0).toFixed(2));
+  readonly total = this.totalMb.toFixed(2) + ' MB';
+
+  /** Donut dash geometry, derived from the per-category sizes. */
   readonly segments: { key: string; dash: string; offset: number }[];
 
-  readonly gridLines = [4, 3, 2, 1, 0].map(mb => ({
-    y: CHART_ZERO_Y - mb * CHART_MB_STEP,
-    label: mb + ' MB',
+  /** y axis runs 0 → the next 4 MB step above the room total. */
+  readonly axisMax = Math.max(4, Math.ceil(this.totalMb / 4) * 4);
+
+  readonly gridLines = [4, 3, 2, 1, 0].map(quarter => ({
+    y: CHART_ZERO_Y - (quarter / 4) * CHART_HEIGHT,
+    label: (quarter * this.axisMax) / 4 + ' MB',
   }));
 
   readonly points = ['Aug 14', 'Aug 15', 'Aug 16', 'Aug 17', 'Aug 18', 'Aug 19', 'Aug 20'].map(
     (label, i) => ({
       label,
       x: CHART_FIRST_X + i * CHART_STEP_X,
-      y: CHART_ZERO_Y - CHART_VALUE * CHART_MB_STEP,
+      y: CHART_ZERO_Y - (this.totalMb / this.axisMax) * CHART_HEIGHT,
     }),
   );
 
   readonly linePoints = this.points.map(p => p.x + ',' + p.y).join(' ');
 
+  /** Per-folder totals, then the project root — which holds no loose files. */
   readonly rows = [
-    { index: '1', name: 'Get to know VDR', files: '7', size: '3.52 MB', project: false },
-    { index: '', name: 'test 2', files: '0', size: '< 0.01 MB', project: true },
+    ...FOLDER_ROLLUPS.map(r => ({
+      index: r.folder.index,
+      name: folderDisplayName(r.folder.name),
+      files: String(r.files),
+      size: (r.sizeKb / 1024).toFixed(2) + ' MB',
+      project: false,
+    })),
+    { index: '', name: MOCK_DATA_ROOM.name, files: '0', size: '< 0.01 MB', project: true },
   ];
 
   constructor() {

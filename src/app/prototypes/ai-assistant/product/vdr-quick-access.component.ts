@@ -1,6 +1,7 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DS_COMPONENTS, FvdrIconName } from '../../../shared/ds';
+import { MOCK_DATA_ROOM, MOCK_FOLDERS, MOCK_PROJECT_MARK } from '../data/mock-data';
 
 /** Row of the Quick access pane that renders as selected (tinted). */
 export type VdrQuickAccessRow = 'project' | 'recent' | 'uploads' | 'favorites';
@@ -40,16 +41,16 @@ export type VdrQuickAccessRow = 'project' | 'recent' | 'uploads' | 'favorites';
 
 <hr class="divider" />
 
-<!-- Project tree: project row + one child folder -->
+<!-- Project tree: project row + the room's top-level folders -->
 <button type="button" class="qa-row" [class.qa-row--selected]="selected === 'project'">
   <fvdr-icon name="chevron-down" class="qa-row__icon"></fvdr-icon>
   <span class="proj-mark">{{ projectMark }}</span>
   <span>{{ projectName }}</span>
 </button>
-<button type="button" class="qa-row qa-row--child">
+<button type="button" class="qa-row qa-row--child" *ngFor="let f of folders">
   <fvdr-icon name="chevron-right" class="qa-row__icon"></fvdr-icon>
   <span class="qa-row__icon"><fvdr-icon name="folder"></fvdr-icon></span>
-  <span>{{ folderName }}</span>
+  <span>{{ f.name }}</span>
 </button>
   `,
   styleUrls: ['./pages/vdr-page.css'],
@@ -59,9 +60,9 @@ export type VdrQuickAccessRow = 'project' | 'recent' | 'uploads' | 'favorites';
 })
 export class VdrQuickAccessComponent {
   @Input() selected: VdrQuickAccessRow = 'project';
-  @Input() projectName = 'test 2';
-  @Input() projectMark = 'T2';
-  @Input() folderName = '1 Get to know VDR';
+  @Input() projectName = MOCK_DATA_ROOM.name;
+  @Input() projectMark = MOCK_PROJECT_MARK;
+  @Input() folders = MOCK_FOLDERS;
 
   readonly shortcuts: { id: VdrQuickAccessRow; icon: FvdrIconName; label: string }[] = [
     { id: 'recent', icon: 'history', label: 'Recently viewed' },

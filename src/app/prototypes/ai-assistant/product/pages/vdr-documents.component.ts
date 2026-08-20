@@ -1,6 +1,8 @@
 import { Component, EventEmitter, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DS_COMPONENTS, TableColumn } from '../../../../shared/ds';
+import { FOLDER_ROLLUPS } from '../../data/mock-data';
+import { folderDisplayName, formatSizeKb } from '../../models/mock-doc.model';
 import { VdrActionBarComponent, VdrActionBarButton } from '../vdr-action-bar.component';
 import { VdrQuickAccessComponent } from '../vdr-quick-access.component';
 
@@ -9,7 +11,9 @@ import { VdrQuickAccessComponent } from '../vdr-quick-access.component';
  * page the assistant will most often be opened on top of.
  *
  * Two panes: the 325px Quick access panel and the document table with the
- * Customize columns affordance. Static content, inert controls — with one
+ * Customize columns affordance. Rows are the real data room's top-level folders
+ * (`data/mock-data.ts`), so the table behind the assistant lists exactly what
+ * the assistant cites. Inert controls — with one
  * exception: the row-hover "Ask AI" action, which emits the folder name so a
  * host can open its assistant already scoped to that folder. The replica itself
  * stays assistant-free (no services, no assistant components).
@@ -62,9 +66,9 @@ import { VdrQuickAccessComponent } from '../vdr-quick-access.component';
             <button
               type="button"
               class="icon-btn row-ask"
-              [attr.title]="'Ask AI about ' + row.name"
-              [attr.aria-label]="'Ask AI about ' + row.name"
-              (click)="askAiForFolder.emit(row.name)"
+              [attr.title]="'Ask AI about ' + row.fullName"
+              [attr.aria-label]="'Ask AI about ' + row.fullName"
+              (click)="askAiForFolder.emit(row.fullName)"
             >
               <fvdr-icon name="ai-assistant"></fvdr-icon>
             </button>
@@ -120,15 +124,19 @@ export class VdrDocumentsComponent {
     { key: 'actions', label: '', width: '56px', align: 'right' },
   ];
 
-  readonly rows = [
-    {
-      index: '1',
-      name: 'Get to know VDR',
-      size: '3.52 MB',
-      files: '7 files',
-      addedOn: 'Aug 14, 2026',
-      notes: '',
-      labels: '',
-    },
-  ];
+  /**
+   * One row per top-level folder, derived from the shared corpus. `name` drops
+   * the index prefix the way the product's Name column does, while `fullName`
+   * keeps it — that is the value the assistant scopes a chat on.
+   */
+  readonly rows = FOLDER_ROLLUPS.map(r => ({
+    index: r.folder.index,
+    name: folderDisplayName(r.folder.name),
+    fullName: r.folder.name,
+    size: formatSizeKb(r.sizeKb),
+    files: r.files + (r.files === 1 ? ' file' : ' files'),
+    addedOn: r.folder.addedOn,
+    notes: '',
+    labels: '',
+  }));
 }

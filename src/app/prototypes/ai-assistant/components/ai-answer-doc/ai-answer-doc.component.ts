@@ -2,7 +2,12 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DS_COMPONENTS } from '../../../../shared/ds';
 import { SingleDocAnswer } from '../../models/ai-scenario.model';
-import { MockDocument } from '../../models/mock-doc.model';
+import {
+  DOC_FILE_ICON,
+  MockDocType,
+  MockDocument,
+  docSizeMeta,
+} from '../../models/mock-doc.model';
 
 /** Single-document answer — citation card with metadata bullets. */
 @Component({
@@ -14,7 +19,7 @@ import { MockDocument } from '../../models/mock-doc.model';
       <p class="doc__intro" *ngIf="answer.intro">{{ answer.intro }}</p>
 
       <div class="doc__head">
-        <fvdr-file-icon [type]="answer.doc.type"></fvdr-file-icon>
+        <fvdr-file-icon [type]="fileIcon(answer.doc.type)"></fvdr-file-icon>
         <button type="button" class="doc__link" (click)="docOpened.emit(answer.doc)">
           {{ answer.doc.index }} {{ answer.doc.name }}
         </button>
@@ -29,7 +34,7 @@ import { MockDocument } from '../../models/mock-doc.model';
         </li>
         <li>
           <span class="doc__meta-key">Size:</span>
-          <span>{{ answer.doc.sizeLabel }} · {{ answer.doc.pages }} pages</span>
+          <span>{{ sizeMeta(answer.doc) }}</span>
         </li>
         <li>
           <span class="doc__meta-key">Added on:</span>
@@ -87,4 +92,14 @@ export class AiAnswerDocComponent {
   @Input({ required: true }) answer!: SingleDocAnswer;
   @Output() docOpened = new EventEmitter<MockDocument>();
   @Output() folderOpened = new EventEmitter<string>();
+
+  /** DS file-icon glyph for a document extension. */
+  fileIcon(type: MockDocType) {
+    return DOC_FILE_ICON[type];
+  }
+
+  /** "412.05 KB · 24 pages", or just the size when the file has no page count. */
+  sizeMeta(doc: MockDocument): string {
+    return docSizeMeta(doc);
+  }
 }

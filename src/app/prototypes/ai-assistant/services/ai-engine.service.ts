@@ -7,7 +7,7 @@ import {
   DdSection,
   SummaryGroup,
 } from '../models/ai-scenario.model';
-import { MockDocument } from '../models/mock-doc.model';
+import { MockDocument, docSizeMeta } from '../models/mock-doc.model';
 import { MOCK_DATA_ROOM, MOCK_DOCUMENTS, PERMITTED_DOCUMENTS } from '../data/mock-data';
 import { AiLlmService, LlmResult } from './ai-llm.service';
 
@@ -161,7 +161,7 @@ export class AiEngineService {
           answer.intro ?? '',
           `${d.index} ${d.name}`,
           `Location: ${d.folderPath}`,
-          `Size: ${d.sizeLabel} · ${d.pages} pages`,
+          `Size: ${docSizeMeta(d)}`,
           `Added on: ${d.addedOn}`,
           answer.followUp ?? '',
         );
@@ -172,7 +172,7 @@ export class AiEngineService {
         for (const d of answer.docs) {
           lines.push(answer.variant === 'signatures'
             ? `${d.name}\t${d.folderPath}\t${d.signatureStatus}\t${d.addedOn}`
-            : `${d.index}\t${d.name}\t${d.folderPath}\t${d.sizeLabel} · ${d.pages} pages\t${d.addedOn}`);
+            : `${d.index}\t${d.name}\t${d.folderPath}\t${docSizeMeta(d)}\t${d.addedOn}`);
         }
         lines.push(answer.followUp ?? '');
         break;

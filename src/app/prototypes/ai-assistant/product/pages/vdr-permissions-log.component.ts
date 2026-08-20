@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DS_COMPONENTS, DropdownOption } from '../../../../shared/ds';
+import { MOCK_DATA_ROOM, MOCK_FOLDERS, MOCK_PROJECT_MARK } from '../../data/mock-data';
 import { VdrEmptyStateComponent } from '../vdr-empty-state.component';
 
 /**
@@ -50,13 +51,13 @@ import { VdrEmptyStateComponent } from '../vdr-empty-state.component';
         <div class="perm__tree">
           <button type="button" class="qa-row qa-row--selected">
             <fvdr-icon name="chevron-down" class="qa-row__icon"></fvdr-icon>
-            <span class="proj-mark">T2</span>
-            <span>test 2</span>
+            <span class="proj-mark">{{ projectMark }}</span>
+            <span>{{ projectName }}</span>
           </button>
-          <button type="button" class="qa-row qa-row--child">
+          <button type="button" class="qa-row qa-row--child" *ngFor="let f of folders">
             <fvdr-icon name="chevron-right" class="qa-row__icon"></fvdr-icon>
             <span class="qa-row__icon"><fvdr-icon name="folder"></fvdr-icon></span>
-            <span>1 Get to know VDR</span>
+            <span>{{ f.name }}</span>
           </button>
         </div>
       </div>
@@ -94,6 +95,11 @@ import { VdrEmptyStateComponent } from '../vdr-empty-state.component';
   `],
 })
 export class VdrPermissionsLogComponent {
+  /** Project tree — the same room the assistant answers from. */
+  readonly projectName = MOCK_DATA_ROOM.name;
+  readonly projectMark = MOCK_PROJECT_MARK;
+  readonly folders = MOCK_FOLDERS;
+
   readonly groupOptions: DropdownOption[] = [
     { value: 'admins', label: 'Administrators' },
   ];

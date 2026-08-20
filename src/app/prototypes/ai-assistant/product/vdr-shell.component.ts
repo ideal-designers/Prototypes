@@ -20,6 +20,7 @@ import {
   VdrPageId,
   VdrRailItem,
 } from './data/product-nav';
+import { MOCK_DATA_ROOM } from '../data/mock-data';
 
 /**
  * Real-product VDR shell — 72px icon-only rail + 64px top bar, with the page
@@ -248,7 +249,7 @@ export class VdrShellComponent implements OnInit, OnChanges, AfterContentChecked
   /** Current page — the host owns it. */
   @Input() page: VdrPageId = 'documents';
   /** Project name, shown as the rail logo tooltip. */
-  @Input() projectName = 'test 2';
+  @Input() projectName = MOCK_DATA_ROOM.name;
   /** Signed-in user's initials, top-right avatar. */
   @Input() userInitials = 'DS';
   /**

@@ -2,7 +2,12 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DS_COMPONENTS, StatusVariant, TableColumn } from '../../../../shared/ds';
 import { TableAnswer } from '../../models/ai-scenario.model';
-import { MockDocument } from '../../models/mock-doc.model';
+import {
+  DOC_FILE_ICON,
+  MockDocType,
+  MockDocument,
+  docSizeMeta,
+} from '../../models/mock-doc.model';
 
 interface DocPreview {
   doc: MockDocument;
@@ -22,7 +27,7 @@ interface DocPreview {
       <fvdr-table [columns]="columns" [data]="answer.docs">
         <ng-template fvdrCell="name" let-value let-row="row">
           <span class="res__name">
-            <fvdr-file-icon [type]="row.type"></fvdr-file-icon>
+            <fvdr-file-icon [type]="fileIcon(row.type)"></fvdr-file-icon>
             <button
               type="button"
               class="res__link"
@@ -39,8 +44,10 @@ interface DocPreview {
           </button>
         </ng-template>
 
-        <ng-template fvdrCell="sizeLabel" let-value let-row="row">
-          {{ value }} · {{ row.pages }} pages
+        <!-- Video has no page count — sizeMeta drops the separator instead of
+             rendering a dangling "·". -->
+        <ng-template fvdrCell="sizeLabel" let-row="row">
+          {{ sizeMeta(row) }}
         </ng-template>
 
         <ng-template fvdrCell="signatureStatus" let-value>
@@ -58,11 +65,11 @@ interface DocPreview {
       [style.top.px]="p.top"
       [style.left.px]="p.left"
     >
-      <div class="preview__thumb"><fvdr-file-icon [type]="p.doc.type"></fvdr-file-icon></div>
+      <div class="preview__thumb"><fvdr-file-icon [type]="fileIcon(p.doc.type)"></fvdr-file-icon></div>
       <div class="preview__body">
         <span class="preview__title">{{ p.doc.name }}</span>
         <span class="preview__row">Location: {{ p.doc.folderPath }}</span>
-        <span class="preview__row">Size: {{ p.doc.sizeLabel }} · {{ p.doc.pages }} pages</span>
+        <span class="preview__row">Size: {{ sizeMeta(p.doc) }}</span>
         <span class="preview__row">Added on: {{ p.doc.addedOn }}</span>
       </div>
     </div>
@@ -166,6 +173,16 @@ export class AiAnswerTableComponent {
     const signatures = this.answer.variant === 'signatures';
     if (this.compact) return signatures ? this.compactSignatureColumns : this.compactColumns;
     return signatures ? this.signatureColumns : this.defaultColumns;
+  }
+
+  /** DS file-icon glyph for a document extension. */
+  fileIcon(type: MockDocType) {
+    return DOC_FILE_ICON[type];
+  }
+
+  /** "412.05 KB · 24 pages", or just the size when the file has no page count. */
+  sizeMeta(doc: MockDocument): string {
+    return docSizeMeta(doc);
   }
 
   /** "0/2 signed" reads as blocking, "1/2 signed" as in progress. */

@@ -2,7 +2,11 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DS_COMPONENTS } from '../../../../shared/ds';
 import { SummaryAnswer } from '../../models/ai-scenario.model';
-import { MockDocument } from '../../models/mock-doc.model';
+import {
+  DOC_FILE_ICON,
+  MockDocType,
+  MockDocument,
+} from '../../models/mock-doc.model';
 
 /** Scenario B — overview paragraph + grouped key points, each citing its source. */
 @Component({
@@ -15,7 +19,7 @@ import { MockDocument } from '../../models/mock-doc.model';
 
       <section class="sum__group" *ngFor="let g of answer.groups">
         <h4 class="sum__title">
-          <fvdr-file-icon [type]="g.titleDoc ? g.titleDoc.type : 'folder'"></fvdr-file-icon>
+          <fvdr-file-icon [type]="g.titleDoc ? fileIcon(g.titleDoc.type) : 'folder'"></fvdr-file-icon>
           <button type="button" class="sum__link" (click)="onTitleClick(g.title, g.titleDoc)">
             {{ g.title }}
           </button>
@@ -25,7 +29,7 @@ import { MockDocument } from '../../models/mock-doc.model';
           <li *ngFor="let p of g.points">
             <span class="sum__text">{{ p.text }}</span>
             <button type="button" class="sum__cite" (click)="docOpened.emit(p.source)">
-              <fvdr-file-icon [type]="p.source.type"></fvdr-file-icon>
+              <fvdr-file-icon [type]="fileIcon(p.source.type)"></fvdr-file-icon>
               <span>{{ p.source.name }}</span>
             </button>
           </li>
@@ -95,6 +99,11 @@ export class AiAnswerSummaryComponent {
   @Output() docOpened = new EventEmitter<MockDocument>();
   @Output() folderOpened = new EventEmitter<string>();
   @Output() exported = new EventEmitter<void>();
+
+  /** DS file-icon glyph for a document extension. */
+  fileIcon(type: MockDocType) {
+    return DOC_FILE_ICON[type];
+  }
 
   onTitleClick(title: string, doc?: MockDocument): void {
     doc ? this.docOpened.emit(doc) : this.folderOpened.emit(title);
