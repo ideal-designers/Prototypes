@@ -66,7 +66,7 @@ import { AiFloatingComponent } from '../../shells/ai-floating.component';
                 [attr.title]="'Ask AI about ' + value"
                 (click)="openFloatingForFolderName(value)"
               >
-                <fvdr-icon name="ai-assistant"></fvdr-icon>
+                <fvdr-icon name="ideon"></fvdr-icon>
                 <span>Ask AI</span>
               </button>
             </span>

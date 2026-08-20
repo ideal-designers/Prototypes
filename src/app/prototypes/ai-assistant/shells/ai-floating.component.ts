@@ -23,11 +23,11 @@ const WIN_HEIGHT = 560;
         <span class="win__title" [attr.title]="conv.seededTitle()">{{ conv.seededTitle() }}</span>
 
         <button type="button" class="win__btn" title="New chat" (click)="conv.newChat()">
-          <fvdr-icon name="note-add"></fvdr-icon>
+          <fvdr-icon name="new-session"></fvdr-icon>
         </button>
         <!-- Glyph shows the current display mode; clicking docks the chat to the side. -->
         <button type="button" class="win__btn" title="Dock to the side panel" (click)="conv.setShell('sidebar')">
-          <fvdr-icon name="panel-window"></fvdr-icon>
+          <fvdr-icon name="floating-mode"></fvdr-icon>
         </button>
         <button type="button" class="win__btn" title="Close" (click)="conv.setShell('documents')">
           <fvdr-icon name="close"></fvdr-icon>

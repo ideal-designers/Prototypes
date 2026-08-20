@@ -41,7 +41,6 @@ import { FvdrIconComponent } from '../../icons/icon.component';
     >
       <span class="ideon__shine" aria-hidden="true"></span>
       <span class="ideon__content">
-        <fvdr-icon name="ideon" class="ideon__icon" />
         <span class="ideon__label">{{ label }}</span>
       </span>
     </button>
@@ -138,11 +137,7 @@ import { FvdrIconComponent } from '../../icons/icon.component';
       align-items: center;
       gap: var(--space-2);
     }
-    /* The Ideon mark carries the brand gradient, so it does not inherit color. */
-    .ideon__icon {
-      display: inline-flex;
-      font-size: var(--font-size-lg, 16px);
-    }
+    /* Label only — the gradient surface carries the brand, so no glyph is needed. */
     .ideon__label {
       font-size: var(--font-size-base, 14px);
       font-weight: var(--font-weight-semi, 600);

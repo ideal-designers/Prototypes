@@ -18,11 +18,11 @@ import { AiConversationComponent } from '../components/ai-conversation/ai-conver
         <span class="panel__title" [attr.title]="conv.seededTitle()">{{ conv.seededTitle() }}</span>
 
         <button type="button" class="panel__btn" title="New chat" (click)="conv.newChat()">
-          <fvdr-icon name="note-add"></fvdr-icon>
+          <fvdr-icon name="new-session"></fvdr-icon>
         </button>
         <!-- Glyph shows the current display mode; clicking undocks the chat. -->
         <button type="button" class="panel__btn" title="Undock to a floating window" (click)="conv.setShell('floating')">
-          <fvdr-icon name="panel-right"></fvdr-icon>
+          <fvdr-icon name="sidebar-mode"></fvdr-icon>
         </button>
         <button type="button" class="panel__btn" title="Close" (click)="conv.setShell('documents')">
           <fvdr-icon name="close"></fvdr-icon>
