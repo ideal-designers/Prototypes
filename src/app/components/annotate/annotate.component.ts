@@ -280,7 +280,7 @@ function kindTitle(kind: AnnotationKind): string {
       height: 18px;
       padding: 0 4px;
       border-radius: 9px;
-      background: #E54430;
+      background: var(--color-error-600, #E54430);
       color: #fff;
       font-size: 0.7rem;
       line-height: 18px;
@@ -513,8 +513,8 @@ function kindTitle(kind: AnnotationKind): string {
       color: #fff;
     }
     .annotate-popover__delete {
-      color: #E54430;
-      border-color: #E54430;
+      color: var(--color-error-600, #E54430);
+      border-color: var(--color-error-600, #E54430);
     }
   `],
 })

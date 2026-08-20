@@ -18,6 +18,9 @@ const SRC_DIR = path.resolve(__dirname, '../src');
 const IGNORE_PATHS = [
   'tokens.css',
   path.join('src', 'styles.css'), // global dark-background styles intentionally hardcoded
+  // Internal dev tool, not product UI: its own dark chrome and annotation-marker
+  // category colors deliberately sit outside the product palette.
+  path.join('src', 'app', 'components', 'annotate', 'annotate.component.ts'),
 ];
 const IGNORE_PATH_PATTERNS = [
   /specs\//,
