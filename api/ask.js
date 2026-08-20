@@ -79,6 +79,39 @@ ${catalogue}
 User question: ${query}`;
 }
 
+/**
+ * Pulls the generated text out of either API's response shape. Interactions returns
+ * `output_text`; :generateContent nests it under candidates. Some responses put the
+ * text in an output/content array instead, so walk that too before giving up.
+ */
+function extractText(json) {
+  if (!json || typeof json !== 'object') return null;
+  if (typeof json.output_text === 'string' && json.output_text) return json.output_text;
+
+  const candidate = json.candidates?.[0]?.content?.parts?.[0]?.text;
+  if (typeof candidate === 'string' && candidate) return candidate;
+
+  // Interactions nests the reply under `steps`, and the exact nesting is not
+  // something to hard-code against — walk for `text` values and prefer the one
+  // that parses as JSON, since that is what the response schema asked for.
+  const found = [];
+  const walk = (node, depth) => {
+    if (!node || depth > 6 || found.length > 20) return;
+    if (Array.isArray(node)) {
+      node.forEach((n) => walk(n, depth + 1));
+      return;
+    }
+    if (typeof node !== 'object') return;
+    if (typeof node.text === 'string' && node.text.trim()) found.push(node.text.trim());
+    for (const value of Object.values(node)) {
+      if (value && typeof value === 'object') walk(value, depth + 1);
+    }
+  };
+  walk(json, 0);
+
+  return found.find((t) => t.startsWith('{')) ?? found[0] ?? null;
+}
+
 /** Newer Interactions API. */
 async function callInteractions(key, prompt) {
   const res = await fetch(`${BASE}/interactions`, {
@@ -90,9 +123,9 @@ async function callInteractions(key, prompt) {
       response_format: { type: 'text', mime_type: 'application/json', schema: SCHEMA },
     }),
   });
-  if (!res.ok) throw new Error(`interactions ${res.status}`);
-  const json = await res.json();
-  return json.output_text ?? json.candidates?.[0]?.content?.parts?.[0]?.text ?? null;
+  const text = await res.text();
+  if (!res.ok) throw new Error(`interactions ${res.status} ${text.slice(0, 300)}`);
+  return { json: JSON.parse(text) };
 }
 
 /** Classic :generateContent path. */
@@ -110,9 +143,9 @@ async function callGenerateContent(key, prompt) {
       },
     }),
   });
-  if (!res.ok) throw new Error(`generateContent ${res.status} ${await res.text()}`);
-  const json = await res.json();
-  return json.candidates?.[0]?.content?.parts?.[0]?.text ?? json.output_text ?? null;
+  const text = await res.text();
+  if (!res.ok) throw new Error(`generateContent ${res.status} ${text.slice(0, 300)}`);
+  return { json: JSON.parse(text) };
 }
 
 module.exports = async (req, res) => {
@@ -147,13 +180,22 @@ module.exports = async (req, res) => {
   const permitted = new Set(documents.map((d) => d.id));
 
   try {
-    let raw;
-    try {
-      raw = await callInteractions(key, prompt);
-    } catch {
-      raw = await callGenerateContent(key, prompt);
+    // Try Interactions, then :generateContent. Fall through when a call succeeds
+    // but yields no usable text, not only when it throws.
+    const attempts = [];
+    let raw = null;
+    for (const call of [callInteractions, callGenerateContent]) {
+      const t0 = Date.now();
+      try {
+        const { json } = await call(key, prompt);
+        raw = extractText(json);
+        if (raw) break;
+        attempts.push(`${call.name}: 200 no text in ${Date.now() - t0}ms (keys: ${Object.keys(json).join(',')})`);
+      } catch (e) {
+        attempts.push(`${call.name}: ${e.message} (${Date.now() - t0}ms)`);
+      }
     }
-    if (!raw) throw new Error('Model returned no text');
+    if (!raw) throw new Error(attempts.join(' | '));
 
     const parsed = JSON.parse(raw);
     res.status(200).json({

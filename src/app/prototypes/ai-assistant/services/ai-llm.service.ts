@@ -53,8 +53,10 @@ export class AiLlmService {
       });
 
       if (!res.ok) {
-        // 503 means no key is configured — stop trying for the rest of the session.
-        if (res.status === 503) this.unavailable = true;
+        // 503 = no key configured. 502 usually wraps an upstream 429 (the free tier's
+        // quota is tight). Either way, stop calling for the rest of the session rather
+        // than making every later question wait on a doomed request.
+        if (res.status === 503 || res.status === 502) this.unavailable = true;
         return null;
       }
 
