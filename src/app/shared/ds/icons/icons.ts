@@ -176,6 +176,11 @@ export type FvdrIconName =
   | 'new-session'
   | 'floating-mode'
   | 'sidebar-mode'
+  // ── Product parity — glyphs the live VDR uses that the DS lacked ──
+  | 'nav-checklist'
+  | 'app-download'
+  | 'chart-bar'
+  | 'chart-line'
 ;
 
 export const FVDR_ICONS: Record<FvdrIconName, string> = {
@@ -367,4 +372,12 @@ export const FVDR_ICONS: Record<FvdrIconName, string> = {
   'new-session': `<svg viewBox="0 0 16 16" fill="none"><path d="M6 2.5H2C1.72386 2.5 1.5 2.72386 1.5 3V14C1.5 14.2761 1.72386 14.5 2 14.5H13C13.2761 14.5 13.5 14.2761 13.5 14V10H15V14C15 15.0357 14.2128 15.887 13.2041 15.9893L13 16H2L1.7959 15.9893C0.854346 15.8938 0.1062 15.1457 0.0107422 14.2041L0 14V3C0 1.89543 0.895431 1 2 1H6V2.5ZM12.25 3.75H16V5.25H12.25V9H10.75V5.25H7V3.75H10.75V0H12.25V3.75Z" fill="currentColor"/></svg>`,
   'floating-mode': `<svg viewBox="0 0 16 16" fill="none"><rect x="1.25" y="1.25" width="13.5" height="13.5" rx="1" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="9" y="9" width="4" height="4" fill="currentColor"/></svg>`,
   'sidebar-mode': `<svg viewBox="0 0 16 16" fill="none"><path d="M15.5 0.5V15.5H0.5V0.5H15.5ZM1 15H10.25V1H1V15ZM10.75 15H15V1H10.75V15Z" fill="currentColor" stroke="currentColor"/><line x1="12" y1="3.5" x2="14" y2="3.5" stroke="currentColor"/><line x1="12" y1="6.5" x2="14" y2="6.5" stroke="currentColor"/><line x1="12" y1="9.5" x2="14" y2="9.5" stroke="currentColor"/><line x1="12" y1="12.5" x2="14" y2="12.5" stroke="currentColor"/></svg>`,
+  // ── Product parity — glyphs the live VDR uses that the DS lacked ────────────
+  // Left-rail due-diligence checklist: list lines with a check mark (24x24).
+  'nav-checklist': `<svg viewBox="0 0 24 24" fill="none"><path d="M3 5H14V7H3V5ZM3 11H12V13H3V11ZM3 17H10V19H3V17ZM21.4 8.6L15.9 14.1L13.1 11.3L11.7 12.7L15.9 16.9L22.8 10L21.4 8.6Z" fill="currentColor"/></svg>`,
+  // Top-bar "Download application": tablet with a down arrow (16x16).
+  'app-download': `<svg viewBox="0 0 16 16" fill="none"><path d="M3.5 1H12.5C13.3284 1 14 1.67157 14 2.5V13.5C14 14.3284 13.3284 15 12.5 15H3.5C2.67157 15 2 14.3284 2 13.5V2.5C2 1.67157 2.67157 1 3.5 1ZM3.5 2.2C3.33431 2.2 3.2 2.33431 3.2 2.5V13.5C3.2 13.6657 3.33431 13.8 3.5 13.8H12.5C12.6657 13.8 12.8 13.6657 12.8 13.5V2.5C12.8 2.33431 12.6657 2.2 12.5 2.2H3.5ZM6.8 4H9.2V8.1H11L8 11.4L5 8.1H6.8V4Z" fill="currentColor"/></svg>`,
+  // Chart-type toggles on dashboard / report cards (16x16).
+  'chart-bar': `<svg viewBox="0 0 16 16" fill="none"><path d="M1 13.5H15V15H1V13.5ZM2.5 7H5V12H2.5V7ZM6.5 1H9V12H6.5V1ZM10.5 4.5H13V12H10.5V4.5Z" fill="currentColor"/></svg>`,
+  'chart-line': `<svg viewBox="0 0 16 16" fill="none"><path d="M1 13.5H15V15H1V13.5ZM14.2 2.5L15.1 3.6L9.7 8L6.6 5.9L2.3 10.4L1.2 9.4L6.4 4L9.5 6.1L14.2 2.5Z" fill="currentColor"/></svg>`,
 };

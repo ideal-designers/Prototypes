@@ -25,8 +25,16 @@ const WIN_HEIGHT = 560;
         <button type="button" class="win__btn" title="New chat" (click)="conv.newChat()">
           <fvdr-icon name="new-session"></fvdr-icon>
         </button>
-        <!-- Glyph shows the current display mode; clicking docks the chat to the side. -->
-        <button type="button" class="win__btn" title="Dock to the side panel" (click)="conv.setShell('sidebar')">
+        <!-- Glyph shows the current display mode; clicking docks the chat to the side.
+             Hidden below the docking breakpoint — there is no room for a drawer, so
+             offering a toggle that silently does nothing would be worse than no toggle. -->
+        <button
+          *ngIf="conv.canDock()"
+          type="button"
+          class="win__btn"
+          title="Dock to the side panel"
+          (click)="conv.setShell('sidebar')"
+        >
           <fvdr-icon name="floating-mode"></fvdr-icon>
         </button>
         <button type="button" class="win__btn" title="Close" (click)="conv.setShell('documents')">

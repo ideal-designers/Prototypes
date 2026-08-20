@@ -47,7 +47,7 @@ import type { ComponentDocEntry } from './ds-registry';
           <p class="showcase__subtitle">All components in one place · Figma: <a href="https://www.figma.com/design/liyNDiFf1piO8SQmHNKoeU" target="_blank">liyNDiFf1piO8SQmHNKoeU</a></p>
           <div class="showcase__stats">
             <span class="showcase__stat"><b>42</b> components</span>
-            <span class="showcase__stat"><b>170</b> icons</span>
+            <span class="showcase__stat"><b>174</b> icons</span>
             <span class="showcase__stat"><b>6</b> categories</span>
           </div>
         </div>
@@ -672,7 +672,7 @@ import type { ComponentDocEntry } from './ds-registry';
 
         <!-- ── ICONS ── -->
         <section class="section" id="icons">
-          <h2 class="section__title">Icons (110)</h2>
+          <h2 class="section__title">Icons (114)</h2>
           <div class="section__desc">Figma: node 15846-7469</div>
           <div class="icons-grid">
             <div *ngFor="let icon of iconNames" class="icon-item">
@@ -1261,5 +1261,7 @@ export class DsShowcaseComponent implements OnInit, OnDestroy {
     'ideon','ideon-default',
     // 24x24 — Theme
     'help','theme-dark','theme-light',
+    // Product parity — glyphs used by the live VDR replica
+    'nav-checklist','app-download','chart-bar','chart-line',
   ];
 }

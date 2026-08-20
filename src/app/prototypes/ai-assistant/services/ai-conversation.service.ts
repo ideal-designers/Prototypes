@@ -7,6 +7,12 @@ import { MOCK_DATA_ROOM, MOCK_RECENTS } from '../data/mock-data';
 let seq = 0;
 const uid = (prefix: string): string => `${prefix}-${Date.now().toString(36)}-${++seq}`;
 
+/**
+ * Viewport width at which docked (drawer) mode becomes available. Below it the
+ * assistant is floating-only. Matches the design system's desktop breakpoint.
+ */
+export const BP_DOCKABLE = 1440;
+
 /** Which shell is currently rendered. `documents` = mock host page with no assistant open. */
 export type AiShell = 'fullscreen' | 'documents' | 'sidebar' | 'floating';
 
@@ -44,10 +50,29 @@ export class AiConversationService {
 
   readonly isEmpty = computed(() => this.messages().length === 0);
 
+  // ── Viewport / mode availability ──
+
+  /**
+   * Docked (drawer) mode needs room for the Documents table to stay usable beside
+   * a 400px panel, so it only unlocks at the desktop breakpoint. Below that the
+   * assistant is floating-only and the mode toggle is not offered at all.
+   */
+  readonly viewportWidth = signal(
+    typeof window === 'undefined' ? BP_DOCKABLE : window.innerWidth,
+  );
+  readonly canDock = computed(() => this.viewportWidth() >= BP_DOCKABLE);
+
+  setViewportWidth(width: number): void {
+    this.viewportWidth.set(width);
+    // Dropping below the breakpoint while docked falls back to floating.
+    if (!this.canDock() && this.shell() === 'sidebar') this.shell.set('floating');
+  }
+
   // ── Shell / theme ──
 
   setShell(shell: AiShell): void {
-    this.shell.set(shell);
+    // Guard the transition itself, so no caller can dock a viewport that can't.
+    this.shell.set(shell === 'sidebar' && !this.canDock() ? 'floating' : shell);
   }
 
   toggleDark(): void {
