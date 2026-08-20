@@ -294,6 +294,10 @@
   --gradient-ideon-3: #2C9C74;  /* brand green */
   --gradient-ideon-4: #FF8FB1;  /* rose   */
 
+  /* Plate behind the Ideon mark. The mark's gradient is fixed pastel, so this must
+     stay dark in BOTH themes — a theme-flipping token turns the mark invisible. */
+  --ideon-plate: #1F2129;
+
   --ideon-surface:            rgba(255, 255, 255, 0.62);
   --ideon-surface-hover:      rgba(255, 255, 255, 0.5);
   --ideon-border:             rgba(255, 255, 255, 0.75);
@@ -314,6 +318,9 @@
 }
 
 .dark-theme {
+  /* Lifted off the dark page background so the disc still reads as a plate. */
+  --ideon-plate: #33363F;
+
   --ideon-surface:            rgba(41, 45, 47, 0.55);
   --ideon-surface-hover:      rgba(41, 45, 47, 0.42);
   --ideon-border:             rgba(255, 255, 255, 0.16);

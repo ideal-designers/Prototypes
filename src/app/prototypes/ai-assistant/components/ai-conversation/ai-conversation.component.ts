@@ -72,11 +72,14 @@ import { AiComposerComponent } from '../ai-composer/ai-composer.component';
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       gap: var(--space-4); padding: var(--space-8) 0;
     }
+    /* The Ideon gradient is pastel — only ~1.3-1.7:1 against white, so it needs a
+       dark plate at hero size to read. On the small nav/header placements the mark
+       sits directly on the surface. */
     .empty__mark {
       display: inline-flex; align-items: center; justify-content: center;
       width: 48px; height: 48px; border-radius: var(--radius-full);
-      background: var(--color-primary-50); color: var(--color-primary-500);
-      font-size: var(--font-size-2xl, 20px);
+      background: var(--ideon-plate, #1F2129);
+      font-size: 26px;
     }
     .empty__title {
       margin: 0;
