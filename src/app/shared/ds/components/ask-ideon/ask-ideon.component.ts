@@ -41,7 +41,7 @@ import { FvdrIconComponent } from '../../icons/icon.component';
     >
       <span class="ideon__shine" aria-hidden="true"></span>
       <span class="ideon__content">
-        <fvdr-icon name="ai-assistant" class="ideon__icon" />
+        <fvdr-icon name="ideon" class="ideon__icon" />
         <span class="ideon__label">{{ label }}</span>
       </span>
     </button>
@@ -138,10 +138,10 @@ import { FvdrIconComponent } from '../../icons/icon.component';
       align-items: center;
       gap: var(--space-2);
     }
+    /* The Ideon mark carries the brand gradient, so it does not inherit color. */
     .ideon__icon {
       display: inline-flex;
       font-size: var(--font-size-lg, 16px);
-      color: var(--color-primary-500);
     }
     .ideon__label {
       font-size: var(--font-size-base, 14px);

@@ -14,7 +14,7 @@ export function vdrNavItems(activeId: string): SidebarNavItem[] {
   const items: SidebarNavItem[] = [
     { id: 'dashboard', label: 'Dashboard', icon: 'nav-overview', iconActive: 'nav-overview-active' },
     { id: 'documents', label: 'Documents', icon: 'nav-projects', iconActive: 'nav-projects-active' },
-    { id: 'ai', label: 'AI Assistant', icon: 'ai-assistant', iconActive: 'ai-assistant' },
+    { id: 'ai', label: 'AI Assistant', icon: 'ideon-default', iconActive: 'ideon' },
     { id: 'participants', label: 'Participants', icon: 'nav-participants', iconActive: 'nav-participants-active' },
     { id: 'permissions', label: 'Permissions', icon: 'nav-permissions', iconActive: 'nav-permissions-active' },
     { id: 'qa', label: 'Q&A', icon: 'nav-qa', iconActive: 'nav-qa-active' },

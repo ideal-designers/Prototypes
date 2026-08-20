@@ -47,7 +47,7 @@ import type { ComponentDocEntry } from './ds-registry';
           <p class="showcase__subtitle">All components in one place · Figma: <a href="https://www.figma.com/design/liyNDiFf1piO8SQmHNKoeU" target="_blank">liyNDiFf1piO8SQmHNKoeU</a></p>
           <div class="showcase__stats">
             <span class="showcase__stat"><b>42</b> components</span>
-            <span class="showcase__stat"><b>163</b> icons</span>
+            <span class="showcase__stat"><b>167</b> icons</span>
             <span class="showcase__stat"><b>6</b> categories</span>
           </div>
         </div>
@@ -1252,8 +1252,12 @@ export class DsShowcaseComponent implements OnInit, OnDestroy {
     'admins','branding',
     // 16x16 — AI assistant
     'mic','send','thumbs-up','thumbs-down','refresh','add-project',
+    // 16x16 — assistant display modes
+    'panel-right','panel-window',
     // 24x24 — AI assistant sparkle
     'ai-assistant',
+    // 20x20 — Ideon mark: brand-gradient (always-on) + colour-inheriting default
+    'ideon','ideon-default',
     // 24x24 — Theme
     'help','theme-dark','theme-light',
   ];
