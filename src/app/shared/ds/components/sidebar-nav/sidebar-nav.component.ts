@@ -49,7 +49,8 @@ const VARIANT_CONFIG: Record<SidebarNavVariant, { bg: string; label: string }> =
  *
  * ── TABLET (1024–1439px) ──────────────────────────────────────
  *   Defaults to icon-only (72px). On hover the sidebar expands as an
- *   overlay (fixed position) — it does NOT push the page content.
+ *   overlay (fixed position) — it does NOT push or pull the page content:
+ *   a 72px spacer holds the rail's slot in the flex row while it floats.
  *   Click the arrow button to PIN the sidebar open (locks it expanded
  *   and it becomes part of the layout flow at 280px again).
  *   Click the arrow again to un-pin (back to icon-only hover mode).
@@ -94,6 +95,13 @@ const VARIANT_CONFIG: Record<SidebarNavVariant, { bg: string; label: string }> =
     ></div>
 
     <!-- ═══ SIDEBAR PANEL ══════════════════════════════════════ -->
+    <!--
+      While the nav is a fixed overlay it leaves the flex row, so without this the
+      content beside it would jump 72px left on hover. The spacer holds the
+      collapsed rail's place. Mobile never overlays in flow, so it gets none.
+    -->
+    <div class="sidebar-spacer" *ngIf="isOverlay" aria-hidden="true"></div>
+
     <nav
       class="sidebar"
       [class.sidebar--collapsed]="isVisuallyCollapsed"
@@ -276,6 +284,13 @@ const VARIANT_CONFIG: Record<SidebarNavVariant, { bg: string; label: string }> =
     .sidebar--collapsed {
       width: 72px;
       min-width: 72px;
+    }
+
+    /* Keeps the collapsed rail's 72px slot while the nav floats above content. */
+    .sidebar-spacer {
+      width: 72px;
+      min-width: 72px;
+      flex-shrink: 0;
     }
 
     /* Overlay: position fixed, no layout impact, appears above content */
@@ -466,6 +481,14 @@ export class SidebarNavComponent implements OnInit {
   pinned = false;
   /** Mobile: overlay is open */
   mobileOpen = false;
+  /**
+   * Set by the arrow button, cleared when the pointer really leaves the panel.
+   * Collapsing removes the arrow from under the cursor, so the browser re-runs
+   * hit testing and fires a fresh mouseenter on the panel at the same point —
+   * with `collapsed` now true, the hover peek would immediately reopen it as a
+   * 280px overlay and the click would look like it did nothing.
+   */
+  private hoverLocked = false;
 
   constructor(readonly cdr: ChangeDetectorRef) {}
 
@@ -482,7 +505,9 @@ export class SidebarNavComponent implements OnInit {
     else                      this.mode = 'mobile';
 
     // Reset tablet state when leaving tablet mode
-    if (prev !== this.mode) { this.hovered = false; this.pinned = false; this.mobileOpen = false; }
+    if (prev !== this.mode) {
+      this.hovered = false; this.pinned = false; this.mobileOpen = false; this.hoverLocked = false;
+    }
     this.cdr.markForCheck();
   }
 
@@ -517,6 +542,8 @@ export class SidebarNavComponent implements OnInit {
 
   onMouseEnter(): void {
     if (this.mode === 'mobile') return;
+    // A synthetic enter from the arrow button vanishing under the cursor.
+    if (this.hoverLocked) return;
     // Desktop: expand on hover only when collapsed
     if (this.mode === 'desktop' && !this.collapsed) return;
     if (!this.pinned) {
@@ -527,6 +554,8 @@ export class SidebarNavComponent implements OnInit {
 
   onMouseLeave(): void {
     if (this.mode === 'mobile') return;
+    // The pointer is off the panel, so the next enter is a real one again.
+    this.hoverLocked = false;
     if (!this.pinned) {
       this.hovered = false;
       this.cdr.markForCheck();
@@ -534,6 +563,7 @@ export class SidebarNavComponent implements OnInit {
   }
 
   toggleCollapse(): void {
+    this.hoverLocked = true;
     if (this.mode === 'desktop') {
       // If currently hovering over collapsed sidebar → expand permanently
       if (this.hovered && this.collapsed) {

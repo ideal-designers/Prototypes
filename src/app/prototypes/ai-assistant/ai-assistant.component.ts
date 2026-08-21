@@ -45,6 +45,7 @@ import { VDR_PRODUCT_COMPONENTS, VdrPageId } from './product';
            stays available for a panel that overlays instead of docking. -->
       <fvdr-vdr-shell
         [page]="page()"
+        [collapseNav]="conv.shell() === 'sidebar'"
         (pageChange)="page.set($event)"
         (themeToggle)="conv.toggleDark()"
         (askAiForFolder)="openFloatingForFolder($event)"

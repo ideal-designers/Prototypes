@@ -1556,6 +1556,13 @@ const sidebarNav: ComponentDocEntry = {
     { index: 4, part: 'Bottom bar',        spec: 'height: 64px · ideals. logo + collapse button' },
     { index: 5, part: 'Overflow',          spec: 'rows keep their height; the item list scrolls when the set is taller than the sidebar' },
   ],
+  states: [
+    { name: 'Expanded (280px)', description: 'Default at desktop (≥1440px) and when pinned at tablet. Part of the layout flow, so the page content starts at 280px.' },
+    { name: 'Collapsed (72px)', description: 'Icon-only rail. Desktop: the arrow button toggles it and the parent keeps the state via [(collapsed)]. Tablet (1024–1439px): the resting state.' },
+    { name: 'Hover peek (overlay)', description: 'Hovering a collapsed rail floats it open at 280px as position: fixed. A 72px spacer keeps the rail\'s slot, so the page content does not shift.' },
+    { name: 'After the arrow click', description: 'Collapsing removes the arrow from under the cursor, so hover is ignored until the pointer leaves the panel — the click cannot bounce straight back into a hover peek.' },
+    { name: 'Mobile (<1024px)', description: 'The panel is hidden behind a burger button and opens as a full-height 280px overlay with a backdrop.' },
+  ],
   tokens: [
     { token: '--color-stone-100',            value: '#f7f7f7', usage: 'Sidebar background (all zones)' },
     { token: '--color-divider',              value: '#dee0eb', usage: 'Right border + section separators' },

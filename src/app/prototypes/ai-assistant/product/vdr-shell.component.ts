@@ -60,7 +60,8 @@ import { MOCK_DATA_ROOM } from '../data/mock-data';
     [accountName]="projectName"
     [accountMark]="projectMark"
     [items]="navItems"
-    [(collapsed)]="sidebarCollapsed"
+    [collapsed]="sidebarCollapsed || collapseNav"
+    (collapsedChange)="sidebarCollapsed = $event"
     (itemClick)="onNavItem($event)"
     (subItemClick)="onNavSubItem($event)"
   ></fvdr-sidebar-nav>
@@ -177,6 +178,15 @@ export class VdrShellComponent implements OnInit, OnChanges, AfterContentChecked
    */
   sidebarCollapsed = false;
 
+  /**
+   * Forces the nav to its 72px mode regardless of the user's own toggle. The host
+   * sets it while the assistant is docked: 280 nav + 340 Quick access + 400 drawer
+   * leaves the Documents table ~492px of the 588px it wants, so cells wrap and the
+   * last column clips. Collapsing the nav returns ~700px and it fits again. The
+   * user's manual state is preserved and restored when the drawer closes.
+   */
+  @Input() collapseNav = false;
+
   /** Two-letter mark for the project switcher badge, like the branded logo. */
   get projectMark(): string {
     const parts = this.projectName.trim().split(/\s+/).filter(Boolean);
@@ -244,20 +254,16 @@ export class VdrShellComponent implements OnInit, OnChanges, AfterContentChecked
   }
 
   /**
-   * Top-level item. A group's click is already an open/close toggle inside the
-   * DS component; Figma also lands it on the group's first sub-item, so arriving
-   * from outside the group navigates there. Clicking the group you are already
-   * in stays put and only collapses/expands it. Settings' sub-items are not
-   * pages, so that group only ever toggles.
+   * Top-level item. Groups only expand and collapse — the DS component owns that
+   * toggle and we add no navigation, matching Figma where the parent carries a
+   * chevron and no page of its own. Leaf items navigate.
    */
   onNavItem(item: SidebarNavItem): void {
     const target = VDR_NAV_ITEMS.find(i => i.id === item.id);
-    const first = target?.children?.[0];
-    if (first) {
-      const inGroup = VDR_PAGES[this.page].nav === target!.id;
-      if (!inGroup && isPageId(first.id)) this.pageChange.emit(first.id);
-      return;
-    }
+    // A group only expands and collapses — it never navigates. Figma draws the
+    // parent with a chevron and no page of its own, so a click that jumped to a
+    // child would move the user somewhere they did not ask to go.
+    if (target?.children?.length) return;
     if (target?.page) this.pageChange.emit(target.page);
     // Anything else is out of scope for the replica: re-sync so the DS
     // sidebar's own "clicked = active" write does not stick.
