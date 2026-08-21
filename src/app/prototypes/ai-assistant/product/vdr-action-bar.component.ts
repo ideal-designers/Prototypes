@@ -33,7 +33,7 @@ export interface VdrActionBarButton {
   <fvdr-btn
     *ngIf="primary"
     class="bar__primary"
-    size="s"
+    size="m"
     variant="primary"
     [label]="primary.label"
     [iconName]="primary.icon"
@@ -41,7 +41,7 @@ export interface VdrActionBarButton {
 
   <fvdr-btn
     *ngFor="let b of secondaries"
-    size="s"
+    size="m"
     variant="secondary"
     [label]="b.label"
     [iconName]="b.icon"
@@ -49,7 +49,7 @@ export interface VdrActionBarButton {
 
   <fvdr-btn
     *ngIf="overflow"
-    size="s"
+    size="m"
     variant="secondary"
     iconName="more"
     [iconOnly]="true"
@@ -63,7 +63,7 @@ export interface VdrActionBarButton {
   <ng-content select="[bar-end]"></ng-content>
 
   <div class="bar__search" *ngIf="search" [style.width]="searchWidth">
-    <fvdr-search [placeholder]="searchPlaceholder" size="s" [filter]="true"></fvdr-search>
+    <fvdr-search [placeholder]="searchPlaceholder" size="m" [filter]="true"></fvdr-search>
   </div>
 </div>
   `,
