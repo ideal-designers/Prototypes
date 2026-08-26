@@ -273,6 +273,11 @@ export class ThinkingOrbsComponent implements AfterViewInit, OnDestroy {
     // Reduced motion: one static frame, and the loop never starts.
     if (this.reduceMotion?.matches) { this.render(); return; }
 
+    // Paint immediately rather than waiting for the first tick: requestAnimationFrame
+    // does not fire while the document is hidden, so a component that mounts in a
+    // background tab would otherwise show an empty pill until the tab is focused.
+    this.render();
+
     this.lastNow = 0;
     this.zone.runOutsideAngular(() => { this.rafId = requestAnimationFrame(this.tick); });
   }
