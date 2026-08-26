@@ -823,6 +823,17 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
             </div>
           </ng-container>
 
+          <!-- THINKING ORBS -->
+          <ng-container *ngSwitchCase="'thinking-orbs'">
+            <div class="anatomy-wrap anatomy-wrap--thinking-orbs">
+              <fvdr-thinking-orbs label="Thinking…"></fvdr-thinking-orbs>
+              <div class="anatomy-label anatomy-label--top"    style="top:-52px;left:-10px">orb canvas · dot field</div>
+              <div class="anatomy-label anatomy-label--top"    style="top:-52px;right:-16px">label</div>
+              <div class="anatomy-label anatomy-label--bottom" style="bottom:-42px;left:50%;transform:translateX(-50%)">pill · radius 9999px</div>
+              <div class="dim-v" style="left:-24px;top:0;height:62px">62px</div>
+            </div>
+          </ng-container>
+
           <ng-container *ngSwitchDefault>
             <div class="anatomy-preview-empty">Live anatomy preview coming soon for this component.</div>
           </ng-container>
@@ -2275,6 +2286,58 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
               <fvdr-header [breadcrumbs]="demoHeaderBreadcrumbs" [actions]="demoHeaderActions" userName="DT">
                 <fvdr-ask-ideon header-actions (clicked)="onAskIdeon()"></fvdr-ask-ideon>
               </fvdr-header>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- ═══ THINKING ORBS ═══ -->
+        <ng-container *ngSwitchCase="'thinking-orbs'">
+
+          <div class="example-block">
+            <p class="example-label">Default — preset size (46px orb)</p>
+            <div class="example-row">
+              <fvdr-thinking-orbs label="Thinking…"></fvdr-thinking-orbs>
+            </div>
+          </div>
+
+          <div class="example-block">
+            <p class="example-label">Inline in a chat — 32px orb, thinned to 1.2 so the dots stay separate</p>
+            <div class="example-row" style="flex-wrap:wrap; gap:16px">
+              <fvdr-thinking-orbs [size]="32" [dots]="1.2" label="Searching the data room…"></fvdr-thinking-orbs>
+              <fvdr-thinking-orbs [size]="32" [dots]="1.2" label="Reading 14 documents…"></fvdr-thinking-orbs>
+            </div>
+          </div>
+
+          <div class="example-block">
+            <p class="example-label">Density — the preset's n knob. 2.6 (390 dots) needs room; thin it out below ~40px</p>
+            <div class="example-row" style="flex-wrap:wrap; gap:16px">
+              <fvdr-thinking-orbs [size]="28" [dots]="2.6" label="2.6 at 28px"></fvdr-thinking-orbs>
+              <fvdr-thinking-orbs [size]="28" [dots]="0.8" label="0.8 at 28px"></fvdr-thinking-orbs>
+              <fvdr-thinking-orbs [size]="46" [dots]="2.6" label="2.6 at 46px"></fvdr-thinking-orbs>
+            </div>
+          </div>
+
+          <div class="example-block">
+            <p class="example-label">Without a label · without a pill</p>
+            <div class="example-row" style="gap:16px">
+              <fvdr-thinking-orbs [showLabel]="false" [size]="32" [dots]="1.2"></fvdr-thinking-orbs>
+              <fvdr-thinking-orbs [showPill]="false" [showLabel]="false" [size]="46"></fvdr-thinking-orbs>
+            </div>
+          </div>
+
+          <div class="example-block">
+            <p class="example-label">Stopped — [running]="false" cancels the animation frame</p>
+            <div class="example-row" style="gap:16px">
+              <fvdr-thinking-orbs [size]="28" [running]="orbsRunning" label="Thinking…"></fvdr-thinking-orbs>
+              <fvdr-btn [label]="orbsRunning ? 'Stop' : 'Start'" variant="secondary" size="s" (clicked)="orbsRunning = !orbsRunning"></fvdr-btn>
+            </div>
+          </div>
+
+          <div class="example-block">
+            <p class="example-label">Custom dot colour — any CSS colour, tokens included</p>
+            <div class="example-row" style="gap:16px">
+              <fvdr-thinking-orbs [size]="28" dotColor="var(--color-info-500)" label="Uploading…"></fvdr-thinking-orbs>
+              <fvdr-thinking-orbs [size]="28" dotColor="var(--color-text-primary)" label="Indexing…"></fvdr-thinking-orbs>
             </div>
           </div>
         </ng-container>
@@ -4126,6 +4189,9 @@ export class DsComponentPageComponent implements OnInit, OnDestroy {
     { id: 'bell',   icon: 'bell' as any,   badge: 3 },
     { id: 'search', icon: 'search' as any },
   ];
+  /** Thinking-orbs example — proves [running] genuinely stops the loop. */
+  orbsRunning = true;
+
   onAskIdeon(): void {
     this.toastSvc.show({ variant: 'info', message: 'Ideon would open here' });
   }

@@ -5,7 +5,7 @@ import { AiStep } from '../../models/ai-step.model';
 
 /**
  * Streaming reasoning block.
- *   · streaming  → animated ✦ + live header + step rows appearing one by one + Stop
+ *   · streaming  → thinking-orbs pill (live step label) + step rows appearing one by one + Stop
  *   · completed  → single "Thought for Ns" row, click to audit every step (VDR traceability)
  */
 @Component({
@@ -16,8 +16,7 @@ import { AiStep } from '../../models/ai-step.model';
     <div class="steps">
       <!-- Live header -->
       <div class="steps__live" *ngIf="streaming">
-        <span class="steps__mark steps__mark--spin"><fvdr-icon name="ideon"></fvdr-icon></span>
-        <span class="steps__live-label">{{ liveLabel }}</span>
+        <fvdr-thinking-orbs class="steps__orbs" [label]="liveLabel" [running]="streaming" [size]="32" [dots]="1.2"></fvdr-thinking-orbs>
         <button type="button" class="steps__stop" (click)="stopped.emit()">Stop</button>
       </div>
 
@@ -50,23 +49,11 @@ import { AiStep } from '../../models/ai-step.model';
 
     .steps { display: flex; flex-direction: column; gap: var(--space-2); }
 
-    .steps__mark {
-      display: inline-flex; align-items: center; justify-content: center;
-      color: var(--color-primary-500);
-      font-size: var(--font-size-base, 14px);
-      flex-shrink: 0;
-    }
-    .steps__mark--spin { animation: ai-spin 1.4s linear infinite; }
-    @keyframes ai-spin { to { transform: rotate(360deg); } }
-
-    .steps__live { display: flex; align-items: center; gap: var(--space-2); }
-    .steps__live-label {
-      font-size: var(--font-size-sm, 13px);
-      font-weight: var(--font-weight-semi, 600);
-      color: var(--color-text-primary);
-    }
+    /* In-flight indicator — the orbs pill carries the live step label. */
+    .steps__live { display: flex; align-items: center; gap: var(--space-2); min-width: 0; }
+    .steps__orbs { min-width: 0; }
     .steps__stop {
-      margin-left: var(--space-2);
+      margin-left: var(--space-1);
       border: 1px solid var(--color-divider);
       background: var(--color-stone-0);
       color: var(--color-text-secondary);

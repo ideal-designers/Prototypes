@@ -2040,6 +2040,61 @@ const askIdeon: ComponentDocEntry = {
   claudePrompt: "Use fvdr-ask-ideon for the branded global AI entry point. @Input() label:string='Ask Ideon'. @Input() disabled:boolean. @Output() clicked. Glass capsule with an animated iridescent mesh gradient; palette comes from --gradient-ideon-* / --ideon-* in tokens.css and can be overridden on the host. Project it into fvdr-header with the [header-actions] attribute. Never use it for non-AI actions or repeated row-level actions.",
 };
 
+const thinkingOrbs: ComponentDocEntry = {
+  id: 'thinking-orbs',
+  name: 'Thinking Orbs',
+  selector: 'fvdr-thinking-orbs',
+  category: 'feedback',
+  status: 'beta',
+  description:
+    'Waiting indicator for a streaming or thinking state: dots spread over a sphere (390 at the preset density) rotate in 3D on a canvas, shrinking and fading with depth, behind a pill that carries the live label.',
+  whenToUse: [
+    'The assistant is streaming and the label changes as it works',
+    'A wait with no measurable progress, where a bar would lie',
+    'Inline in a chat transcript, beside the Stop control',
+  ],
+  whenNotToUse: [
+    'A wait with a known percentage (use Progress)',
+    'A button in flight (use the button loading state)',
+    'Decoration — it reads as "the system is working right now"',
+  ],
+  anatomy: [
+    { index: 1, part: 'Orb canvas',  spec: '46×46 CSS px by default · backing store scaled by devicePixelRatio' },
+    { index: 2, part: 'Dot field',   spec: 'round(150 × dots) points · golden-angle sphere · depth drives radius and alpha · painted back-to-front' },
+    { index: 3, part: 'Twinkle',     spec: 'per-dot golden-ratio phase, sin raised to the 6th → sharp blink, 2 per turn' },
+    { index: 4, part: 'Pill',        spec: 'padding 8px (20px right with a label) · border-radius: 9999px · --color-stone-300' },
+    { index: 5, part: 'Label',       spec: 'font-size: 14px · --color-text-secondary · truncates in a narrow column' },
+  ],
+  states: [
+    { name: 'Running',        description: 'rAF loop drives one 4.6s period — a full turn plus the preset -3 spin knob' },
+    { name: 'Stopped',        description: '[running]="false" cancels the frame and leaves the last frame on screen' },
+    { name: 'No pill',        description: '[showPill]="false" — bare orb on the surface behind it' },
+    { name: 'No label',       description: '[showLabel]="false" — square pill, orb only' },
+    { name: 'Theme change',   description: 'Dot colour is re-resolved from the token when the theme class flips' },
+    { name: 'Reduced motion', description: 'One static frame is drawn and the loop never starts' },
+  ],
+  tokens: [
+    { token: '--color-primary-500',   value: '#2C9C74', usage: 'Default dot colour (resolved to a computed value for canvas)' },
+    { token: '--color-stone-300',     value: '#ECEEF9', usage: 'Pill fill — dark theme maps it to #33383B' },
+    { token: '--color-text-secondary', value: '#5F616A', usage: 'Label colour' },
+    { token: '--radius-full',         value: '9999px',  usage: 'Pill radius' },
+    { token: '--space-2',             value: '8px',     usage: 'Pill padding and orb→label gap' },
+    { token: '--space-5',             value: '20px',    usage: 'Pill padding-right when a label is shown' },
+    { token: '--font-size-base',      value: '14px',    usage: 'Label size' },
+  ],
+  usedIn: ['AI Assistant — streaming reasoning block (fvdr-ai-steps)'],
+  relatedComponents: ['fvdr-progress', 'fvdr-ask-ideon'],
+  codeSnippet: `<!-- Streaming state in a chat -->
+<fvdr-thinking-orbs [label]="liveLabel" [running]="streaming" [size]="32" [dots]="1.2"></fvdr-thinking-orbs>
+
+<!-- Bare orb, no pill and no label -->
+<fvdr-thinking-orbs [showPill]="false" [showLabel]="false" [size]="46"></fvdr-thinking-orbs>
+
+<!-- Preset size, custom dot colour -->
+<fvdr-thinking-orbs label="Searching the data room…" dotColor="var(--color-info-500)"></fvdr-thinking-orbs>`,
+  claudePrompt: "Use fvdr-thinking-orbs for an indeterminate AI/streaming wait. @Input() label:string='Thinking…'. @Input() showLabel:boolean=true. @Input() showPill:boolean=true. @Input() size:number=46 (orb box in CSS px). @Input() dots:number=2.6 (dot-count multiplier, round(150*dots) — thin it to ~1.2 below 40px or the dots merge). @Input() dotColor:string='var(--color-primary-500)' — any CSS colour, resolved through the element so tokens work. @Input() running:boolean=true — false cancels the rAF loop. Canvas 2D port of the MetalForge thinking-orbs/twinkle preset: golden-angle sphere, perspective divide, depth-driven size and fade, per-dot twinkle. Renders a single static frame under prefers-reduced-motion. Never use it for determinate progress — use fvdr-progress.",
+};
+
 // ─────────────────────────────────────────────────────────────────────────────
 // REGISTRY EXPORT
 // ─────────────────────────────────────────────────────────────────────────────
@@ -2089,6 +2144,7 @@ export const DS_REGISTRY: ComponentDocEntry[] = [
   floatingPanel,
   filterBtn,
   askIdeon,
+  thinkingOrbs,
 ];
 
 export const DS_CATEGORIES: { id: ComponentCategory; label: string }[] = [
