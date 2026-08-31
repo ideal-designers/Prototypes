@@ -157,7 +157,10 @@
 }
 .two-pane__main {
   flex: 1; min-width: 0; display: flex; flex-direction: column;
-  padding-left: var(--space-6);
+  /* 40px separates the table from the Quick access pane; 24px keeps the last
+     column off the right edge. */
+  padding-left: var(--space-10);
+  padding-right: var(--space-6);
 }
 
 /* Quick access is fvdr-quick-access-menu with an fvdr-tree projected under it
