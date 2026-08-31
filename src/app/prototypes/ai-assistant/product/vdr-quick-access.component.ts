@@ -5,7 +5,14 @@ import { PROJECT_NODE_ID, projectTree } from './data/project-tree';
 import { VdrPageId } from './data/product-nav';
 
 /** Row of the Quick access pane that renders as selected (tinted). */
-export type VdrQuickAccessRow = 'project' | 'recent' | 'uploads' | 'favorites';
+export type VdrQuickAccessRow = 'project' | 'recent' | 'uploads' | 'unpublished' | 'favorites';
+
+/**
+ * Shortcut ids that resolve to a replica page. "Unpublished" is in the live
+ * product's list but has no replica page yet, so its row renders and stays
+ * inert instead of navigating somewhere wrong.
+ */
+const SHORTCUT_PAGES = new Set<string>(['recent', 'uploads', 'favorites']);
 
 /**
  * Quick access pane of the Documents pages (`.design/real-product-spec.md`
@@ -20,10 +27,11 @@ export type VdrQuickAccessRow = 'project' | 'recent' | 'uploads' | 'favorites';
  *   <fvdr-vdr-quick-access selected="uploads"
  *     (navigate)="page.set($event)"></fvdr-vdr-quick-access>
  *
- * Inert except navigation: the three shortcut rows are how the live product
- * reaches Documents › Recently viewed / Newly uploaded / Favorites (they are not
- * in the sidebar's Documents group), so they emit the page. The tree is the DS
- * component's own expand/select behaviour and changes nothing else.
+ * Inert except navigation: the shortcut rows are how the live product reaches
+ * Documents › Recently viewed / Newly uploaded / Favorites (they are not in the
+ * sidebar's Documents group), so those three emit the page; Unpublished has no
+ * replica page and stays inert. The tree is the DS component's own
+ * expand/select behaviour and changes nothing else.
  */
 @Component({
   selector: 'fvdr-vdr-quick-access',
@@ -59,6 +67,8 @@ export class VdrQuickAccessComponent {
   readonly shortcuts: QuickAccessItem[] = [
     { id: 'recent', icon: 'history', label: 'Recently viewed' },
     { id: 'uploads', icon: 'upload', label: 'Newly uploaded' },
+    // Same glyph the Publishing column uses for an unpublished row.
+    { id: 'unpublished', icon: 'cross-circle', label: 'Unpublished' },
     { id: 'favorites', icon: 'star', label: 'Favorites' },
   ];
 
@@ -68,6 +78,7 @@ export class VdrQuickAccessComponent {
 
   /** Shortcut ids are page ids — Recently viewed / Newly uploaded / Favorites. */
   onShortcut(item: QuickAccessItem): void {
+    if (!SHORTCUT_PAGES.has(item.id)) return;
     this.navigate.emit(item.id as VdrPageId);
   }
 }

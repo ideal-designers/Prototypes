@@ -23,6 +23,8 @@ interface UploadRow {
   count?: string;
   location: string;
   addedOn: string;
+  /** Printed as a small "v3" pill after the name; unset while a file is at v1. */
+  version?: number;
 }
 
 /**
@@ -82,6 +84,8 @@ interface UploadRow {
               <span class="cell-name">
                 <span class="cell-icon"><fvdr-icon [name]="r.icon"></fvdr-icon></span>
                 <span>{{ r.name }}</span>
+                <!-- Files past their first version carry the product's small "v3" pill. -->
+                <fvdr-chip *ngIf="r.version" size="xs" variant="grey" [label]="'v' + r.version"></fvdr-chip>
               </span>
             </td>
             <td class="dtable__td">
@@ -147,6 +151,7 @@ export class VdrUploadsComponent {
       count: d.pages ? pagesLabel(d.pages) : undefined,
       location: d.folderPath,
       addedOn: d.addedOn,
+      version: d.version,
     })),
   ]);
 }

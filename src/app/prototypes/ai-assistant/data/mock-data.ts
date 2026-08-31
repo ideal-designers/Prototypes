@@ -19,11 +19,11 @@ import { RecentChat } from '../models/ai-message.model';
 
 /** Top-level folders of the "Nike" data room. */
 export const MOCK_FOLDERS: MockFolder[] = [
-  { id: 'f1', index: '1', name: '1 ODM intellectual property', addedOn: 'Jan 15, 2026' },
-  { id: 'f2', index: '2', name: '2 Intellectual property', addedOn: 'Feb 24, 2026' },
-  { id: 'f3', index: '3', name: '3 Trade secrets', addedOn: 'Feb 10, 2026' },
-  { id: 'f4', index: '4', name: '4 ACME Inc.', addedOn: 'Mar 6, 2026' },
-  { id: 'f5', index: '5', name: '5 ACME Cooperative', addedOn: 'Feb 22, 2026' },
+  { id: 'f1', index: '1', name: '1 ODM intellectual property', addedOn: 'Jan 15, 2026', published: true, labels: ['IP', 'Supply chain'] },
+  { id: 'f2', index: '2', name: '2 Intellectual property', addedOn: 'Feb 24, 2026', published: true, labels: ['IP'] },
+  { id: 'f3', index: '3', name: '3 Trade secrets', addedOn: 'Feb 10, 2026', published: false, labels: ['Legal', 'Confidential', 'Priority'] },
+  { id: 'f4', index: '4', name: '4 ACME Inc.', addedOn: 'Mar 6, 2026', published: true, labels: ['Finance', 'Priority'] },
+  { id: 'f5', index: '5', name: '5 ACME Cooperative', addedOn: 'Feb 22, 2026', published: true, labels: ['Finance'] },
 ];
 
 /** A document before `sizeLabel` is derived from `sizeKb`. */
@@ -35,6 +35,10 @@ type MockDocSeed = Omit<MockDocument, 'sizeLabel'>;
  *   · exactly 1 document contains both "q1" and "analysis"      (single-doc answer)
  *   · `restricted` documents are never surfaced, only disclosed via the permission note
  *   · the DD-report builder cites documents by name prefix — "Annual", "Trademark", "Know-how"
+ *
+ * `labels` and `version` are presentation-only — the Documents table renders the
+ * folder-level labels, the file listings print "v3" after a name — so they never
+ * take part in matching and can be added to any document safely.
  */
 const MOCK_DOCUMENT_SEEDS: MockDocSeed[] = [
   // ── 1 ODM intellectual property ──
@@ -42,6 +46,7 @@ const MOCK_DOCUMENT_SEEDS: MockDocSeed[] = [
     id: 'd-1-1', index: '1.1', name: 'ODM master licensing agreement.pdf', type: 'pdf',
     folderPath: '1 ODM intellectual property', sizeKb: 412.05, pages: 24,
     addedOn: 'Jan 18, 2026', signatureStatus: '0/2 signed',
+    version: 2, labels: ['IP', 'Legal'],
     gist: 'Grants ACME a 5-year exclusive manufacturing licence, renewable annually.',
   },
   {
@@ -86,7 +91,7 @@ const MOCK_DOCUMENT_SEEDS: MockDocSeed[] = [
   {
     id: 'd-2-3', index: '2.3', name: 'Trademark registry export.xlsx', type: 'xlsx',
     folderPath: '2 Intellectual property', sizeKb: 74.9, pages: 4,
-    addedOn: 'Mar 3, 2026',
+    addedOn: 'Mar 3, 2026', labels: ['IP', 'Priority'],
     gist: 'Lists 31 live trademarks; 4 renewals fall due within 12 months.',
   },
   {
@@ -126,7 +131,7 @@ const MOCK_DOCUMENT_SEEDS: MockDocSeed[] = [
   {
     id: 'd-4-1', index: '4.1', name: 'Annual financial report 2025.pdf', type: 'pdf',
     folderPath: '4 ACME Inc.', sizeKb: 3604, pages: 34,
-    addedOn: 'Mar 9, 2026',
+    addedOn: 'Mar 9, 2026', version: 3, labels: ['Finance'],
     gist: 'Revenue of €142M and EBITDA margin of 14.8% for FY2025.',
   },
   {

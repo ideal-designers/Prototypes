@@ -280,6 +280,23 @@
   --shadow-card:       0 1px 4px rgba(0, 0, 0, 0.32);
   --shadow-card-hover: 0 4px 12px rgba(0, 0, 0, 0.4);
   --shadow-popover:    0 4px 16px rgba(0, 0, 0, 0.4);
+
+  /* Chip / category backgrounds — the light tints keep the same hue but drop to
+     dark-surface luminance, so the chip label (text-primary, white in dark)
+     stays legible. Without these a chip renders white-on-pastel. */
+  --chip-bg-default:  #2E3345;
+  --chip-bg-green:    #1E3B2E;
+  --chip-bg-yellow:   #3D3418;
+  --chip-bg-orange:   #3D2C1D;
+  --chip-bg-lime:     #2C3A1E;
+  --chip-bg-teal:     #1B3A3D;
+  --chip-bg-danger:   #3F2622;
+  --chip-bg-blue:     #1E3350;
+  --chip-bg-indigo:   #292E52;
+  --chip-bg-purple:   #33254A;
+  --chip-bg-magenta:  #3F2440;
+  --chip-bg-grey:     #2C3033;
+  --chip-bg-coffee:   #38312B;
 }
 
 /* ─────────────────────────────────────────

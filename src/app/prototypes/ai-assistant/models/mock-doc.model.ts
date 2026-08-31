@@ -55,6 +55,15 @@ export interface MockDocument {
   gist?: string;
   /** Outside the current user's permissions — never surfaced, only disclosed as "filtered". */
   restricted?: boolean;
+  /**
+   * Publishing state shown by the Documents table's Publishing column. Only set
+   * on documents a replica table actually lists (the room-root files).
+   */
+  published?: boolean;
+  /** Labels the room's admins pinned on the file, e.g. ["Legal", "Priority"]. */
+  labels?: string[];
+  /** Current version number — the product prints "v3" after the name from v2 up. */
+  version?: number;
 }
 
 export interface MockFolder {
@@ -65,6 +74,10 @@ export interface MockFolder {
   name: string;
   /** Pre-formatted creation date, e.g. "Feb 24, 2026" */
   addedOn: string;
+  /** Publishing state — the Documents table renders a glyph per row. */
+  published: boolean;
+  /** Labels pinned on the folder, e.g. ["IP", "Priority"]. */
+  labels?: string[];
 }
 
 export interface MockDataRoom {
