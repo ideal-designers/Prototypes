@@ -49,8 +49,15 @@
  *   <fvdr-ghost-btn>           → Ghost button (circle-plus icon, optional label + shortcut, S/M)
  *   <fvdr-floating-panel>      → Floating toolbar of ghost buttons (vertical/horizontal × big/small)
  *   <fvdr-filter-btn>          → Filter button (12 colors, M/S, status dot, counter, arrow)
+ *
+ * AI Assistant section — components/ai/* (see also DS category "AI Assistant" on /ds):
  *   <fvdr-ask-ideon>           → Branded 'Ask Ideon' AI pill (glass + animated mesh gradient)
  *   <fvdr-thinking-orbs>       → Thinking/waiting indicator (3D dot sphere on canvas + label pill)
+ *   <fvdr-ai-composer>         → Prompt input (auto-grow, add-context / voice / send)
+ *   <fvdr-ai-steps>            → Streaming reasoning trace ("Thought for Ns", audit trail)
+ *   <fvdr-ai-bubble>           → Conversation turn container (user bubble / assistant column)
+ *   <fvdr-ai-citation>         → Source reference to a document (+ page), inline or pill
+ *   <fvdr-ai-actions>          → Answer action row (regenerate · copy · thumbs up/down)
  *
  * Usage in prototype:
  *   import { DS_COMPONENTS } from '../../shared/ds';
@@ -105,8 +112,13 @@ import { RedactionMarkCardComponent } from './components/redaction-mark-card/red
 import { GhostBtnComponent } from './components/ghost-btn/ghost-btn.component';
 import { FloatingPanelComponent } from './components/floating-panel/floating-panel.component';
 import { FilterBtnComponent } from './components/filter-btn/filter-btn.component';
-import { AskIdeonComponent } from './components/ask-ideon/ask-ideon.component';
-import { ThinkingOrbsComponent } from './components/thinking-orbs/thinking-orbs.component';
+import { AskIdeonComponent } from './components/ai/ask-ideon/ask-ideon.component';
+import { ThinkingOrbsComponent } from './components/ai/thinking-orbs/thinking-orbs.component';
+import { AiComposerComponent } from './components/ai/ai-composer/ai-composer.component';
+import { AiStepsComponent } from './components/ai/ai-steps/ai-steps.component';
+import { AiBubbleComponent } from './components/ai/ai-bubble/ai-bubble.component';
+import { AiCitationComponent } from './components/ai/ai-citation/ai-citation.component';
+import { AiActionsComponent } from './components/ai/ai-actions/ai-actions.component';
 
 // ─── Re-exports ───────────────────────────────────────────────────────────────
 
@@ -230,9 +242,23 @@ export type { FloatingPanelItem, FloatingPanelOrientation, FloatingPanelSize } f
 export { FilterBtnComponent } from './components/filter-btn/filter-btn.component';
 export type { FilterBtnSize, FilterBtnColor } from './components/filter-btn/filter-btn.component';
 
-export { AskIdeonComponent } from './components/ask-ideon/ask-ideon.component';
+export { AskIdeonComponent } from './components/ai/ask-ideon/ask-ideon.component';
 
-export { ThinkingOrbsComponent } from './components/thinking-orbs/thinking-orbs.component';
+export { ThinkingOrbsComponent } from './components/ai/thinking-orbs/thinking-orbs.component';
+
+export { AiComposerComponent } from './components/ai/ai-composer/ai-composer.component';
+
+export { AiStepsComponent } from './components/ai/ai-steps/ai-steps.component';
+export type { AiStep, AiStepKind } from './components/ai/ai-steps/ai-step.model';
+
+export { AiBubbleComponent } from './components/ai/ai-bubble/ai-bubble.component';
+export type { AiBubbleRole } from './components/ai/ai-bubble/ai-bubble.component';
+
+export { AiCitationComponent } from './components/ai/ai-citation/ai-citation.component';
+export type { AiCitationVariant } from './components/ai/ai-citation/ai-citation.component';
+
+export { AiActionsComponent } from './components/ai/ai-actions/ai-actions.component';
+export type { AiRating } from './components/ai/ai-actions/ai-actions.component';
 
 /** Convenience array — spread into component imports[] */
 export const DS_COMPONENTS = [
@@ -289,6 +315,12 @@ export const DS_COMPONENTS = [
   GhostBtnComponent,
   FloatingPanelComponent,
   FilterBtnComponent,
+  // AI Assistant
   AskIdeonComponent,
   ThinkingOrbsComponent,
+  AiComposerComponent,
+  AiStepsComponent,
+  AiBubbleComponent,
+  AiCitationComponent,
+  AiActionsComponent,
 ];

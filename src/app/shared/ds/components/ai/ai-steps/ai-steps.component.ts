@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { DS_COMPONENTS } from '../../../../shared/ds';
-import { AiStep } from '../../models/ai-step.model';
+import { ThinkingOrbsComponent } from '../thinking-orbs/thinking-orbs.component';
+import { AiStep } from './ai-step.model';
 
 /**
  * Streaming reasoning block.
@@ -11,7 +11,7 @@ import { AiStep } from '../../models/ai-step.model';
 @Component({
   selector: 'fvdr-ai-steps',
   standalone: true,
-  imports: [CommonModule, ...DS_COMPONENTS],
+  imports: [CommonModule, ThinkingOrbsComponent],
   template: `
     <div class="steps">
       <!-- Live header -->

@@ -6,13 +6,12 @@ import { AiEngineService } from '../../services/ai-engine.service';
 import { ChatMessage } from '../../models/ai-message.model';
 import { MockDocument } from '../../models/mock-doc.model';
 import { AiMessageComponent } from '../ai-message/ai-message.component';
-import { AiComposerComponent } from '../ai-composer/ai-composer.component';
 
 /** Empty state ↔ active transcript, with the composer docked at the bottom. */
 @Component({
   selector: 'fvdr-ai-conversation',
   standalone: true,
-  imports: [CommonModule, ...DS_COMPONENTS, AiMessageComponent, AiComposerComponent],
+  imports: [CommonModule, ...DS_COMPONENTS, AiMessageComponent],
   template: `
     <div class="conv">
       <!-- ── Empty state ── -->
@@ -28,6 +27,8 @@ import { AiComposerComponent } from '../ai-composer/ai-composer.component';
             class="empty__composer"
             [busy]="engine.streaming()"
             (submitted)="send($event)"
+            (contextRequested)="onAddContext()"
+            (voiceRequested)="onVoice()"
           ></fvdr-ai-composer>
 
           <div class="empty__chips">
@@ -61,6 +62,8 @@ import { AiComposerComponent } from '../ai-composer/ai-composer.component';
           <fvdr-ai-composer
             [busy]="engine.streaming()"
             (submitted)="send($event)"
+            (contextRequested)="onAddContext()"
+            (voiceRequested)="onVoice()"
           ></fvdr-ai-composer>
         </div>
       </ng-template>
@@ -170,6 +173,14 @@ export class AiConversationComponent {
 
   send(text: string): void {
     void this.engine.send(text);
+  }
+
+  onAddContext(): void {
+    this.toast.show({ variant: 'info', message: 'Add context — coming in the next phase' });
+  }
+
+  onVoice(): void {
+    this.toast.show({ variant: 'info', message: 'Voice input — coming in the next phase' });
   }
 
   onDocOpened(doc: MockDocument): void {

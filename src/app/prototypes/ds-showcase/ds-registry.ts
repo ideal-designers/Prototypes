@@ -1,3 +1,5 @@
+import { DS_AI_REGISTRY } from './ds-registry-ai';
+
 export interface TokenDoc {
   token: string;
   value: string;
@@ -10,8 +12,9 @@ export interface AnatomyPart {
   spec: string;
 }
 
-export type ComponentCategory = 'controls' | 'display' | 'layout' | 'navigation' | 'feedback' | 'data';
-export type ComponentStatus   = 'stable' | 'beta' | 'deprecated';
+export type ComponentCategory = 'controls' | 'display' | 'layout' | 'navigation' | 'feedback' | 'data' | 'ai';
+/** `planned` = specced here, not built yet — the AI section's roadmap lives in the DS. */
+export type ComponentStatus   = 'stable' | 'beta' | 'planned' | 'deprecated';
 
 export interface StateDoc {
   name: string;
@@ -1984,7 +1987,7 @@ const askIdeon: ComponentDocEntry = {
   id: 'ask-ideon',
   name: 'Ask Ideon',
   selector: 'fvdr-ask-ideon',
-  category: 'controls',
+  category: 'ai',
   status: 'beta',
   description:
     'Branded entry point for Ideon, the global AI assistant. A fully-rounded glass pill with a sparkle glyph, sitting on a slowly drifting iridescent mesh gradient.',
@@ -2044,7 +2047,7 @@ const thinkingOrbs: ComponentDocEntry = {
   id: 'thinking-orbs',
   name: 'Thinking Orbs',
   selector: 'fvdr-thinking-orbs',
-  category: 'feedback',
+  category: 'ai',
   status: 'beta',
   description:
     'Waiting indicator for a streaming or thinking state: dots spread over a sphere (390 at the preset density) rotate in 3D on a canvas, shrinking and fading with depth, behind a pill that carries the live label.',
@@ -2143,11 +2146,14 @@ export const DS_REGISTRY: ComponentDocEntry[] = [
   ghostBtn,
   floatingPanel,
   filterBtn,
+  // AI Assistant — ask-ideon and thinking-orbs are the section's two original atoms
   askIdeon,
   thinkingOrbs,
+  ...DS_AI_REGISTRY,
 ];
 
 export const DS_CATEGORIES: { id: ComponentCategory; label: string }[] = [
+  { id: 'ai',         label: 'AI Assistant' },
   { id: 'controls',   label: 'Controls'   },
   { id: 'display',    label: 'Display'    },
   { id: 'feedback',   label: 'Feedback'   },

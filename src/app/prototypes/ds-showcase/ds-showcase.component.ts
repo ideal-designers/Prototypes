@@ -35,8 +35,9 @@ import type { ComponentDocEntry } from './ds-registry';
           <a
             *ngFor="let item of cat.items"
             class="showcase__nav-link"
+            [class.showcase__nav-link--planned]="item.status === 'planned'"
             [routerLink]="['/ds', item.id]"
-          >{{ item.name }}</a>
+          >{{ item.name }}<span class="showcase__nav-flag" *ngIf="item.status === 'planned'">planned</span></a>
         </ng-container>
       </nav>
 
@@ -46,9 +47,10 @@ import type { ComponentDocEntry } from './ds-registry';
           <h1 class="showcase__h1">FVDR Design System</h1>
           <p class="showcase__subtitle">All components in one place · Figma: <a href="https://www.figma.com/design/liyNDiFf1piO8SQmHNKoeU" target="_blank">liyNDiFf1piO8SQmHNKoeU</a></p>
           <div class="showcase__stats">
-            <span class="showcase__stat"><b>43</b> components</span>
+            <span class="showcase__stat"><b>{{ builtCount }}</b> components</span>
             <span class="showcase__stat"><b>174</b> icons</span>
-            <span class="showcase__stat"><b>6</b> categories</span>
+            <span class="showcase__stat"><b>{{ categoryCount }}</b> categories</span>
+            <span class="showcase__stat showcase__stat--planned"><b>{{ plannedCount }}</b> planned</span>
           </div>
         </div>
 
@@ -746,6 +748,23 @@ import type { ComponentDocEntry } from './ds-registry';
       transition: background 0.1s, color 0.1s;
     }
     .showcase__nav-link:hover { background: var(--color-hover-bg); color: var(--color-text-primary); }
+
+    /* Planned = spec only. Keep it reachable but visibly not shipped. */
+    .showcase__nav-link--planned {
+      display: flex; align-items: center; justify-content: space-between; gap: var(--space-2);
+      color: var(--color-text-placeholder);
+    }
+    .showcase__nav-flag {
+      flex: 0 0 auto;
+      padding: 1px 5px;
+      border: 1px dashed var(--color-divider);
+      border-radius: var(--radius-sm);
+      font-size: 9px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--color-text-secondary);
+    }
+    .showcase__stat--planned { color: var(--color-text-secondary); }
     .showcase__nav-category {
       padding: var(--space-3) var(--space-4) var(--space-1);
       font-size: var(--font-size-2xs, 11px);
@@ -962,6 +981,10 @@ export class DsShowcaseComponent implements OnInit, OnDestroy {
     label: cat.label,
     items: DS_REGISTRY.filter((e: ComponentDocEntry) => e.category === cat.id),
   })).filter(g => g.items.length > 0);
+
+  readonly builtCount = DS_REGISTRY.filter((e: ComponentDocEntry) => e.status !== 'planned').length;
+  readonly plannedCount = DS_REGISTRY.filter((e: ComponentDocEntry) => e.status === 'planned').length;
+  readonly categoryCount = this.catalogGroups.length;
 
   readonly bps = [
     { name: 'Mobile',  min: 375,  range: '375 – 767',   token: '--bp-mobile',  color: 'var(--color-stone-500)' },

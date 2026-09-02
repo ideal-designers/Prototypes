@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, Output, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FvdrIconComponent } from '../../icons/icon.component';
+import { FvdrIconComponent } from '../../../icons/icon.component';
 
 /**
  * fvdr-ask-ideon — branded entry point for Ideon, the global AI assistant.

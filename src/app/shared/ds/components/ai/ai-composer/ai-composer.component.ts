@@ -1,7 +1,7 @@
-import { Component, ElementRef, EventEmitter, Input, Output, ViewChild, inject } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Input, Output, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { DS_COMPONENTS, ToastService } from '../../../../shared/ds';
+import { FvdrIconComponent } from '../../../icons/icon.component';
 
 /**
  * Composer — auto-growing prompt input with add-context / mic / send affordances.
@@ -10,27 +10,42 @@ import { DS_COMPONENTS, ToastService } from '../../../../shared/ds';
 @Component({
   selector: 'fvdr-ai-composer',
   standalone: true,
-  imports: [CommonModule, FormsModule, ...DS_COMPONENTS],
+  imports: [CommonModule, FormsModule, FvdrIconComponent],
   template: `
-    <div class="composer" [class.composer--busy]="busy">
+    <div class="composer" [class.composer--busy]="busy" [class.composer--disabled]="disabled">
       <textarea
         #input
         class="composer__input"
         rows="1"
         [placeholder]="placeholder"
+        [disabled]="disabled"
         [(ngModel)]="value"
-        (ngModelChange)="autoGrow()"
+        (ngModelChange)="onValueChange($event)"
         (keydown)="onKeydown($event)"
       ></textarea>
 
       <div class="composer__bar">
-        <button type="button" class="composer__btn" title="Add context" (click)="onAddContext()">
+        <button
+          *ngIf="showAddContext"
+          type="button"
+          class="composer__btn"
+          title="Add context"
+          [disabled]="disabled"
+          (click)="contextRequested.emit()"
+        >
           <fvdr-icon name="plus"></fvdr-icon>
         </button>
 
         <span class="composer__spacer"></span>
 
-        <button type="button" class="composer__btn" title="Voice input" (click)="onMic()">
+        <button
+          *ngIf="showVoice"
+          type="button"
+          class="composer__btn"
+          title="Voice input"
+          [disabled]="disabled"
+          (click)="voiceRequested.emit()"
+        >
           <fvdr-icon name="mic"></fvdr-icon>
         </button>
 
@@ -58,6 +73,7 @@ import { DS_COMPONENTS, ToastService } from '../../../../shared/ds';
       transition: border-color 0.15s ease;
     }
     .composer:focus-within { border-color: var(--color-primary-500); }
+    .composer--disabled { background: var(--color-stone-200); }
 
     .composer__input {
       width: 100%; border: none; outline: none; resize: none;
@@ -69,6 +85,7 @@ import { DS_COMPONENTS, ToastService } from '../../../../shared/ds';
       max-height: 160px; overflow-y: auto;
     }
     .composer__input::placeholder { color: var(--color-text-placeholder); }
+    .composer__input:disabled { cursor: not-allowed; }
 
     .composer__bar { display: flex; align-items: center; gap: var(--space-1); }
     .composer__spacer { flex: 1; }
@@ -83,6 +100,8 @@ import { DS_COMPONENTS, ToastService } from '../../../../shared/ds';
       transition: background 0.12s ease, color 0.12s ease;
     }
     .composer__btn:hover { background: var(--color-hover-bg); color: var(--color-text-primary); }
+    .composer__btn:disabled { cursor: not-allowed; color: var(--color-text-disabled); }
+    .composer__btn:disabled:hover { background: transparent; color: var(--color-text-disabled); }
 
     .composer__btn--send {
       background: var(--color-primary-500); color: var(--color-stone-0);
@@ -94,22 +113,36 @@ import { DS_COMPONENTS, ToastService } from '../../../../shared/ds';
       background: var(--color-primary-200); color: var(--color-stone-0);
       cursor: not-allowed;
     }
+    .composer__btn--send:disabled:hover { background: var(--color-primary-200); color: var(--color-stone-0); }
   `],
 })
 export class AiComposerComponent {
-  private toast = inject(ToastService);
-
   @Input() placeholder = 'Ask AI assistant anything ...';
   /** True while a response is streaming — send is disabled. */
   @Input() busy = false;
+  /** AI unavailable (no permission, quota spent) — the whole composer is inert. */
+  @Input() disabled = false;
+  @Input() showAddContext = true;
+  @Input() showVoice = true;
+
+  /** Two-way bindable, so suggestion chips can pre-fill the prompt. */
+  @Input() value = '';
+  @Output() valueChange = new EventEmitter<string>();
+
   @Output() submitted = new EventEmitter<string>();
+  /** Host decides what "add context" opens — folder picker, doc picker, … */
+  @Output() contextRequested = new EventEmitter<void>();
+  @Output() voiceRequested = new EventEmitter<void>();
 
   @ViewChild('input') inputRef?: ElementRef<HTMLTextAreaElement>;
 
-  value = '';
-
   get canSend(): boolean {
-    return !this.busy && this.value.trim().length > 0;
+    return !this.busy && !this.disabled && this.value.trim().length > 0;
+  }
+
+  onValueChange(value: string): void {
+    this.valueChange.emit(value);
+    this.autoGrow();
   }
 
   onKeydown(event: KeyboardEvent): void {
@@ -123,7 +156,13 @@ export class AiComposerComponent {
     if (!this.canSend) return;
     this.submitted.emit(this.value.trim());
     this.value = '';
+    this.valueChange.emit('');
     queueMicrotask(() => this.autoGrow());
+  }
+
+  /** Put the caret in the prompt — after opening the panel or picking a suggestion. */
+  focus(): void {
+    this.inputRef?.nativeElement.focus();
   }
 
   autoGrow(): void {
@@ -131,13 +170,5 @@ export class AiComposerComponent {
     if (!el) return;
     el.style.height = 'auto';
     el.style.height = `${el.scrollHeight}px`;
-  }
-
-  onAddContext(): void {
-    this.toast.show({ variant: 'info', message: 'Add context — coming in the next phase' });
-  }
-
-  onMic(): void {
-    this.toast.show({ variant: 'info', message: 'Voice input — coming in the next phase' });
   }
 }

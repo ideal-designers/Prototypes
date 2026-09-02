@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
-import { DS_COMPONENTS, ToastService, ToastAction, FloatingPanelItem, FilterBtnColor, RedactionMarkPage, FvdrPlanName, FVDR_PLAN_NAMES, SidebarNavItem } from '../../shared/ds';
+import { DS_COMPONENTS, ToastService, ToastAction, FloatingPanelItem, FilterBtnColor, RedactionMarkPage, FvdrPlanName, FVDR_PLAN_NAMES, SidebarNavItem, AiStep, AiRating } from '../../shared/ds';
 import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, ComponentCategory } from './ds-registry';
 
 @Component({
@@ -26,8 +26,9 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
           *ngFor="let item of group.items"
           class="sidebar-item"
           [class.sidebar-item--active]="item.id === componentId"
+          [class.sidebar-item--planned]="item.status === 'planned'"
           (click)="navigate(item.id)"
-        >{{ item.name }}</button>
+        >{{ item.name }}<span class="sidebar-item__flag" *ngIf="item.status === 'planned'">planned</span></button>
       </div>
     </nav>
   </aside>
@@ -45,6 +46,19 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
         <a *ngIf="entry.figmaNode" class="doc-hero__tag doc-hero__figma" [href]="'https://www.figma.com/design/liyNDiFf1piO8SQmHNKoeU/FVDR---Design-System?node-id=' + entry.figmaNode" target="_blank">Figma ↗</a>
       </div>
       <p class="doc-hero__desc">{{ entry.description }}</p>
+
+      <!-- Planned = spec published, code not written yet -->
+      <div class="planned-note" *ngIf="entry.status === 'planned'">
+        <fvdr-icon class="planned-note__icon" name="info"></fvdr-icon>
+        <span class="planned-note__body">
+          <span class="planned-note__title">Planned — not built yet</span>
+          <span class="planned-note__text">
+            This is the agreed spec for an AI-chat component we have not implemented.
+            The API sketch and the Claude prompt below are the build brief: hand them over as-is,
+            then flip the status once the component lands in <code>components/ai/</code>.
+          </span>
+        </span>
+      </div>
     </section>
 
     <!-- 2. OVERVIEW -->
@@ -834,6 +848,55 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
             </div>
           </ng-container>
 
+          <!-- AI COMPOSER -->
+          <ng-container *ngSwitchCase="'ai-composer'">
+            <div class="anatomy-wrap" style="width:100%;max-width:520px">
+              <fvdr-ai-composer></fvdr-ai-composer>
+              <div class="anatomy-label anatomy-label--top"    style="top:-52px;left:0">textarea · auto-grow</div>
+              <div class="anatomy-label anatomy-label--bottom" style="bottom:-42px;left:0">add context</div>
+              <div class="anatomy-label anatomy-label--bottom" style="bottom:-42px;right:0">voice · send</div>
+            </div>
+          </ng-container>
+
+          <!-- AI STEPS -->
+          <ng-container *ngSwitchCase="'ai-steps'">
+            <div class="anatomy-wrap" style="width:100%;max-width:520px">
+              <fvdr-ai-steps [steps]="aiDemoSteps" [expanded]="true" [thoughtMs]="4200"></fvdr-ai-steps>
+              <div class="anatomy-label anatomy-label--top"    style="top:-52px;left:0">summary row · "Thought for Ns"</div>
+              <div class="anatomy-label anatomy-label--bottom" style="bottom:-42px;left:0">step rows · label ▸ detail</div>
+            </div>
+          </ng-container>
+
+          <!-- AI BUBBLE -->
+          <ng-container *ngSwitchCase="'ai-bubble'">
+            <div class="anatomy-wrap" style="width:100%;max-width:520px">
+              <fvdr-ai-bubble role="user" text="Which contracts are unsigned?"></fvdr-ai-bubble>
+              <div class="anatomy-label anatomy-label--top"    style="top:-52px;right:0">user bubble · max 70%</div>
+              <div class="anatomy-label anatomy-label--bottom" style="bottom:-42px;left:0">radius 12px · padding 12/16px</div>
+            </div>
+          </ng-container>
+
+          <!-- AI CITATION -->
+          <ng-container *ngSwitchCase="'ai-citation'">
+            <div class="anatomy-wrap">
+              <fvdr-ai-citation [index]="1" label="Master Services Agreement.pdf" [page]="12" fileType="pdf"></fvdr-ai-citation>
+              <div class="anatomy-label anatomy-label--top"    style="top:-52px;left:-10px">index marker</div>
+              <div class="anatomy-label anatomy-label--top"    style="top:-52px;right:-10px">page reference</div>
+              <div class="anatomy-label anatomy-label--bottom" style="bottom:-42px;left:50%;transform:translateX(-50%)">file icon · document name</div>
+            </div>
+          </ng-container>
+
+          <!-- AI ACTIONS -->
+          <ng-container *ngSwitchCase="'ai-actions'">
+            <div class="anatomy-wrap">
+              <fvdr-ai-actions></fvdr-ai-actions>
+              <div class="anatomy-label anatomy-label--top"    style="top:-52px;left:-10px">regenerate · copy</div>
+              <div class="anatomy-label anatomy-label--top"    style="top:-52px;right:-10px">rating</div>
+              <div class="anatomy-label anatomy-label--bottom" style="bottom:-42px;left:50%;transform:translateX(-50%)">28×28 ghost buttons · gap 4px</div>
+              <div class="dim-v" style="left:-24px;top:0;height:28px">28px</div>
+            </div>
+          </ng-container>
+
           <ng-container *ngSwitchDefault>
             <div class="anatomy-preview-empty">Live anatomy preview coming soon for this component.</div>
           </ng-container>
@@ -843,7 +906,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
     </section>
 
     <!-- 4–6. LIVE EXAMPLES (Sizes, States, Variants) -->
-    <section class="doc-section">
+    <section class="doc-section" *ngIf="entry.status !== 'planned'">
       <h2 class="doc-section__title">Examples</h2>
       <ng-container [ngSwitch]="componentId">
 
@@ -2471,6 +2534,137 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
 
         </ng-container>
 
+        <!-- AI COMPOSER -->
+        <ng-container *ngSwitchCase="'ai-composer'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">Default</h3>
+            <div class="examples-row examples-row--stack examples-row--chat">
+              <fvdr-ai-composer style="max-width:640px;width:100%" (submitted)="onAiPrompt($event)"></fvdr-ai-composer>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Busy — a response is streaming</h3>
+            <div class="examples-row examples-row--stack examples-row--chat">
+              <fvdr-ai-composer style="max-width:640px;width:100%" [busy]="true" [value]="'Summarize the FY23 financials'"></fvdr-ai-composer>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Minimal — no add-context, no voice</h3>
+            <div class="examples-row examples-row--stack examples-row--chat">
+              <fvdr-ai-composer
+                style="max-width:640px;width:100%"
+                placeholder="Ask about this document…"
+                [showAddContext]="false"
+                [showVoice]="false"
+                (submitted)="onAiPrompt($event)"
+              ></fvdr-ai-composer>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Disabled — AI unavailable</h3>
+            <div class="examples-row examples-row--stack examples-row--chat">
+              <fvdr-ai-composer
+                style="max-width:640px;width:100%"
+                [disabled]="true"
+                placeholder="AI assistant is disabled for this data room"
+              ></fvdr-ai-composer>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- AI STEPS -->
+        <ng-container *ngSwitchCase="'ai-steps'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">Streaming</h3>
+            <div class="examples-row examples-row--stack examples-row--chat">
+              <fvdr-ai-steps [steps]="aiDemoSteps" [streaming]="true"></fvdr-ai-steps>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Collapsed — click to audit the trail</h3>
+            <div class="examples-row examples-row--stack examples-row--chat">
+              <fvdr-ai-steps
+                [steps]="aiDemoSteps"
+                [thoughtMs]="4200"
+                [expanded]="aiStepsExpanded"
+                (toggled)="aiStepsExpanded = !aiStepsExpanded"
+              ></fvdr-ai-steps>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Cancelled</h3>
+            <div class="examples-row examples-row--stack examples-row--chat">
+              <fvdr-ai-steps [steps]="aiDemoSteps" [cancelled]="true" [thoughtMs]="1800"></fvdr-ai-steps>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- AI BUBBLE -->
+        <ng-container *ngSwitchCase="'ai-bubble'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">A turn pair</h3>
+            <div class="examples-row examples-row--stack examples-row--chat" style="max-width:640px">
+              <fvdr-ai-bubble role="user" text="Which contracts are still missing signatures?"></fvdr-ai-bubble>
+              <fvdr-ai-bubble role="assistant">
+                <p style="margin:0">Three contracts in /Legal are unsigned. The oldest has been outstanding since March.</p>
+              </fvdr-ai-bubble>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Multi-line user prompt</h3>
+            <div class="examples-row examples-row--stack examples-row--chat" style="max-width:640px">
+              <fvdr-ai-bubble
+                role="user"
+                text="Summarize the FY23 financials.&#10;Focus on revenue and any going-concern language."
+              ></fvdr-ai-bubble>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- AI CITATION -->
+        <ng-container *ngSwitchCase="'ai-citation'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">Inline — with a page reference</h3>
+            <div class="examples-row">
+              <fvdr-ai-citation label="Master Services Agreement.pdf" [page]="12" fileType="pdf"></fvdr-ai-citation>
+              <fvdr-ai-citation label="FY23 Audit.xlsx" fileType="xls"></fvdr-ai-citation>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Numbered — matching a source list</h3>
+            <div class="examples-row">
+              <fvdr-ai-citation [index]="1" label="Share Purchase Agreement.pdf" [page]="4" fileType="pdf"></fvdr-ai-citation>
+              <fvdr-ai-citation [index]="2" label="Board Minutes 2023-11.doc" fileType="doc"></fvdr-ai-citation>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Pill — a row of sources under a paragraph</h3>
+            <div class="examples-row">
+              <fvdr-ai-citation variant="pill" label="Cap Table.xlsx" fileType="xls"></fvdr-ai-citation>
+              <fvdr-ai-citation variant="pill" label="Employment Agreements" fileType="folder"></fvdr-ai-citation>
+              <fvdr-ai-citation variant="pill" label="NDA — Acme.pdf" [page]="2" fileType="pdf"></fvdr-ai-citation>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- AI ACTIONS -->
+        <ng-container *ngSwitchCase="'ai-actions'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">Full row — copy confirms itself, thumbs toggle</h3>
+            <div class="examples-row">
+              <fvdr-ai-actions [rating]="aiRating" (rated)="aiRating = $event"></fvdr-ai-actions>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Copy only, plus a projected action</h3>
+            <div class="examples-row">
+              <fvdr-ai-actions [showRegenerate]="false" [showRating]="false">
+                <fvdr-btn variant="link" size="s" label="Export report"></fvdr-btn>
+              </fvdr-ai-actions>
+            </div>
+          </div>
+        </ng-container>
+
         <!-- DEFAULT STUB -->
         <ng-container *ngSwitchDefault>
           <div class="stub-example">
@@ -2671,6 +2865,26 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
       background: var(--color-selected-row, #edf7f3);
     }
 
+    /* Planned = spec only, no implementation behind it yet. */
+    .sidebar-item--planned {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      color: var(--color-text-placeholder, #9c9ea8);
+    }
+    .sidebar-item__flag {
+      flex: 0 0 auto;
+      padding: 1px 5px;
+      border: 1px dashed var(--color-divider, #dee0eb);
+      border-radius: var(--radius-sm, 4px);
+      font-size: 9px;
+      line-height: 14px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--color-text-secondary, #5f616a);
+    }
+
     /* ── Main ── */
     .doc-main {
       flex: 1;
@@ -2734,9 +2948,36 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
       background: var(--color-status-beta-bg, #eef0ff);
       color: #4862d3;
     }
+    .status--planned {
+      background: var(--color-stone-200, #f7f7f7);
+      color: var(--color-text-secondary, #5f616a);
+      border: 1px dashed var(--color-divider, #dee0eb);
+    }
     .status--deprecated {
       background: var(--color-status-deprecated-bg, #fff0ee);
       color: var(--color-error-600, #e54430);
+    }
+
+    /* Planned components — spec only, nothing to render yet */
+    .planned-note {
+      display: flex; align-items: flex-start; gap: var(--space-3, 12px);
+      margin-top: var(--space-4, 16px);
+      padding: var(--space-4, 16px);
+      border: 1px dashed var(--color-divider, #dee0eb);
+      border-radius: var(--radius-md, 8px);
+      background: var(--color-stone-100, #fafafa);
+    }
+    .planned-note__icon { color: var(--color-text-secondary, #5f616a); font-size: 16px; flex: 0 0 auto; }
+    .planned-note__body { display: flex; flex-direction: column; gap: 2px; }
+    .planned-note__title {
+      font-size: var(--font-size-base, 14px);
+      font-weight: var(--font-weight-semi, 600);
+      color: var(--color-text-primary, #1f2129);
+    }
+    .planned-note__text {
+      font-size: var(--font-size-sm, 13px);
+      line-height: var(--line-height-normal, 20px);
+      color: var(--color-text-secondary, #5f616a);
     }
 
     /* Category — uppercase small caps */
@@ -3471,6 +3712,17 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
 
     .examples-row--wrap {
       flex-wrap: wrap;
+    }
+
+    /* Chat previews stack vertically and need a white canvas — the user bubble
+       is --color-stone-200, which would vanish on the default grey surface. */
+    .examples-row--stack {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .examples-row--chat {
+      background: var(--color-stone-0, #ffffff);
+      border: 1px solid var(--color-divider, #dee0eb);
     }
 
     .toast-preview {
@@ -4245,8 +4497,22 @@ export class DsComponentPageComponent implements OnInit, OnDestroy {
     });
   }
 
+  // ── AI Assistant section demo state ──
+  readonly aiDemoSteps: AiStep[] = [
+    { id: 's1', label: 'Reading the request',   kind: 'thought', done: true },
+    { id: 's2', label: 'Searching documents',   kind: 'thought', detail: 'scope: /Financials', done: true },
+    { id: 's3', label: 'Found 6 results',       kind: 'result',  detail: '4 signed · 2 unsigned', done: true },
+    { id: 's4', label: 'Checking permissions',  kind: 'thought', done: true },
+  ];
+  aiStepsExpanded = false;
+  aiRating: AiRating = null;
+
+  onAiPrompt(prompt: string): void {
+    this.toastSvc.show({ variant: 'info', title: 'Prompt sent', message: prompt });
+  }
+
   statusClass(status: ComponentStatus): string {
-    return { stable: 'status--stable', beta: 'status--beta', deprecated: 'status--deprecated' }[status];
+    return { stable: 'status--stable', beta: 'status--beta', planned: 'status--planned', deprecated: 'status--deprecated' }[status];
   }
 
   categoryLabel(cat: ComponentCategory): string {

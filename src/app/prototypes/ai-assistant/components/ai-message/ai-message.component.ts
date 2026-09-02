@@ -11,7 +11,6 @@ import {
   TableAnswer,
 } from '../../models/ai-scenario.model';
 import { MockDocument } from '../../models/mock-doc.model';
-import { AiStepsComponent } from '../ai-steps/ai-steps.component';
 import { AiAnswerProseComponent } from '../ai-answer-prose/ai-answer-prose.component';
 import { AiAnswerDocComponent } from '../ai-answer-doc/ai-answer-doc.component';
 import { AiAnswerTableComponent } from '../ai-answer-table/ai-answer-table.component';
@@ -27,7 +26,6 @@ import { AiAnswerProjectComponent } from '../ai-answer-project/ai-answer-project
   imports: [
     CommonModule,
     ...DS_COMPONENTS,
-    AiStepsComponent,
     AiAnswerProseComponent,
     AiAnswerDocComponent,
     AiAnswerTableComponent,
