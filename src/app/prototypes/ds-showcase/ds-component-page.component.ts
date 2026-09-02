@@ -3,7 +3,11 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
-import { DS_COMPONENTS, ToastService, ToastAction, FloatingPanelItem, FilterBtnColor, RedactionMarkPage, FvdrPlanName, FVDR_PLAN_NAMES, SidebarNavItem, AiStep, AiRating } from '../../shared/ds';
+import {
+  DS_COMPONENTS, ToastService, ToastAction, FloatingPanelItem, FilterBtnColor, RedactionMarkPage,
+  FvdrPlanName, FVDR_PLAN_NAMES, SidebarNavItem,
+  AiStep, AiRating, AiDocRef, AiSummaryGroup, AiReportSection, AiChatMessage, AiThread, AiPanelMode, AiFeedback,
+} from '../../shared/ds';
 import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, ComponentCategory } from './ds-registry';
 
 @Component({
@@ -2665,6 +2669,460 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
           </div>
         </ng-container>
 
+
+        <!-- AI CONVERSATION -->
+        <ng-container *ngSwitchCase="'ai-conversation'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">Active transcript — steps, answer, sources, permission note, actions</h3>
+            <div class="ai-frame ai-frame--tall">
+              <fvdr-ai-conversation
+                [messages]="aiTranscript"
+                [suggestions]="['Draft a chase email', 'Show the signature history']"
+                (docOpened)="onAiDoc($event)"
+                (promptSubmitted)="onAiPrompt($event)"
+              ></fvdr-ai-conversation>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Empty — the composer takes the middle</h3>
+            <div class="ai-frame">
+              <fvdr-ai-conversation
+                [messages]="[]"
+                [suggestions]="['Summarize this data room', 'Show all documents missing signatures']"
+                (promptSubmitted)="onAiPrompt($event)"
+              ></fvdr-ai-conversation>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Compact — sidebar and floating shells</h3>
+            <div class="ai-frame ai-frame--narrow">
+              <fvdr-ai-conversation
+                [messages]="aiTranscript"
+                [compact]="true"
+                (docOpened)="onAiDoc($event)"
+                (promptSubmitted)="onAiPrompt($event)"
+              ></fvdr-ai-conversation>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- AI EMPTY STATE -->
+        <ng-container *ngSwitchCase="'ai-empty-state'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">Room scope</h3>
+            <div class="ai-frame">
+              <fvdr-ai-empty-state
+                [suggestions]="['Summarize the documents in this data room', 'Show all documents missing signatures', 'Generate a due diligence report draft']"
+                (promptSubmitted)="onAiPrompt($event)"
+              ></fvdr-ai-empty-state>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Folder scope, compact — starters follow the scope</h3>
+            <div class="ai-frame ai-frame--narrow">
+              <fvdr-ai-empty-state
+                greeting="Ask about 4 ACME Inc."
+                subtitle="6 documents in this folder"
+                [compact]="true"
+                [suggestions]="['Summarize this folder', 'Which documents are unsigned?', 'List every party mentioned']"
+                (promptSubmitted)="onAiPrompt($event)"
+              ></fvdr-ai-empty-state>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- AI SUGGESTIONS -->
+        <ng-container *ngSwitchCase="'ai-suggestions'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">Wrap — default</h3>
+            <div class="examples-row examples-row--chat">
+              <fvdr-ai-suggestions
+                [items]="['Summarize this folder', 'Show unsigned documents', 'Generate a DD report draft', 'List every counterparty']"
+                (chosen)="onAiPrompt($event)"
+              ></fvdr-ai-suggestions>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Stack — narrow shells</h3>
+            <div class="examples-row examples-row--chat" style="max-width:320px">
+              <fvdr-ai-suggestions
+                layout="stack"
+                [items]="['Summarize this folder', 'Show unsigned documents', 'Generate a DD report draft']"
+                (chosen)="onAiPrompt($event)"
+              ></fvdr-ai-suggestions>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Capped at 2 — anything past max is dropped</h3>
+            <div class="examples-row examples-row--chat">
+              <fvdr-ai-suggestions
+                [max]="2"
+                [items]="['Summarize this folder', 'Show unsigned documents', 'This one never renders', 'Nor this one']"
+                (chosen)="onAiPrompt($event)"
+              ></fvdr-ai-suggestions>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- AI MARKDOWN -->
+        <ng-container *ngSwitchCase="'ai-markdown'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">Full answer — headings, list, table, quote, inline code</h3>
+            <div class="examples-row examples-row--stack examples-row--chat">
+              <fvdr-ai-markdown [source]="aiMarkdownSample"></fvdr-ai-markdown>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Streaming — caret after the last block, partial markup tolerated</h3>
+            <div class="examples-row examples-row--stack examples-row--chat">
+              <fvdr-ai-markdown
+                [streaming]="true"
+                source="Three contracts in **/Legal** are unsigned.&#10;&#10;## What is missing&#10;&#10;1. Master Services Agreement&#10;2. Board resol"
+              ></fvdr-ai-markdown>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- AI TOOL CALL -->
+        <ng-container *ngSwitchCase="'ai-tool-call'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">Running · done · error</h3>
+            <div class="examples-row examples-row--stack examples-row--chat">
+              <fvdr-ai-tool-call icon="search" title="Searching documents" target="4 ACME Inc." status="running"></fvdr-ai-tool-call>
+              <fvdr-ai-tool-call icon="search" title="Searched documents" target="whole data room" status="done" [resultCount]="6"></fvdr-ai-tool-call>
+              <fvdr-ai-tool-call icon="documents" title="Read document" target="4.1 Master Services Agreement.pdf" status="error"></fvdr-ai-tool-call>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Expandable result</h3>
+            <div class="examples-row examples-row--stack examples-row--chat">
+              <fvdr-ai-tool-call
+                icon="documents"
+                title="Read document"
+                target="5.3 Cooperative bylaws.pdf"
+                status="done"
+                [expanded]="aiToolExpanded"
+                (toggled)="aiToolExpanded = !aiToolExpanded"
+              >
+                <span>Pages 4–9 · membership, voting rights and the 15% holding cap.</span>
+              </fvdr-ai-tool-call>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Needs confirm — every write stops here first</h3>
+            <div class="examples-row examples-row--stack examples-row--chat">
+              <fvdr-ai-tool-call
+                icon="add-folder"
+                title="Create folder"
+                target="6 Post-closing"
+                status="needs-confirm"
+                confirmLabel="Create"
+              ></fvdr-ai-tool-call>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- AI ATTACHMENT -->
+        <ng-container *ngSwitchCase="'ai-attachment'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">States</h3>
+            <div class="examples-row examples-row--chat">
+              <fvdr-ai-attachment label="4.1 Master Services Agreement.pdf" fileType="pdf"></fvdr-ai-attachment>
+              <fvdr-ai-attachment label="4 ACME Inc." fileType="folder" meta="6 docs"></fvdr-ai-attachment>
+              <fvdr-ai-attachment label="FY23 Audit.xlsx" fileType="xls" state="indexing"></fvdr-ai-attachment>
+              <fvdr-ai-attachment label="Scan 0042.jpg" fileType="image" state="error"></fvdr-ai-attachment>
+              <fvdr-ai-attachment label="Pinned by this screen" fileType="pdf" [removable]="false"></fvdr-ai-attachment>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">In the composer</h3>
+            <div class="examples-row examples-row--stack examples-row--chat">
+              <div style="display:flex;flex-wrap:wrap;gap:var(--space-1);margin-bottom:var(--space-2)">
+                <fvdr-ai-attachment label="4.1 Master Services Agreement.pdf" fileType="pdf"></fvdr-ai-attachment>
+                <fvdr-ai-attachment label="4 ACME Inc." fileType="folder" meta="6 docs"></fvdr-ai-attachment>
+              </div>
+              <fvdr-ai-composer placeholder="Ask about the attached documents…"></fvdr-ai-composer>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- AI ERROR -->
+        <ng-container *ngSwitchCase="'ai-error'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">Variants</h3>
+            <div class="examples-row examples-row--stack examples-row--chat">
+              <fvdr-ai-error variant="timeout"></fvdr-ai-error>
+              <fvdr-ai-error variant="rate-limit"></fvdr-ai-error>
+              <fvdr-ai-error variant="unavailable"></fvdr-ai-error>
+              <fvdr-ai-error variant="permission"></fvdr-ai-error>
+              <fvdr-ai-error variant="generic"></fvdr-ai-error>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- AI ANSWER · DOCUMENT LIST -->
+        <ng-container *ngSwitchCase="'ai-answer-doc-list'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">Search result</h3>
+            <div class="examples-row examples-row--stack examples-row--chat">
+              <fvdr-ai-answer-doc-list
+                intro="I found 4 documents that mention a signature requirement:"
+                [docs]="aiDocs"
+                followUp="Open any of them to see who still needs to sign."
+                (docOpened)="onAiDoc($event)"
+                (folderOpened)="onAiFolder($event)"
+              ></fvdr-ai-answer-doc-list>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- AI ANSWER · TABLE -->
+        <ng-container *ngSwitchCase="'ai-answer-table'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">Default — Name / Index / Size / Folder</h3>
+            <div class="examples-row examples-row--stack examples-row--chat">
+              <fvdr-ai-answer-table
+                summary="Here is the full list (4 total):"
+                [docs]="aiDocs"
+                (docOpened)="onAiDoc($event)"
+                (folderOpened)="onAiFolder($event)"
+              ></fvdr-ai-answer-table>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Signatures — the compliance sweep</h3>
+            <div class="examples-row examples-row--stack examples-row--chat">
+              <fvdr-ai-answer-table
+                summary="3 of 4 documents are still missing signatures:"
+                variant="signatures"
+                [docs]="aiDocs"
+                (docOpened)="onAiDoc($event)"
+                (folderOpened)="onAiFolder($event)"
+              ></fvdr-ai-answer-table>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- AI ANSWER · SUMMARY -->
+        <ng-container *ngSwitchCase="'ai-answer-summary'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">Grouped by folder, every point cited</h3>
+            <div class="examples-row examples-row--stack examples-row--chat">
+              <fvdr-ai-answer-summary
+                scopeLabel="9 documents in 2 folders"
+                overview="The two ACME entities share a services agreement that auto-renews, and both carry outstanding signatures."
+                [groups]="aiSummaryGroups"
+                followUp="Want this as a one-page brief?"
+                (docOpened)="onAiDoc($event)"
+                (folderOpened)="onAiFolder($event)"
+                (exported)="onAiPrompt('Export summary')"
+              ></fvdr-ai-answer-summary>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- AI ANSWER · REPORT -->
+        <ng-container *ngSwitchCase="'ai-answer-report'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">Draft with a severity legend</h3>
+            <div class="examples-row examples-row--stack examples-row--chat">
+              <fvdr-ai-answer-report
+                title="Due diligence report"
+                subtitle="Project Nike · generated from 24 documents"
+                [sections]="aiReportSections"
+                [severityLegend]="true"
+                (docOpened)="onAiDoc($event)"
+                (exported)="onAiPrompt('Export report')"
+                (savedToRoom)="onAiPrompt('Save report to the room')"
+              ></fvdr-ai-answer-report>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- AI SOURCE LIST -->
+        <ng-container *ngSwitchCase="'ai-source-list'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">Collapsed by default — click to audit</h3>
+            <div class="examples-row examples-row--stack examples-row--chat">
+              <fvdr-ai-source-list
+                [sources]="aiDocs"
+                [expanded]="aiSourcesExpanded"
+                (toggled)="aiSourcesExpanded = !aiSourcesExpanded"
+                (docOpened)="onAiDoc($event)"
+              ></fvdr-ai-source-list>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- AI PERMISSION NOTE -->
+        <ng-container *ngSwitchCase="'ai-permission-note'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">Counted · uncounted · warning tone</h3>
+            <div class="examples-row examples-row--stack examples-row--chat">
+              <fvdr-ai-permission-note [hiddenCount]="3"></fvdr-ai-permission-note>
+              <fvdr-ai-permission-note></fvdr-ai-permission-note>
+              <fvdr-ai-permission-note
+                tone="warning"
+                message="You are viewing as Bidder group B — this answer covers 12 of 40 documents."
+              ></fvdr-ai-permission-note>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Under an answer, where it belongs</h3>
+            <div class="examples-row examples-row--stack examples-row--chat">
+              <fvdr-ai-markdown source="Two counterparties have no NDA on file: Northwind Traders and Contoso Ltd."></fvdr-ai-markdown>
+              <fvdr-ai-permission-note [hiddenCount]="2"></fvdr-ai-permission-note>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- AI SCOPE BAR -->
+        <ng-container *ngSwitchCase="'ai-scope-bar'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">Kinds</h3>
+            <div class="examples-row examples-row--stack examples-row--chat">
+              <fvdr-ai-scope-bar kind="room" label="Project Nike" [docCount]="248" (changeRequested)="onAiPrompt('Change scope')"></fvdr-ai-scope-bar>
+              <fvdr-ai-scope-bar kind="folder" label="4 ACME Inc." [docCount]="6" (changeRequested)="onAiPrompt('Change scope')"></fvdr-ai-scope-bar>
+              <fvdr-ai-scope-bar kind="document" label="4.1 Master Services Agreement.pdf" (changeRequested)="onAiPrompt('Change scope')"></fvdr-ai-scope-bar>
+              <fvdr-ai-scope-bar kind="selection" label="3 selected documents" [docCount]="3" (changeRequested)="onAiPrompt('Change scope')"></fvdr-ai-scope-bar>
+              <fvdr-ai-scope-bar kind="document" label="Locked to this Q&amp;A thread" [editable]="false"></fvdr-ai-scope-bar>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Above the composer, where the user sees it before typing</h3>
+            <div class="examples-row examples-row--stack examples-row--chat">
+              <fvdr-ai-scope-bar kind="folder" label="4 ACME Inc." [docCount]="6"></fvdr-ai-scope-bar>
+              <fvdr-ai-composer placeholder="Ask about this folder…"></fvdr-ai-composer>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- AI INLINE PROMPT -->
+        <ng-container *ngSwitchCase="'ai-inline-prompt'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">Idle — in the document viewer</h3>
+            <div class="examples-row examples-row--stack examples-row--chat">
+              <fvdr-ai-inline-prompt
+                scopeLabel="4.1 Master Services Agreement.pdf"
+                [suggestions]="['Summarize', 'List obligations', 'Find key dates']"
+                (promptSubmitted)="onAiPrompt($event)"
+                (expandRequested)="onAiPrompt('Continue in assistant')"
+              ></fvdr-ai-inline-prompt>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Answered</h3>
+            <div class="examples-row examples-row--stack examples-row--chat">
+              <fvdr-ai-inline-prompt
+                scopeLabel="4.1 Master Services Agreement.pdf"
+                answer="The agreement runs for **12 months** from 1 April 2024 and auto-renews unless either party cancels 60 days ahead.&#10;&#10;- Termination for convenience: 90 days&#10;- Liability cap: 12 months of fees"
+                (expandRequested)="onAiPrompt('Continue in assistant')"
+              ></fvdr-ai-inline-prompt>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- AI PANEL -->
+        <ng-container *ngSwitchCase="'ai-panel'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">Switch modes with the header icons — the thread survives the switch</h3>
+            <p class="ai-hint">Floating mode is <code>position: fixed</code>, so it docks to the viewport corner rather than staying inside this frame. That is the real behaviour.</p>
+            <div class="ai-frame ai-frame--tall ai-frame--row">
+              <div class="ai-frame__content" *ngIf="aiPanelMode !== 'fullscreen'">Data room content sits here. In side-panel mode it reflows instead of being covered.</div>
+              <fvdr-ai-panel
+                [(mode)]="aiPanelMode"
+                title="AI assistant"
+                [showHistory]="true"
+                (newChat)="onAiPrompt('New chat')"
+                (historyToggled)="onAiPrompt('Toggle history')"
+              >
+                <fvdr-ai-conversation
+                  [messages]="aiTranscript"
+                  [compact]="aiPanelMode !== 'fullscreen'"
+                  (docOpened)="onAiDoc($event)"
+                  (promptSubmitted)="onAiPrompt($event)"
+                ></fvdr-ai-conversation>
+              </fvdr-ai-panel>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- AI THREAD LIST -->
+        <ng-container *ngSwitchCase="'ai-thread-list'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">Pinned first, then grouped by day — hover a row for its actions</h3>
+            <div class="examples-row examples-row--stack examples-row--chat" style="max-width:320px">
+              <fvdr-ai-thread-list
+                [threads]="aiThreads"
+                [activeId]="aiThreadActive"
+                (opened)="aiThreadActive = $event.id"
+                (renamed)="onAiPrompt('Rename: ' + $event.title)"
+                (pinned)="onAiPrompt('Pin: ' + $event.title)"
+                (deleted)="onAiPrompt('Confirm delete: ' + $event.title)"
+              ></fvdr-ai-thread-list>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Empty</h3>
+            <div class="examples-row examples-row--stack examples-row--chat" style="max-width:320px">
+              <fvdr-ai-thread-list [threads]="[]"></fvdr-ai-thread-list>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- AI FEEDBACK MODAL -->
+        <ng-container *ngSwitchCase="'ai-feedback-modal'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">Opens after a thumbs-down — pick the last reason to see the security path</h3>
+            <div class="examples-row examples-row--chat">
+              <fvdr-btn variant="secondary" size="m" label="Open feedback modal" (clicked)="aiFeedbackOpen = true"></fvdr-btn>
+              <fvdr-ai-feedback-modal
+                [visible]="aiFeedbackOpen"
+                (submitted)="onAiFeedback($event)"
+                (cancelled)="aiFeedbackOpen = false"
+              ></fvdr-ai-feedback-modal>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- AI CONSENT BANNER -->
+        <ng-container *ngSwitchCase="'ai-consent-banner'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">First run</h3>
+            <div class="ai-frame">
+              <fvdr-ai-consent-banner
+                [terms]="{ processing: 'The assistant reads only the documents you already have access to.', retention: 'Your prompts stay in this data room and are not used to train models.', docsUrl: 'https://ideals.com' }"
+                (accepted)="onAiPrompt('Accepted')"
+                (declined)="onAiPrompt('Declined')"
+              ></fvdr-ai-consent-banner>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Turned off for this data room</h3>
+            <div class="ai-frame ai-frame--short">
+              <fvdr-ai-consent-banner variant="disabled"></fvdr-ai-consent-banner>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- AI USAGE METER -->
+        <ng-container *ngSwitchCase="'ai-usage-meter'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">OK · warning · spent</h3>
+            <div class="examples-row examples-row--stack examples-row--chat">
+              <fvdr-ai-usage-meter [used]="240" [limit]="1000" (upgradeRequested)="onAiPrompt('Open billing')"></fvdr-ai-usage-meter>
+              <fvdr-ai-usage-meter [used]="820" [limit]="1000" (upgradeRequested)="onAiPrompt('Open billing')"></fvdr-ai-usage-meter>
+              <fvdr-ai-usage-meter [used]="1000" [limit]="1000" (upgradeRequested)="onAiPrompt('Open billing')"></fvdr-ai-usage-meter>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Compact — the assistant header</h3>
+            <div class="examples-row examples-row--chat">
+              <fvdr-ai-usage-meter [used]="940" [limit]="1000" [compact]="true" (upgradeRequested)="onAiPrompt('Open billing')"></fvdr-ai-usage-meter>
+            </div>
+          </div>
+        </ng-container>
+
         <!-- DEFAULT STUB -->
         <ng-container *ngSwitchDefault>
           <div class="stub-example">
@@ -3724,6 +4182,40 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
       background: var(--color-stone-0, #ffffff);
       border: 1px solid var(--color-divider, #dee0eb);
     }
+    /* AI section — components that fill their host need a bounded stage. */
+    .ai-frame {
+      height: 420px;
+      border: 1px solid var(--color-divider, #dee0eb);
+      border-radius: 8px;
+      background: var(--color-stone-0, #ffffff);
+      overflow: hidden;
+    }
+    .ai-frame--tall  { height: 560px; }
+    .ai-frame--short { height: 280px; }
+    .ai-frame--narrow { max-width: 380px; }
+    .ai-frame--row { display: flex; min-width: 0; }
+    .ai-frame__content {
+      flex: 1; min-width: 0;
+      padding: 20px;
+      font-size: var(--font-size-sm, 13px);
+      line-height: 20px;
+      color: var(--color-text-secondary, #5f616a);
+      background: var(--color-stone-100, #fafafa);
+    }
+    .ai-hint {
+      margin: -4px 0 12px;
+      font-size: var(--font-size-xs, 12px);
+      line-height: 18px;
+      color: var(--color-text-secondary, #5f616a);
+    }
+    .ai-hint code {
+      font-family: 'Menlo', 'Courier New', monospace;
+      font-size: var(--font-size-2xs, 11px);
+      background: var(--color-stone-200, #f7f7f7);
+      padding: 1px 4px;
+      border-radius: 4px;
+    }
+
 
     .toast-preview {
       display: flex;
@@ -4506,6 +4998,123 @@ export class DsComponentPageComponent implements OnInit, OnDestroy {
   ];
   aiStepsExpanded = false;
   aiRating: AiRating = null;
+
+  readonly aiDocs: AiDocRef[] = [
+    { id: 'd1', name: '4.1 Master Services Agreement.pdf', type: 'pdf', folderPath: '4 ACME Inc.', index: '4.1', size: '1.2 MB', page: 12, status: '0/2 signed', statusVariant: 'error' },
+    { id: 'd2', name: '4.5 Board resolution — dividend.pdf', type: 'pdf', folderPath: '4 ACME Inc.', index: '4.5', size: '318 KB', status: '0/3 signed', statusVariant: 'error' },
+    { id: 'd3', name: '5.3 Cooperative bylaws.pdf', type: 'pdf', folderPath: '5 ACME Cooperative', index: '5.3', size: '742 KB', status: '1/2 signed', statusVariant: 'warning' },
+    { id: 'd4', name: 'FY23 Audit.xlsx', type: 'xls', folderPath: '2 Intellectual property', index: '2.7', size: '4.1 MB', status: 'signed', statusVariant: 'success' },
+  ];
+
+  readonly aiSummaryGroups: AiSummaryGroup[] = [
+    {
+      title: '4 ACME Inc.',
+      points: [
+        { text: 'The services agreement auto-renews for 12 months unless cancelled 60 days ahead.', source: this.aiDocsRef('d1', 4) },
+        { text: 'Two signatures are still outstanding on the master agreement.', source: this.aiDocsRef('d1', 12) },
+      ],
+    },
+    {
+      title: '5 ACME Cooperative',
+      points: [
+        { text: 'Bylaws cap any single member\'s holding at 15% of voting rights.', source: this.aiDocsRef('d3', 7) },
+      ],
+    },
+  ];
+
+  readonly aiReportSections: AiReportSection[] = [
+    {
+      heading: 'Corporate structure',
+      findings: [
+        { text: 'Two subsidiaries have no filed board resolutions for the 2023 dividend.', severity: 'high', sources: [this.aiDocsRef('d2')] },
+        { text: 'Shareholder register matches the cap table as of Feb 2026.', severity: 'low', sources: [this.aiDocsRef('d4')] },
+      ],
+    },
+    {
+      heading: 'Contracts',
+      findings: [
+        { text: 'The master services agreement auto-renews and was never counter-signed.', severity: 'high', sources: [this.aiDocsRef('d1', 12)] },
+        { text: 'Three supplier contracts expire within 90 days of closing.', severity: 'medium', sources: [this.aiDocsRef('d3')] },
+      ],
+    },
+  ];
+
+  readonly aiMarkdownSample = [
+    'Three contracts in **/Legal** are still unsigned. The oldest has been outstanding since March.',
+    '',
+    '## What is missing',
+    '',
+    '1. Master Services Agreement — 2 of 2 signatures',
+    '2. Board resolution — 3 of 3 signatures',
+    '3. Cooperative bylaws — 1 of 2 signatures',
+    '',
+    '| Document | Folder | Signatures |',
+    '| --- | --- | --- |',
+    '| Master Services Agreement | 4 ACME Inc. | 0/2 |',
+    '| Board resolution | 4 ACME Inc. | 0/3 |',
+    '| Cooperative bylaws | 5 ACME Cooperative | 1/2 |',
+    '',
+    '> Signature status comes from the room index, not from the file contents.',
+    '',
+    'Ask me to `draft a chase email` and I will use the counterparty contacts on file.',
+  ].join('\n');
+
+  readonly aiTranscript: AiChatMessage[] = [
+    { id: 'm1', role: 'user', text: 'Which contracts are still missing signatures?' },
+    {
+      id: 'm2',
+      role: 'assistant',
+      text: 'Three contracts are unsigned. The oldest has been outstanding since March.',
+      steps: [
+        { id: 's1', label: 'Searching documents', kind: 'thought', detail: 'scope: whole room', done: true },
+        { id: 's2', label: 'Found 3 results', kind: 'result', detail: 'all in /Legal', done: true },
+      ],
+      thoughtMs: 3400,
+      done: true,
+      sources: [this.aiDocsRef('d1', 12), this.aiDocsRef('d2'), this.aiDocsRef('d3', 7)],
+      hiddenCount: 2,
+    },
+  ];
+
+  readonly aiThreads: AiThread[] = [
+    { id: 't1', title: 'Unsigned contracts sweep', lastMessagePreview: 'Three contracts in /Legal are still unsigned.', updatedAt: 'Today', pinned: true },
+    { id: 't2', title: 'FY23 revenue summary', lastMessagePreview: 'Revenue grew 18% year on year, driven by…', updatedAt: 'Today' },
+    { id: 't3', title: 'Due diligence report draft', lastMessagePreview: 'Corporate structure · Contracts · Employment', updatedAt: 'Yesterday' },
+    { id: 't4', title: 'Missing NDAs', lastMessagePreview: 'Two counterparties have no NDA on file.', updatedAt: '2 Mar' },
+  ];
+
+  aiToolExpanded = false;
+  aiSourcesExpanded = false;
+  aiPanelMode: AiPanelMode = 'sidebar';
+  aiFeedbackOpen = false;
+  aiThreadActive = 't1';
+
+  /** Demo helper — a citation to one of the sample docs, optionally at a page. */
+  private aiDocsRef(id: string, page?: number): AiDocRef {
+    const base = [
+      { id: 'd1', name: '4.1 Master Services Agreement.pdf', type: 'pdf' as const },
+      { id: 'd2', name: '4.5 Board resolution — dividend.pdf', type: 'pdf' as const },
+      { id: 'd3', name: '5.3 Cooperative bylaws.pdf', type: 'pdf' as const },
+      { id: 'd4', name: 'FY23 Audit.xlsx', type: 'xls' as const },
+    ].find(d => d.id === id)!;
+    return { ...base, page };
+  }
+
+  onAiDoc(doc: AiDocRef): void {
+    this.toastSvc.show({ variant: 'info', message: `Would open ${doc.name}` });
+  }
+
+  onAiFolder(path: string): void {
+    this.toastSvc.show({ variant: 'info', message: `Would open ${path}` });
+  }
+
+  onAiFeedback(feedback: AiFeedback): void {
+    this.aiFeedbackOpen = false;
+    this.toastSvc.show({
+      variant: feedback.securityReport ? 'warning' : 'success',
+      message: feedback.securityReport ? 'Routed to the access review team' : `Feedback recorded: ${feedback.reason}`,
+    });
+  }
 
   onAiPrompt(prompt: string): void {
     this.toastSvc.show({ variant: 'info', title: 'Prompt sent', message: prompt });

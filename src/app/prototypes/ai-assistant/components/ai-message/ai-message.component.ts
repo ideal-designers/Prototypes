@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { DS_COMPONENTS, ToastService } from '../../../../shared/ds';
+import { AiDocRef, AiSummaryGroup, DS_COMPONENTS, ToastService } from '../../../../shared/ds';
 import { ChatMessage } from '../../models/ai-message.model';
 import {
   DdReportAnswer,
@@ -10,12 +10,9 @@ import {
   SummaryAnswer,
   TableAnswer,
 } from '../../models/ai-scenario.model';
-import { MockDocument } from '../../models/mock-doc.model';
+import { MockDocument, toAiDocRef } from '../../models/mock-doc.model';
 import { AiAnswerProseComponent } from '../ai-answer-prose/ai-answer-prose.component';
 import { AiAnswerDocComponent } from '../ai-answer-doc/ai-answer-doc.component';
-import { AiAnswerTableComponent } from '../ai-answer-table/ai-answer-table.component';
-import { AiAnswerDocListComponent } from '../ai-answer-doc-list/ai-answer-doc-list.component';
-import { AiAnswerSummaryComponent } from '../ai-answer-summary/ai-answer-summary.component';
 import { AiAnswerDdReportComponent } from '../ai-answer-dd-report/ai-answer-dd-report.component';
 import { AiAnswerProjectComponent } from '../ai-answer-project/ai-answer-project.component';
 
@@ -28,9 +25,6 @@ import { AiAnswerProjectComponent } from '../ai-answer-project/ai-answer-project
     ...DS_COMPONENTS,
     AiAnswerProseComponent,
     AiAnswerDocComponent,
-    AiAnswerTableComponent,
-    AiAnswerDocListComponent,
-    AiAnswerSummaryComponent,
     AiAnswerDdReportComponent,
     AiAnswerProjectComponent,
   ],
@@ -67,22 +61,30 @@ import { AiAnswerProjectComponent } from '../ai-answer-project/ai-answer-project
         <!-- Narrow shells render the numbered list; full screen keeps the table. -->
         <fvdr-ai-answer-doc-list
           *ngIf="tableCompact as t"
-          [answer]="t"
-          (docOpened)="docOpened.emit($event)"
+          [intro]="t.summary"
+          [docs]="tableDocs"
+          [followUp]="t.followUp || ''"
+          (docOpened)="onDocRef($event)"
           (folderOpened)="folderOpened.emit($event)"
         ></fvdr-ai-answer-doc-list>
 
         <fvdr-ai-answer-table
           *ngIf="tableFull as t"
-          [answer]="t"
-          (docOpened)="docOpened.emit($event)"
+          [summary]="t.summary"
+          [docs]="tableDocs"
+          [variant]="t.variant || 'default'"
+          [followUp]="t.followUp || ''"
+          (docOpened)="onDocRef($event)"
           (folderOpened)="folderOpened.emit($event)"
         ></fvdr-ai-answer-table>
 
         <fvdr-ai-answer-summary
           *ngIf="summary as s"
-          [answer]="s"
-          (docOpened)="docOpened.emit($event)"
+          [overview]="s.overview"
+          [groups]="summaryGroups"
+          [scopeLabel]="s.scopeLabel"
+          [followUp]="s.followUp || ''"
+          (docOpened)="onDocRef($event)"
           (folderOpened)="folderOpened.emit($event)"
           (exported)="onExport()"
         ></fvdr-ai-answer-summary>
@@ -172,7 +174,19 @@ import { AiAnswerProjectComponent } from '../ai-answer-project/ai-answer-project
 export class AiMessageComponent {
   private toast = inject(ToastService);
 
-  @Input({ required: true }) message!: ChatMessage;
+  private _message!: ChatMessage;
+
+  /** DS answer blocks speak AiDocRef — precompute both directions per turn. */
+  tableDocs: AiDocRef[] = [];
+  summaryGroups: AiSummaryGroup[] = [];
+  private docsById = new Map<string, MockDocument>();
+
+  @Input({ required: true })
+  set message(value: ChatMessage) {
+    this._message = value;
+    this.mapAnswer();
+  }
+  get message(): ChatMessage { return this._message; }
   /** Narrow shells (docked / floating) render the compact answer variants. */
   @Input() compact = false;
 
@@ -217,6 +231,36 @@ export class AiMessageComponent {
   get project(): ProjectAnswer | null {
     const a = this.message.answer;
     return a?.kind === 'project' ? a : null;
+  }
+
+  /** Re-emit the original mock so the rest of the prototype keeps its types. */
+  onDocRef(ref: AiDocRef): void {
+    const doc = this.docsById.get(ref.id);
+    if (doc) this.docOpened.emit(doc);
+  }
+
+  private mapAnswer(): void {
+    this.docsById.clear();
+    this.tableDocs = [];
+    this.summaryGroups = [];
+
+    const answer = this._message?.answer;
+    if (!answer) return;
+
+    const track = (doc: MockDocument): AiDocRef => {
+      this.docsById.set(doc.id, doc);
+      return toAiDocRef(doc);
+    };
+
+    if (answer.kind === 'table') {
+      this.tableDocs = answer.docs.map(track);
+    } else if (answer.kind === 'summary') {
+      this.summaryGroups = answer.groups.map(g => ({
+        title: g.title,
+        titleDoc: g.titleDoc ? track(g.titleDoc) : undefined,
+        points: g.points.map(p => ({ text: p.text, source: track(p.source) })),
+      }));
+    }
   }
 
   onExport(): void {

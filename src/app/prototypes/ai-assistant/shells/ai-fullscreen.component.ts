@@ -62,7 +62,7 @@ import { AiConversationComponent } from '../components/ai-conversation/ai-conver
   <!-- Conversation column -->
   <main class="ai-col">
     <div class="ai-col__inner">
-      <fvdr-ai-conversation></fvdr-ai-conversation>
+      <fvdr-vdr-ai-conversation></fvdr-vdr-ai-conversation>
     </div>
   </main>
 </div>

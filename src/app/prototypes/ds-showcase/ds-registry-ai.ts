@@ -6,10 +6,8 @@
  * Every component of the FVDR AI chat lives here. Code lives in
  * `src/app/shared/ds/components/ai/*`, docs render at `/ds/<id>`.
  *
- * `status: 'planned'` entries are specs, not code — the roadmap is kept inside
- * the design system so design and build stay on the same list. When a planned
- * component ships: build it under components/ai/, register it in ds/index.ts,
- * flip status to 'beta', and fill in anatomy + tokens.
+ * All of it is built and registered in ds/index.ts. Everything stays `beta`
+ * until the chat itself ships and the APIs have survived real screens.
  *
  * Reference: Claude's chat UI, re-read through iDeals VDR constraints —
  * every answer must be traceable to a document, and permission-filtered.
@@ -323,21 +321,26 @@ const aiActions: ComponentDocEntry = {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// PLANNED · Conversation core
+// Conversation core
 // ─────────────────────────────────────────────────────────────────────────────
 
-/** Keeps planned specs short — anatomy and tokens are filled in when they ship. */
-const planned = (e: Omit<ComponentDocEntry, 'category' | 'status' | 'anatomy' | 'tokens' | 'usedIn'> &
-  Partial<Pick<ComponentDocEntry, 'usedIn'>>): ComponentDocEntry => ({
-  category: 'ai',
-  status: 'planned',
-  anatomy: [],
-  tokens: [],
-  usedIn: [],
+/** Where the section's components are used unless the entry says otherwise. */
+const AI_SHELLS = ['AI Assistant (full screen)', 'AI Assistant (sidebar)', 'AI Assistant (floating)'];
+
+/** Section defaults — every AI component stays `beta` until the chat ships. */
+const ai = (
+  e: Omit<ComponentDocEntry, 'category' | 'status' | 'anatomy' | 'tokens' | 'usedIn'> &
+    Partial<Pick<ComponentDocEntry, 'anatomy' | 'tokens' | 'usedIn'>>,
+): ComponentDocEntry => ({
   ...e,
+  category: 'ai',
+  status: 'beta',
+  anatomy: e.anatomy ?? [],
+  tokens: e.tokens ?? [],
+  usedIn: e.usedIn ?? AI_SHELLS,
 });
 
-const aiConversation = planned({
+const aiConversation = ai({
   id: 'ai-conversation',
   name: 'AI Conversation',
   selector: 'fvdr-ai-conversation',
@@ -352,6 +355,26 @@ const aiConversation = planned({
     'Q&A threads between participants',
   ],
   relatedComponents: ['ai-bubble', 'ai-composer', 'ai-empty-state', 'ai-panel'],
+  anatomy: [
+    { index: 1, part: 'Scroll container', spec: "flex 1 · overflow-y auto · padding 24px" },
+    { index: 2, part: 'Reading column',   spec: "max-width 720px · centred · turn gap 24px" },
+    { index: 3, part: 'Jump to latest',   spec: "28px pill · --radius-full · --shadow-card · only when scrolled away" },
+    { index: 4, part: 'Dock',             spec: "composer, padding 12/24/20px · --color-stone-0" },
+    { index: 5, part: 'Empty state',      spec: "fvdr-ai-empty-state, swapped in at zero messages" },
+  ],
+  states: [
+    { name: 'Empty',         description: "No messages — the empty state owns the whole area, composer centred." },
+    { name: 'Following',     description: "Reader is at the bottom, so new content scrolls into view automatically." },
+    { name: 'Scrolled away', description: "Reader moved up: auto-scroll stops and 'Jump to latest' appears. Yanking the view mid-read is the mistake this exists to prevent." },
+    { name: 'Compact',       description: "Sidebar/floating: tighter gutters, no reading-column cap, stacked starters." },
+  ],
+  tokens: [
+    { token: '--space-6',       value: '24px',                      usage: "Scroll padding · turn gap" },
+    { token: '--radius-full',   value: '9999px',                    usage: "Jump-to-latest pill" },
+    { token: '--shadow-card',   value: '0 1px 4px rgba(0,0,0,.08)', usage: "Jump-to-latest elevation" },
+    { token: '--color-divider', value: '#DEE0EB',                   usage: "Pill border" },
+    { token: '--color-stone-0', value: '#FFFFFF',                   usage: "Dock surface" },
+  ],
   codeSnippet: `<fvdr-ai-conversation
   [messages]="conv.messages()"
   [streaming]="engine.streaming()"
@@ -360,10 +383,10 @@ const aiConversation = planned({
   (stopRequested)="engine.stop()"
 ></fvdr-ai-conversation>`,
   claudePrompt:
-    'Build fvdr-ai-conversation: messages:ChatMessage[], streaming:boolean, compact:boolean; outputs promptSubmitted:string, stopRequested. Renders fvdr-ai-empty-state when messages are empty, otherwise a scroll container of fvdr-ai-bubble turns with fvdr-ai-composer docked at the bottom. Auto-scrolls to the newest turn unless the user has scrolled up — then show a "jump to latest" button instead. compact stacks the suggestion chips for narrow shells.',
+    'Implement fvdr-ai-conversation (FVDR DS, AI Assistant section). Inputs: messages:AiChatMessage[], streaming:boolean, disabled:boolean, compact:boolean, greeting:string, placeholder:string, suggestions:string[], answerTemplate?:TemplateRef<{ $implicit: AiChatMessage }>. Outputs: promptSubmitted:string, stopRequested, stepsToggled:AiChatMessage, regenerated:AiChatMessage, copyRequested:AiChatMessage, rated:{message,rating}, docOpened:AiDocRef, contextRequested, voiceRequested. Renders fvdr-ai-empty-state at zero messages; otherwise a scroll container of fvdr-ai-bubble turns — fvdr-ai-steps, then answerTemplate or fvdr-ai-markdown, then fvdr-ai-source-list, fvdr-ai-permission-note and fvdr-ai-actions — with fvdr-ai-composer docked below. Track whether the reader is within 24px of the bottom: follow new content only then, otherwise show a "Jump to latest" pill. Reading column max-width 720px, dropped when compact. Source-list expansion is local view state keyed by turn id.',
 });
 
-const aiEmptyState = planned({
+const aiEmptyState = ai({
   id: 'ai-empty-state',
   name: 'AI Empty State',
   selector: 'fvdr-ai-empty-state',
@@ -378,16 +401,35 @@ const aiEmptyState = planned({
     'An active transcript',
   ],
   relatedComponents: ['ai-suggestions', 'ai-composer', 'ai-conversation'],
+  anatomy: [
+    { index: 1, part: 'Ideon mark', spec: "40px fvdr-icon 'ideon' · --color-primary-500 (28px compact)" },
+    { index: 2, part: 'Greeting',   spec: "24px semibold · --color-text-primary" },
+    { index: 3, part: 'Subtitle',   spec: "optional · 14px --color-text-secondary · max-width 420px" },
+    { index: 4, part: 'Composer',   spec: "fvdr-ai-composer, max-width 680px" },
+    { index: 5, part: 'Starters',   spec: "fvdr-ai-suggestions — wrap, or stack when compact" },
+  ],
+  states: [
+    { name: 'Default',  description: "Greeting plus starters, everything centred in the available height." },
+    { name: 'Compact',  description: "Sidebar/floating: 28px mark, 16px greeting, chips stacked." },
+    { name: 'Busy',     description: "A first answer is already streaming — the composer's send is muted." },
+    { name: 'Disabled', description: "AI unavailable: composer inert, starters still visible as an explanation of what it would do." },
+  ],
+  tokens: [
+    { token: '--color-primary-500', value: '#2C9C74', usage: "Ideon mark" },
+    { token: '--font-size-2xl',     value: '24px',    usage: "Greeting" },
+    { token: '--space-8',           value: '32px',    usage: "Gap between intro and actions" },
+    { token: '--space-3',           value: '12px',    usage: "Composer ↔ starters gap" },
+  ],
   codeSnippet: `<fvdr-ai-empty-state
   greeting="How can I help you today?"
   [suggestions]="scopedSuggestions()"
   (promptSubmitted)="send($event)"
 ></fvdr-ai-empty-state>`,
   claudePrompt:
-    'Build fvdr-ai-empty-state: greeting:string, suggestions:string[], compact:boolean; output promptSubmitted:string. Centred column — fvdr-icon "ideon" mark, greeting heading, fvdr-ai-composer, then fvdr-ai-suggestions. Composer and suggestions travel together so compact shells can dock the pair.',
+    'Implement fvdr-ai-empty-state (FVDR DS, AI Assistant section). Inputs: greeting:string="How can I help you today?", subtitle:string, placeholder:string, suggestions:string[], compact:boolean, busy:boolean, disabled:boolean. Outputs: promptSubmitted:string, contextRequested, voiceRequested. Public focus() forwards to the composer. Centred column: 40px fvdr-icon "ideon" in --color-primary-500, 24px semibold greeting, then an actions block (max-width 680px) holding fvdr-ai-composer and fvdr-ai-suggestions. Composer and suggestions travel together so compact shells can dock the pair; compact drops the mark to 28px, the greeting to 16px and stacks the chips.',
 });
 
-const aiSuggestions = planned({
+const aiSuggestions = ai({
   id: 'ai-suggestions',
   name: 'AI Suggestions',
   selector: 'fvdr-ai-suggestions',
@@ -403,6 +445,21 @@ const aiSuggestions = planned({
     'More than four suggestions — the point is to narrow, not to browse',
   ],
   relatedComponents: ['ai-empty-state', 'ai-composer', 'chip'],
+  anatomy: [
+    { index: 1, part: 'Row',           spec: "flex · wrap · gap 8px" },
+    { index: 2, part: 'Chip',          spec: "fvdr-chip variant grey · size l · clickable" },
+    { index: 3, part: 'Stack variant', spec: "flex-column, chips full width — for narrow shells" },
+  ],
+  states: [
+    { name: 'Wrap',   description: "Default — chips flow onto as many lines as they need." },
+    { name: 'Stack',  description: "Narrow shells: one chip per line. A half-wrapped chip reads as broken." },
+    { name: 'Capped', description: "Anything past `max` (default 4) is dropped — the point is to narrow, not to browse." },
+  ],
+  tokens: [
+    { token: '--space-2',            value: '8px',     usage: "Gap between chips" },
+    { token: '--color-stone-200',    value: '#F7F7F7', usage: "Chip surface (grey variant)" },
+    { token: '--color-text-primary', value: '#1F2129', usage: "Chip label" },
+  ],
   codeSnippet: `<fvdr-ai-suggestions
   [items]="['Summarize the documents in this folder', 'Show all documents missing signatures']"
   layout="wrap"
@@ -413,7 +470,7 @@ const aiSuggestions = planned({
     'Build fvdr-ai-suggestions: items:string[], layout:"wrap"|"stack"="wrap", behaviour:"send"|"prefill"="send", max:number=4; output chosen:string. Renders fvdr-chip variant="grey" size="l" [clickable]="true" per item. layout="stack" for narrow shells. Keyboard: each chip is a real button in tab order.',
 });
 
-const aiMarkdown = planned({
+const aiMarkdown = ai({
   id: 'ai-markdown',
   name: 'AI Markdown',
   selector: 'fvdr-ai-markdown',
@@ -428,12 +485,34 @@ const aiMarkdown = planned({
     'User-authored rich text (use Text Editor)',
   ],
   relatedComponents: ['ai-bubble', 'ai-citation', 'text-editor'],
+  anatomy: [
+    { index: 1, part: 'Block flow', spec: "flex column · gap 12px" },
+    { index: 2, part: 'Headings',   spec: "h2 16px semibold · h3 15px — an answer never owns an h1" },
+    { index: 3, part: 'Lists',      spec: "padding-left 20px · item gap 4px" },
+    { index: 4, part: 'Code block', spec: "1px --color-divider · --radius-md · language label + copy button" },
+    { index: 5, part: 'Table',      spec: "own overflow-x container so the transcript never scrolls sideways" },
+    { index: 6, part: 'Caret',      spec: "2px blinking bar after the last block while streaming" },
+  ],
+  states: [
+    { name: 'Static',         description: "Fully arrived answer — no caret." },
+    { name: 'Streaming',      description: "Caret blinks after the last block; unterminated fences, lists and tables render without flashing broken layout." },
+    { name: 'Code copied',    description: "The copy button swaps to a check for 1.6s." },
+    { name: 'Reduced motion', description: "prefers-reduced-motion stops the caret blink." },
+  ],
+  tokens: [
+    { token: '--font-size-md',        value: '15px',    usage: "Body text" },
+    { token: '--line-height-relaxed', value: '24px',    usage: "Body leading" },
+    { token: '--color-stone-200',     value: '#F7F7F7', usage: "Inline code background" },
+    { token: '--color-stone-100',     value: '#FAFAFA', usage: "Code block surface · table header" },
+    { token: '--color-divider',       value: '#DEE0EB', usage: "Code, table and quote rules" },
+    { token: '--color-primary-500',   value: '#2C9C74', usage: "Links" },
+  ],
   codeSnippet: `<fvdr-ai-markdown [source]="answer.text" [streaming]="message.streaming"></fvdr-ai-markdown>`,
   claudePrompt:
     'Build fvdr-ai-markdown: source:string, streaming:boolean. Renders a safe markdown subset — h2/h3, p, ul/ol, strong/em, inline code, fenced code with a copy button, tables, blockquote, links. Sanitize all HTML; never render raw user/model HTML. While streaming, tolerate unterminated blocks and render a blinking 2px caret after the last character. Type comes from --font-size-md/15px, line-height --line-height-relaxed/24px; block spacing from --space-3/--space-4.',
 });
 
-const aiToolCall = planned({
+const aiToolCall = ai({
   id: 'ai-tool-call',
   name: 'AI Tool Call',
   selector: 'fvdr-ai-tool-call',
@@ -449,6 +528,27 @@ const aiToolCall = planned({
     'Final answers (use the AI Answer blocks)',
   ],
   relatedComponents: ['ai-steps', 'ai-citation', 'card'],
+  anatomy: [
+    { index: 1, part: 'Card',         spec: "1px --color-divider · --radius-md · min-height 40px" },
+    { index: 2, part: 'Chevron',      spec: "12px · hidden while a confirm is pending" },
+    { index: 3, part: 'Icon + title', spec: "16px fvdr-icon · 14px title" },
+    { index: 4, part: 'Target',       spec: "13px --color-text-secondary · ellipsised" },
+    { index: 5, part: 'Status slot',  spec: "spinner · result count · check · attention · Confirm+Cancel" },
+    { index: 6, part: 'Body',         spec: "projected result, revealed on expand, 1px top rule" },
+  ],
+  states: [
+    { name: 'Running',       description: "Spinner on the right; the card is expandable but usually empty." },
+    { name: 'Done',          description: "Result count, or a check when there is nothing to count." },
+    { name: 'Error',         description: "Red border and attention icon; the body carries the reason." },
+    { name: 'Needs confirm', description: "Green surface with Cancel/Run. Required for every write — a tool call must never run without an explicit click." },
+  ],
+  tokens: [
+    { token: '--color-divider',     value: '#DEE0EB', usage: "Card border" },
+    { token: '--color-primary-500', value: '#2C9C74', usage: "Confirm border · done check" },
+    { token: '--color-primary-50',  value: '#EBF8EF', usage: "Pending-confirm surface" },
+    { token: '--color-error-600',   value: '#E54430', usage: "Error border and icon" },
+    { token: '--radius-md',         value: '8px',     usage: "Card radius" },
+  ],
   codeSnippet: `<fvdr-ai-tool-call
   icon="search"
   title="Searched documents"
@@ -463,7 +563,7 @@ const aiToolCall = planned({
     'Build fvdr-ai-tool-call: icon:FvdrIconName, title:string, target?:string, status:"running"|"done"|"error"|"needs-confirm", resultCount?:number, expanded:boolean; outputs toggled, confirmed, cancelled. Collapsed row: icon, title, target in --color-text-secondary, status affordance on the right (spinner icon / check / error / Confirm+Cancel buttons). Expanded reveals the projected result. Border 1px --color-divider, --radius-md. needs-confirm is required for any write operation — it must never run without an explicit click.',
 });
 
-const aiAttachment = planned({
+const aiAttachment = ai({
   id: 'ai-attachment',
   name: 'AI Attachment',
   selector: 'fvdr-ai-attachment',
@@ -478,6 +578,25 @@ const aiAttachment = planned({
     'Uploading new files into the room (use Drop Area)',
   ],
   relatedComponents: ['ai-composer', 'ai-scope-bar', 'chip', 'file-icon'],
+  anatomy: [
+    { index: 1, part: 'Chip',      spec: "26px tall · 1px --color-divider · --radius-sm · white" },
+    { index: 2, part: 'File icon', spec: "fvdr-file-icon 20×18px" },
+    { index: 3, part: 'Name',      spec: "12px · ellipsised" },
+    { index: 4, part: 'Meta',      spec: "optional '24 docs' · --color-text-secondary" },
+    { index: 5, part: 'Remove',    spec: "18px close button" },
+  ],
+  states: [
+    { name: 'Ready',         description: "The document is indexed and will be used as context." },
+    { name: 'Indexing',      description: "Spinner — the file is in the room but not yet searchable." },
+    { name: 'Error',         description: "Red border: encrypted, corrupt or otherwise unreadable. Say so before the prompt is sent, not after." },
+    { name: 'Not removable', description: "Seeded by the surface the chat was opened from." },
+  ],
+  tokens: [
+    { token: '--color-divider',   value: '#DEE0EB', usage: "Chip border" },
+    { token: '--color-error-600', value: '#E54430', usage: "Border and icon when unreadable" },
+    { token: '--radius-sm',       value: '4px',     usage: "Chip radius" },
+    { token: '--color-hover-bg',  value: '#ECEEF9', usage: "Remove hover" },
+  ],
   codeSnippet: `<fvdr-ai-attachment
   label="Master Services Agreement.pdf"
   fileType="pdf"
@@ -488,7 +607,7 @@ const aiAttachment = planned({
     'Build fvdr-ai-attachment: label:string, fileType:FvdrFileType, meta?:string (e.g. "24 docs"), removable:boolean=true, state:"ready"|"indexing"|"error"="ready"; output removed. Compact chip with fvdr-file-icon, ellipsised name, optional meta, and a close icon button. indexing shows the spinner icon; error shows the attention icon in --color-error-600. Sits in a wrapping row above the composer textarea.',
 });
 
-const aiError = planned({
+const aiError = ai({
   id: 'ai-error',
   name: 'AI Error',
   selector: 'fvdr-ai-error',
@@ -504,6 +623,26 @@ const aiError = planned({
     'Transient success or info feedback (use Toast)',
   ],
   relatedComponents: ['inline-message', 'info-banner', 'ai-actions'],
+  anatomy: [
+    { index: 1, part: 'Container', spec: "1px --color-divider · --radius-md · --color-stone-100" },
+    { index: 2, part: 'Icon',      spec: "16px attention · --color-error-600 — the only red in the block" },
+    { index: 3, part: 'Message',   spec: "14px --color-text-primary" },
+    { index: 4, part: 'Hint',      spec: "12px --color-text-secondary · variant default" },
+    { index: 5, part: 'Retry',     spec: "secondary button, size s · hidden for permission refusals" },
+  ],
+  states: [
+    { name: 'Timeout',     description: "'The assistant took too long' + 'Narrowing the scope usually helps.'" },
+    { name: 'Rate limit',  description: "'Too many questions at once' + try again shortly." },
+    { name: 'Unavailable', description: "Service down — the prompt is still in the transcript." },
+    { name: 'Permission',  description: "No access to the documents needed. No Retry: retrying cannot help, and offering it teaches people to hammer it." },
+    { name: 'Generic',     description: "Fallback copy, Retry offered." },
+  ],
+  tokens: [
+    { token: '--color-stone-100', value: '#FAFAFA', usage: "Surface" },
+    { token: '--color-divider',   value: '#DEE0EB', usage: "Border" },
+    { token: '--color-error-600', value: '#E54430', usage: "Icon only" },
+    { token: '--radius-md',       value: '8px',     usage: "Container radius" },
+  ],
   codeSnippet: `<fvdr-ai-error
   variant="timeout"
   message="The assistant took too long to answer."
@@ -515,10 +654,10 @@ const aiError = planned({
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// PLANNED · VDR answer blocks (what makes this assistant a data-room assistant)
+// VDR answer blocks — what makes this a data-room assistant, not just a chat
 // ─────────────────────────────────────────────────────────────────────────────
 
-const aiAnswerDocList = planned({
+const aiAnswerDocList = ai({
   id: 'ai-answer-doc-list',
   name: 'AI Answer · Document List',
   selector: 'fvdr-ai-answer-doc-list',
@@ -533,6 +672,25 @@ const aiAnswerDocList = planned({
     'Browsing the whole room (that is the Documents module)',
   ],
   relatedComponents: ['ai-answer-table', 'ai-citation', 'file-icon'],
+  anatomy: [
+    { index: 1, part: 'Intro',     spec: "15px lead-in above the rows" },
+    { index: 2, part: 'Ordinal',   spec: "16px min-width · 12px --color-text-secondary · right-aligned" },
+    { index: 3, part: 'File icon', spec: "fvdr-file-icon per extension" },
+    { index: 4, part: 'Name',      spec: "14px --color-primary-500 button" },
+    { index: 5, part: 'Meta',      spec: "folder · index · size · status, 12px, separated by ·" },
+    { index: 6, part: 'Row rule',  spec: "1px --color-divider, none on the last row" },
+  ],
+  states: [
+    { name: 'Default',     description: "Rows separated by dividers — never boxed into cards. FVDR content areas are white and borderless." },
+    { name: 'Folder link', description: "The folder path is its own target, so a user can widen the search instead of opening a file." },
+    { name: 'Last row',    description: "No bottom rule, so the block does not look truncated." },
+  ],
+  tokens: [
+    { token: '--color-primary-500',    value: '#2C9C74', usage: "Document name" },
+    { token: '--color-divider',        value: '#DEE0EB', usage: "Row separators" },
+    { token: '--color-text-secondary', value: '#5F616A', usage: "Ordinal and meta" },
+    { token: '--space-2',              value: '8px',     usage: "Row padding and gaps" },
+  ],
   codeSnippet: `<fvdr-ai-answer-doc-list
   [intro]="answer.summary"
   [docs]="answer.docs"
@@ -543,7 +701,7 @@ const aiAnswerDocList = planned({
     'Build fvdr-ai-answer-doc-list: intro?:string, docs:AiDocRef[], followUp?:string; outputs docOpened, folderOpened. AiDocRef = { id, name, type, folderPath, index?, size? }. Numbered rows: ordinal in --color-text-secondary, fvdr-file-icon, name as a primary-coloured button, folder path on a second line in 12px --color-text-secondary. Rows separated by 1px --color-divider, no card.',
 });
 
-const aiAnswerTable = planned({
+const aiAnswerTable = ai({
   id: 'ai-answer-table',
   name: 'AI Answer · Table',
   selector: 'fvdr-ai-answer-table',
@@ -558,6 +716,25 @@ const aiAnswerTable = planned({
     'Prose answers with a handful of sources (use citations)',
   ],
   relatedComponents: ['table', 'ai-answer-doc-list', 'ai-citation'],
+  anatomy: [
+    { index: 1, part: 'Summary',          spec: "15px lead-in, e.g. 'Here are all 6 unsigned contracts:'" },
+    { index: 2, part: 'Scroll container', spec: "overflow-x auto — the one place a sideways scrollbar is allowed" },
+    { index: 3, part: 'Header',           spec: "12px semibold --color-text-secondary · 1px bottom rule" },
+    { index: 4, part: 'Name cell',        spec: "file icon + primary-coloured button · max-width 380px" },
+    { index: 5, part: 'Signature cell',   spec: "fvdr-status pill (signatures variant)" },
+    { index: 6, part: 'Folder cell',      spec: "13px secondary button" },
+  ],
+  states: [
+    { name: 'Default',     description: "Name / Index / Size / Folder." },
+    { name: 'Signatures',  description: "Index and Size give way to a signature-status pill — the compliance sweep this shape exists for." },
+    { name: 'Overflowing', description: "The table scrolls inside its own box; the transcript stays put." },
+  ],
+  tokens: [
+    { token: '--color-divider',     value: '#DEE0EB', usage: "Header and row rules" },
+    { token: '--color-primary-500', value: '#2C9C74', usage: "Document names" },
+    { token: '--font-size-xs',      value: '12px',    usage: "Column headers" },
+    { token: '--space-3',           value: '12px',    usage: "Cell padding" },
+  ],
   codeSnippet: `<fvdr-ai-answer-table
   [summary]="answer.summary"
   [docs]="answer.docs"
@@ -568,7 +745,7 @@ const aiAnswerTable = planned({
     'Build fvdr-ai-answer-table: summary?:string, docs:AiDocRef[], variant:"default"|"signatures"="default", followUp?:string; outputs docOpened, folderOpened. Wraps fvdr-table. default columns Name / Index / Size / Folder; signatures swaps Index+Size for a Signature status column using fvdr-status. The table lives in an overflow-x:auto container — the transcript must never scroll sideways.',
 });
 
-const aiAnswerSummary = planned({
+const aiAnswerSummary = ai({
   id: 'ai-answer-summary',
   name: 'AI Answer · Summary',
   selector: 'fvdr-ai-answer-summary',
@@ -583,6 +760,25 @@ const aiAnswerSummary = planned({
     'Lists of results (use the doc list or table)',
   ],
   relatedComponents: ['ai-citation', 'ai-answer-report', 'ai-permission-note'],
+  anatomy: [
+    { index: 1, part: 'Scope',         spec: "12px caption, e.g. '12 documents in /Financials'" },
+    { index: 2, part: 'Overview',      spec: "15px paragraph · line-height 24px" },
+    { index: 3, part: 'Group heading', spec: "file/folder icon + semibold primary button" },
+    { index: 4, part: 'Points',        spec: "1px --color-divider left rule · 16px indent · gap 8px" },
+    { index: 5, part: 'Citation',      spec: "fvdr-ai-citation under each point" },
+    { index: 6, part: 'Export',        spec: "link-styled action after the follow-up line" },
+  ],
+  states: [
+    { name: 'Grouped by folder',   description: "Group heading is a folder — the usual shape for a room-wide summary." },
+    { name: 'Grouped by document', description: "titleDoc set, so the heading itself is a citation." },
+    { name: 'Uncited point',       description: "Renders without a citation. Allowed, but it is the shape to avoid: a summary without sources is a rumour." },
+  ],
+  tokens: [
+    { token: '--color-divider',     value: '#DEE0EB', usage: "Left rule of the point list" },
+    { token: '--color-primary-500', value: '#2C9C74', usage: "Group titles · citations · export" },
+    { token: '--space-4',           value: '16px',    usage: "Group gap and point indent" },
+    { token: '--font-size-md',      value: '15px',    usage: "Overview and follow-up" },
+  ],
   codeSnippet: `<fvdr-ai-answer-summary
   [overview]="answer.overview"
   [groups]="answer.groups"
@@ -594,7 +790,7 @@ const aiAnswerSummary = planned({
     'Build fvdr-ai-answer-summary: overview:string, groups:AiSummaryGroup[], scopeLabel?:string, followUp?:string; outputs docOpened, folderOpened, exported. AiSummaryGroup = { title, titleDoc?, points: { text, source }[] }. Group heading: fvdr-file-icon + title button (semibold, primary). Points sit in a ul with a 1px --color-divider left rule, each with the text on one line and an fvdr-ai-citation under it. Ends with the follow-up line plus an Export action.',
 });
 
-const aiAnswerReport = planned({
+const aiAnswerReport = ai({
   id: 'ai-answer-report',
   name: 'AI Answer · Report',
   selector: 'fvdr-ai-answer-report',
@@ -610,6 +806,27 @@ const aiAnswerReport = planned({
     'Results better read as a table',
   ],
   relatedComponents: ['ai-answer-summary', 'ai-citation', 'ai-actions', 'card'],
+  anatomy: [
+    { index: 1, part: 'Surface',         spec: "1px --color-divider · --radius-lg · white · own scroll" },
+    { index: 2, part: 'Header',          spec: "title + Draft badge · Export and Save to room" },
+    { index: 3, part: 'Legend',          spec: "optional severity key on --color-stone-100" },
+    { index: 4, part: 'Section heading', spec: "14px semibold" },
+    { index: 5, part: 'Finding row',     spec: "severity tag + text + pill citations · 1px bottom rule" },
+    { index: 6, part: 'Body',            spec: "max-height 520px, scrolls internally" },
+  ],
+  states: [
+    { name: 'Draft',       description: "Default — a Draft badge until a human signs off. The assistant does not get to publish a due-diligence finding." },
+    { name: 'Final',       description: "draft=false drops the badge; use it only after review." },
+    { name: 'With legend', description: "Severity key shown when findings are graded." },
+    { name: 'Long',        description: "Body scrolls at 520px — a 40-page draft cannot own the whole transcript." },
+  ],
+  tokens: [
+    { token: '--radius-lg',        value: '12px',    usage: "Document surface" },
+    { token: '--color-error-bg',   value: '#FDF0EE', usage: "High severity tag" },
+    { token: '--color-warning-bg', value: '#FFFAE0', usage: "Medium severity tag" },
+    { token: '--color-stone-200',  value: '#F7F7F7', usage: "Low severity tag" },
+    { token: '--color-divider',    value: '#DEE0EB', usage: "Section and finding rules" },
+  ],
   codeSnippet: `<fvdr-ai-answer-report
   title="Due diligence report — draft"
   [sections]="answer.sections"
@@ -621,7 +838,7 @@ const aiAnswerReport = planned({
     'Build fvdr-ai-answer-report: title:string, subtitle?:string, sections:AiReportSection[], severityLegend:boolean=false, draft:boolean=true; outputs exported, savedToRoom, docOpened. AiReportSection = { heading, findings: { text, severity?: "high"|"medium"|"low", sources: AiDocRef[] }[] }. Renders as a bordered document surface (--color-stone-0, 1px --color-divider, --radius-lg): sticky-ish title row with a "Draft" fvdr-badge and the export/save actions, then sections with findings, severity via fvdr-status, and fvdr-ai-citation per source. Long reports scroll inside their own container with a max-height.',
 });
 
-const aiSourceList = planned({
+const aiSourceList = ai({
   id: 'ai-source-list',
   name: 'AI Source List',
   selector: 'fvdr-ai-source-list',
@@ -636,12 +853,25 @@ const aiSourceList = planned({
     'Sources of a different turn',
   ],
   relatedComponents: ['ai-citation', 'ai-permission-note'],
+  anatomy: [
+    { index: 1, part: 'Toggle', spec: "12px text button — 'N sources' / 'Hide sources'" },
+    { index: 2, part: 'List',   spec: "numbered fvdr-ai-citation rows, indexes matching the inline markers" },
+  ],
+  states: [
+    { name: 'Collapsed', description: "Default — one quiet line, so a well-cited answer is not buried under its own footnotes." },
+    { name: 'Expanded',  description: "Every source, numbered to match the markers in the prose." },
+    { name: 'Empty',     description: "Renders nothing — no '0 sources' line." },
+  ],
+  tokens: [
+    { token: '--color-text-secondary', value: '#5F616A', usage: "Toggle" },
+    { token: '--space-1',              value: '4px',     usage: "Row gap" },
+  ],
   codeSnippet: `<fvdr-ai-source-list [sources]="answer.sources" [expanded]="false" (docOpened)="openDoc($event)"></fvdr-ai-source-list>`,
   claudePrompt:
     'Build fvdr-ai-source-list: sources:AiDocRef[], expanded:boolean=false; outputs toggled, docOpened. Collapsed: a text button "N sources" in --color-text-secondary. Expanded: numbered fvdr-ai-citation rows whose indexes match the inline markers in the answer.',
 });
 
-const aiPermissionNote = planned({
+const aiPermissionNote = ai({
   id: 'ai-permission-note',
   name: 'AI Permission Note',
   selector: 'fvdr-ai-permission-note',
@@ -657,6 +887,21 @@ const aiPermissionNote = planned({
     'General AI disclaimers (use AI Consent Banner)',
   ],
   relatedComponents: ['ai-citation', 'ai-error', 'inline-message'],
+  anatomy: [
+    { index: 1, part: 'Line',    spec: "flex · gap 8px · 12px --color-text-secondary" },
+    { index: 2, part: 'Icon',    spec: "fvdr-icon 'lock-close'" },
+    { index: 3, part: 'Message', spec: "count-derived by default, overridable" },
+  ],
+  states: [
+    { name: 'Info',    description: "Default. Deliberately quiet — no card, no fill. It must inform without looking like an error, or people learn to ignore it." },
+    { name: 'Warning', description: "For scopes where the gap materially changes the answer." },
+    { name: 'Counted', description: "'3 documents are hidden' when the number is known; vaguer copy when it is not." },
+  ],
+  tokens: [
+    { token: '--color-text-secondary', value: '#5F616A', usage: "Text and icon" },
+    { token: '--color-warning-600',    value: '#FFDA07', usage: "Icon in the warning tone" },
+    { token: '--font-size-xs',         value: '12px',    usage: "Line size" },
+  ],
   codeSnippet: `<fvdr-ai-permission-note
   [hiddenCount]="3"
   message="Results filtered by your access — 3 documents are hidden."
@@ -665,7 +910,7 @@ const aiPermissionNote = planned({
     'Build fvdr-ai-permission-note: message:string, hiddenCount?:number, tone:"info"|"warning"="info". One quiet line under the answer: fvdr-icon "lock-close" plus 12px --color-text-secondary text. No card, no colour fill — it must inform without looking like an error.',
 });
 
-const aiScopeBar = planned({
+const aiScopeBar = ai({
   id: 'ai-scope-bar',
   name: 'AI Scope Bar',
   selector: 'fvdr-ai-scope-bar',
@@ -681,6 +926,26 @@ const aiScopeBar = planned({
     'Navigation (use Breadcrumbs)',
   ],
   relatedComponents: ['ai-attachment', 'breadcrumbs', 'ai-composer'],
+  anatomy: [
+    { index: 1, part: 'Row',       spec: "32px tall · no border · no fill — reads as a caption" },
+    { index: 2, part: 'Kind icon', spec: "fvdr-file-icon for room / folder / document / selection" },
+    { index: 3, part: 'Label',     spec: "13px --color-text-primary · ellipsised" },
+    { index: 4, part: 'Count',     spec: "'· 24 documents'" },
+    { index: 5, part: 'Change',    spec: "primary-coloured text button, right-aligned" },
+  ],
+  states: [
+    { name: 'Room',      description: "Whole data room — the widest scope, and the slowest." },
+    { name: 'Folder',    description: "Seeded from the folder the chat was opened in." },
+    { name: 'Document',  description: "Single file, the viewer's inline case." },
+    { name: 'Selection', description: "An explicit multi-select from the documents table." },
+    { name: 'Locked',    description: "editable=false — a chat pinned to its origin, e.g. a Q&A draft." },
+  ],
+  tokens: [
+    { token: '--color-text-primary',   value: '#1F2129', usage: "Scope label" },
+    { token: '--color-text-secondary', value: '#5F616A', usage: "Count" },
+    { token: '--color-primary-500',    value: '#2C9C74', usage: "Change action" },
+    { token: '--font-size-sm',         value: '13px',    usage: "Row size" },
+  ],
   codeSnippet: `<fvdr-ai-scope-bar
   kind="folder"
   label="/Financials/FY23"
@@ -692,7 +957,7 @@ const aiScopeBar = planned({
     'Build fvdr-ai-scope-bar: kind:"room"|"folder"|"document"|"selection", label:string, docCount?:number, editable:boolean=true; output changeRequested. A single quiet row: fvdr-file-icon for the kind, the label (ellipsised, 13px --color-text-secondary), "· N documents", and a "Change" text button on the right. Height 32px, no border — it reads as a caption, not a toolbar.',
 });
 
-const aiInlinePrompt = planned({
+const aiInlinePrompt = ai({
   id: 'ai-inline-prompt',
   name: 'AI Inline Prompt',
   selector: 'fvdr-ai-inline-prompt',
@@ -707,6 +972,28 @@ const aiInlinePrompt = planned({
     'The main assistant surface (use AI Conversation)',
   ],
   relatedComponents: ['ai-composer', 'ai-panel', 'ask-ideon'],
+  anatomy: [
+    { index: 1, part: 'Card',          spec: "max-width 420px · --radius-lg · --shadow-popover" },
+    { index: 2, part: 'Scope caption', spec: "Ideon glyph + what it is reading" },
+    { index: 3, part: 'Composer',      spec: "showAddContext/showVoice off — scope is fixed here" },
+    { index: 4, part: 'Starters',      spec: "up to 3 chips, hidden once an answer exists" },
+    { index: 5, part: 'Waiting',       spec: "fvdr-thinking-orbs at 28px" },
+    { index: 6, part: 'Answer',        spec: "markdown, max-height 320px, own scroll" },
+    { index: 7, part: 'Footer',        spec: "copy + rating, and 'Continue in assistant'" },
+  ],
+  states: [
+    { name: 'Idle',        description: "Scope, composer, starters." },
+    { name: 'Streaming',   description: "Orbs while empty, then the caret inside the answer." },
+    { name: 'Answered',    description: "Actions and the way into the full conversation." },
+    { name: 'Overflowing', description: "Answer scrolls at 320px — an inline answer must not outgrow the surface it is embedded in." },
+  ],
+  tokens: [
+    { token: '--shadow-popover',    value: '0 4px 16px rgba(0,0,0,.12)', usage: "Card elevation" },
+    { token: '--radius-lg',         value: '12px',                       usage: "Card radius" },
+    { token: '--color-primary-500', value: '#2C9C74',                    usage: "Ideon glyph · expand link" },
+    { token: '--space-3',           value: '12px',                       usage: "Card padding and gaps" },
+  ],
+  usedIn: ['Document viewer', 'Q&A answer editor', 'Activity log'],
   codeSnippet: `<fvdr-ai-inline-prompt
   placeholder="Ask about this document…"
   [scopeLabel]="doc.name"
@@ -719,10 +1006,10 @@ const aiInlinePrompt = planned({
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// PLANNED · Shells, history & governance
+// Shells, history & governance
 // ─────────────────────────────────────────────────────────────────────────────
 
-const aiPanel = planned({
+const aiPanel = ai({
   id: 'ai-panel',
   name: 'AI Panel',
   selector: 'fvdr-ai-panel',
@@ -737,6 +1024,30 @@ const aiPanel = planned({
     'Modal confirmations (use Modal)',
   ],
   relatedComponents: ['ai-conversation', 'ai-thread-list', 'modal'],
+  anatomy: [
+    { index: 1, part: 'Header',      spec: "48px · title · new chat · history · mode switcher · close" },
+    { index: 2, part: 'Fullscreen',  spec: "fills the content area" },
+    { index: 3, part: 'Sidebar',     spec: "400–560px right rail, in the layout flow so content reflows" },
+    { index: 4, part: 'Floating',    spec: "380×560 card, --shadow-toast, dragged by its header" },
+    { index: 5, part: 'Resize grip', spec: "8px hit area straddling the sidebar border" },
+    { index: 6, part: 'Body',        spec: "projected transcript" },
+  ],
+  states: [
+    { name: 'Full screen',  description: "Reading mode — the assistant is the task." },
+    { name: 'Side panel',   description: "Working mode — the room stays usable; drag the grip to widen." },
+    { name: 'Floating',     description: "Glance mode — over the content, draggable, clamped to the viewport." },
+    { name: 'History open', description: "The recents rail is shown alongside the transcript." },
+    { name: 'Under 1024px', description: "No room for a rail: sidebar becomes a full sheet, floating shrinks to a bottom card." },
+    { name: 'Closed',       description: "open=false renders nothing; the thread is the host's state, so reopening resumes it." },
+  ],
+  tokens: [
+    { token: '--color-divider',     value: '#DEE0EB',                    usage: "Header rule · rail border" },
+    { token: '--shadow-toast',      value: '0 8px 24px rgba(0,0,0,.16)', usage: "Floating elevation" },
+    { token: '--radius-lg',         value: '12px',                       usage: "Floating card radius" },
+    { token: '--color-primary-500', value: '#2C9C74',                    usage: "Active mode and history icons" },
+    { token: '--space-6',           value: '24px',                       usage: "Floating offset from its corner" },
+  ],
+  usedIn: ['AI Assistant'],
   codeSnippet: `<fvdr-ai-panel
   [(mode)]="aiMode"
   [(open)]="aiOpen"
@@ -747,10 +1058,10 @@ const aiPanel = planned({
   <fvdr-ai-conversation [messages]="conv.messages()"></fvdr-ai-conversation>
 </fvdr-ai-panel>`,
   claudePrompt:
-    'Build fvdr-ai-panel: mode:"fullscreen"|"sidebar"|"floating" (two-way), open:boolean (two-way), title:string, showHistory:boolean; outputs newChat, closed, modeChange. Header: title, new-chat (fvdr-icon "new-session"), history toggle, mode switcher (fvdr-icon "panel-window" / "sidebar-mode" / "floating-mode"), close. Sidebar mode is a 400–560px resizable right rail that pushes the layout; floating is a draggable 380×560 card with a shadow; fullscreen takes the content area. Content is projected. Switching mode must preserve the thread and scroll position.',
+    'Implement fvdr-ai-panel (FVDR DS, AI Assistant section). Inputs: mode:"fullscreen"|"sidebar"|"floating" (two-way with modeChange), open:boolean (two-way with openChange), title:string, showHistory:boolean, historyOpen:boolean, width:number=440 (two-way with widthChange), minWidth=400, maxWidth=560. Outputs: newChat, historyToggled, closed. Header (48px): title, new-chat (fvdr-icon "new-session"), history toggle, a 3-button mode switcher ("panel-window" / "sidebar-mode" / "floating-mode") and close. Fullscreen fills the host area; sidebar is a right rail in the layout flow with an 8px pointer-driven resize grip clamped to [minWidth,maxWidth]; floating is a 380×560 fixed card with --shadow-toast, dragged by its header and clamped to the viewport (ignore pointerdown that lands on a button). Under 1024px the sidebar becomes a full sheet and floating shrinks to a bottom card. Content is projected, so switching mode never resets the thread.',
 });
 
-const aiThreadList = planned({
+const aiThreadList = ai({
   id: 'ai-thread-list',
   name: 'AI Thread List',
   selector: 'fvdr-ai-thread-list',
@@ -765,6 +1076,27 @@ const aiThreadList = planned({
     'Activity or audit logs',
   ],
   relatedComponents: ['ai-panel', 'droplist', 'tree'],
+  anatomy: [
+    { index: 1, part: 'Group label', spec: "11px uppercase --color-text-secondary" },
+    { index: 2, part: 'Row',         spec: "2-line button · title 14px · preview 12px ellipsised" },
+    { index: 3, part: 'Pin glyph',   spec: "11px, leading the title of a pinned thread" },
+    { index: 4, part: 'Row actions', spec: "3 × 24px buttons, revealed on hover or focus-within" },
+    { index: 5, part: 'Active row',  spec: "bold title, no background fill" },
+  ],
+  states: [
+    { name: 'Default',       description: "Grouped by the updatedAt label, newest group first." },
+    { name: 'Pinned',        description: "Hoisted into their own group — long deals accumulate threads worth keeping." },
+    { name: 'Active',        description: "Bold title only. FVDR sidebars never fill the active row." },
+    { name: 'Hover / focus', description: "Pin, rename and delete appear. Hidden by default: three icons per row is noise." },
+    { name: 'Empty',         description: "'No conversations yet.'" },
+  ],
+  tokens: [
+    { token: '--color-hover-bg',   value: '#ECEEF9', usage: "Row hover" },
+    { token: '--color-stone-300',  value: '#ECEEF9', usage: "Action button hover" },
+    { token: '--color-error-600',  value: '#E54430', usage: "Delete on hover" },
+    { token: '--font-weight-semi', value: '600',     usage: "Active row title" },
+  ],
+  usedIn: ['AI Assistant (history rail)'],
   codeSnippet: `<fvdr-ai-thread-list
   [threads]="conv.recents()"
   [activeId]="conv.activeId()"
@@ -776,7 +1108,7 @@ const aiThreadList = planned({
     'Build fvdr-ai-thread-list: threads:AiThread[], activeId?:string, groupByDay:boolean=true; outputs opened, renamed, pinned, deleted. AiThread = { id, title, lastMessagePreview, updatedAt, pinned? }. Rows are 2-line buttons (title 14px --color-text-primary, preview 12px --color-text-secondary ellipsised) with a "more" fvdr-droplist on hover. Day group headings in 12px uppercase --color-text-secondary. Active row: bold title, no background fill (FVDR sidebar rule).',
 });
 
-const aiFeedbackModal = planned({
+const aiFeedbackModal = ai({
   id: 'ai-feedback-modal',
   name: 'AI Feedback Modal',
   selector: 'fvdr-ai-feedback-modal',
@@ -791,6 +1123,24 @@ const aiFeedbackModal = planned({
     'Product-wide NPS surveys',
   ],
   relatedComponents: ['ai-actions', 'modal', 'radio', 'textarea'],
+  anatomy: [
+    { index: 1, part: 'Modal',           spec: "fvdr-modal size m · 'Send feedback' disabled until a reason is picked" },
+    { index: 2, part: 'Reasons',         spec: "fvdr-radio, vertical" },
+    { index: 3, part: 'Security notice', spec: "fvdr-inline-message warning, on the leak reason only" },
+    { index: 4, part: 'Comment',         spec: "fvdr-textarea, 500 chars, optional" },
+    { index: 5, part: 'Transcript',      spec: "fvdr-checkbox — forced on for a security report" },
+  ],
+  states: [
+    { name: 'Empty',           description: "Send is disabled — a rating without a reason tells us nothing." },
+    { name: 'Quality reason',  description: "Comment and the transcript opt-in." },
+    { name: 'Security reason', description: "'Showed something I should not see' is not quality feedback. The modal says so, attaches the conversation regardless, and flags it for the access team." },
+    { name: 'Submitted',       description: "Fields reset, so the next thumbs-down starts clean." },
+  ],
+  tokens: [
+    { token: '--space-4',           value: '16px',    usage: "Field spacing" },
+    { token: '--color-warning-600', value: '#FFDA07', usage: "Security notice accent" },
+  ],
+  usedIn: ['AI Assistant (after a negative rating)'],
   codeSnippet: `<fvdr-ai-feedback-modal
   [visible]="feedbackOpen"
   [reasons]="['Incorrect', 'Incomplete', 'Missed a document', 'Showed something I should not see']"
@@ -801,7 +1151,7 @@ const aiFeedbackModal = planned({
     'Build fvdr-ai-feedback-modal: visible:boolean, reasons:string[], allowTranscript:boolean=true; outputs submitted:{reason,comment,includeTranscript}, cancelled. Wraps fvdr-modal size="m": fvdr-radio reason list, fvdr-textarea comment, fvdr-checkbox "Include this conversation". The "showed something I should not see" reason must be flagged as a security report, not quality feedback.',
 });
 
-const aiConsentBanner = planned({
+const aiConsentBanner = ai({
   id: 'ai-consent-banner',
   name: 'AI Consent Banner',
   selector: 'fvdr-ai-consent-banner',
@@ -816,6 +1166,26 @@ const aiConsentBanner = planned({
     'Runtime errors (use AI Error)',
   ],
   relatedComponents: ['info-banner', 'modal', 'ai-error'],
+  anatomy: [
+    { index: 1, part: 'Mark',          spec: "36px Ideon glyph, or lock-close when disabled" },
+    { index: 2, part: 'Title',         spec: "16px semibold, max-width 420px" },
+    { index: 3, part: 'Points',        spec: "3 rows: what it reads · retention · verify against the source" },
+    { index: 4, part: 'Docs link',     spec: "13px primary link" },
+    { index: 5, part: 'Actions',       spec: "'Not now' (ghost) + 'Accept and continue' (primary)" },
+    { index: 6, part: 'Disabled note', spec: "who can switch it on" },
+  ],
+  states: [
+    { name: 'First run',     description: "Three plain sentences and two exits. Never auto-accepts, and Accept is never the only way out." },
+    { name: 'Updated terms', description: "Same content, 'Got it' instead of Accept." },
+    { name: 'Disabled',      description: "An admin switched AI off for this room: no actions, just who to ask." },
+  ],
+  tokens: [
+    { token: '--color-primary-500', value: '#2C9C74', usage: "Ideon mark and link" },
+    { token: '--color-stone-600',   value: '#9C9EA8', usage: "Point icons · lock mark" },
+    { token: '--font-size-lg',      value: '16px',    usage: "Title" },
+    { token: '--space-4',           value: '16px',    usage: "Block spacing" },
+  ],
+  usedIn: ['AI Assistant (first run)', 'Data room settings'],
   codeSnippet: `<fvdr-ai-consent-banner
   variant="first-run"
   [terms]="aiTerms"
@@ -826,7 +1196,7 @@ const aiConsentBanner = planned({
     'Build fvdr-ai-consent-banner: variant:"first-run"|"disabled"|"updated-terms", terms:{ processing:string, retention:string, docsUrl:string }, dismissible:boolean; outputs accepted, declined, learnMore. first-run is a centred card with the Ideon mark, three short bullets (what it reads, where it is processed, verify against sources), a link to the docs and Accept/Not now. disabled is a quiet full-height empty state naming the admin who can turn it on. Never auto-accept.',
 });
 
-const aiUsageMeter = planned({
+const aiUsageMeter = ai({
   id: 'ai-usage-meter',
   name: 'AI Usage Meter',
   selector: 'fvdr-ai-usage-meter',
@@ -842,6 +1212,25 @@ const aiUsageMeter = planned({
     'Per-answer latency or token counts — not the user\'s concern',
   ],
   relatedComponents: ['progress', 'ai-composer', 'ai-error'],
+  anatomy: [
+    { index: 1, part: 'Head',    spec: "'820 of 1,000 questions this month' + Upgrade" },
+    { index: 2, part: 'Bar',     spec: "fvdr-progress, variant driven by the level" },
+    { index: 3, part: 'Note',    spec: "red line when the allowance is spent" },
+    { index: 4, part: 'Compact', spec: "one 12px line, no bar — for the assistant header" },
+  ],
+  states: [
+    { name: 'OK',      description: "Under warnAt (default 80%) — no Upgrade prompt, no colour." },
+    { name: 'Warning', description: "Past the threshold: amber bar and an Upgrade link." },
+    { name: 'Full',    description: "Red bar plus the consequence in words — this is the answer to 'why is the composer disabled'." },
+    { name: 'Compact', description: "Header variant: one line, no bar, still linked to billing." },
+  ],
+  tokens: [
+    { token: '--color-primary-500', value: '#2C9C74', usage: "Bar under the threshold · Upgrade link" },
+    { token: '--color-warning-600', value: '#FFDA07', usage: "Bar past warnAt" },
+    { token: '--color-error-600',   value: '#E54430', usage: "Bar and note at the limit" },
+    { token: '--font-size-base',    value: '14px',    usage: "Head line" },
+  ],
+  usedIn: ['Billing', 'AI Assistant (header)'],
   codeSnippet: `<fvdr-ai-usage-meter
   [used]="820"
   [limit]="1000"
@@ -858,7 +1247,7 @@ const aiUsageMeter = planned({
 // SECTION EXPORT — order is the order shown in the /ds sidebar
 // ─────────────────────────────────────────────────────────────────────────────
 
-/** Built and usable today. */
+/** The five atoms the section started from. */
 export const DS_AI_SHIPPED: ComponentDocEntry[] = [
   aiComposer,
   aiSteps,
@@ -867,7 +1256,7 @@ export const DS_AI_SHIPPED: ComponentDocEntry[] = [
   aiActions,
 ];
 
-/** Specced, not built — the AI chat roadmap. */
+/** Everything built on top of them. */
 export const DS_AI_PLANNED: ComponentDocEntry[] = [
   // Conversation core
   aiConversation,

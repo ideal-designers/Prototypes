@@ -7,9 +7,17 @@ import { ChatMessage } from '../../models/ai-message.model';
 import { MockDocument } from '../../models/mock-doc.model';
 import { AiMessageComponent } from '../ai-message/ai-message.component';
 
-/** Empty state ↔ active transcript, with the composer docked at the bottom. */
+/**
+ * Empty state ↔ active transcript, with the composer docked at the bottom.
+ *
+ * Prototype-local wiring (hence the `vdr-` prefix, like the other replica
+ * pieces here): it binds the mock engine and the product-specific answer
+ * payloads. The generic version is the DS `fvdr-ai-conversation`; this should
+ * fold into it once the answer payloads are rendered through its
+ * `answerTemplate`.
+ */
 @Component({
-  selector: 'fvdr-ai-conversation',
+  selector: 'fvdr-vdr-ai-conversation',
   standalone: true,
   imports: [CommonModule, ...DS_COMPONENTS, AiMessageComponent],
   template: `

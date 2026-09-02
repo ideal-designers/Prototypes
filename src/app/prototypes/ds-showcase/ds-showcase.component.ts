@@ -50,7 +50,7 @@ import type { ComponentDocEntry } from './ds-registry';
             <span class="showcase__stat"><b>{{ builtCount }}</b> components</span>
             <span class="showcase__stat"><b>174</b> icons</span>
             <span class="showcase__stat"><b>{{ categoryCount }}</b> categories</span>
-            <span class="showcase__stat showcase__stat--planned"><b>{{ plannedCount }}</b> planned</span>
+            <span class="showcase__stat showcase__stat--planned" *ngIf="plannedCount"><b>{{ plannedCount }}</b> planned</span>
           </div>
         </div>
 

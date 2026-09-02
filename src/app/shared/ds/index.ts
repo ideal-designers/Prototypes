@@ -58,6 +58,26 @@
  *   <fvdr-ai-bubble>           → Conversation turn container (user bubble / assistant column)
  *   <fvdr-ai-citation>         → Source reference to a document (+ page), inline or pill
  *   <fvdr-ai-actions>          → Answer action row (regenerate · copy · thumbs up/down)
+ *   <fvdr-ai-suggestions>      → Starter / follow-up prompt chips
+ *   <fvdr-ai-markdown>         → Safe markdown answer renderer (streaming-tolerant)
+ *   <fvdr-ai-empty-state>      → Greeting + composer + scope-aware starters
+ *   <fvdr-ai-attachment>       → Context chip in the composer (doc/folder pin)
+ *   <fvdr-ai-error>            → Failed turn (timeout · rate limit · permission)
+ *   <fvdr-ai-tool-call>        → Auditable operation card (confirm-before-write)
+ *   <fvdr-ai-permission-note>  → "Results filtered by your access"
+ *   <fvdr-ai-source-list>      → Collected sources of one answer
+ *   <fvdr-ai-conversation>     → Transcript + docked composer + scroll behaviour
+ *   <fvdr-ai-answer-doc-list>  → Numbered document results (narrow shells)
+ *   <fvdr-ai-answer-table>     → Tabular document results (default / signatures)
+ *   <fvdr-ai-answer-summary>   → Grouped key points, each citing its source
+ *   <fvdr-ai-answer-report>    → Generated deliverable (DD draft) + export
+ *   <fvdr-ai-scope-bar>        → What the assistant may look at, and Change
+ *   <fvdr-ai-inline-prompt>    → One-shot assistant embedded in a product surface
+ *   <fvdr-ai-panel>            → Shell: fullscreen · sidebar (resizable) · floating
+ *   <fvdr-ai-thread-list>      → Recent conversations (pin · rename · delete)
+ *   <fvdr-ai-feedback-modal>   → Structured "why was this bad" after a thumbs-down
+ *   <fvdr-ai-consent-banner>   → First-run data notice / AI disabled for the room
+ *   <fvdr-ai-usage-meter>      → AI allowance against the plan
  *
  * Usage in prototype:
  *   import { DS_COMPONENTS } from '../../shared/ds';
@@ -119,6 +139,26 @@ import { AiStepsComponent } from './components/ai/ai-steps/ai-steps.component';
 import { AiBubbleComponent } from './components/ai/ai-bubble/ai-bubble.component';
 import { AiCitationComponent } from './components/ai/ai-citation/ai-citation.component';
 import { AiActionsComponent } from './components/ai/ai-actions/ai-actions.component';
+import { AiSuggestionsComponent } from './components/ai/ai-suggestions/ai-suggestions.component';
+import { AiMarkdownComponent } from './components/ai/ai-markdown/ai-markdown.component';
+import { AiEmptyStateComponent } from './components/ai/ai-empty-state/ai-empty-state.component';
+import { AiAttachmentComponent } from './components/ai/ai-attachment/ai-attachment.component';
+import { AiErrorComponent } from './components/ai/ai-error/ai-error.component';
+import { AiToolCallComponent } from './components/ai/ai-tool-call/ai-tool-call.component';
+import { AiPermissionNoteComponent } from './components/ai/ai-permission-note/ai-permission-note.component';
+import { AiSourceListComponent } from './components/ai/ai-source-list/ai-source-list.component';
+import { AiConversationComponent } from './components/ai/ai-conversation/ai-conversation.component';
+import { AiAnswerDocListComponent } from './components/ai/ai-answer-doc-list/ai-answer-doc-list.component';
+import { AiAnswerTableComponent } from './components/ai/ai-answer-table/ai-answer-table.component';
+import { AiAnswerSummaryComponent } from './components/ai/ai-answer-summary/ai-answer-summary.component';
+import { AiAnswerReportComponent } from './components/ai/ai-answer-report/ai-answer-report.component';
+import { AiScopeBarComponent } from './components/ai/ai-scope-bar/ai-scope-bar.component';
+import { AiInlinePromptComponent } from './components/ai/ai-inline-prompt/ai-inline-prompt.component';
+import { AiPanelComponent } from './components/ai/ai-panel/ai-panel.component';
+import { AiThreadListComponent } from './components/ai/ai-thread-list/ai-thread-list.component';
+import { AiFeedbackModalComponent } from './components/ai/ai-feedback-modal/ai-feedback-modal.component';
+import { AiConsentBannerComponent } from './components/ai/ai-consent-banner/ai-consent-banner.component';
+import { AiUsageMeterComponent } from './components/ai/ai-usage-meter/ai-usage-meter.component';
 
 // ─── Re-exports ───────────────────────────────────────────────────────────────
 
@@ -260,6 +300,70 @@ export type { AiCitationVariant } from './components/ai/ai-citation/ai-citation.
 export { AiActionsComponent } from './components/ai/ai-actions/ai-actions.component';
 export type { AiRating } from './components/ai/ai-actions/ai-actions.component';
 
+export { AiSuggestionsComponent } from './components/ai/ai-suggestions/ai-suggestions.component';
+export type { AiSuggestionsLayout, AiSuggestionsBehaviour } from './components/ai/ai-suggestions/ai-suggestions.component';
+
+export { AiMarkdownComponent } from './components/ai/ai-markdown/ai-markdown.component';
+export { parseMarkdown, parseInline } from './components/ai/ai-markdown/markdown';
+export type { MdBlock, InlineSpan } from './components/ai/ai-markdown/markdown';
+
+export { AiEmptyStateComponent } from './components/ai/ai-empty-state/ai-empty-state.component';
+
+export { AiAttachmentComponent } from './components/ai/ai-attachment/ai-attachment.component';
+export type { AiAttachmentState } from './components/ai/ai-attachment/ai-attachment.component';
+
+export { AiErrorComponent } from './components/ai/ai-error/ai-error.component';
+export type { AiErrorVariant } from './components/ai/ai-error/ai-error.component';
+
+export { AiToolCallComponent } from './components/ai/ai-tool-call/ai-tool-call.component';
+export type { AiToolCallStatus } from './components/ai/ai-tool-call/ai-tool-call.component';
+
+export { AiPermissionNoteComponent } from './components/ai/ai-permission-note/ai-permission-note.component';
+
+export { AiSourceListComponent } from './components/ai/ai-source-list/ai-source-list.component';
+
+export { AiConversationComponent } from './components/ai/ai-conversation/ai-conversation.component';
+
+export { AiAnswerDocListComponent } from './components/ai/ai-answer-doc-list/ai-answer-doc-list.component';
+
+export { AiAnswerTableComponent } from './components/ai/ai-answer-table/ai-answer-table.component';
+export type { AiAnswerTableVariant } from './components/ai/ai-answer-table/ai-answer-table.component';
+
+export { AiAnswerSummaryComponent } from './components/ai/ai-answer-summary/ai-answer-summary.component';
+
+export { AiAnswerReportComponent } from './components/ai/ai-answer-report/ai-answer-report.component';
+
+export { AiScopeBarComponent } from './components/ai/ai-scope-bar/ai-scope-bar.component';
+
+export { AiInlinePromptComponent } from './components/ai/ai-inline-prompt/ai-inline-prompt.component';
+
+export { AiPanelComponent } from './components/ai/ai-panel/ai-panel.component';
+export type { AiPanelMode } from './components/ai/ai-panel/ai-panel.component';
+
+export { AiThreadListComponent } from './components/ai/ai-thread-list/ai-thread-list.component';
+
+export { AiFeedbackModalComponent } from './components/ai/ai-feedback-modal/ai-feedback-modal.component';
+export type { AiFeedback } from './components/ai/ai-feedback-modal/ai-feedback-modal.component';
+
+export { AiConsentBannerComponent } from './components/ai/ai-consent-banner/ai-consent-banner.component';
+export type { AiConsentVariant, AiConsentTerms } from './components/ai/ai-consent-banner/ai-consent-banner.component';
+
+export { AiUsageMeterComponent } from './components/ai/ai-usage-meter/ai-usage-meter.component';
+
+export { AI_SCOPE_ICON } from './components/ai/ai.models';
+export type {
+  AiDocRef,
+  AiSummaryPoint,
+  AiSummaryGroup,
+  AiSeverity,
+  AiFinding,
+  AiReportSection,
+  AiChatRole,
+  AiChatMessage,
+  AiThread,
+  AiScopeKind,
+} from './components/ai/ai.models';
+
 /** Convenience array — spread into component imports[] */
 export const DS_COMPONENTS = [
   // Original
@@ -323,4 +427,24 @@ export const DS_COMPONENTS = [
   AiBubbleComponent,
   AiCitationComponent,
   AiActionsComponent,
+  AiSuggestionsComponent,
+  AiMarkdownComponent,
+  AiEmptyStateComponent,
+  AiAttachmentComponent,
+  AiErrorComponent,
+  AiToolCallComponent,
+  AiPermissionNoteComponent,
+  AiSourceListComponent,
+  AiConversationComponent,
+  AiAnswerDocListComponent,
+  AiAnswerTableComponent,
+  AiAnswerSummaryComponent,
+  AiAnswerReportComponent,
+  AiScopeBarComponent,
+  AiInlinePromptComponent,
+  AiPanelComponent,
+  AiThreadListComponent,
+  AiFeedbackModalComponent,
+  AiConsentBannerComponent,
+  AiUsageMeterComponent,
 ];

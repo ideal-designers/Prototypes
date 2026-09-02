@@ -47,7 +47,7 @@ const WIN_HEIGHT = 560;
       </header>
 
       <div class="win__body">
-        <fvdr-ai-conversation [compact]="true"></fvdr-ai-conversation>
+        <fvdr-vdr-ai-conversation [compact]="true"></fvdr-vdr-ai-conversation>
       </div>
     </div>
   `,

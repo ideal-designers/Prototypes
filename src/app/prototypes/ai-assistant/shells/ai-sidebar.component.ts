@@ -39,7 +39,7 @@ import { AiConversationComponent } from '../components/ai-conversation/ai-conver
       </header>
 
       <div class="panel__body">
-        <fvdr-ai-conversation [compact]="true"></fvdr-ai-conversation>
+        <fvdr-vdr-ai-conversation [compact]="true"></fvdr-vdr-ai-conversation>
       </div>
     </aside>
   `,

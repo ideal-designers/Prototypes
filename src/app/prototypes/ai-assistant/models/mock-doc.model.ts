@@ -1,6 +1,6 @@
 /** Mock data-room primitives for the AI Assistant prototype (front-end only). */
 
-import type { FvdrFileType, FvdrIconName } from '../../../shared/ds';
+import type { AiDocRef, FvdrFileType, FvdrIconName } from '../../../shared/ds';
 
 /**
  * Extensions the live product room actually holds
@@ -116,4 +116,29 @@ export function docSizeMeta(doc: MockDocument): string {
 /** "2 Intellectual property" → "Intellectual property" (the Name column drops the index). */
 export function folderDisplayName(name: string): string {
   return name.replace(/^\d+\s+/, '');
+}
+
+// ─── Bridge to the design system ─────────────────────────────────────────────
+// The DS AI answer blocks speak AiDocRef, which is deliberately product-agnostic.
+// These map the prototype's richer mock onto it.
+
+/** "signed" → success · "0/2 signed" → error · anything partial → warning. */
+function signatureVariant(status?: string): AiDocRef['statusVariant'] {
+  if (!status) return 'neutral';
+  if (/^signed$/i.test(status)) return 'success';
+  if (/^0\s*\//.test(status)) return 'error';
+  return 'warning';
+}
+
+export function toAiDocRef(doc: MockDocument): AiDocRef {
+  return {
+    id: doc.id,
+    name: doc.name,
+    type: DOC_FILE_ICON[doc.type],
+    folderPath: doc.folderPath,
+    index: doc.index,
+    size: doc.sizeLabel,
+    status: doc.signatureStatus,
+    statusVariant: signatureVariant(doc.signatureStatus),
+  };
 }
