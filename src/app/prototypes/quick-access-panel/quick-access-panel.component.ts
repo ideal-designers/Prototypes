@@ -77,7 +77,10 @@ type ResizableColId = 'idx' | 'name' | 'notes' | 'size' | 'pub' | 'red';
           <div class="content-row">
 
             <!-- ── Quick Access Panel ── -->
-            <div class="qa-panel" [style.width.px]="panelCollapsed ? null : panelWidthPx">
+            <div class="qa-panel"
+                 [style.width.px]="panelCollapsed ? null : panelWidthPx"
+                 [class.qa-panel--handle-hover]="handleHovered && !isResizingPanel"
+                 [class.qa-panel--handle-active]="isResizingPanel">
 
               <!-- Collapsed-all rail: mirrors the real product's "Collapse all" state -->
               <div class="qa-rail" *ngIf="panelCollapsed">
@@ -99,17 +102,23 @@ type ResizableColId = 'idx' | 'name' | 'notes' | 'size' | 'pub' | 'red';
               </div>
 
               <ng-container *ngIf="!panelCollapsed">
-                <fvdr-quick-access-menu
-                  [items]="shortcuts"
-                  [(collapsed)]="shortcutsCollapsed"
-                  [showCollapseAll]="true"
-                  [width]="panelWidthPx"
-                  (itemClick)="onShortcutClick($event)"
-                  (collapseAllClick)="panelCollapsed = true"
-                ></fvdr-quick-access-menu>
+                <div class="qa-shortcuts-wrap"
+                     (mouseenter)="handleHovered = true"
+                     (mouseleave)="handleHovered = false">
+                  <fvdr-quick-access-menu
+                    [items]="shortcuts"
+                    [(collapsed)]="shortcutsCollapsed"
+                    [showCollapseAll]="true"
+                    [width]="panelWidthPx - PANEL_LINE_WIDTH"
+                    (itemClick)="onShortcutClick($event)"
+                    (collapseAllClick)="panelCollapsed = true"
+                  ></fvdr-quick-access-menu>
+                </div>
 
                 <!-- Folder tree -->
-                <div class="qa-tree">
+                <div class="qa-tree"
+                     (mouseenter)="handleHovered = true"
+                     (mouseleave)="handleHovered = false">
                   <ng-container *ngFor="let node of visibleNodes">
                     <div class="qa-tree-row"
                          [class.qa-tree-row--active]="node.isActive"
@@ -140,12 +149,13 @@ type ResizableColId = 'idx' | 'name' | 'notes' | 'size' | 'pub' | 'red';
                 </div>
               </ng-container>
 
-              <!-- Resize handle -->
+              <!-- Resize handle (invisible hit-zone; visual feedback is the border-right on the blocks above) -->
               <div class="qa-panel-handle"
                    *ngIf="!panelCollapsed"
-                   [class.qa-panel-handle--active]="isResizingPanel"
                    role="separator" aria-orientation="vertical" aria-label="Resize Quick access panel"
                    tabindex="0"
+                   (mouseenter)="handleHovered = true"
+                   (mouseleave)="handleHovered = false"
                    (mousedown)="startPanelResize($event)"
                    (keydown)="onPanelResizeKeydown($event)"></div>
             </div>
@@ -389,8 +399,36 @@ type ResizableColId = 'idx' | 'name' | 'notes' | 'size' | 'pub' | 'red';
     }
 
     fvdr-quick-access-menu { flex-shrink: 0; }
+    .qa-shortcuts-wrap { flex-shrink: 0; box-sizing: border-box; }
 
-    /* Resize handle — same hover/active language as the table's column handles */
+    /* Resize feedback: each content block gets its own right-side stroke, inset from the
+       block's own top/bottom edges — a padded segment per block, not one continuous line
+       down the panel. Gray on hover, green while dragging. */
+    .qa-shortcuts-wrap,
+    .qa-tree {
+      position: relative;
+    }
+    .qa-shortcuts-wrap::after,
+    .qa-tree::after {
+      content: '';
+      position: absolute;
+      top: var(--space-2);
+      bottom: var(--space-2);
+      right: 0;
+      width: var(--space-1);
+      background: transparent;
+      transition: background-color 0.1s ease;
+    }
+    .qa-panel--handle-hover .qa-shortcuts-wrap::after,
+    .qa-panel--handle-hover .qa-tree::after {
+      background: var(--color-divider);
+    }
+    .qa-panel--handle-active .qa-shortcuts-wrap::after,
+    .qa-panel--handle-active .qa-tree::after {
+      background: var(--chip-bg-green);
+    }
+
+    /* Resize handle — invisible hit-zone; the stroke above is the only visual feedback */
     .qa-panel-handle {
       position: absolute;
       top: 0; bottom: 0;
@@ -399,24 +437,6 @@ type ResizableColId = 'idx' | 'name' | 'notes' | 'size' | 'pub' | 'red';
       cursor: col-resize;
       z-index: 5;
       outline: none;
-    }
-    .qa-panel-handle::after {
-      content: '';
-      position: absolute;
-      top: 0; bottom: 0;
-      left: 50%;
-      width: 1px;
-      transform: translateX(-50%);
-      background: transparent;
-      transition: background 0.1s ease, width 0.1s ease;
-    }
-    .qa-panel-handle:hover::after,
-    .qa-panel-handle:focus-visible::after {
-      background: var(--color-divider);
-    }
-    .qa-panel-handle--active::after {
-      width: 3px;
-      background: var(--color-primary-50);
     }
     .qa-panel-handle:focus-visible {
       outline: 2px solid var(--color-primary-500);
@@ -747,6 +767,10 @@ export class QuickAccessPanelComponent implements OnInit, OnDestroy {
   // ── Quick Access panel width resize ───────────────────────────────────────
   panelWidthPx = 340;
   isResizingPanel = false;
+  handleHovered = false;
+  /** Width of the resize-feedback border-right stroke — subtracted from the width passed
+   *  to <fvdr-quick-access-menu> so its internal content doesn't paint over the stroke. */
+  readonly PANEL_LINE_WIDTH = 4;
   private readonly PANEL_MIN = 200;
   private readonly PANEL_MAX = 560;
   private panelStartX = 0;

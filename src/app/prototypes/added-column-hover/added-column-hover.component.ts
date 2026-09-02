@@ -9,8 +9,6 @@ import { TrackerService } from '../../services/tracker.service';
 interface Uploader {
   name: string;
   email: string;
-  initials: string;
-  role: string;
 }
 
 interface DocRow {
@@ -117,41 +115,23 @@ interface DocRow {
                              [class.pub-no]="!row.published"></fvdr-icon>
                 </div>
 
-                <!-- ── Added column: hover trigger ── -->
+                <!-- ── Added column: hover trigger ──
+                     The popover itself is NOT nested here — .tbl-wrap scrolls (overflow: auto),
+                     which would clip an absolutely-positioned popover the moment a row sits near
+                     the table's edge. It's rendered once, fixed-positioned, at the end of the
+                     template instead, with coordinates computed from this cell's own rect. -->
                 <div class="col-added">
                   <div class="added-cell"
-                       (mouseenter)="openPopover(row)"
+                       tabindex="0"
+                       (mouseenter)="openPopover(row, $event)"
                        (mouseleave)="scheduleClosePopover()"
-                       (focus)="openPopover(row)"
-                       (blur)="scheduleClosePopover()"
-                       tabindex="0">
+                       (focusin)="openPopover(row, $event)"
+                       (focusout)="scheduleClosePopover()">
                     <div class="added-line">
                       <span class="added-date">{{ row.addedDate }}</span>
                     </div>
                     <div class="added-line added-line--who">
                       <span class="added-who">{{ row.addedBy.name }}</span>
-                      <fvdr-icon name="more" class="added-trigger-icon"></fvdr-icon>
-                    </div>
-                  </div>
-
-                  <div class="uploader-popover"
-                       *ngIf="activeRow?.id === row.id"
-                       (mouseenter)="cancelClosePopover()"
-                       (mouseleave)="scheduleClosePopover()">
-                    <div class="pv-line">
-                      <span class="pv-text pv-name">{{ row.addedBy.name }}</span>
-                      <button class="icon-btn" (click)="copyText(row.addedBy.name, 'Name')" aria-label="Copy name">
-                        <fvdr-icon name="copy"></fvdr-icon>
-                      </button>
-                      <button class="icon-btn" (click)="openUserCard(row.addedBy)" aria-label="Open user card">
-                        <fvdr-icon name="user-circle"></fvdr-icon>
-                      </button>
-                    </div>
-                    <div class="pv-line">
-                      <span class="pv-text">{{ row.addedBy.email }}</span>
-                      <button class="icon-btn" (click)="copyText(row.addedBy.email, 'Email')" aria-label="Copy email">
-                        <fvdr-icon name="copy"></fvdr-icon>
-                      </button>
                     </div>
                   </div>
                 </div>
@@ -177,25 +157,29 @@ interface DocRow {
       </div>
     </div>
 
-    <fvdr-modal [visible]="cardModalOpen" [title]="selectedUser?.name || ''" size="s" (closed)="cardModalOpen = false">
-      <div class="user-card" *ngIf="selectedUser as u">
-        <div class="user-card__head">
-          <fvdr-avatar [initials]="u.initials" size="lg"></fvdr-avatar>
-          <div>
-            <p class="user-card__name">{{ u.name }}</p>
-            <p class="user-card__role">{{ u.role }}</p>
-          </div>
+    <!-- Fixed-position popover, rendered once outside every scrolling ancestor so it's never
+         clipped by .tbl-wrap's overflow. Coordinates come from the hovered cell's own rect. -->
+    <div class="uploader-popover"
+         *ngIf="activeRow as row"
+         [style.top.px]="popoverPos.top"
+         [style.left.px]="popoverPos.left"
+         (mouseenter)="cancelClosePopover()"
+         (mouseleave)="scheduleClosePopover()">
+      <div class="pv-body">
+        <div class="pv-line">
+          <span class="pv-text pv-name">{{ row.addedBy.name }}</span>
+          <button class="icon-btn" (click)="copyText(row.addedBy.name, 'Name')" aria-label="Copy name">
+            <fvdr-icon name="copy"></fvdr-icon>
+          </button>
         </div>
-        <div class="user-card__row">
-          <fvdr-icon name="mail"></fvdr-icon>
-          <span>{{ u.email }}</span>
-        </div>
-        <div class="user-card__row">
-          <fvdr-icon name="upload"></fvdr-icon>
-          <span>{{ filesAddedBy(u) }} files added to this room</span>
+        <div class="pv-line">
+          <span class="pv-text">{{ row.addedBy.email }}</span>
+          <button class="icon-btn" (click)="copyText(row.addedBy.email, 'Email')" aria-label="Copy email">
+            <fvdr-icon name="copy"></fvdr-icon>
+          </button>
         </div>
       </div>
-    </fvdr-modal>
+    </div>
 
     <div class="toast" [class.toast--show]="toastMessage">{{ toastMessage }}</div>
   `,
@@ -280,14 +264,18 @@ interface DocRow {
 
     .col-act { justify-content: flex-end; display: flex; }
 
-    /* ── Added column hover interaction ── */
+    /* ── Added column hover interaction ──
+       .added-wrap is the single hover/focus zone for BOTH the cell and the popover — since the
+       popover is a DOM child of it, moving the pointer from one into the other never fires
+       mouseleave on the wrap, even though the popover visually overflows below the cell. */
     .col-added { position: relative; overflow: visible; }
+    .added-wrap { position: relative; }
     .added-cell {
       display: flex; flex-direction: column; justify-content: center; gap: 2px;
       padding: 4px 6px; margin: -4px -6px; border-radius: var(--radius-sm);
       cursor: default; outline: none;
     }
-    .added-cell:hover, .added-cell:focus-visible { background: var(--color-hover-bg); }
+    .added-cell:hover, .added-cell:focus-within { background: var(--color-hover-bg); }
     .added-date { font-size: var(--text-caption1-size); color: var(--color-text-primary); line-height: 16px; }
     .added-line--who { display: flex; align-items: center; gap: 4px; }
     .added-who {
@@ -295,14 +283,19 @@ interface DocRow {
       text-decoration: underline dotted; text-underline-offset: 2px;
       overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 84px;
     }
-    .added-trigger-icon { font-size: 14px; color: var(--color-text-secondary); opacity: 0; transition: opacity 0.1s ease; }
-    .added-cell:hover .added-trigger-icon, .added-cell:focus-visible .added-trigger-icon { opacity: 1; }
-
+    /* position: fixed — deliberately NOT absolute. This popover is rendered outside every
+       scrolling ancestor (see template); fixed positioning is what keeps it from being
+       clipped by .tbl-wrap's overflow: auto, with coordinates set from the trigger's rect.
+       Its top is set flush with the trigger cell's own bottom edge (no gap) — padding-top
+       below is the "safe zone": still part of this hoverable box, so the pointer travelling
+       from the cell straight into the visible card never crosses a dead pixel that belongs
+       to something else (e.g. the row underneath). It only closes on leaving THIS element. */
     .uploader-popover {
-      position: absolute; top: calc(100% + 4px); left: 0; z-index: 10;
-      width: 260px; background: var(--color-stone-0); border: 1px solid var(--color-stone-200);
-      border-radius: var(--radius-sm); box-shadow: var(--shadow-popover);
-      padding: 0 var(--space-4);
+      position: fixed; z-index: 50; width: 260px; padding-top: var(--space-2);
+    }
+    .pv-body {
+      background: var(--color-stone-0); border: 1px solid var(--color-stone-200);
+      border-radius: var(--radius-sm); box-shadow: var(--shadow-popover); padding: 0 var(--space-4);
     }
     .pv-line { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-2) 0; }
     .pv-line + .pv-line { border-top: 1px solid var(--color-divider); }
@@ -314,12 +307,6 @@ interface DocRow {
       color: var(--color-text-secondary); border-radius: var(--radius-sm); font-size: 15px; padding: 0;
     }
     .icon-btn:hover { background: var(--color-hover-bg); color: var(--color-primary-600); }
-
-    /* ── User card modal ── */
-    .user-card__head { display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-4); }
-    .user-card__name { font-size: var(--font-size-base); font-weight: 600; color: var(--color-text-primary); margin: 0; }
-    .user-card__role { font-size: var(--text-caption1-size); color: var(--color-text-secondary); margin: 2px 0 0; }
-    .user-card__row { display: flex; align-items: center; gap: var(--space-2); font-size: var(--font-size-base); color: var(--color-text-secondary); padding: var(--space-2) 0; border-top: 1px solid var(--color-divider); }
 
     /* ── Toast ── */
     .toast {
@@ -360,13 +347,13 @@ export class AddedColumnHoverComponent implements OnInit, OnDestroy {
     item.active = true;
   }
 
-  private readonly brianChen: Uploader = { name: 'Brian Chen', email: 'brian.chen@acme-corp.com', initials: 'BC', role: 'Bidder' };
-  private readonly aliceJohnson: Uploader = { name: 'Alice Johnson', email: 'alice.johnson@acme-corp.com', initials: 'AJ', role: 'Bidder' };
-  private readonly michaelSmith: Uploader = { name: 'Michael Smith', email: 'michael.smith@acme-corp.com', initials: 'MS', role: 'Bidder' };
-  private readonly aliseLee: Uploader = { name: 'Alise Lee', email: 'alise.lee@ideals-team.com', initials: 'AL', role: 'Project admin' };
-  private readonly sarahJohnson: Uploader = { name: 'Sarah Johnson', email: 'sarah.johnson@acme-corp.com', initials: 'SJ', role: 'Contributor' };
-  private readonly davidBrown: Uploader = { name: 'David Brown', email: 'david.brown@acme-corp.com', initials: 'DB', role: 'Bidder' };
-  private readonly emilyDavis: Uploader = { name: 'Emily Davis', email: 'emily.davis@acme-corp.com', initials: 'ED', role: 'Bidder' };
+  private readonly brianChen: Uploader = { name: 'Brian Chen', email: 'brian.chen@acme-corp.com' };
+  private readonly aliceJohnson: Uploader = { name: 'Alice Johnson', email: 'alice.johnson@acme-corp.com' };
+  private readonly michaelSmith: Uploader = { name: 'Michael Smith', email: 'michael.smith@acme-corp.com' };
+  private readonly aliseLee: Uploader = { name: 'Alise Lee', email: 'alise.lee@ideals-team.com' };
+  private readonly sarahJohnson: Uploader = { name: 'Sarah Johnson', email: 'sarah.johnson@acme-corp.com' };
+  private readonly davidBrown: Uploader = { name: 'David Brown', email: 'david.brown@acme-corp.com' };
+  private readonly emilyDavis: Uploader = { name: 'Emily Davis', email: 'emily.davis@acme-corp.com' };
 
   rows: DocRow[] = [
     { id: '1', fileType: 'folder', name: 'Alpha Division', index: 1, published: true, addedDate: 'Jul 11, 2026', addedBy: this.brianChen, notes: 0, sizeMain: '0 subfolders', sizeSub: '0 files', redaction: 'none' },
@@ -380,19 +367,22 @@ export class AddedColumnHoverComponent implements OnInit, OnDestroy {
   ];
 
   activeRow: DocRow | null = null;
+  popoverPos = { top: 0, left: 0 };
   private closeTimer: ReturnType<typeof setTimeout> | null = null;
 
-  openPopover(row: DocRow): void {
+  openPopover(row: DocRow, event: MouseEvent | FocusEvent): void {
     if (this.closeTimer) { clearTimeout(this.closeTimer); this.closeTimer = null; }
+    const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+    this.popoverPos = { top: rect.bottom, left: rect.left };
     this.activeRow = row;
-  }
-
-  scheduleClosePopover(): void {
-    this.closeTimer = setTimeout(() => { this.activeRow = null; }, 200);
   }
 
   cancelClosePopover(): void {
     if (this.closeTimer) { clearTimeout(this.closeTimer); this.closeTimer = null; }
+  }
+
+  scheduleClosePopover(): void {
+    this.closeTimer = setTimeout(() => { this.activeRow = null; }, 200);
   }
 
   toastMessage = '';
@@ -403,20 +393,6 @@ export class AddedColumnHoverComponent implements OnInit, OnDestroy {
     if (this.toastTimer) clearTimeout(this.toastTimer);
     this.toastMessage = `${label} copied`;
     this.toastTimer = setTimeout(() => (this.toastMessage = ''), 1400);
-  }
-
-  cardModalOpen = false;
-  selectedUser: Uploader | null = null;
-
-  openUserCard(user: Uploader): void {
-    this.selectedUser = user;
-    this.cardModalOpen = true;
-    this.activeRow = null;
-    this.tracker.trackTask('added-column-hover', 'task_complete');
-  }
-
-  filesAddedBy(user: Uploader): number {
-    return this.rows.filter(r => r.addedBy.email === user.email).length;
   }
 
   ngOnInit(): void {
