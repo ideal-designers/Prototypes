@@ -890,8 +890,8 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
           <ng-container *ngSwitchCase="'ai-actions'">
             <div class="anatomy-wrap">
               <fvdr-ai-actions></fvdr-ai-actions>
-              <div class="anatomy-label anatomy-label--top"    style="top:-52px;left:-10px">regenerate · copy</div>
-              <div class="anatomy-label anatomy-label--top"    style="top:-52px;right:-10px">rating</div>
+              <div class="anatomy-label anatomy-label--top"    style="top:-76px;left:50%;transform:translateX(-50%)">regenerate · copy</div>
+              <div class="anatomy-label anatomy-label--top"    style="top:-46px;left:50%;transform:translateX(-50%)">rating (toggle)</div>
               <div class="anatomy-label anatomy-label--bottom" style="bottom:-42px;left:50%;transform:translateX(-50%)">28×28 ghost buttons · gap 4px</div>
               <div class="dim-v" style="left:-24px;top:0;height:28px">28px</div>
             </div>
