@@ -18,6 +18,16 @@ export interface AiFeedback {
 /** Reasons whose wording marks a leak rather than a quality problem. */
 const SECURITY_REASON = /should not see|not have access|leak/i;
 
+const DEFAULT_REASONS = [
+  'Incorrect',
+  'Incomplete',
+  'Missed a document',
+  'Showed something I should not see',
+];
+
+const toOptions = (reasons: string[]): RadioOption[] =>
+  reasons.map(reason => ({ label: reason, value: reason }));
+
 /**
  * What opens after a thumbs-down: pick a reason, add a comment, decide whether
  * to attach the transcript.
@@ -77,13 +87,25 @@ const SECURITY_REASON = /should not see|not have access|leak/i;
 })
 export class AiFeedbackModalComponent {
   @Input() visible = false;
-  @Input() reasons: string[] = [
-    'Incorrect',
-    'Incomplete',
-    'Missed a document',
-    'Showed something I should not see',
-  ];
   @Input() allowTranscript = true;
+
+  /**
+   * Built once per `reasons` change, never in a getter: a getter hands *ngFor a
+   * fresh array of fresh objects on every change-detection pass, so the rows are
+   * torn down between mousedown and mouseup and the click is never synthesized.
+   */
+  options: RadioOption[] = toOptions(DEFAULT_REASONS);
+
+  private _reasons: string[] = DEFAULT_REASONS;
+
+  @Input()
+  set reasons(value: string[]) {
+    this._reasons = value?.length ? value : DEFAULT_REASONS;
+    this.options = toOptions(this._reasons);
+  }
+  get reasons(): string[] {
+    return this._reasons;
+  }
 
   @Output() submitted = new EventEmitter<AiFeedback>();
   @Output() cancelled = new EventEmitter<void>();
@@ -91,10 +113,6 @@ export class AiFeedbackModalComponent {
   reason = '';
   comment = '';
   includeTranscript = true;
-
-  get options(): RadioOption[] {
-    return this.reasons.map(r => ({ label: r, value: r }));
-  }
 
   get isSecurityReport(): boolean {
     return SECURITY_REASON.test(this.reason);

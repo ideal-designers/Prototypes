@@ -527,7 +527,7 @@ const aiToolCall = ai({
     'Plain reasoning narration (use AI Steps)',
     'Final answers (use the AI Answer blocks)',
   ],
-  relatedComponents: ['ai-steps', 'ai-citation', 'card'],
+  relatedComponents: ['ai-steps', 'ai-citation'],
   anatomy: [
     { index: 1, part: 'Card',         spec: "1px --color-divider · --radius-md · min-height 40px" },
     { index: 2, part: 'Chevron',      spec: "12px · hidden while a confirm is pending" },
@@ -805,7 +805,7 @@ const aiAnswerReport = ai({
     'Short answers (keep them in the transcript)',
     'Results better read as a table',
   ],
-  relatedComponents: ['ai-answer-summary', 'ai-citation', 'ai-actions', 'card'],
+  relatedComponents: ['ai-answer-summary', 'ai-citation', 'ai-actions'],
   anatomy: [
     { index: 1, part: 'Surface',         spec: "1px --color-divider · --radius-lg · white · own scroll" },
     { index: 2, part: 'Header',          spec: "title + Draft badge · Export and Save to room" },
@@ -925,7 +925,7 @@ const aiScopeBar = ai({
     'Per-prompt context pins (use AI Attachment)',
     'Navigation (use Breadcrumbs)',
   ],
-  relatedComponents: ['ai-attachment', 'breadcrumbs', 'ai-composer'],
+  relatedComponents: ['ai-attachment', 'ai-composer'],
   anatomy: [
     { index: 1, part: 'Row',       spec: "32px tall · no border · no fill — reads as a caption" },
     { index: 2, part: 'Kind icon', spec: "fvdr-file-icon for room / folder / document / selection" },

@@ -44,6 +44,12 @@ export class AiSuggestionsComponent {
 
   @Output() chosen = new EventEmitter<string>();
 
+  /**
+   * Safe as a getter only because the items are strings: *ngFor tracks by item
+   * identity, and equal strings compare equal, so the chips are reused rather
+   * than rebuilt each change-detection pass. Switch to objects and this must
+   * become a field recomputed on input change.
+   */
   get visible(): string[] {
     return this.items.slice(0, this.max);
   }

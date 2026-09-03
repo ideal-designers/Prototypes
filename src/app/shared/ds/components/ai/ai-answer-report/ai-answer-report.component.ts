@@ -29,7 +29,8 @@ const SEVERITY_LABEL: Record<AiSeverity, string> = {
         <div class="rep__titles">
           <h3 class="rep__title">
             {{ title }}
-            <fvdr-badge *ngIf="draft" label="Draft" variant="warning"></fvdr-badge>
+            <!-- neutral is the only badge variant that clears AA in both themes -->
+            <fvdr-badge *ngIf="draft" label="Draft" variant="neutral"></fvdr-badge>
           </h3>
           <p class="rep__sub" *ngIf="subtitle">{{ subtitle }}</p>
         </div>
@@ -143,8 +144,12 @@ const SEVERITY_LABEL: Record<AiSeverity, string> = {
       text-transform: uppercase;
       letter-spacing: 0.04em;
     }
-    .rep__sev--high   { background: var(--color-error-bg); color: var(--color-error-600); }
-    .rep__sev--medium { background: var(--color-warning-bg); color: var(--color-stone-900); }
+    /* --chip-bg-* are the only tint tokens defined for both themes; the
+       --color-*-bg pair is light-only and left the label unreadable in dark. */
+    /* The tint carries the severity; the label stays text-primary, because a red
+       label on the dark tint only reaches 3.4:1 and the tag is 10px. */
+    .rep__sev--high   { background: var(--chip-bg-danger); color: var(--color-text-primary); }
+    .rep__sev--medium { background: var(--chip-bg-yellow); color: var(--color-text-primary); }
     .rep__sev--low    { background: var(--color-stone-200); color: var(--color-text-secondary); }
 
     .rep__text {

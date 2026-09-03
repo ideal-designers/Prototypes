@@ -56,10 +56,12 @@ import { ProgressComponent } from '../../special-controls/special-controls.compo
     }
     .usage__upgrade:hover { color: var(--color-primary-600); text-decoration: underline; }
 
+    /* The red bar above already signals the state; --color-error-600 as text only
+       reaches ~4.0:1 on either theme's surface, so the sentence stays readable. */
     .usage__note {
       margin: 0;
       font-size: var(--font-size-xs, 12px);
-      color: var(--color-error-600);
+      color: var(--color-text-primary);
     }
 
     /* Header variant — one line, no bar. */

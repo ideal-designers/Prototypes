@@ -902,11 +902,19 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
           </ng-container>
 
           <ng-container *ngSwitchDefault>
-            <div class="anatomy-preview-empty">Live anatomy preview coming soon for this component.</div>
+            <div class="anatomy-preview-empty">No annotated diagram for this component — parts and specs are listed below, live states under Examples.</div>
           </ng-container>
 
         </ng-container>
       </div>
+
+      <ol class="anatomy-parts">
+        <li class="anatomy-parts__row" *ngFor="let part of entry.anatomy">
+          <span class="anatomy-parts__index">{{ part.index }}</span>
+          <span class="anatomy-parts__name">{{ part.part }}</span>
+          <span class="anatomy-parts__spec">{{ part.spec }}</span>
+        </li>
+      </ol>
     </section>
 
     <!-- 4–6. LIVE EXAMPLES (Sizes, States, Variants) -->
@@ -3196,6 +3204,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
           *ngFor="let relId of entry.relatedComponents"
           class="related-card"
           [routerLink]="['/ds', relId]"
+          [hidden]="!getEntryById(relId)"
         >
           <div class="related-card__name">{{ getEntryById(relId)?.name ?? relId }}</div>
           <code class="related-card__selector">{{ getEntryById(relId)?.selector ?? '' }}</code>
@@ -4182,6 +4191,46 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
       background: var(--color-stone-0, #ffffff);
       border: 1px solid var(--color-divider, #dee0eb);
     }
+    /* Anatomy parts — the registry has always carried these; now they render. */
+    .anatomy-parts {
+      list-style: none;
+      margin: 16px 0 0;
+      padding: 0;
+      border-top: 1px solid var(--color-divider, #dee0eb);
+    }
+    .anatomy-parts__row {
+      display: grid;
+      grid-template-columns: 24px minmax(120px, 180px) 1fr;
+      gap: 12px;
+      align-items: baseline;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--color-divider, #dee0eb);
+    }
+    .anatomy-parts__index {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      background: var(--color-stone-200, #f7f7f7);
+      color: var(--color-text-secondary, #5f616a);
+      font-size: var(--font-size-2xs, 11px);
+      font-weight: 600;
+    }
+    .anatomy-parts__name {
+      font-size: var(--font-size-sm, 13px);
+      font-weight: 600;
+      color: var(--color-text-primary, #1f2129);
+    }
+    .anatomy-parts__spec {
+      font-family: 'Menlo', 'Courier New', monospace;
+      font-size: var(--font-size-2xs, 11px);
+      line-height: 18px;
+      color: var(--color-text-secondary, #5f616a);
+    }
+    @media (max-width: 768px) {
+      .anatomy-parts__row { grid-template-columns: 20px 1fr; }
+      .anatomy-parts__spec { grid-column: 2; }
+    }
+
     /* AI section — components that fill their host need a bounded stage. */
     .ai-frame {
       height: 420px;

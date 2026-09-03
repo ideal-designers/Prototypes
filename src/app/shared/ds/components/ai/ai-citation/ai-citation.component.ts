@@ -67,8 +67,10 @@ export type AiCitationVariant = 'inline' | 'pill';
       display: inline-flex; align-items: center; justify-content: center;
       min-width: 16px; height: 16px; padding: 0 4px;
       border-radius: var(--radius-sm);
-      background: var(--color-primary-50);
-      color: var(--color-primary-700);
+      /* --chip-bg-* flips with the theme; --color-primary-50/700 do not, and in
+         dark they collapse to dark green on dark green. */
+      background: var(--chip-bg-green);
+      color: var(--color-text-primary);
       font-size: var(--font-size-3xs, 10px);
       font-weight: var(--font-weight-semi, 600);
     }

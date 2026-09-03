@@ -1785,7 +1785,7 @@ const ghostBtn: ComponentDocEntry = {
     { token: '--radius-sm',          value: '4px',     usage: 'Button border radius' },
   ],
   usedIn: ['Viewers toolbar', 'Document header'],
-  relatedComponents: ['fvdr-btn'],
+  relatedComponents: ['button'],
   codeSnippet: `<!-- Icon only (default) -->
 <fvdr-ghost-btn (clicked)="openViewers()"></fvdr-ghost-btn>
 
@@ -1841,7 +1841,7 @@ const floatingPanel: ComponentDocEntry = {
     { token: '--radius-md',       value: '8px',                        usage: 'Panel radius (big vertical)' },
   ],
   usedIn: ['Redaction viewer', 'Document viewer toolbar'],
-  relatedComponents: ['fvdr-ghost-btn'],
+  relatedComponents: ['ghost-btn'],
   codeSnippet: `const SEARCH = 'M11.006 9.805H10.373...'; // SVG path d value
 
 items: FloatingPanelItem[] = [
@@ -1961,7 +1961,7 @@ const filterBtn: ComponentDocEntry = {
     { token: '--radius-sm',         value: '4px',     usage: 'Border radius' },
   ],
   usedIn: ['Filter bars', 'Marks panel', 'Category filter strips'],
-  relatedComponents: ['fvdr-chip', 'fvdr-btn'],
+  relatedComponents: ['chip', 'button'],
   codeSnippet: `<!-- Default (M) -->
 <fvdr-filter-btn label="Keywords"></fvdr-filter-btn>
 
@@ -2029,7 +2029,7 @@ const askIdeon: ComponentDocEntry = {
     { token: '--color-text-primary', value: '#1F2129', usage: 'Label colour' },
   ],
   usedIn: ['AI Assistant prototype header', 'Documents view header'],
-  relatedComponents: ['fvdr-btn', 'fvdr-icon'],
+  relatedComponents: ['button',],
   codeSnippet: `<!-- Default -->
 <fvdr-ask-ideon (clicked)="openAssistant()"></fvdr-ask-ideon>
 
@@ -2086,7 +2086,7 @@ const thinkingOrbs: ComponentDocEntry = {
     { token: '--font-size-base',      value: '14px',    usage: 'Label size' },
   ],
   usedIn: ['AI Assistant — streaming reasoning block (fvdr-ai-steps)'],
-  relatedComponents: ['fvdr-progress', 'fvdr-ask-ideon'],
+  relatedComponents: ['progress', 'ask-ideon'],
   codeSnippet: `<!-- Streaming state in a chat -->
 <fvdr-thinking-orbs [label]="liveLabel" [running]="streaming" [size]="32" [dots]="1.2"></fvdr-thinking-orbs>
 
