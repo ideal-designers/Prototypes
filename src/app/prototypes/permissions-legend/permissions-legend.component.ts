@@ -6,6 +6,7 @@ import {
   SidebarNavItem,
   FvdrFileType,
   FvdrIconName,
+  ToastService,
 } from '../../shared/ds';
 import { TrackerService } from '../../services/tracker.service';
 
@@ -393,9 +394,40 @@ const GROUPS: Group[] = [
                       <span class="pt-entity-name">{{ item.name }}</span>
                       <span *ngIf="hasDocPending(item.id)" class="item-dot"></span>
                     </div>
-                    <div class="pt-publish-cell" [title]="item.published ? 'Published' : 'Not published'">
-                      <fvdr-icon [name]="item.published ? 'finished' : 'cross-circle'"
-                                 [class.publish-icon--live]="item.published" />
+                    <div class="pt-publish-cell">
+                      <button class="publish-trigger"
+                              [title]="item.published ? 'Published' : 'Not published'"
+                              (click)="togglePublishMenu(item.id, $event)">
+                        <fvdr-icon [name]="item.published ? 'finished' : 'cross-circle'"
+                                   [class.publish-icon--live]="item.published" />
+                      </button>
+                      <div class="publish-menu" *ngIf="publishMenuFor === item.id" (click)="$event.stopPropagation()">
+                        <button class="publish-menu-item" (click)="closePublishMenu()">
+                          <fvdr-icon name="link" />
+                          <span>Open in new browser tab</span>
+                        </button>
+                        <button class="publish-menu-item" (click)="closePublishMenu()">
+                          <fvdr-icon name="history" />
+                          <span>View activity log</span>
+                        </button>
+                        <button class="publish-menu-item" (click)="closePublishMenu()">
+                          <fvdr-icon name="overview" />
+                          <span>View document overview</span>
+                        </button>
+                        <button class="publish-menu-item" (click)="closePublishMenu()">
+                          <fvdr-icon name="settings" />
+                          <span>View engagement matrix</span>
+                        </button>
+                        <button class="publish-menu-item" (click)="closePublishMenu()">
+                          <fvdr-icon name="reports" />
+                          <span>View permission log</span>
+                        </button>
+                        <div class="publish-menu-divider"></div>
+                        <button class="publish-menu-item" (click)="setPublished(item, !item.published)">
+                          <fvdr-icon [name]="item.published ? 'cross-circle' : 'finished'" />
+                          <span>{{ item.published ? 'Unpublish' : 'Publish' }}</span>
+                        </button>
+                      </div>
                     </div>
                     <div class="pt-perm-cell">
                       <div class="slider-track">
@@ -432,6 +464,8 @@ const GROUPS: Group[] = [
       <fvdr-btn variant="secondary" label="Cancel" (clicked)="cancel()" />
       <fvdr-btn variant="primary"   label="Save"   (clicked)="save()"   />
     </div>
+
+    <fvdr-toast-host></fvdr-toast-host>
 
     <!-- First-use coach mark -->
     <div class="coach-overlay" *ngIf="coachStep" (click)="finishCoachmark()">
@@ -864,6 +898,7 @@ const GROUPS: Group[] = [
 
     /* Publishing column ("By documents" only) */
     .pt-publish-cell {
+      position: relative;
       width: 48px;
       flex-shrink: 0;
       display: flex;
@@ -878,6 +913,55 @@ const GROUPS: Group[] = [
       font-weight: 600;
       color: var(--color-text-primary);
       white-space: nowrap;
+    }
+    .publish-trigger {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      padding: 0;
+      background: none;
+      border: none;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: background 0.1s;
+    }
+    .publish-trigger:hover { background: var(--color-stone-200); }
+    .publish-menu {
+      position: absolute;
+      top: calc(100% + var(--space-1));
+      left: 0;
+      width: 260px;
+      background: var(--color-stone-0);
+      border-radius: var(--radius-sm);
+      box-shadow: 0 1px 4px rgba(52, 58, 64, 0.2);
+      padding: var(--space-2) 0;
+      z-index: 300;
+      display: flex;
+      flex-direction: column;
+    }
+    .publish-menu-item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      height: 40px;
+      padding: 0 var(--space-4);
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: var(--font-family);
+      font-size: 14px;
+      color: var(--color-text-primary);
+      text-align: left;
+      white-space: nowrap;
+    }
+    .publish-menu-item:hover { background: var(--color-stone-200); }
+    .publish-menu-item fvdr-icon { font-size: 16px; color: var(--color-text-secondary); flex-shrink: 0; }
+    .publish-menu-divider {
+      height: 1px;
+      background: var(--color-divider);
+      margin: var(--space-1) 0;
     }
 
     /* Perm header (icons + labels) */
@@ -1060,6 +1144,7 @@ const GROUPS: Group[] = [
 export class PermissionsLegendComponent implements OnInit, AfterViewInit, OnDestroy {
   private tracker = inject(TrackerService);
   private hostEl = inject(ElementRef<HTMLElement>);
+  private toast = inject(ToastService);
 
   sidebarCollapsed = true;
   searchQuery = '';
@@ -1073,6 +1158,9 @@ export class PermissionsLegendComponent implements OnInit, AfterViewInit, OnDest
   legendOpen = false;
   hoveredCol: number | null = null;
   hoveredSeg: string | null = null;
+
+  // Publishing context menu
+  publishMenuFor: number | null = null;
 
   // Coach mark
   coachStep = 0; // 0 = hidden, 1 | 2 = active step
@@ -1274,6 +1362,31 @@ export class PermissionsLegendComponent implements OnInit, AfterViewInit, OnDest
 
   toggleLegend(): void {
     this.legendOpen = !this.legendOpen;
+  }
+
+  // ── Publishing context menu ─────────────────────────────────
+
+  togglePublishMenu(docId: number, event: MouseEvent): void {
+    event.stopPropagation();
+    this.publishMenuFor = this.publishMenuFor === docId ? null : docId;
+  }
+
+  closePublishMenu(): void {
+    this.publishMenuFor = null;
+  }
+
+  setPublished(item: TreeItem, published: boolean): void {
+    item.published = published;
+    this.closePublishMenu();
+    this.toast.show({
+      variant: 'success',
+      message: published ? `“${item.name}” published` : `“${item.name}” unpublished`,
+    });
+  }
+
+  @HostListener('document:click')
+  onDocumentClick(): void {
+    if (this.publishMenuFor !== null) this.closePublishMenu();
   }
 
   // ── Coach mark ────────────────────────────────────────────
