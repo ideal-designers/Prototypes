@@ -394,7 +394,7 @@ const GROUPS: Group[] = [
                       <span *ngIf="hasDocPending(item.id)" class="item-dot"></span>
                     </div>
                     <div class="pt-publish-cell" [title]="item.published ? 'Published' : 'Not published'">
-                      <fvdr-icon [name]="item.published ? 'check' : 'participants'"
+                      <fvdr-icon [name]="item.published ? 'finished' : 'cross-circle'"
                                  [class.publish-icon--live]="item.published" />
                     </div>
                     <div class="pt-perm-cell">
@@ -869,6 +869,7 @@ const GROUPS: Group[] = [
       display: flex;
       align-items: center;
       justify-content: center;
+      margin-left: -8px;
     }
     .pt-publish-cell fvdr-icon { font-size: 16px; color: var(--color-text-secondary); }
     .publish-icon--live { color: var(--color-primary-500); }
