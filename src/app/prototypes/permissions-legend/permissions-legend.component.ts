@@ -868,11 +868,11 @@ const GROUPS: Group[] = [
       flex-shrink: 0;
       display: flex;
       align-items: center;
-      justify-content: center;
+      justify-content: flex-start;
       margin-left: -8px;
     }
     .pt-publish-cell fvdr-icon { font-size: 16px; color: var(--color-text-secondary); }
-    .publish-icon--live { color: var(--color-primary-500); }
+    .pt-publish-cell fvdr-icon.publish-icon--live { color: var(--color-primary-500); }
     .pt-publish-hdr {
       font-size: 14px;
       font-weight: 600;
