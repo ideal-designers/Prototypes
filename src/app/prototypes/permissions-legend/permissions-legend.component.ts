@@ -19,6 +19,7 @@ interface TreeItem {
   type: 'folder' | 'xlsx' | 'pdf' | 'doc' | 'video';
   perms: number[];       // index = groupIdx (0–5), value = level 0–7
   restricted?: number[]; // levels (1–7) not offered for this file type
+  published?: boolean;   // "Publishing" column — visible only in "By documents" view
 }
 
 interface GroupUser {
@@ -292,6 +293,7 @@ const GROUPS: Group[] = [
                 <div class="pt-entity-cell pt-entity-hdr">
                   {{ viewMode === 'by-groups' ? 'Groups' : 'Documents' }}
                 </div>
+                <div class="pt-publish-cell pt-publish-hdr" *ngIf="viewMode === 'by-documents'">Publishing</div>
                 <div class="pt-perm-hdr">
                   <div *ngFor="let col of permCols; let i = index"
                        class="perm-th"
@@ -341,6 +343,7 @@ const GROUPS: Group[] = [
                                (mouseenter)="hoveredSeg = 'g' + gi + '-' + pos"
                                (mouseleave)="hoveredSeg = null"
                                (click)="setLevelByGroup(gi, pos)">
+                            <fvdr-icon *ngIf="pos === 0" name="close" class="seg-none-icon" />
                             <div class="seg-tooltip" *ngIf="hoveredSeg === 'g' + gi + '-' + pos">
                               {{ permLevels[pos].label }}
                             </div>
@@ -367,6 +370,7 @@ const GROUPS: Group[] = [
                                  [class.s-none]="segClass(getLevel(selectedDocId, gi), pos, selectedDocItem.restricted) === 'none'"
                                  [class.s-zero]="segClass(getLevel(selectedDocId, gi), pos, selectedDocItem.restricted) === 'zero'"
                                  [class.s-hatched]="segClass(getLevel(selectedDocId, gi), pos, selectedDocItem.restricted) === 'hatched'">
+                              <fvdr-icon *ngIf="pos === 0" name="close" class="seg-none-icon" />
                             </div>
                           </div>
                         </div>
@@ -389,6 +393,10 @@ const GROUPS: Group[] = [
                       <span class="pt-entity-name">{{ item.name }}</span>
                       <span *ngIf="hasDocPending(item.id)" class="item-dot"></span>
                     </div>
+                    <div class="pt-publish-cell" [title]="item.published ? 'Published' : 'Not published'">
+                      <fvdr-icon [name]="item.published ? 'check' : 'participants'"
+                                 [class.publish-icon--live]="item.published" />
+                    </div>
                     <div class="pt-perm-cell">
                       <div class="slider-track">
                         <div *ngFor="let pos of sliderRange"
@@ -401,6 +409,7 @@ const GROUPS: Group[] = [
                              (mouseenter)="hoveredSeg = 'd' + item.id + '-' + pos"
                              (mouseleave)="hoveredSeg = null"
                              (click)="setLevelByDoc(item.id, pos)">
+                          <fvdr-icon *ngIf="pos === 0" name="close" class="seg-none-icon" />
                           <div class="seg-tooltip" *ngIf="hoveredSeg === 'd' + item.id + '-' + pos">
                             {{ permLevels[pos].label }}
                           </div>
@@ -853,6 +862,23 @@ const GROUPS: Group[] = [
       min-width: 0;
     }
 
+    /* Publishing column ("By documents" only) */
+    .pt-publish-cell {
+      width: 48px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .pt-publish-cell fvdr-icon { font-size: 16px; color: var(--color-text-secondary); }
+    .publish-icon--live { color: var(--color-primary-500); }
+    .pt-publish-hdr {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--color-text-primary);
+      white-space: nowrap;
+    }
+
     /* Perm header (icons + labels) */
     .pt-perm-hdr {
       display: flex;
@@ -921,6 +947,9 @@ const GROUPS: Group[] = [
       flex-shrink: 0;
       cursor: pointer;
       transition: filter 0.1s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
     .slider-block:first-child {
       border-left: 1px solid var(--color-stone-500);
@@ -928,10 +957,12 @@ const GROUPS: Group[] = [
     }
     .slider-block:last-child { border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
     .slider-block:hover { filter: brightness(0.88); }
+    .seg-none-icon { font-size: 10px; color: var(--color-text-secondary); pointer-events: none; }
     .s-light  { background: var(--color-primary-50); filter: saturate(1.8); }
     .s-active { background: var(--color-primary-500); }
     .s-none   { background: var(--color-stone-300); }
     .s-zero   { background: var(--primitive-red-75, #ffe1de); border-color: var(--primitive-red-200, #f5c4bc); }
+    .s-zero .seg-none-icon { color: var(--primitive-red-500, #e54430); }
     .s-hatched {
       background: repeating-linear-gradient(
         45deg,
@@ -1062,8 +1093,8 @@ export class PermissionsLegendComponent implements OnInit, AfterViewInit, OnDest
     { id: 5, index: '5',   name: 'Key contacts by function',            type: 'xlsx',   perms: [4,5,3,1,2,4] },
     { id: 6, index: '6',   name: 'Tax accounting.xlsx',                 type: 'xlsx',   perms: [5,5,4,2,3,5] },
     { id: 7, index: '7',   name: 'Tax returns.pdf',                     type: 'pdf',    perms: [3,4,3,1,0,3] },
-    { id: 8, index: '8',   name: 'Registration with tax authorities',   type: 'doc',    perms: [6,7,5,4,3,6] },
-    { id: 9, index: '9',   name: 'Site walkthrough recording.mp4',      type: 'video',  perms: [0,2,7,5,0,7], restricted: [1,3,4,6] },
+    { id: 8, index: '8',   name: 'Registration with tax authorities',   type: 'doc',    perms: [6,7,5,4,3,6], published: true },
+    { id: 9, index: '9',   name: 'Site walkthrough recording.mp4',      type: 'video',  perms: [0,2,7,5,0,7], restricted: [1,3,4,6], published: true },
   ];
 
   readonly groups = GROUPS;
