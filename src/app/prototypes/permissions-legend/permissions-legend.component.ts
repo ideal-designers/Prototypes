@@ -869,7 +869,7 @@ const GROUPS: Group[] = [
       display: flex;
       align-items: center;
       justify-content: flex-start;
-      margin-left: -8px;
+      margin-left: -24px;
     }
     .pt-publish-cell fvdr-icon { font-size: 16px; color: var(--color-text-secondary); }
     .pt-publish-cell fvdr-icon.publish-icon--live { color: var(--color-primary-500); }
