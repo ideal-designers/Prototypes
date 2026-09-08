@@ -899,12 +899,12 @@ const GROUPS: Group[] = [
     /* Publishing column ("By documents" only) */
     .pt-publish-cell {
       position: relative;
-      width: 48px;
+      width: 90px;
       flex-shrink: 0;
       display: flex;
       align-items: center;
       justify-content: flex-start;
-      margin-left: -24px;
+      padding-left: var(--space-4);
     }
     .pt-publish-cell fvdr-icon { font-size: 16px; color: var(--color-text-secondary); }
     .pt-publish-cell fvdr-icon.publish-icon--live { color: var(--color-primary-500); }
