@@ -237,7 +237,7 @@ const GROUPS: Group[] = [
                         <span class="item-idx">{{ item.index }}</span>
                         <span class="item-name"
                               [innerHTML]="highlight(item.name)"></span>
-                        <span *ngIf="pendingPerms[item.id]" class="item-dot"></span>
+                        <span *ngIf="searchQuery.trim() && pendingPerms[item.id]" class="item-dot"></span>
                       </div>
                     </div>
                   </ng-container>
@@ -392,7 +392,6 @@ const GROUPS: Group[] = [
                       <fvdr-file-icon [type]="fileType(item.type)" />
                       <span class="item-idx">{{ item.index }}</span>
                       <span class="pt-entity-name">{{ item.name }}</span>
-                      <span *ngIf="hasDocPending(item.id)" class="item-dot"></span>
                     </div>
                     <div class="pt-publish-cell">
                       <button class="publish-trigger"
@@ -1231,10 +1230,6 @@ export class PermissionsLegendComponent implements OnInit, AfterViewInit, OnDest
     const base = this.treeItems.find(t => t.id === docId)!.perms;
     const overrides = this.pendingPerms[docId] ?? base;
     return overrides[groupIdx] ?? 0;
-  }
-
-  hasDocPending(docId: number): boolean {
-    return !!this.pendingPerms[docId];
   }
 
   /** Group expand/collapse */
