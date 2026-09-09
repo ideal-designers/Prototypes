@@ -344,7 +344,7 @@ const GROUPS: Group[] = [
                                (mouseenter)="hoveredSeg = 'g' + gi + '-' + pos"
                                (mouseleave)="hoveredSeg = null"
                                (click)="setLevelByGroup(gi, pos)">
-                            <fvdr-icon *ngIf="pos === 0" name="close" class="seg-none-icon" />
+                            <fvdr-icon *ngIf="segClass(getLevel(selectedDocId, gi), pos, selectedDocItem.restricted) === 'zero'" name="close" class="seg-none-icon" />
                             <div class="seg-tooltip" *ngIf="hoveredSeg === 'g' + gi + '-' + pos">
                               {{ permLevels[pos].label }}
                             </div>
@@ -371,7 +371,7 @@ const GROUPS: Group[] = [
                                  [class.s-none]="segClass(getLevel(selectedDocId, gi), pos, selectedDocItem.restricted) === 'none'"
                                  [class.s-zero]="segClass(getLevel(selectedDocId, gi), pos, selectedDocItem.restricted) === 'zero'"
                                  [class.s-hatched]="segClass(getLevel(selectedDocId, gi), pos, selectedDocItem.restricted) === 'hatched'">
-                              <fvdr-icon *ngIf="pos === 0" name="close" class="seg-none-icon" />
+                              <fvdr-icon *ngIf="segClass(getLevel(selectedDocId, gi), pos, selectedDocItem.restricted) === 'zero'" name="close" class="seg-none-icon" />
                             </div>
                           </div>
                         </div>
@@ -441,7 +441,7 @@ const GROUPS: Group[] = [
                              (mouseenter)="hoveredSeg = 'd' + item.id + '-' + pos"
                              (mouseleave)="hoveredSeg = null"
                              (click)="setLevelByDoc(item.id, pos)">
-                          <fvdr-icon *ngIf="pos === 0" name="close" class="seg-none-icon" />
+                          <fvdr-icon *ngIf="segClass(getLevel(item.id, selectedGroupIdx), pos, item.restricted) === 'zero'" name="close" class="seg-none-icon" />
                           <div class="seg-tooltip" *ngIf="hoveredSeg === 'd' + item.id + '-' + pos">
                             {{ permLevels[pos].label }}
                           </div>
