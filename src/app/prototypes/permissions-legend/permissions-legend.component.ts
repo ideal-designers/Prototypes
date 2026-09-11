@@ -223,6 +223,9 @@ const GROUPS: Group[] = [
                         <span class="item-name"
                               [innerHTML]="highlight(pinnedItem!.name)"></span>
                         <span class="item-dot"></span>
+                        <fvdr-icon [name]="pinnedItem!.published ? 'finished' : 'cross-circle'"
+                                   class="tree-item-publish"
+                                   [class.tree-item-publish--live]="pinnedItem!.published" />
                       </div>
                     </div>
                     <div class="tree-divider"></div>
@@ -238,6 +241,9 @@ const GROUPS: Group[] = [
                         <span class="item-name"
                               [innerHTML]="highlight(item.name)"></span>
                         <span *ngIf="searchQuery.trim() && pendingPerms[item.id]" class="item-dot"></span>
+                        <fvdr-icon [name]="item.published ? 'finished' : 'cross-circle'"
+                                   class="tree-item-publish"
+                                   [class.tree-item-publish--live]="item.published" />
                       </div>
                     </div>
                   </ng-container>
@@ -766,8 +772,14 @@ const GROUPS: Group[] = [
       border-radius: 50%;
       background: var(--color-warning-600);
       flex-shrink: 0;
+    }
+    .tree-item-publish {
+      font-size: 16px;
+      color: var(--color-text-secondary);
+      flex-shrink: 0;
       margin-left: auto;
     }
+    .tree-item-publish--live { color: var(--color-primary-500); }
     .tree-divider {
       height: 1px;
       background: var(--color-divider);
