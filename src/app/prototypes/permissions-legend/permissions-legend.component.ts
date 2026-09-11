@@ -979,6 +979,13 @@ const GROUPS: Group[] = [
       pointer-events: none;
       box-shadow: 0 6px 16px rgba(31, 33, 41, 0.22);
     }
+    /* Sits flush against the tree panel's right edge — center-anchoring would
+       push half the tooltip past the panel and get clipped by its scroll area. */
+    .tree-item-publish-wrap .publish-tooltip {
+      left: auto;
+      right: 0;
+      transform: none;
+    }
     .publish-trigger:hover { background: var(--color-stone-200); }
     .publish-menu {
       position: absolute;
