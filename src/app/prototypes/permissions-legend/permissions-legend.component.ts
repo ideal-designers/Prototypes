@@ -223,9 +223,16 @@ const GROUPS: Group[] = [
                         <span class="item-name"
                               [innerHTML]="highlight(pinnedItem!.name)"></span>
                         <span class="item-dot"></span>
-                        <fvdr-icon [name]="pinnedItem!.published ? 'finished' : 'cross-circle'"
-                                   class="tree-item-publish"
-                                   [class.tree-item-publish--live]="pinnedItem!.published" />
+                        <span class="tree-item-publish-wrap"
+                              (mouseenter)="hoveredPublish = 'tree-' + pinnedItem!.id"
+                              (mouseleave)="hoveredPublish = null">
+                          <fvdr-icon [name]="pinnedItem!.published ? 'finished' : 'cross-circle'"
+                                     class="tree-item-publish"
+                                     [class.tree-item-publish--live]="pinnedItem!.published" />
+                          <div class="publish-tooltip" *ngIf="hoveredPublish === 'tree-' + pinnedItem!.id">
+                            {{ pinnedItem!.published ? 'Published' : 'Unpublished' }}
+                          </div>
+                        </span>
                       </div>
                     </div>
                     <div class="tree-divider"></div>
@@ -241,9 +248,16 @@ const GROUPS: Group[] = [
                         <span class="item-name"
                               [innerHTML]="highlight(item.name)"></span>
                         <span *ngIf="searchQuery.trim() && pendingPerms[item.id]" class="item-dot"></span>
-                        <fvdr-icon [name]="item.published ? 'finished' : 'cross-circle'"
-                                   class="tree-item-publish"
-                                   [class.tree-item-publish--live]="item.published" />
+                        <span class="tree-item-publish-wrap"
+                              (mouseenter)="hoveredPublish = 'tree-' + item.id"
+                              (mouseleave)="hoveredPublish = null">
+                          <fvdr-icon [name]="item.published ? 'finished' : 'cross-circle'"
+                                     class="tree-item-publish"
+                                     [class.tree-item-publish--live]="item.published" />
+                          <div class="publish-tooltip" *ngIf="hoveredPublish === 'tree-' + item.id">
+                            {{ item.published ? 'Published' : 'Unpublished' }}
+                          </div>
+                        </span>
                       </div>
                     </div>
                   </ng-container>
@@ -401,10 +415,14 @@ const GROUPS: Group[] = [
                     </div>
                     <div class="pt-publish-cell">
                       <button class="publish-trigger"
-                              [title]="item.published ? 'Published' : 'Not published'"
+                              (mouseenter)="hoveredPublish = 'doc-' + item.id"
+                              (mouseleave)="hoveredPublish = null"
                               (click)="togglePublishMenu(item.id, $event)">
                         <fvdr-icon [name]="item.published ? 'finished' : 'cross-circle'"
                                    [class.publish-icon--live]="item.published" />
+                        <div class="publish-tooltip" *ngIf="hoveredPublish === 'doc-' + item.id">
+                          {{ item.published ? 'Published' : 'Unpublished' }}
+                        </div>
                       </button>
                       <div class="publish-menu" *ngIf="publishMenuFor === item.id" (click)="$event.stopPropagation()">
                         <button class="publish-menu-item" (click)="closePublishMenu()">
@@ -773,11 +791,17 @@ const GROUPS: Group[] = [
       background: var(--color-warning-600);
       flex-shrink: 0;
     }
+    .tree-item-publish-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+      flex-shrink: 0;
+      margin-left: auto;
+    }
     .tree-item-publish {
       font-size: 16px;
       color: var(--color-text-secondary);
       flex-shrink: 0;
-      margin-left: auto;
     }
     .tree-item-publish--live { color: var(--color-primary-500); }
     .tree-divider {
@@ -926,6 +950,7 @@ const GROUPS: Group[] = [
       white-space: nowrap;
     }
     .publish-trigger {
+      position: relative;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -937,6 +962,22 @@ const GROUPS: Group[] = [
       border-radius: var(--radius-sm);
       cursor: pointer;
       transition: background 0.1s;
+    }
+    .publish-tooltip {
+      position: absolute;
+      top: calc(100% + 6px);
+      left: 50%;
+      transform: translateX(-50%);
+      white-space: nowrap;
+      background: var(--color-text-primary);
+      color: var(--color-stone-0);
+      border-radius: var(--radius-sm);
+      padding: 3px var(--space-2);
+      font-size: 12px;
+      font-weight: 600;
+      z-index: 250;
+      pointer-events: none;
+      box-shadow: 0 6px 16px rgba(31, 33, 41, 0.22);
     }
     .publish-trigger:hover { background: var(--color-stone-200); }
     .publish-menu {
@@ -1172,6 +1213,7 @@ export class PermissionsLegendComponent implements OnInit, AfterViewInit, OnDest
 
   // Publishing context menu
   publishMenuFor: number | null = null;
+  hoveredPublish: string | null = null;
 
   // Coach mark
   coachStep = 0; // 0 = hidden, 1 | 2 = active step
