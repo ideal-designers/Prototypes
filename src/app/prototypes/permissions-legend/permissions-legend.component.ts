@@ -431,7 +431,7 @@ const GROUPS: Group[] = [
                     <div class="pt-entity-cell">
                       <fvdr-file-icon [type]="fileType(item.type)" />
                       <span class="item-idx">{{ item.index }}</span>
-                      <span class="pt-entity-name">{{ item.name }}</span>
+                      <span class="pt-entity-name pt-entity-name--tight">{{ item.name }}</span>
                       <div class="entity-more-wrap">
                         <button class="entity-more"
                                 [class.entity-more--open]="publishMenuFor === item.id"
@@ -992,6 +992,9 @@ const GROUPS: Group[] = [
       flex: 1;
       min-width: 0;
     }
+    /* Document rows: the name hugs its own text so the "···" trigger sits
+       right after it, instead of being pushed to the far right of the cell. */
+    .pt-entity-name--tight { flex: 0 1 auto; }
     .entity-more-wrap { position: relative; flex-shrink: 0; }
     .entity-more {
       display: flex;
