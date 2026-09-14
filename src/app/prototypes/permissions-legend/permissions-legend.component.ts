@@ -12,6 +12,7 @@ import { TrackerService } from '../../services/tracker.service';
 
 const SLUG = 'permissions-legend';
 const COACH_KEY = 'vdsn32-permissions-coachmark-seen';
+const PUBLISH_CONFIRM_SKIP_KEY = 'vdsn32-publish-confirm-skip';
 
 interface TreeItem {
   id: number;
@@ -507,7 +508,7 @@ const GROUPS: Group[] = [
         <span>View permission log</span>
       </button>
       <div class="publish-menu-divider"></div>
-      <button class="publish-menu-item" (click)="setPublished(item, !item.published)">
+      <button class="publish-menu-item" (click)="requestPublishToggle(item)">
         <fvdr-icon [name]="item.published ? 'cross-circle' : 'finished'" />
         <span>{{ item.published ? 'Unpublish' : 'Publish' }}</span>
       </button>
@@ -520,6 +521,30 @@ const GROUPS: Group[] = [
     </div>
 
     <fvdr-toast-host></fvdr-toast-host>
+
+    <!-- Publish / Unpublish confirmation -->
+    <fvdr-modal
+      [visible]="!!publishConfirmItem"
+      [title]="publishConfirmItem?.published ? 'Unpublish file' : 'Publish file'"
+      cancelLabel="Cancel"
+      [confirmLabel]="publishConfirmItem?.published ? 'Unpublish' : 'Publish'"
+      confirmVariant="primary"
+      size="s"
+      (confirmed)="confirmPublishToggle()"
+      (cancelled)="cancelPublishConfirm()"
+      (closed)="cancelPublishConfirm()">
+      <div class="publish-confirm-body" *ngIf="publishConfirmItem as pItem">
+        <p class="publish-confirm-text">
+          {{ pItem.published
+              ? 'Once unpublished, documents will no longer be visible to project participants.'
+              : 'Once published, documents will become visible to project participants according to their permissions.' }}
+        </p>
+        <p class="publish-confirm-text">
+          {{ pItem.published ? 'Unpublish' : 'Publish' }} <strong>{{ pItem.name }}</strong>?
+        </p>
+        <fvdr-checkbox [(ngModel)]="publishConfirmDontShow" label="Don't show again" />
+      </div>
+    </fvdr-modal>
 
     <!-- First-use coach mark -->
     <div class="coach-overlay" *ngIf="coachStep" (click)="finishCoachmark()">
@@ -1106,6 +1131,18 @@ const GROUPS: Group[] = [
       margin: var(--space-1) 0;
     }
 
+    /* Publish / Unpublish confirmation modal */
+    .publish-confirm-body {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-4);
+    }
+    .publish-confirm-text {
+      font-size: 16px;
+      line-height: 24px;
+      color: var(--color-text-primary);
+    }
+
     /* Perm header (icons + labels) */
     .pt-perm-hdr {
       display: flex;
@@ -1304,6 +1341,8 @@ export class PermissionsLegendComponent implements OnInit, AfterViewInit, OnDest
   // Publishing context menu
   publishMenuFor: number | null = null;
   hoveredPublish: string | null = null;
+  publishConfirmItem: TreeItem | null = null;
+  publishConfirmDontShow = false;
 
   // Coach mark
   coachStep = 0; // 0 = hidden, 1 | 2 = active step
@@ -1521,6 +1560,31 @@ export class PermissionsLegendComponent implements OnInit, AfterViewInit, OnDest
       variant: 'success',
       message: published ? `“${item.name}” published` : `“${item.name}” unpublished`,
     });
+  }
+
+  /** Menu "Publish"/"Unpublish" click — confirm first, unless the user opted out. */
+  requestPublishToggle(item: TreeItem): void {
+    this.closePublishMenu();
+    if (localStorage.getItem(PUBLISH_CONFIRM_SKIP_KEY)) {
+      this.setPublished(item, !item.published);
+      return;
+    }
+    this.publishConfirmDontShow = false;
+    this.publishConfirmItem = item;
+  }
+
+  confirmPublishToggle(): void {
+    const item = this.publishConfirmItem;
+    if (!item) return;
+    if (this.publishConfirmDontShow) {
+      localStorage.setItem(PUBLISH_CONFIRM_SKIP_KEY, '1');
+    }
+    this.setPublished(item, !item.published);
+    this.publishConfirmItem = null;
+  }
+
+  cancelPublishConfirm(): void {
+    this.publishConfirmItem = null;
   }
 
   @HostListener('document:click')
