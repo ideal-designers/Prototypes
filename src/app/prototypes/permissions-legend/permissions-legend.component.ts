@@ -432,21 +432,27 @@ const GROUPS: Group[] = [
                       <fvdr-file-icon [type]="fileType(item.type)" />
                       <span class="item-idx">{{ item.index }}</span>
                       <span class="pt-entity-name">{{ item.name }}</span>
+                      <div class="entity-more-wrap">
+                        <button class="entity-more"
+                                [class.entity-more--open]="publishMenuFor === item.id"
+                                (click)="togglePublishMenu(item.id, $event)">
+                          <fvdr-icon name="more" />
+                        </button>
+                        <div class="publish-menu" *ngIf="publishMenuFor === item.id" (click)="$event.stopPropagation()">
+                          <ng-container *ngTemplateOutlet="publishMenuTpl; context: { $implicit: item }"></ng-container>
+                        </div>
+                      </div>
                     </div>
                     <div class="pt-publish-cell">
-                      <button class="publish-trigger"
-                              (mouseenter)="hoveredPublish = 'doc-' + item.id"
-                              (mouseleave)="hoveredPublish = null"
-                              (click)="togglePublishMenu(item.id, $event)">
+                      <span class="publish-trigger"
+                            (mouseenter)="hoveredPublish = 'doc-' + item.id"
+                            (mouseleave)="hoveredPublish = null">
                         <fvdr-icon [name]="item.published ? 'finished' : 'cross-circle'"
                                    [class.publish-icon--live]="item.published" />
                         <div class="publish-tooltip" *ngIf="hoveredPublish === 'doc-' + item.id">
                           {{ item.published ? 'Published' : 'Unpublished' }}
                         </div>
-                      </button>
-                      <div class="publish-menu" *ngIf="publishMenuFor === item.id" (click)="$event.stopPropagation()">
-                        <ng-container *ngTemplateOutlet="publishMenuTpl; context: { $implicit: item }"></ng-container>
-                      </div>
+                      </span>
                     </div>
                     <div class="pt-perm-cell">
                       <div class="slider-track">
@@ -966,7 +972,6 @@ const GROUPS: Group[] = [
       align-items: center;
       gap: var(--space-2);
       padding: 0 var(--space-3);
-      overflow: hidden;
     }
     .pt-entity-cell fvdr-icon { font-size: 16px; flex-shrink: 0; }
     .pt-entity-hdr {
@@ -986,6 +991,30 @@ const GROUPS: Group[] = [
       text-overflow: ellipsis;
       flex: 1;
       min-width: 0;
+    }
+    .entity-more-wrap { position: relative; flex-shrink: 0; }
+    .entity-more {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      padding: 0;
+      background: none;
+      border: none;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      color: var(--color-text-secondary);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.1s, background 0.1s;
+    }
+    .entity-more fvdr-icon { font-size: 16px; }
+    .entity-more:hover { background: var(--color-stone-200); }
+    .pt-row:hover .entity-more,
+    .entity-more--open {
+      opacity: 1;
+      pointer-events: auto;
     }
 
     /* Publishing column ("By documents" only) */
@@ -1013,12 +1042,6 @@ const GROUPS: Group[] = [
       justify-content: center;
       width: 24px;
       height: 24px;
-      padding: 0;
-      background: none;
-      border: none;
-      border-radius: var(--radius-sm);
-      cursor: pointer;
-      transition: background 0.1s;
     }
     .publish-tooltip {
       position: absolute;
