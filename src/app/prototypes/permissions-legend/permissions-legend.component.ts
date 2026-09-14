@@ -227,7 +227,8 @@ const GROUPS: Group[] = [
                         <div class="tree-item-actions">
                           <span class="tree-item-publish-wrap"
                                 (mouseenter)="hoveredPublish = 'tree-' + pinnedItem!.id"
-                                (mouseleave)="hoveredPublish = null">
+                                (mouseleave)="hoveredPublish = null"
+                                (click)="$event.stopPropagation(); requestPublishToggle(pinnedItem!)">
                             <fvdr-icon [name]="pinnedItem!.published ? 'finished' : 'cross-circle'"
                                        class="tree-item-publish"
                                        [class.tree-item-publish--live]="pinnedItem!.published" />
@@ -262,7 +263,8 @@ const GROUPS: Group[] = [
                         <div class="tree-item-actions">
                           <span class="tree-item-publish-wrap"
                                 (mouseenter)="hoveredPublish = 'tree-' + item.id"
-                                (mouseleave)="hoveredPublish = null">
+                                (mouseleave)="hoveredPublish = null"
+                                (click)="$event.stopPropagation(); requestPublishToggle(item)">
                             <fvdr-icon [name]="item.published ? 'finished' : 'cross-circle'"
                                        class="tree-item-publish"
                                        [class.tree-item-publish--live]="item.published" />
@@ -445,15 +447,16 @@ const GROUPS: Group[] = [
                       </div>
                     </div>
                     <div class="pt-publish-cell">
-                      <span class="publish-trigger"
-                            (mouseenter)="hoveredPublish = 'doc-' + item.id"
-                            (mouseleave)="hoveredPublish = null">
+                      <button class="publish-trigger"
+                              (mouseenter)="hoveredPublish = 'doc-' + item.id"
+                              (mouseleave)="hoveredPublish = null"
+                              (click)="requestPublishToggle(item)">
                         <fvdr-icon [name]="item.published ? 'finished' : 'cross-circle'"
                                    [class.publish-icon--live]="item.published" />
                         <div class="publish-tooltip" *ngIf="hoveredPublish === 'doc-' + item.id">
                           {{ item.published ? 'Published' : 'Unpublished' }}
                         </div>
-                      </span>
+                      </button>
                     </div>
                     <div class="pt-perm-cell">
                       <div class="slider-track">
@@ -859,8 +862,15 @@ const GROUPS: Group[] = [
       position: relative;
       display: flex;
       align-items: center;
+      justify-content: center;
       flex-shrink: 0;
+      width: 24px;
+      height: 24px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: background 0.1s;
     }
+    .tree-item-publish-wrap:hover { background: var(--color-stone-300); }
     .tree-item-more {
       display: flex;
       align-items: center;
@@ -1070,7 +1080,14 @@ const GROUPS: Group[] = [
       justify-content: center;
       width: 24px;
       height: 24px;
+      padding: 0;
+      background: none;
+      border: none;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: background 0.1s;
     }
+    .publish-trigger:hover { background: var(--color-stone-200); }
     .publish-tooltip {
       position: absolute;
       top: calc(100% + 6px);
