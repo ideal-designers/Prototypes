@@ -223,16 +223,26 @@ const GROUPS: Group[] = [
                         <span class="item-name"
                               [innerHTML]="highlight(pinnedItem!.name)"></span>
                         <span class="item-dot"></span>
-                        <span class="tree-item-publish-wrap"
-                              (mouseenter)="hoveredPublish = 'tree-' + pinnedItem!.id"
-                              (mouseleave)="hoveredPublish = null">
-                          <fvdr-icon [name]="pinnedItem!.published ? 'finished' : 'cross-circle'"
-                                     class="tree-item-publish"
-                                     [class.tree-item-publish--live]="pinnedItem!.published" />
-                          <div class="publish-tooltip" *ngIf="hoveredPublish === 'tree-' + pinnedItem!.id">
-                            {{ pinnedItem!.published ? 'Published' : 'Unpublished' }}
+                        <div class="tree-item-actions">
+                          <span class="tree-item-publish-wrap"
+                                (mouseenter)="hoveredPublish = 'tree-' + pinnedItem!.id"
+                                (mouseleave)="hoveredPublish = null">
+                            <fvdr-icon [name]="pinnedItem!.published ? 'finished' : 'cross-circle'"
+                                       class="tree-item-publish"
+                                       [class.tree-item-publish--live]="pinnedItem!.published" />
+                            <div class="publish-tooltip" *ngIf="hoveredPublish === 'tree-' + pinnedItem!.id">
+                              {{ pinnedItem!.published ? 'Published' : 'Unpublished' }}
+                            </div>
+                          </span>
+                          <button class="tree-item-more"
+                                  [class.tree-item-more--open]="publishMenuFor === pinnedItem!.id"
+                                  (click)="togglePublishMenu(pinnedItem!.id, $event)">
+                            <fvdr-icon name="more" />
+                          </button>
+                          <div class="publish-menu" *ngIf="publishMenuFor === pinnedItem!.id" (click)="$event.stopPropagation()">
+                            <ng-container *ngTemplateOutlet="publishMenuTpl; context: { $implicit: pinnedItem }"></ng-container>
                           </div>
-                        </span>
+                        </div>
                       </div>
                     </div>
                     <div class="tree-divider"></div>
@@ -248,16 +258,26 @@ const GROUPS: Group[] = [
                         <span class="item-name"
                               [innerHTML]="highlight(item.name)"></span>
                         <span *ngIf="searchQuery.trim() && pendingPerms[item.id]" class="item-dot"></span>
-                        <span class="tree-item-publish-wrap"
-                              (mouseenter)="hoveredPublish = 'tree-' + item.id"
-                              (mouseleave)="hoveredPublish = null">
-                          <fvdr-icon [name]="item.published ? 'finished' : 'cross-circle'"
-                                     class="tree-item-publish"
-                                     [class.tree-item-publish--live]="item.published" />
-                          <div class="publish-tooltip" *ngIf="hoveredPublish === 'tree-' + item.id">
-                            {{ item.published ? 'Published' : 'Unpublished' }}
+                        <div class="tree-item-actions">
+                          <span class="tree-item-publish-wrap"
+                                (mouseenter)="hoveredPublish = 'tree-' + item.id"
+                                (mouseleave)="hoveredPublish = null">
+                            <fvdr-icon [name]="item.published ? 'finished' : 'cross-circle'"
+                                       class="tree-item-publish"
+                                       [class.tree-item-publish--live]="item.published" />
+                            <div class="publish-tooltip" *ngIf="hoveredPublish === 'tree-' + item.id">
+                              {{ item.published ? 'Published' : 'Unpublished' }}
+                            </div>
+                          </span>
+                          <button class="tree-item-more"
+                                  [class.tree-item-more--open]="publishMenuFor === item.id"
+                                  (click)="togglePublishMenu(item.id, $event)">
+                            <fvdr-icon name="more" />
+                          </button>
+                          <div class="publish-menu" *ngIf="publishMenuFor === item.id" (click)="$event.stopPropagation()">
+                            <ng-container *ngTemplateOutlet="publishMenuTpl; context: { $implicit: item }"></ng-container>
                           </div>
-                        </span>
+                        </div>
                       </div>
                     </div>
                   </ng-container>
@@ -425,31 +445,7 @@ const GROUPS: Group[] = [
                         </div>
                       </button>
                       <div class="publish-menu" *ngIf="publishMenuFor === item.id" (click)="$event.stopPropagation()">
-                        <button class="publish-menu-item" (click)="closePublishMenu()">
-                          <fvdr-icon name="link" />
-                          <span>Open in new browser tab</span>
-                        </button>
-                        <button class="publish-menu-item" (click)="closePublishMenu()">
-                          <fvdr-icon name="history" />
-                          <span>View activity log</span>
-                        </button>
-                        <button class="publish-menu-item" (click)="closePublishMenu()">
-                          <fvdr-icon name="overview" />
-                          <span>View document overview</span>
-                        </button>
-                        <button class="publish-menu-item" (click)="closePublishMenu()">
-                          <fvdr-icon name="settings" />
-                          <span>View engagement matrix</span>
-                        </button>
-                        <button class="publish-menu-item" (click)="closePublishMenu()">
-                          <fvdr-icon name="reports" />
-                          <span>View permission log</span>
-                        </button>
-                        <div class="publish-menu-divider"></div>
-                        <button class="publish-menu-item" (click)="setPublished(item, !item.published)">
-                          <fvdr-icon [name]="item.published ? 'cross-circle' : 'finished'" />
-                          <span>{{ item.published ? 'Unpublish' : 'Publish' }}</span>
-                        </button>
+                        <ng-container *ngTemplateOutlet="publishMenuTpl; context: { $implicit: item }"></ng-container>
                       </div>
                     </div>
                     <div class="pt-perm-cell">
@@ -481,6 +477,35 @@ const GROUPS: Group[] = [
         </div><!-- /content -->
       </div><!-- /main -->
     </div><!-- /shell -->
+
+    <!-- Publishing context menu — shared between the "By documents" table and the tree -->
+    <ng-template #publishMenuTpl let-item>
+      <button class="publish-menu-item" (click)="closePublishMenu()">
+        <fvdr-icon name="link" />
+        <span>Open in new browser tab</span>
+      </button>
+      <button class="publish-menu-item" (click)="closePublishMenu()">
+        <fvdr-icon name="history" />
+        <span>View activity log</span>
+      </button>
+      <button class="publish-menu-item" (click)="closePublishMenu()">
+        <fvdr-icon name="overview" />
+        <span>View document overview</span>
+      </button>
+      <button class="publish-menu-item" (click)="closePublishMenu()">
+        <fvdr-icon name="settings" />
+        <span>View engagement matrix</span>
+      </button>
+      <button class="publish-menu-item" (click)="closePublishMenu()">
+        <fvdr-icon name="reports" />
+        <span>View permission log</span>
+      </button>
+      <div class="publish-menu-divider"></div>
+      <button class="publish-menu-item" (click)="setPublished(item, !item.published)">
+        <fvdr-icon [name]="item.published ? 'cross-circle' : 'finished'" />
+        <span>{{ item.published ? 'Unpublish' : 'Publish' }}</span>
+      </button>
+    </ng-template>
 
     <!-- Save bar -->
     <div class="save-bar" [class.save-bar--visible]="hasUnsavedChanges">
@@ -791,13 +816,45 @@ const GROUPS: Group[] = [
       background: var(--color-warning-600);
       flex-shrink: 0;
     }
+    .tree-item-actions {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: var(--space-1);
+      flex-shrink: 0;
+      margin-left: auto;
+    }
     .tree-item-publish-wrap {
       position: relative;
       display: flex;
       align-items: center;
       flex-shrink: 0;
-      margin-left: auto;
     }
+    .tree-item-more {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+      padding: 0;
+      background: none;
+      border: none;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      color: var(--color-text-secondary);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.1s, background 0.1s;
+    }
+    .tree-item-more fvdr-icon { font-size: 16px; }
+    .tree-item-more:hover { background: var(--color-stone-300); }
+    .tree-item:hover .tree-item-more,
+    .tree-item-more--open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    /* Narrow tree panel — the menu must grow left from the row's right edge, not right off the panel. */
+    .tree-item-actions .publish-menu { left: auto; right: 0; }
     .tree-item-publish {
       font-size: 16px;
       color: var(--color-text-secondary);
