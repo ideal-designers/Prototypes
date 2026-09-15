@@ -743,8 +743,9 @@ const GROUPS: Group[] = [
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 4px;
+      gap: 0;
       height: 14px;
+      min-width: 14px;
       max-width: 14px;
       padding: 0;
       border-radius: 100px;
@@ -753,11 +754,12 @@ const GROUPS: Group[] = [
       overflow: hidden;
       white-space: nowrap;
       cursor: default;
-      transition: max-width 0.2s ease, padding 0.2s ease;
+      transition: max-width 0.2s ease, padding 0.2s ease, gap 0.2s ease;
     }
     .pub-badge:hover {
       max-width: 100px;
       padding: 0 4px;
+      gap: 4px;
     }
     /* Scoped under .file-icon-wrap so the row-level "fvdr-icon" sizing rules
        (e.g. .pt-entity-cell fvdr-icon) don't win on equal specificity. */
@@ -766,14 +768,19 @@ const GROUPS: Group[] = [
       flex-shrink: 0;
       color: var(--color-text-secondary);
     }
+    /* Collapsed, the label must take up no space at all — otherwise the
+       centered flex row (icon + label) pushes the 8px glyph out of the 14px
+       clipping box and the badge reads as an empty dot. */
     .file-icon-wrap .pub-badge span {
       font-size: 10px;
       font-weight: 600;
       color: var(--color-text-secondary);
+      max-width: 0;
+      overflow: hidden;
       opacity: 0;
-      transition: opacity 0.15s ease 0.05s;
+      transition: max-width 0.2s ease, opacity 0.15s ease 0.05s;
     }
-    .file-icon-wrap .pub-badge:hover span { opacity: 1; }
+    .file-icon-wrap .pub-badge:hover span { max-width: 100px; opacity: 1; }
     .pub-badge--published { background: var(--chip-bg-green, #eaf6ed); }
     .file-icon-wrap .pub-badge--published fvdr-icon,
     .file-icon-wrap .pub-badge--published span { color: var(--color-primary-500); }
