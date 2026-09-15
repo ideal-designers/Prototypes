@@ -330,6 +330,9 @@ const GROUPS: Group[] = [
                         <span class="pt-entity-name">{{ g.name }}</span>
                       </div>
                       <div class="pt-perm-cell">
+                        <span class="row-empty-slot">
+                          <fvdr-icon *ngIf="getLevel(selectedDocId, gi) === 0" name="cancel" class="row-empty-icon" />
+                        </span>
                         <div class="slider-track">
                           <div *ngFor="let pos of sliderRange"
                                class="slider-block"
@@ -358,6 +361,9 @@ const GROUPS: Group[] = [
                           <span class="pt-entity-name">{{ u.name }}</span>
                         </div>
                         <div class="pt-perm-cell">
+                          <span class="row-empty-slot">
+                            <fvdr-icon *ngIf="getLevel(selectedDocId, gi) === 0" name="cancel" class="row-empty-icon" />
+                          </span>
                           <div class="slider-track slider-track--ro">
                             <div *ngFor="let pos of sliderRange"
                                  class="slider-block"
@@ -387,6 +393,9 @@ const GROUPS: Group[] = [
                       <span class="pt-entity-name">{{ item.name }}</span>
                     </div>
                     <div class="pt-perm-cell">
+                      <span class="row-empty-slot">
+                        <fvdr-icon *ngIf="getLevel(item.id, selectedGroupIdx) === 0" name="cancel" class="row-empty-icon" />
+                      </span>
                       <div class="slider-track">
                         <div *ngFor="let pos of sliderRange"
                              class="slider-block"
@@ -861,7 +870,7 @@ const GROUPS: Group[] = [
       flex-shrink: 0;
     }
     .perm-spacer {
-      width: var(--space-2);
+      width: 32px;
       flex-shrink: 0;
     }
     .perm-th {
@@ -909,6 +918,15 @@ const GROUPS: Group[] = [
       align-items: center;
       padding: 0 var(--space-2);
     }
+    .row-empty-slot {
+      width: 24px;
+      height: 16px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+    }
+    .row-empty-icon { font-size: 16px; color: var(--primitive-red-500, #e54430); }
     .slider-track {
       height: 16px;
       display: flex;
