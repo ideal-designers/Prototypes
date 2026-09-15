@@ -147,6 +147,13 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
     description: 'VDSN-32: persistent legend, hover tooltips for permission columns and bar segments, and a first-use coach mark for novice admins',
   },
     {
+    slug: 'permissions-legend-v2',
+    title: 'Permissions matrix — Version2',
+    figma: 'https://www.figma.com/design/E2LJ0seWC3c1bJrgenukSS/Permissions-%F0%9F%94%90?node-id=10-219397',
+    status: 'wip',
+    description: 'Duplicate of the Permissions matrix prototype for further iteration',
+  },
+    {
     slug: 'added-column-hover',
     title: 'Documents — Added column hover',
     figma: 'https://www.figma.com/design/h9MR3O7N3kLV2xl2MGQDxs/Documents?node-id=27217-95905',

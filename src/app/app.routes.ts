@@ -157,6 +157,11 @@ export const routes: Routes = [
       import('./prototypes/permissions-legend/permissions-legend.component').then(m => m.PermissionsLegendComponent),
   },
     {
+    path: 'permissions-legend-v2',
+    loadComponent: () =>
+      import('./prototypes/permissions-legend-v2/permissions-legend-v2.component').then(m => m.PermissionsLegendV2Component),
+  },
+    {
     path: 'added-column-hover',
     loadComponent: () =>
       import('./prototypes/added-column-hover/added-column-hover.component').then(m => m.AddedColumnHoverComponent),
