@@ -19,6 +19,7 @@ interface TreeItem {
   type: 'folder' | 'xlsx' | 'pdf' | 'doc' | 'video';
   perms: number[];       // index = groupIdx (0–5), value = level 0–7
   restricted?: number[]; // levels (1–7) not offered for this file type
+  published?: boolean;   // shown as a tiny corner badge on the file/folder icon
 }
 
 interface GroupUser {
@@ -216,7 +217,10 @@ const GROUPS: Group[] = [
                     <div class="tree-item tree-item--selected"
                          (click)="selectItem(pinnedItem!.id)">
                       <div class="tree-item-body">
-                        <fvdr-file-icon [type]="fileType(pinnedItem!.type)" />
+                        <span class="file-icon-wrap">
+                          <fvdr-file-icon [type]="fileType(pinnedItem!.type)" />
+                          <ng-container *ngTemplateOutlet="pubBadge; context: { $implicit: pinnedItem!.published }"></ng-container>
+                        </span>
                         <span class="item-idx">{{ pinnedItem!.index }}</span>
                         <span class="item-name"
                               [innerHTML]="highlight(pinnedItem!.name)"></span>
@@ -231,7 +235,10 @@ const GROUPS: Group[] = [
                          [class.tree-item--selected]="item.id === selectedDocId"
                          (click)="selectItem(item.id)">
                       <div class="tree-item-body">
-                        <fvdr-file-icon [type]="fileType(item.type)" />
+                        <span class="file-icon-wrap">
+                          <fvdr-file-icon [type]="fileType(item.type)" />
+                          <ng-container *ngTemplateOutlet="pubBadge; context: { $implicit: item.published }"></ng-container>
+                        </span>
                         <span class="item-idx">{{ item.index }}</span>
                         <span class="item-name"
                               [innerHTML]="highlight(item.name)"></span>
@@ -388,7 +395,10 @@ const GROUPS: Group[] = [
                                  style="color: var(--color-text-secondary); font-size: 16px;" />
                     </div>
                     <div class="pt-entity-cell">
-                      <fvdr-file-icon [type]="fileType(item.type)" />
+                      <span class="file-icon-wrap">
+                        <fvdr-file-icon [type]="fileType(item.type)" />
+                        <ng-container *ngTemplateOutlet="pubBadge; context: { $implicit: item.published }"></ng-container>
+                      </span>
                       <span class="item-idx">{{ item.index }}</span>
                       <span class="pt-entity-name">{{ item.name }}</span>
                     </div>
@@ -422,6 +432,15 @@ const GROUPS: Group[] = [
         </div><!-- /content -->
       </div><!-- /main -->
     </div><!-- /shell -->
+
+    <!-- Publishing status — tiny corner badge on the file/folder icon, expands to a labeled
+         pill on hover and collapses back when the hover ends. -->
+    <ng-template #pubBadge let-published>
+      <span class="pub-badge" [class.pub-badge--published]="published">
+        <fvdr-icon [name]="published ? 'check' : 'close'" />
+        <span>{{ published ? 'Published' : 'Unpublished' }}</span>
+      </span>
+    </ng-template>
 
     <!-- Save bar -->
     <div class="save-bar" [class.save-bar--visible]="hasUnsavedChanges">
@@ -708,6 +727,53 @@ const GROUPS: Group[] = [
       white-space: nowrap;
       flex-shrink: 0;
     }
+
+    /* Publishing status badge — a small dot pinned to the file/folder icon's
+       corner that expands into a labeled pill on hover. */
+    .file-icon-wrap {
+      position: relative;
+      display: inline-flex;
+      flex-shrink: 0;
+    }
+    .pub-badge {
+      position: absolute;
+      left: 9px;
+      bottom: -3px;
+      z-index: 3;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      height: 14px;
+      max-width: 14px;
+      padding: 0 2px;
+      border-radius: 100px;
+      border: 1.2px solid var(--color-stone-0);
+      background: var(--color-stone-200);
+      overflow: hidden;
+      white-space: nowrap;
+      cursor: default;
+      transition: max-width 0.2s ease, padding 0.2s ease;
+    }
+    .pub-badge:hover {
+      max-width: 100px;
+      padding: 0 4px;
+    }
+    .pub-badge fvdr-icon {
+      font-size: 10px;
+      flex-shrink: 0;
+      color: var(--color-text-secondary);
+    }
+    .pub-badge span {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--color-text-secondary);
+      opacity: 0;
+      transition: opacity 0.15s ease 0.05s;
+    }
+    .pub-badge:hover span { opacity: 1; }
+    .pub-badge--published { background: var(--chip-bg-green, #eaf6ed); }
+    .pub-badge--published fvdr-icon,
+    .pub-badge--published span { color: var(--color-primary-500); }
     .item-name {
       font-size: 14px;
       color: var(--color-text-primary);
@@ -1075,12 +1141,12 @@ export class PermissionsLegendV2Component implements OnInit, AfterViewInit, OnDe
   ];
 
   readonly treeItems: TreeItem[] = [
-    { id: 1, index: '1',   name: 'Stage folder',                        type: 'folder', perms: [6,6,5,4,3,6] },
-    { id: 2, index: '2',   name: 'Organizational chart and manage',     type: 'folder', perms: [7,7,6,5,4,5] },
+    { id: 1, index: '1',   name: 'Stage folder',                        type: 'folder', perms: [6,6,5,4,3,6], published: true },
+    { id: 2, index: '2',   name: 'Organizational chart and manage',     type: 'folder', perms: [7,7,6,5,4,5], published: true },
     { id: 3, index: '3.1', name: 'Corporate DD — Product and Services', type: 'folder', perms: [5,6,4,2,3,5] },
-    { id: 4, index: '4',   name: 'Financial DD — Accounts Receivables', type: 'folder', perms: [6,6,5,3,4,6] },
-    { id: 5, index: '5',   name: 'Key contacts by function',            type: 'xlsx',   perms: [4,5,3,1,2,4] },
-    { id: 6, index: '6',   name: 'Tax accounting.xlsx',                 type: 'xlsx',   perms: [5,5,4,2,3,5] },
+    { id: 4, index: '4',   name: 'Financial DD — Accounts Receivables', type: 'folder', perms: [6,6,5,3,4,6], published: true },
+    { id: 5, index: '5',   name: 'Key contacts by function',            type: 'xlsx',   perms: [4,5,3,1,2,4], published: true },
+    { id: 6, index: '6',   name: 'Tax accounting.xlsx',                 type: 'xlsx',   perms: [5,5,4,2,3,5], published: true },
     { id: 7, index: '7',   name: 'Tax returns.pdf',                     type: 'pdf',    perms: [3,4,3,1,0,3] },
     { id: 8, index: '8',   name: 'Registration with tax authorities',   type: 'doc',    perms: [6,7,5,4,3,6] },
     { id: 9, index: '9',   name: 'Site walkthrough recording.mp4',      type: 'video',  perms: [0,2,7,5,0,7], restricted: [1,3,4,6] },
