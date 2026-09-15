@@ -6,13 +6,11 @@ import {
   SidebarNavItem,
   FvdrFileType,
   FvdrIconName,
-  ToastService,
 } from '../../shared/ds';
 import { TrackerService } from '../../services/tracker.service';
 
 const SLUG = 'permissions-legend-v2';
 const COACH_KEY = 'vdsn32-permissions-coachmark-seen-v2';
-const PUBLISH_CONFIRM_SKIP_KEY = 'vdsn32-publish-confirm-skip-v2';
 
 interface TreeItem {
   id: number;
@@ -21,7 +19,6 @@ interface TreeItem {
   type: 'folder' | 'xlsx' | 'pdf' | 'doc' | 'video';
   perms: number[];       // index = groupIdx (0–5), value = level 0–7
   restricted?: number[]; // levels (1–7) not offered for this file type
-  published?: boolean;   // "Publishing" column — visible only in "By documents" view
 }
 
 interface GroupUser {
@@ -45,7 +42,6 @@ interface PermLevelInfo {
 }
 
 const PERM_COLS = [
-  { label: 'None',      icon: 'cancel'         },
   { label: 'Fence',     icon: 'perm-fence'     },
   { label: 'View',      icon: 'perm-view'      },
   { label: 'Encrypted', icon: 'perm-encrypted' },
@@ -55,9 +51,9 @@ const PERM_COLS = [
   { label: 'Manage',    icon: 'perm-manage'    },
 ] as const;
 
-// Full 0–7 hierarchy — level 0 ("None") is a real, clickable slider segment too.
+// Full 0–7 hierarchy — level 0 has no column/icon, shown only in the legend.
 const PERM_LEVELS: PermLevelInfo[] = [
-  { level: 0, label: 'No access', icon: 'cancel',
+  { level: 0, label: 'No access', icon: null,
     description: 'The group doesn’t see this file or folder at all.' },
   { level: 1, label: 'Fence', icon: 'perm-fence',
     description: 'Views only the area around the cursor in-browser — the rest is masked. Protects against camera-shot leaks.' },
@@ -172,7 +168,8 @@ const GROUPS: Group[] = [
                   <span class="legend-swatch"
                         [class.legend-swatch--none]="lvl.level === 0"
                         [style.background]="lvl.level > 0 ? swatchColor() : null"></span>
-                  <fvdr-icon [name]="lvl.icon!" />
+                  <fvdr-icon *ngIf="lvl.icon" [name]="lvl.icon" />
+                  <span *ngIf="!lvl.icon" class="legend-icon-gap"></span>
                   <div class="legend-text">
                     <strong>{{ lvl.label }}</strong>
                     <span>{{ lvl.description }}</span>
@@ -224,27 +221,6 @@ const GROUPS: Group[] = [
                         <span class="item-name"
                               [innerHTML]="highlight(pinnedItem!.name)"></span>
                         <span class="unsaved-chip">Unsaved</span>
-                        <div class="tree-item-actions">
-                          <span class="tree-item-publish-wrap"
-                                (mouseenter)="hoveredPublish = 'tree-' + pinnedItem!.id"
-                                (mouseleave)="hoveredPublish = null"
-                                (click)="$event.stopPropagation(); requestPublishToggle(pinnedItem!)">
-                            <fvdr-icon [name]="pinnedItem!.published ? 'finished' : 'cross-circle'"
-                                       class="tree-item-publish"
-                                       [class.tree-item-publish--live]="pinnedItem!.published" />
-                            <div class="publish-tooltip" *ngIf="hoveredPublish === 'tree-' + pinnedItem!.id">
-                              {{ pinnedItem!.published ? 'Published' : 'Unpublished' }}
-                            </div>
-                          </span>
-                          <button class="tree-item-more"
-                                  [class.tree-item-more--open]="publishMenuFor === pinnedItem!.id"
-                                  (click)="togglePublishMenu(pinnedItem!.id, $event)">
-                            <fvdr-icon name="more" />
-                          </button>
-                          <div class="publish-menu" *ngIf="publishMenuFor === pinnedItem!.id" (click)="$event.stopPropagation()">
-                            <ng-container *ngTemplateOutlet="publishMenuTpl; context: { $implicit: pinnedItem }"></ng-container>
-                          </div>
-                        </div>
                       </div>
                     </div>
                     <div class="tree-divider"></div>
@@ -260,27 +236,6 @@ const GROUPS: Group[] = [
                         <span class="item-name"
                               [innerHTML]="highlight(item.name)"></span>
                         <span *ngIf="searchQuery.trim() && pendingPerms[item.id]" class="unsaved-chip">Unsaved</span>
-                        <div class="tree-item-actions">
-                          <span class="tree-item-publish-wrap"
-                                (mouseenter)="hoveredPublish = 'tree-' + item.id"
-                                (mouseleave)="hoveredPublish = null"
-                                (click)="$event.stopPropagation(); requestPublishToggle(item)">
-                            <fvdr-icon [name]="item.published ? 'finished' : 'cross-circle'"
-                                       class="tree-item-publish"
-                                       [class.tree-item-publish--live]="item.published" />
-                            <div class="publish-tooltip" *ngIf="hoveredPublish === 'tree-' + item.id">
-                              {{ item.published ? 'Published' : 'Unpublished' }}
-                            </div>
-                          </span>
-                          <button class="tree-item-more"
-                                  [class.tree-item-more--open]="publishMenuFor === item.id"
-                                  (click)="togglePublishMenu(item.id, $event)">
-                            <fvdr-icon name="more" />
-                          </button>
-                          <div class="publish-menu" *ngIf="publishMenuFor === item.id" (click)="$event.stopPropagation()">
-                            <ng-container *ngTemplateOutlet="publishMenuTpl; context: { $implicit: item }"></ng-container>
-                          </div>
-                        </div>
                       </div>
                     </div>
                   </ng-container>
@@ -337,18 +292,17 @@ const GROUPS: Group[] = [
                 <div class="pt-entity-cell pt-entity-hdr">
                   {{ viewMode === 'by-groups' ? 'Groups' : 'Documents' }}
                 </div>
-                <div class="pt-publish-cell pt-publish-hdr" *ngIf="viewMode === 'by-documents'">Publishing</div>
                 <div class="pt-perm-hdr">
+                  <div class="perm-spacer"></div>
                   <div *ngFor="let col of permCols; let i = index"
                        class="perm-th"
-                       [class.perm-th--none]="i === 0"
-                       (mouseenter)="hoveredCol = i"
+                       (mouseenter)="hoveredCol = i + 1"
                        (mouseleave)="hoveredCol = null">
                     <fvdr-icon [name]="col.icon" />
                     <span>{{ col.label }}</span>
-                    <div class="th-tooltip" *ngIf="hoveredCol === i">
+                    <div class="th-tooltip" *ngIf="hoveredCol === i + 1">
                       <strong>{{ col.label }}</strong>
-                      <p>{{ permLevels[i].description }}</p>
+                      <p>{{ permLevels[i + 1].description }}</p>
                     </div>
                   </div>
                 </div>
@@ -382,12 +336,10 @@ const GROUPS: Group[] = [
                                [class.s-light]="segClass(getLevel(selectedDocId, gi), pos, selectedDocItem.restricted) === 'light'"
                                [class.s-active]="segClass(getLevel(selectedDocId, gi), pos, selectedDocItem.restricted) === 'active'"
                                [class.s-none]="segClass(getLevel(selectedDocId, gi), pos, selectedDocItem.restricted) === 'none'"
-                               [class.s-zero]="segClass(getLevel(selectedDocId, gi), pos, selectedDocItem.restricted) === 'zero'"
                                [class.s-hatched]="segClass(getLevel(selectedDocId, gi), pos, selectedDocItem.restricted) === 'hatched'"
                                (mouseenter)="hoveredSeg = 'g' + gi + '-' + pos"
                                (mouseleave)="hoveredSeg = null"
                                (click)="setLevelByGroup(gi, pos)">
-                            <fvdr-icon *ngIf="segClass(getLevel(selectedDocId, gi), pos, selectedDocItem.restricted) === 'zero'" name="close" class="seg-none-icon" />
                             <div class="seg-tooltip" *ngIf="hoveredSeg === 'g' + gi + '-' + pos">
                               {{ permLevels[pos].label }}
                             </div>
@@ -412,9 +364,7 @@ const GROUPS: Group[] = [
                                  [class.s-light]="segClass(getLevel(selectedDocId, gi), pos, selectedDocItem.restricted) === 'light'"
                                  [class.s-active]="segClass(getLevel(selectedDocId, gi), pos, selectedDocItem.restricted) === 'active'"
                                  [class.s-none]="segClass(getLevel(selectedDocId, gi), pos, selectedDocItem.restricted) === 'none'"
-                                 [class.s-zero]="segClass(getLevel(selectedDocId, gi), pos, selectedDocItem.restricted) === 'zero'"
                                  [class.s-hatched]="segClass(getLevel(selectedDocId, gi), pos, selectedDocItem.restricted) === 'hatched'">
-                              <fvdr-icon *ngIf="segClass(getLevel(selectedDocId, gi), pos, selectedDocItem.restricted) === 'zero'" name="close" class="seg-none-icon" />
                             </div>
                           </div>
                         </div>
@@ -434,29 +384,7 @@ const GROUPS: Group[] = [
                     <div class="pt-entity-cell">
                       <fvdr-file-icon [type]="fileType(item.type)" />
                       <span class="item-idx">{{ item.index }}</span>
-                      <span class="pt-entity-name pt-entity-name--tight">{{ item.name }}</span>
-                      <div class="entity-more-wrap">
-                        <button class="entity-more"
-                                [class.entity-more--open]="publishMenuFor === item.id"
-                                (click)="togglePublishMenu(item.id, $event)">
-                          <fvdr-icon name="more" />
-                        </button>
-                        <div class="publish-menu" *ngIf="publishMenuFor === item.id" (click)="$event.stopPropagation()">
-                          <ng-container *ngTemplateOutlet="publishMenuTpl; context: { $implicit: item }"></ng-container>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="pt-publish-cell">
-                      <button class="publish-trigger"
-                              (mouseenter)="hoveredPublish = 'doc-' + item.id"
-                              (mouseleave)="hoveredPublish = null"
-                              (click)="requestPublishToggle(item)">
-                        <fvdr-icon [name]="item.published ? 'finished' : 'cross-circle'"
-                                   [class.publish-icon--live]="item.published" />
-                        <div class="publish-tooltip" *ngIf="hoveredPublish === 'doc-' + item.id">
-                          {{ item.published ? 'Published' : 'Unpublished' }}
-                        </div>
-                      </button>
+                      <span class="pt-entity-name">{{ item.name }}</span>
                     </div>
                     <div class="pt-perm-cell">
                       <div class="slider-track">
@@ -465,12 +393,10 @@ const GROUPS: Group[] = [
                              [class.s-light]="segClass(getLevel(item.id, selectedGroupIdx), pos, item.restricted) === 'light'"
                              [class.s-active]="segClass(getLevel(item.id, selectedGroupIdx), pos, item.restricted) === 'active'"
                              [class.s-none]="segClass(getLevel(item.id, selectedGroupIdx), pos, item.restricted) === 'none'"
-                             [class.s-zero]="segClass(getLevel(item.id, selectedGroupIdx), pos, item.restricted) === 'zero'"
                              [class.s-hatched]="segClass(getLevel(item.id, selectedGroupIdx), pos, item.restricted) === 'hatched'"
                              (mouseenter)="hoveredSeg = 'd' + item.id + '-' + pos"
                              (mouseleave)="hoveredSeg = null"
                              (click)="setLevelByDoc(item.id, pos)">
-                          <fvdr-icon *ngIf="segClass(getLevel(item.id, selectedGroupIdx), pos, item.restricted) === 'zero'" name="close" class="seg-none-icon" />
                           <div class="seg-tooltip" *ngIf="hoveredSeg === 'd' + item.id + '-' + pos">
                             {{ permLevels[pos].label }}
                           </div>
@@ -488,66 +414,11 @@ const GROUPS: Group[] = [
       </div><!-- /main -->
     </div><!-- /shell -->
 
-    <!-- Publishing context menu — shared between the "By documents" table and the tree -->
-    <ng-template #publishMenuTpl let-item>
-      <button class="publish-menu-item" (click)="closePublishMenu()">
-        <fvdr-icon name="link" />
-        <span>Open in new browser tab</span>
-      </button>
-      <button class="publish-menu-item" (click)="closePublishMenu()">
-        <fvdr-icon name="history" />
-        <span>View activity log</span>
-      </button>
-      <button class="publish-menu-item" (click)="closePublishMenu()">
-        <fvdr-icon name="overview" />
-        <span>View document overview</span>
-      </button>
-      <button class="publish-menu-item" (click)="closePublishMenu()">
-        <fvdr-icon name="settings" />
-        <span>View engagement matrix</span>
-      </button>
-      <button class="publish-menu-item" (click)="closePublishMenu()">
-        <fvdr-icon name="reports" />
-        <span>View permission log</span>
-      </button>
-      <div class="publish-menu-divider"></div>
-      <button class="publish-menu-item" (click)="requestPublishToggle(item)">
-        <fvdr-icon [name]="item.published ? 'cross-circle' : 'finished'" />
-        <span>{{ item.published ? 'Unpublish' : 'Publish' }}</span>
-      </button>
-    </ng-template>
-
     <!-- Save bar -->
     <div class="save-bar" [class.save-bar--visible]="hasUnsavedChanges">
       <fvdr-btn variant="secondary" label="Cancel" (clicked)="cancel()" />
       <fvdr-btn variant="primary"   label="Save"   (clicked)="save()"   />
     </div>
-
-    <fvdr-toast-host></fvdr-toast-host>
-
-    <!-- Publish / Unpublish confirmation -->
-    <fvdr-modal
-      [visible]="!!publishConfirmItem"
-      [title]="publishConfirmItem?.published ? 'Unpublish file' : 'Publish file'"
-      cancelLabel="Cancel"
-      [confirmLabel]="publishConfirmItem?.published ? 'Unpublish' : 'Publish'"
-      confirmVariant="primary"
-      size="s"
-      (confirmed)="confirmPublishToggle()"
-      (cancelled)="cancelPublishConfirm()"
-      (closed)="cancelPublishConfirm()">
-      <div class="publish-confirm-body" *ngIf="publishConfirmItem as pItem">
-        <p class="publish-confirm-text">
-          {{ pItem.published
-              ? 'Once unpublished, documents will no longer be visible to project participants.'
-              : 'Once published, documents will become visible to project participants according to their permissions.' }}
-        </p>
-        <p class="publish-confirm-text">
-          {{ pItem.published ? 'Unpublish' : 'Publish' }} <strong>{{ pItem.name }}</strong>?
-        </p>
-        <fvdr-checkbox [(ngModel)]="publishConfirmDontShow" label="Don't show again" />
-      </div>
-    </fvdr-modal>
 
     <!-- First-use coach mark -->
     <div class="coach-overlay" *ngIf="coachStep" (click)="finishCoachmark()">
@@ -717,7 +588,7 @@ const GROUPS: Group[] = [
       margin-top: 2px;
       border: 1px solid var(--color-stone-500);
     }
-    .legend-swatch--none { background: var(--primitive-red-75, #ffe1de); }
+    .legend-swatch--none { background: var(--color-stone-300); }
     .legend-swatch--hatched {
       background: repeating-linear-gradient(
         45deg,
@@ -858,58 +729,6 @@ const GROUPS: Group[] = [
       white-space: nowrap;
       flex-shrink: 0;
     }
-    .tree-item-actions {
-      position: relative;
-      display: flex;
-      align-items: center;
-      gap: var(--space-1);
-      flex-shrink: 0;
-      margin-left: auto;
-    }
-    .tree-item-publish-wrap {
-      position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      width: 24px;
-      height: 24px;
-      border-radius: var(--radius-sm);
-      cursor: pointer;
-      transition: background 0.1s;
-    }
-    .tree-item-publish-wrap:hover { background: var(--color-stone-300); }
-    .tree-item-more {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 20px;
-      height: 20px;
-      padding: 0;
-      background: none;
-      border: none;
-      border-radius: var(--radius-sm);
-      cursor: pointer;
-      color: var(--color-text-secondary);
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.1s, background 0.1s;
-    }
-    .tree-item-more fvdr-icon { font-size: 16px; }
-    .tree-item-more:hover { background: var(--color-stone-300); }
-    .tree-item:hover .tree-item-more,
-    .tree-item-more--open {
-      opacity: 1;
-      pointer-events: auto;
-    }
-    /* Narrow tree panel — the menu must grow left from the row's right edge, not right off the panel. */
-    .tree-item-actions .publish-menu { left: auto; right: 0; }
-    .tree-item-publish {
-      font-size: 16px;
-      color: var(--color-text-secondary);
-      flex-shrink: 0;
-    }
-    .tree-item-publish--live { color: var(--color-primary-500); }
     .tree-divider {
       height: 1px;
       background: var(--color-divider);
@@ -1035,147 +854,16 @@ const GROUPS: Group[] = [
       flex: 1;
       min-width: 0;
     }
-    /* Document rows: the name hugs its own text so the "···" trigger sits
-       right after it, instead of being pushed to the far right of the cell. */
-    .pt-entity-name--tight { flex: 0 1 auto; }
-    .entity-more-wrap { position: relative; flex-shrink: 0; }
-    .entity-more {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 24px;
-      height: 24px;
-      padding: 0;
-      background: none;
-      border: none;
-      border-radius: var(--radius-sm);
-      cursor: pointer;
-      color: var(--color-text-secondary);
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.1s, background 0.1s;
-    }
-    .entity-more fvdr-icon { font-size: 16px; }
-    .entity-more:hover { background: var(--color-stone-200); }
-    .pt-row:hover .entity-more,
-    .entity-more--open {
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    /* Publishing column ("By documents" only) */
-    .pt-publish-cell {
-      position: relative;
-      width: 90px;
-      flex-shrink: 0;
-      display: flex;
-      align-items: center;
-      justify-content: flex-start;
-      padding-left: var(--space-4);
-    }
-    .pt-publish-cell fvdr-icon { font-size: 16px; color: var(--color-text-secondary); }
-    .pt-publish-cell fvdr-icon.publish-icon--live { color: var(--color-primary-500); }
-    .pt-publish-hdr {
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--color-text-primary);
-      white-space: nowrap;
-    }
-    .publish-trigger {
-      position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 24px;
-      height: 24px;
-      padding: 0;
-      background: none;
-      border: none;
-      border-radius: var(--radius-sm);
-      cursor: pointer;
-      transition: background 0.1s;
-    }
-    .publish-trigger:hover { background: var(--color-stone-200); }
-    .publish-tooltip {
-      position: absolute;
-      top: calc(100% + 6px);
-      left: 50%;
-      transform: translateX(-50%);
-      white-space: nowrap;
-      background: var(--color-text-primary);
-      color: var(--color-stone-0);
-      border-radius: var(--radius-sm);
-      padding: 3px var(--space-2);
-      font-size: 12px;
-      font-weight: 600;
-      z-index: 250;
-      pointer-events: none;
-      box-shadow: 0 6px 16px rgba(31, 33, 41, 0.22);
-    }
-    /* Sits flush against the tree panel's right edge — center-anchoring would
-       push half the tooltip past the panel and get clipped by its scroll area. */
-    .tree-item-publish-wrap .publish-tooltip {
-      left: auto;
-      right: 0;
-      transform: none;
-    }
-    .publish-trigger:hover { background: var(--color-stone-200); }
-    .publish-menu {
-      position: absolute;
-      top: calc(100% + var(--space-1));
-      left: 0;
-      width: 260px;
-      background: var(--color-stone-0);
-      border-radius: var(--radius-sm);
-      box-shadow: 0 1px 4px rgba(52, 58, 64, 0.2);
-      padding: var(--space-2) 0;
-      z-index: 300;
-      display: flex;
-      flex-direction: column;
-    }
-    .publish-menu-item {
-      display: flex;
-      align-items: center;
-      gap: var(--space-3);
-      height: 40px;
-      padding: 0 var(--space-4);
-      background: none;
-      border: none;
-      cursor: pointer;
-      font-family: var(--font-family);
-      font-size: 14px;
-      color: var(--color-text-primary);
-      text-align: left;
-      white-space: nowrap;
-    }
-    .publish-menu-item:hover { background: var(--color-stone-200); }
-    .publish-menu-item fvdr-icon { font-size: 16px; color: var(--color-text-secondary); flex-shrink: 0; }
-    .publish-menu-divider {
-      height: 1px;
-      background: var(--color-divider);
-      margin: var(--space-1) 0;
-    }
-
-    /* Publish / Unpublish confirmation modal */
-    .publish-confirm-body {
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-4);
-    }
-    .publish-confirm-text {
-      font-size: 16px;
-      line-height: 24px;
-      color: var(--color-text-primary);
-    }
-
     /* Perm header (icons + labels) */
     .pt-perm-hdr {
       display: flex;
       align-items: stretch;
       flex-shrink: 0;
-      padding: 0 var(--space-2);
     }
-    .perm-th--none fvdr-icon { color: var(--color-text-secondary); }
+    .perm-spacer {
+      width: var(--space-2);
+      flex-shrink: 0;
+    }
     .perm-th {
       position: relative;
       width: 62px;
@@ -1236,9 +924,6 @@ const GROUPS: Group[] = [
       flex-shrink: 0;
       cursor: pointer;
       transition: filter 0.1s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
     }
     .slider-block:first-child {
       border-left: 1px solid var(--color-stone-500);
@@ -1246,12 +931,9 @@ const GROUPS: Group[] = [
     }
     .slider-block:last-child { border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
     .slider-block:hover { filter: brightness(0.88); }
-    .seg-none-icon { font-size: 10px; color: var(--color-text-secondary); pointer-events: none; }
     .s-light  { background: var(--color-primary-50); filter: saturate(1.8); }
     .s-active { background: var(--color-primary-500); }
     .s-none   { background: var(--color-stone-300); }
-    .s-zero   { background: var(--primitive-red-75, #ffe1de); border-color: var(--primitive-red-200, #f5c4bc); }
-    .s-zero .seg-none-icon { color: var(--primitive-red-500, #e54430); }
     .s-hatched {
       background: repeating-linear-gradient(
         45deg,
@@ -1348,7 +1030,6 @@ const GROUPS: Group[] = [
 export class PermissionsLegendV2Component implements OnInit, AfterViewInit, OnDestroy {
   private tracker = inject(TrackerService);
   private hostEl = inject(ElementRef<HTMLElement>);
-  private toast = inject(ToastService);
 
   sidebarCollapsed = true;
   searchQuery = '';
@@ -1362,12 +1043,6 @@ export class PermissionsLegendV2Component implements OnInit, AfterViewInit, OnDe
   legendOpen = false;
   hoveredCol: number | null = null;
   hoveredSeg: string | null = null;
-
-  // Publishing context menu
-  publishMenuFor: number | null = null;
-  hoveredPublish: string | null = null;
-  publishConfirmItem: TreeItem | null = null;
-  publishConfirmDontShow = false;
 
   // Coach mark
   coachStep = 0; // 0 = hidden, 1 | 2 = active step
@@ -1389,14 +1064,14 @@ export class PermissionsLegendV2Component implements OnInit, AfterViewInit, OnDe
     { id: 5, index: '5',   name: 'Key contacts by function',            type: 'xlsx',   perms: [4,5,3,1,2,4] },
     { id: 6, index: '6',   name: 'Tax accounting.xlsx',                 type: 'xlsx',   perms: [5,5,4,2,3,5] },
     { id: 7, index: '7',   name: 'Tax returns.pdf',                     type: 'pdf',    perms: [3,4,3,1,0,3] },
-    { id: 8, index: '8',   name: 'Registration with tax authorities',   type: 'doc',    perms: [6,7,5,4,3,6], published: true },
-    { id: 9, index: '9',   name: 'Site walkthrough recording.mp4',      type: 'video',  perms: [0,2,7,5,0,7], restricted: [1,3,4,6], published: true },
+    { id: 8, index: '8',   name: 'Registration with tax authorities',   type: 'doc',    perms: [6,7,5,4,3,6] },
+    { id: 9, index: '9',   name: 'Site walkthrough recording.mp4',      type: 'video',  perms: [0,2,7,5,0,7], restricted: [1,3,4,6] },
   ];
 
   readonly groups = GROUPS;
   readonly permCols = PERM_COLS;
   readonly permLevels = PERM_LEVELS;
-  readonly sliderRange = Array.from({ length: 8 }, (_, i) => i);
+  readonly sliderRange = Array.from({ length: 7 }, (_, i) => i + 1);
 
   /** Groups shown in "By documents" left panel (skip "All groups") */
   get groupsForPanel(): Group[] {
@@ -1502,15 +1177,16 @@ export class PermissionsLegendV2Component implements OnInit, AfterViewInit, OnDe
 
   selectItem(id: number): void { this.selectedDocId = id; }
 
-  sliderCls(level: number, pos: number): 'light' | 'active' | 'none' | 'zero' {
-    if (pos === level) return level === 0 ? 'zero' : 'active';
+  sliderCls(level: number, pos: number): 'light' | 'active' | 'none' {
+    if (level === 0) return 'none';
     if (pos < level)  return 'light';
+    if (pos === level) return 'active';
     return 'none';
   }
 
   /** Same as sliderCls, but a restricted level always renders as a hatched "not available" block. */
-  segClass(level: number, pos: number, restricted: number[] = []): 'light' | 'active' | 'none' | 'zero' | 'hatched' {
-    if (pos > 0 && restricted.includes(pos)) return 'hatched';
+  segClass(level: number, pos: number, restricted: number[] = []): 'light' | 'active' | 'none' | 'hatched' {
+    if (restricted.includes(pos)) return 'hatched';
     return this.sliderCls(level, pos);
   }
 
@@ -1565,56 +1241,6 @@ export class PermissionsLegendV2Component implements OnInit, AfterViewInit, OnDe
 
   toggleLegend(): void {
     this.legendOpen = !this.legendOpen;
-  }
-
-  // ── Publishing context menu ─────────────────────────────────
-
-  togglePublishMenu(docId: number, event: MouseEvent): void {
-    event.stopPropagation();
-    this.publishMenuFor = this.publishMenuFor === docId ? null : docId;
-  }
-
-  closePublishMenu(): void {
-    this.publishMenuFor = null;
-  }
-
-  setPublished(item: TreeItem, published: boolean): void {
-    item.published = published;
-    this.closePublishMenu();
-    this.toast.show({
-      variant: 'success',
-      message: published ? `“${item.name}” published` : `“${item.name}” unpublished`,
-    });
-  }
-
-  /** Menu "Publish"/"Unpublish" click — confirm first, unless the user opted out. */
-  requestPublishToggle(item: TreeItem): void {
-    this.closePublishMenu();
-    if (localStorage.getItem(PUBLISH_CONFIRM_SKIP_KEY)) {
-      this.setPublished(item, !item.published);
-      return;
-    }
-    this.publishConfirmDontShow = false;
-    this.publishConfirmItem = item;
-  }
-
-  confirmPublishToggle(): void {
-    const item = this.publishConfirmItem;
-    if (!item) return;
-    if (this.publishConfirmDontShow) {
-      localStorage.setItem(PUBLISH_CONFIRM_SKIP_KEY, '1');
-    }
-    this.setPublished(item, !item.published);
-    this.publishConfirmItem = null;
-  }
-
-  cancelPublishConfirm(): void {
-    this.publishConfirmItem = null;
-  }
-
-  @HostListener('document:click')
-  onDocumentClick(): void {
-    if (this.publishMenuFor !== null) this.closePublishMenu();
   }
 
   // ── Coach mark ────────────────────────────────────────────
