@@ -223,7 +223,7 @@ const GROUPS: Group[] = [
                         <span class="item-idx">{{ pinnedItem!.index }}</span>
                         <span class="item-name"
                               [innerHTML]="highlight(pinnedItem!.name)"></span>
-                        <span class="item-dot"></span>
+                        <span class="unsaved-chip">Unsaved</span>
                         <div class="tree-item-actions">
                           <span class="tree-item-publish-wrap"
                                 (mouseenter)="hoveredPublish = 'tree-' + pinnedItem!.id"
@@ -259,7 +259,7 @@ const GROUPS: Group[] = [
                         <span class="item-idx">{{ item.index }}</span>
                         <span class="item-name"
                               [innerHTML]="highlight(item.name)"></span>
-                        <span *ngIf="searchQuery.trim() && pendingPerms[item.id]" class="item-dot"></span>
+                        <span *ngIf="searchQuery.trim() && pendingPerms[item.id]" class="unsaved-chip">Unsaved</span>
                         <div class="tree-item-actions">
                           <span class="tree-item-publish-wrap"
                                 (mouseenter)="hoveredPublish = 'tree-' + item.id"
@@ -844,10 +844,18 @@ const GROUPS: Group[] = [
       padding: 0 1px;
       font-style: normal;
     }
-    .item-dot {
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      background: var(--color-warning-600);
+    .unsaved-chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: 16px;
+      padding: 0 var(--space-1);
+      border-radius: var(--radius-sm);
+      background: var(--chip-bg-yellow, #fff5e0);
+      color: var(--primitive-yellow-900, #c88b00);
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
       flex-shrink: 0;
     }
     .tree-item-actions {
