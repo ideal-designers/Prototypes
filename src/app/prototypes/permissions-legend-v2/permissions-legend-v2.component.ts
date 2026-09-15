@@ -742,10 +742,11 @@ const GROUPS: Group[] = [
       z-index: 3;
       display: inline-flex;
       align-items: center;
+      justify-content: center;
       gap: 4px;
       height: 14px;
       max-width: 14px;
-      padding: 0 2px;
+      padding: 0;
       border-radius: 100px;
       border: 1.2px solid var(--color-stone-0);
       background: var(--color-stone-200);
@@ -758,22 +759,24 @@ const GROUPS: Group[] = [
       max-width: 100px;
       padding: 0 4px;
     }
-    .pub-badge fvdr-icon {
-      font-size: 10px;
+    /* Scoped under .file-icon-wrap so the row-level "fvdr-icon" sizing rules
+       (e.g. .pt-entity-cell fvdr-icon) don't win on equal specificity. */
+    .file-icon-wrap .pub-badge fvdr-icon {
+      font-size: 8px;
       flex-shrink: 0;
       color: var(--color-text-secondary);
     }
-    .pub-badge span {
+    .file-icon-wrap .pub-badge span {
       font-size: 10px;
       font-weight: 600;
       color: var(--color-text-secondary);
       opacity: 0;
       transition: opacity 0.15s ease 0.05s;
     }
-    .pub-badge:hover span { opacity: 1; }
+    .file-icon-wrap .pub-badge:hover span { opacity: 1; }
     .pub-badge--published { background: var(--chip-bg-green, #eaf6ed); }
-    .pub-badge--published fvdr-icon,
-    .pub-badge--published span { color: var(--color-primary-500); }
+    .file-icon-wrap .pub-badge--published fvdr-icon,
+    .file-icon-wrap .pub-badge--published span { color: var(--color-primary-500); }
     .item-name {
       font-size: 14px;
       color: var(--color-text-primary);
