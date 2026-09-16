@@ -474,7 +474,7 @@ const GROUPS: Group[] = [
          full context menu (with the rest of the row actions) lives behind the "···" trigger. -->
     <ng-template #pubBadge let-item>
       <span class="file-icon-wrap" [class.file-icon-wrap--published]="item.published">
-        <span class="file-icon-tint">
+        <span class="file-icon-slot">
           <fvdr-file-icon [type]="fileType(item.type)" />
         </span>
         <button class="pub-check"
@@ -826,42 +826,44 @@ const GROUPS: Group[] = [
       flex-shrink: 0;
     }
 
-    /* Publishing status — Figma node 1718-75081: a tinted box behind the file/folder
-       icon plus a small check/cross glyph beside it. */
+    /* Publishing status — Figma node 1718-75081: one continuous pill (no gap) —
+       tinted background (grey when unpublished, green when published) holding the
+       file/folder icon, capped on the right by a check/cross glyph. */
     .file-icon-wrap {
       position: relative;
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      flex-shrink: 0;
-    }
-    .file-icon-tint {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 36px;
-      height: 28px;
+      padding: 4px 1px 4px 4px;
       border-radius: var(--radius-sm);
       background: var(--color-stone-200);
       flex-shrink: 0;
     }
-    .file-icon-wrap--published .file-icon-tint { background: var(--color-primary-50); }
+    .file-icon-wrap--published { background: var(--color-primary-50); }
+    .file-icon-slot {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+    }
     .pub-check {
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 18px;
-      height: 18px;
+      width: 20px;
+      height: 20px;
       padding: 0;
       background: none;
       border: none;
-      border-radius: var(--radius-sm);
+      border-top-right-radius: var(--radius-sm);
+      border-bottom-right-radius: var(--radius-sm);
       cursor: pointer;
       flex-shrink: 0;
       color: var(--color-text-secondary);
     }
-    .pub-check:hover { background: var(--color-stone-300); }
-    .pub-check fvdr-icon { font-size: 14px; }
+    .pub-check:hover { background: rgba(31, 33, 41, 0.06); }
+    .pub-check fvdr-icon { font-size: 12px; }
     .file-icon-wrap--published .pub-check { color: var(--color-primary-600); }
 
     /* Publishing context menu — opened by clicking the "···" trigger elsewhere on the row.
