@@ -154,6 +154,13 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
     description: 'Duplicate of the Permissions matrix prototype for further iteration',
   },
     {
+    slug: 'permissions-legend-v3',
+    title: 'Permission Matrix Version3',
+    figma: 'https://www.figma.com/proto/E2LJ0seWC3c1bJrgenukSS/Permissions-%F0%9F%94%90?node-id=1718-75081',
+    status: 'wip',
+    description: 'Same interactions as Version2, with a Figma-matched Publishing treatment: a tinted icon background plus a check/cross glyph',
+  },
+    {
     slug: 'added-column-hover',
     title: 'Documents — Added column hover',
     figma: 'https://www.figma.com/design/h9MR3O7N3kLV2xl2MGQDxs/Documents?node-id=27217-95905',
