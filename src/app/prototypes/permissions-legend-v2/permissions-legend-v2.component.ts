@@ -6,11 +6,13 @@ import {
   SidebarNavItem,
   FvdrFileType,
   FvdrIconName,
+  ToastService,
 } from '../../shared/ds';
 import { TrackerService } from '../../services/tracker.service';
 
 const SLUG = 'permissions-legend-v2';
 const COACH_KEY = 'vdsn32-permissions-coachmark-seen-v2';
+const PUBLISH_CONFIRM_SKIP_KEY = 'vdsn32-publish-confirm-skip-v2';
 
 interface TreeItem {
   id: number;
@@ -219,7 +221,7 @@ const GROUPS: Group[] = [
                       <div class="tree-item-body">
                         <span class="file-icon-wrap">
                           <fvdr-file-icon [type]="fileType(pinnedItem!.type)" />
-                          <ng-container *ngTemplateOutlet="pubBadge; context: { $implicit: pinnedItem!.published }"></ng-container>
+                          <ng-container *ngTemplateOutlet="pubBadge; context: { $implicit: pinnedItem! }"></ng-container>
                         </span>
                         <span class="item-idx">{{ pinnedItem!.index }}</span>
                         <span class="item-name"
@@ -237,7 +239,7 @@ const GROUPS: Group[] = [
                       <div class="tree-item-body">
                         <span class="file-icon-wrap">
                           <fvdr-file-icon [type]="fileType(item.type)" />
-                          <ng-container *ngTemplateOutlet="pubBadge; context: { $implicit: item.published }"></ng-container>
+                          <ng-container *ngTemplateOutlet="pubBadge; context: { $implicit: item }"></ng-container>
                         </span>
                         <span class="item-idx">{{ item.index }}</span>
                         <span class="item-name"
@@ -337,8 +339,14 @@ const GROUPS: Group[] = [
                         <span class="pt-entity-name">{{ g.name }}</span>
                       </div>
                       <div class="pt-perm-cell">
-                        <span class="row-empty-slot">
+                        <span class="row-empty-slot row-empty-slot--clickable"
+                              (mouseenter)="hoveredSeg = 'g' + gi + '-0'"
+                              (mouseleave)="hoveredSeg = null"
+                              (click)="setLevelByGroup(gi, 0)">
                           <fvdr-icon *ngIf="getLevel(selectedDocId, gi) === 0" name="cancel" class="row-empty-icon" />
+                          <div class="seg-tooltip" *ngIf="hoveredSeg === 'g' + gi + '-0'">
+                            {{ permLevels[0].label }}
+                          </div>
                         </span>
                         <div class="slider-track">
                           <div *ngFor="let pos of sliderRange"
@@ -397,14 +405,20 @@ const GROUPS: Group[] = [
                     <div class="pt-entity-cell">
                       <span class="file-icon-wrap">
                         <fvdr-file-icon [type]="fileType(item.type)" />
-                        <ng-container *ngTemplateOutlet="pubBadge; context: { $implicit: item.published }"></ng-container>
+                        <ng-container *ngTemplateOutlet="pubBadge; context: { $implicit: item }"></ng-container>
                       </span>
                       <span class="item-idx">{{ item.index }}</span>
                       <span class="pt-entity-name">{{ item.name }}</span>
                     </div>
                     <div class="pt-perm-cell">
-                      <span class="row-empty-slot">
+                      <span class="row-empty-slot row-empty-slot--clickable"
+                            (mouseenter)="hoveredSeg = 'd' + item.id + '-0'"
+                            (mouseleave)="hoveredSeg = null"
+                            (click)="setLevelByDoc(item.id, 0)">
                         <fvdr-icon *ngIf="getLevel(item.id, selectedGroupIdx) === 0" name="cancel" class="row-empty-icon" />
+                        <div class="seg-tooltip" *ngIf="hoveredSeg === 'd' + item.id + '-0'">
+                          {{ permLevels[0].label }}
+                        </div>
                       </span>
                       <div class="slider-track">
                         <div *ngFor="let pos of sliderRange"
@@ -434,12 +448,46 @@ const GROUPS: Group[] = [
     </div><!-- /shell -->
 
     <!-- Publishing status — tiny corner badge on the file/folder icon, expands to a labeled
-         pill on hover and collapses back when the hover ends. -->
-    <ng-template #pubBadge let-published>
-      <span class="pub-badge" [class.pub-badge--published]="published">
-        <fvdr-icon [name]="published ? 'check' : 'close'" />
-        <span>{{ published ? 'Published' : 'Unpublished' }}</span>
+         pill on hover and collapses back when the hover ends. Clicking it opens the same
+         context menu as v1 (visual of the badge itself is unchanged). -->
+    <ng-template #pubBadge let-item>
+      <span class="pub-badge" [class.pub-badge--published]="item.published"
+            (click)="$event.stopPropagation(); togglePublishMenu(item.id, $event)">
+        <fvdr-icon [name]="item.published ? 'check' : 'close'" />
+        <span>{{ item.published ? 'Published' : 'Unpublished' }}</span>
       </span>
+      <div class="publish-menu" *ngIf="publishMenuFor === item.id" (click)="$event.stopPropagation()">
+        <ng-container *ngTemplateOutlet="publishMenuTpl; context: { $implicit: item }"></ng-container>
+      </div>
+    </ng-template>
+
+    <!-- Publishing context menu — shared between every pubBadge instance -->
+    <ng-template #publishMenuTpl let-item>
+      <button class="publish-menu-item" (click)="closePublishMenu()">
+        <fvdr-icon name="link" />
+        <span>Open in new browser tab</span>
+      </button>
+      <button class="publish-menu-item" (click)="closePublishMenu()">
+        <fvdr-icon name="history" />
+        <span>View activity log</span>
+      </button>
+      <button class="publish-menu-item" (click)="closePublishMenu()">
+        <fvdr-icon name="overview" />
+        <span>View document overview</span>
+      </button>
+      <button class="publish-menu-item" (click)="closePublishMenu()">
+        <fvdr-icon name="settings" />
+        <span>View engagement matrix</span>
+      </button>
+      <button class="publish-menu-item" (click)="closePublishMenu()">
+        <fvdr-icon name="reports" />
+        <span>View permission log</span>
+      </button>
+      <div class="publish-menu-divider"></div>
+      <button class="publish-menu-item" (click)="requestPublishToggle(item)">
+        <fvdr-icon [name]="item.published ? 'close' : 'check'" />
+        <span>{{ item.published ? 'Unpublish' : 'Publish' }}</span>
+      </button>
     </ng-template>
 
     <!-- Save bar -->
@@ -447,6 +495,32 @@ const GROUPS: Group[] = [
       <fvdr-btn variant="secondary" label="Cancel" (clicked)="cancel()" />
       <fvdr-btn variant="primary"   label="Save"   (clicked)="save()"   />
     </div>
+
+    <fvdr-toast-host></fvdr-toast-host>
+
+    <!-- Publish / Unpublish confirmation -->
+    <fvdr-modal
+      [visible]="!!publishConfirmItem"
+      [title]="publishConfirmItem?.published ? 'Unpublish file' : 'Publish file'"
+      cancelLabel="Cancel"
+      [confirmLabel]="publishConfirmItem?.published ? 'Unpublish' : 'Publish'"
+      confirmVariant="primary"
+      size="s"
+      (confirmed)="confirmPublishToggle()"
+      (cancelled)="cancelPublishConfirm()"
+      (closed)="cancelPublishConfirm()">
+      <div class="publish-confirm-body" *ngIf="publishConfirmItem as pItem">
+        <p class="publish-confirm-text">
+          {{ pItem.published
+              ? 'Once unpublished, documents will no longer be visible to project participants.'
+              : 'Once published, documents will become visible to project participants according to their permissions.' }}
+        </p>
+        <p class="publish-confirm-text">
+          {{ pItem.published ? 'Unpublish' : 'Publish' }} <strong>{{ pItem.name }}</strong>?
+        </p>
+        <fvdr-checkbox [(ngModel)]="publishConfirmDontShow" label="Don't show again" />
+      </div>
+    </fvdr-modal>
 
     <!-- First-use coach mark -->
     <div class="coach-overlay" *ngIf="coachStep" (click)="finishCoachmark()">
@@ -753,7 +827,7 @@ const GROUPS: Group[] = [
       background: var(--color-stone-200);
       overflow: hidden;
       white-space: nowrap;
-      cursor: default;
+      cursor: pointer;
       transition: max-width 0.2s ease, padding 0.2s ease, gap 0.2s ease;
     }
     .pub-badge:hover {
@@ -784,6 +858,56 @@ const GROUPS: Group[] = [
     .pub-badge--published { background: var(--chip-bg-green, #eaf6ed); }
     .file-icon-wrap .pub-badge--published fvdr-icon,
     .file-icon-wrap .pub-badge--published span { color: var(--color-primary-500); }
+
+    /* Publishing context menu — opened by clicking the badge above. Anchored to
+       .file-icon-wrap (already position:relative), same technique as the badge itself. */
+    .publish-menu {
+      position: absolute;
+      top: calc(100% + var(--space-1));
+      left: 0;
+      width: 260px;
+      background: var(--color-stone-0);
+      border-radius: var(--radius-sm);
+      box-shadow: 0 1px 4px rgba(52, 58, 64, 0.2);
+      padding: var(--space-2) 0;
+      z-index: 300;
+      display: flex;
+      flex-direction: column;
+    }
+    .publish-menu-item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      height: 40px;
+      padding: 0 var(--space-4);
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: var(--font-family);
+      font-size: 14px;
+      color: var(--color-text-primary);
+      text-align: left;
+      white-space: nowrap;
+    }
+    .publish-menu-item:hover { background: var(--color-stone-200); }
+    .publish-menu-item fvdr-icon { font-size: 16px; color: var(--color-text-secondary); flex-shrink: 0; }
+    .publish-menu-divider {
+      height: 1px;
+      background: var(--color-divider);
+      margin: var(--space-1) 0;
+    }
+
+    /* Publish / Unpublish confirmation modal */
+    .publish-confirm-body {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-4);
+    }
+    .publish-confirm-text {
+      font-size: 16px;
+      line-height: 24px;
+      color: var(--color-text-primary);
+    }
     .item-name {
       font-size: 14px;
       color: var(--color-text-primary);
@@ -995,6 +1119,7 @@ const GROUPS: Group[] = [
       padding: 0 var(--space-2);
     }
     .row-empty-slot {
+      position: relative;
       width: 24px;
       height: 16px;
       flex-shrink: 0;
@@ -1002,6 +1127,7 @@ const GROUPS: Group[] = [
       align-items: center;
       justify-content: flex-start;
     }
+    .row-empty-slot--clickable { cursor: pointer; }
     .row-empty-icon { font-size: 16px; color: var(--primitive-red-500, #e54430); }
     .slider-track {
       height: 16px;
@@ -1124,6 +1250,7 @@ const GROUPS: Group[] = [
 export class PermissionsLegendV2Component implements OnInit, AfterViewInit, OnDestroy {
   private tracker = inject(TrackerService);
   private hostEl = inject(ElementRef<HTMLElement>);
+  private toast = inject(ToastService);
 
   sidebarCollapsed = true;
   searchQuery = '';
@@ -1137,6 +1264,11 @@ export class PermissionsLegendV2Component implements OnInit, AfterViewInit, OnDe
   legendOpen = false;
   hoveredCol: number | null = null;
   hoveredSeg: string | null = null;
+
+  // Publishing context menu
+  publishMenuFor: number | null = null;
+  publishConfirmItem: TreeItem | null = null;
+  publishConfirmDontShow = false;
 
   // Coach mark
   coachStep = 0; // 0 = hidden, 1 | 2 = active step
@@ -1335,6 +1467,56 @@ export class PermissionsLegendV2Component implements OnInit, AfterViewInit, OnDe
 
   toggleLegend(): void {
     this.legendOpen = !this.legendOpen;
+  }
+
+  // ── Publishing context menu ─────────────────────────────────
+
+  togglePublishMenu(docId: number, event: MouseEvent): void {
+    event.stopPropagation();
+    this.publishMenuFor = this.publishMenuFor === docId ? null : docId;
+  }
+
+  closePublishMenu(): void {
+    this.publishMenuFor = null;
+  }
+
+  setPublished(item: TreeItem, published: boolean): void {
+    item.published = published;
+    this.closePublishMenu();
+    this.toast.show({
+      variant: 'success',
+      message: published ? `“${item.name}” published` : `“${item.name}” unpublished`,
+    });
+  }
+
+  /** Menu "Publish"/"Unpublish" click — confirm first, unless the user opted out. */
+  requestPublishToggle(item: TreeItem): void {
+    this.closePublishMenu();
+    if (localStorage.getItem(PUBLISH_CONFIRM_SKIP_KEY)) {
+      this.setPublished(item, !item.published);
+      return;
+    }
+    this.publishConfirmDontShow = false;
+    this.publishConfirmItem = item;
+  }
+
+  confirmPublishToggle(): void {
+    const item = this.publishConfirmItem;
+    if (!item) return;
+    if (this.publishConfirmDontShow) {
+      localStorage.setItem(PUBLISH_CONFIRM_SKIP_KEY, '1');
+    }
+    this.setPublished(item, !item.published);
+    this.publishConfirmItem = null;
+  }
+
+  cancelPublishConfirm(): void {
+    this.publishConfirmItem = null;
+  }
+
+  @HostListener('document:click')
+  onDocumentClick(): void {
+    if (this.publishMenuFor !== null) this.closePublishMenu();
   }
 
   // ── Coach mark ────────────────────────────────────────────
