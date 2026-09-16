@@ -227,6 +227,16 @@ const GROUPS: Group[] = [
                         <span class="item-name"
                               [innerHTML]="highlight(pinnedItem!.name)"></span>
                         <span class="unsaved-chip">Unsaved</span>
+                        <div class="tree-item-actions">
+                          <button class="tree-item-more"
+                                  [class.tree-item-more--open]="publishMenuFor === pinnedItem!.id"
+                                  (click)="togglePublishMenu(pinnedItem!.id, $event)">
+                            <fvdr-icon name="more" />
+                          </button>
+                          <div class="publish-menu" *ngIf="publishMenuFor === pinnedItem!.id" (click)="$event.stopPropagation()">
+                            <ng-container *ngTemplateOutlet="publishMenuTpl; context: { $implicit: pinnedItem }"></ng-container>
+                          </div>
+                        </div>
                       </div>
                     </div>
                     <div class="tree-divider"></div>
@@ -245,6 +255,16 @@ const GROUPS: Group[] = [
                         <span class="item-name"
                               [innerHTML]="highlight(item.name)"></span>
                         <span *ngIf="searchQuery.trim() && pendingPerms[item.id]" class="unsaved-chip">Unsaved</span>
+                        <div class="tree-item-actions">
+                          <button class="tree-item-more"
+                                  [class.tree-item-more--open]="publishMenuFor === item.id"
+                                  (click)="togglePublishMenu(item.id, $event)">
+                            <fvdr-icon name="more" />
+                          </button>
+                          <div class="publish-menu" *ngIf="publishMenuFor === item.id" (click)="$event.stopPropagation()">
+                            <ng-container *ngTemplateOutlet="publishMenuTpl; context: { $implicit: item }"></ng-container>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </ng-container>
@@ -408,7 +428,17 @@ const GROUPS: Group[] = [
                         <ng-container *ngTemplateOutlet="pubBadge; context: { $implicit: item }"></ng-container>
                       </span>
                       <span class="item-idx">{{ item.index }}</span>
-                      <span class="pt-entity-name">{{ item.name }}</span>
+                      <span class="pt-entity-name pt-entity-name--tight">{{ item.name }}</span>
+                      <div class="entity-more-wrap">
+                        <button class="entity-more"
+                                [class.entity-more--open]="publishMenuFor === item.id"
+                                (click)="togglePublishMenu(item.id, $event)">
+                          <fvdr-icon name="more" />
+                        </button>
+                        <div class="publish-menu" *ngIf="publishMenuFor === item.id" (click)="$event.stopPropagation()">
+                          <ng-container *ngTemplateOutlet="publishMenuTpl; context: { $implicit: item }"></ng-container>
+                        </div>
+                      </div>
                     </div>
                     <div class="pt-perm-cell">
                       <span class="row-empty-slot row-empty-slot--clickable"
@@ -448,17 +478,15 @@ const GROUPS: Group[] = [
     </div><!-- /shell -->
 
     <!-- Publishing status — tiny corner badge on the file/folder icon, expands to a labeled
-         pill on hover and collapses back when the hover ends. Clicking it opens the same
-         context menu as v1 (visual of the badge itself is unchanged). -->
+         pill on hover and collapses back when the hover ends (visual unchanged). Clicking the
+         badge itself directly requests the toggle, same as the publish icon in v1 — the full
+         context menu (with the rest of the row actions) lives behind the "···" trigger instead. -->
     <ng-template #pubBadge let-item>
       <span class="pub-badge" [class.pub-badge--published]="item.published"
-            (click)="$event.stopPropagation(); togglePublishMenu(item.id, $event)">
+            (click)="$event.stopPropagation(); requestPublishToggle(item)">
         <fvdr-icon [name]="item.published ? 'check' : 'close'" />
         <span>{{ item.published ? 'Published' : 'Unpublished' }}</span>
       </span>
-      <div class="publish-menu" *ngIf="publishMenuFor === item.id" (click)="$event.stopPropagation()">
-        <ng-container *ngTemplateOutlet="publishMenuTpl; context: { $implicit: item }"></ng-container>
-      </div>
     </ng-template>
 
     <!-- Publishing context menu — shared between every pubBadge instance -->
@@ -907,6 +935,67 @@ const GROUPS: Group[] = [
       font-size: 16px;
       line-height: 24px;
       color: var(--color-text-primary);
+    }
+
+    /* "···" trigger — hidden until the row is hovered or its menu is open (tree items) */
+    .tree-item-actions {
+      position: relative;
+      display: flex;
+      align-items: center;
+      flex-shrink: 0;
+      margin-left: auto;
+    }
+    .tree-item-more {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+      padding: 0;
+      background: none;
+      border: none;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      color: var(--color-text-secondary);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.1s, background 0.1s;
+    }
+    .tree-item-more fvdr-icon { font-size: 16px; }
+    .tree-item-more:hover { background: var(--color-stone-300); }
+    .tree-item:hover .tree-item-more,
+    .tree-item-more--open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    /* Narrow tree panel — the menu must grow left from the row's right edge, not right off the panel. */
+    .tree-item-actions .publish-menu { left: auto; right: 0; }
+
+    /* "···" trigger — same idea, for the "By documents" table rows */
+    .pt-entity-name.pt-entity-name--tight { flex: 0 1 auto; }
+    .entity-more-wrap { position: relative; flex-shrink: 0; }
+    .entity-more {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      padding: 0;
+      background: none;
+      border: none;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      color: var(--color-text-secondary);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.1s, background 0.1s;
+    }
+    .entity-more fvdr-icon { font-size: 16px; }
+    .entity-more:hover { background: var(--color-stone-200); }
+    .pt-row:hover .entity-more,
+    .entity-more--open {
+      opacity: 1;
+      pointer-events: auto;
     }
     .item-name {
       font-size: 14px;
