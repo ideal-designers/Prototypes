@@ -148,7 +148,7 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
   },
     {
     slug: 'permissions-legend-v2',
-    title: 'Permissions matrix — Version2',
+    title: 'Permission Matrix Version2',
     figma: 'https://www.figma.com/design/E2LJ0seWC3c1bJrgenukSS/Permissions-%F0%9F%94%90?node-id=10-219397',
     status: 'wip',
     description: 'Duplicate of the Permissions matrix prototype for further iteration',
