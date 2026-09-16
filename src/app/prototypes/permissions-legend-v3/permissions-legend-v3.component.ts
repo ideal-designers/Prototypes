@@ -480,7 +480,10 @@ const GROUPS: Group[] = [
         <button class="pub-check"
                 (click)="$event.stopPropagation(); requestPublishToggle(item)"
                 [attr.aria-label]="(item.published ? 'Published' : 'Unpublished') + ' — click to toggle'">
-          <fvdr-icon [name]="item.published ? 'check' : 'close'" />
+          <span class="pub-check-icon">
+            <fvdr-icon [name]="item.published ? 'check' : 'close'" />
+          </span>
+          <span class="pub-check-label">{{ item.published ? 'Published' : 'Unpublished' }}</span>
         </button>
       </span>
     </ng-template>
@@ -826,14 +829,16 @@ const GROUPS: Group[] = [
       flex-shrink: 0;
     }
 
-    /* Publishing status — Figma node 1718-75081: one continuous pill (no gap) —
-       tinted background (grey when unpublished, green when published) holding the
-       file/folder icon, capped on the right by a check/cross glyph. */
+    /* Publishing status — Figma node 1718-75705 (hover variants of 1718-75081): one
+       continuous pill (no gap) — tinted background (grey when unpublished, green when
+       published) holding the file/folder icon, capped by a check/cross glyph. On hover
+       the pill grows to the right to reveal a "Published"/"Unpublished" label, pushing
+       the index/name that follow it further right. */
     .file-icon-wrap {
       position: relative;
       display: inline-flex;
       align-items: center;
-      padding: 4px 1px 4px 4px;
+      padding: 4px;
       border-radius: var(--radius-sm);
       background: var(--color-stone-200);
       flex-shrink: 0;
@@ -850,8 +855,7 @@ const GROUPS: Group[] = [
     .pub-check {
       display: flex;
       align-items: center;
-      justify-content: center;
-      width: 20px;
+      max-width: 20px;
       height: 20px;
       padding: 0;
       background: none;
@@ -861,10 +865,30 @@ const GROUPS: Group[] = [
       cursor: pointer;
       flex-shrink: 0;
       color: var(--color-text-secondary);
+      overflow: hidden;
+      transition: max-width 0.18s ease;
     }
-    .pub-check:hover { background: rgba(31, 33, 41, 0.06); }
-    .pub-check fvdr-icon { font-size: 12px; }
-    .file-icon-wrap--published .pub-check { color: var(--color-primary-600); }
+    .file-icon-wrap:hover .pub-check { max-width: 140px; }
+    .pub-check-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+    }
+    .file-icon-wrap .pub-check-icon fvdr-icon { font-size: 9px; }
+    .pub-check-label {
+      font-size: 12px;
+      line-height: 16px;
+      color: var(--color-text-primary);
+      white-space: nowrap;
+      padding-right: 4px;
+      opacity: 0;
+      transition: opacity 0.12s ease;
+    }
+    .file-icon-wrap:hover .pub-check-label { opacity: 1; transition-delay: 0.06s; }
+    .file-icon-wrap--published .pub-check-icon { color: var(--color-primary-600); }
 
     /* Publishing context menu — opened by clicking the "···" trigger elsewhere on the row.
        Anchored to .file-icon-wrap (already position:relative). */
