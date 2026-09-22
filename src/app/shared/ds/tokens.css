@@ -24,6 +24,14 @@
   --color-primary-900:  #184725;
 
   /* ─────────────────────────────────────────
+     MALACHITE (Figma library "Primary color/*", primitive Malachite/*)
+     A lighter tint set than --color-primary-* above — NOT interchangeable.
+     Used by the publish-state chip in Permissions (Figma 1718-75705).
+  ───────────────────────────────────────── */
+  --color-malachite-100: #D3EFDA;  /* chip border at rest, chip fill on hover */
+  --color-malachite-400: #3FB67D;  /* "partially published" dashed border */
+
+  /* ─────────────────────────────────────────
      STONE GREY (Neutral scale)
      Figma: Stone grey / $stone-*
   ───────────────────────────────────────── */
@@ -267,6 +275,8 @@
 
   /* Primary tints in dark — for selected states (tabs, nav, etc.) */
   --color-primary-50:  #1A2E24;  /* light: #EBF8EF → dark green tint */
+  --color-malachite-100: #23402F;  /* light: #D3EFDA */
+  --color-malachite-400: #3FB67D;  /* unchanged — reads on both themes */
 
   /* Semantic */
   --color-text-primary:     #FFFFFF;

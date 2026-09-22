@@ -372,9 +372,21 @@ const PERM_COLS: { label: string; icon: FvdrIconName }[] = [
                   padding-right    var(--chip-dur) var(--chip-ease);
     }
     .chip:hover, .chip:focus-visible { padding-right: 4px; z-index: 2; outline: none; }
-    .chip--published   { background: var(--color-primary-50); border-color: var(--color-primary-100); }
-    .chip--partial     { background: var(--color-primary-50); border-color: var(--color-primary-500); border-style: dashed; }
-    .chip--unpublished { background: var(--color-stone-200);   border-color: var(--color-stone-300); }
+    .chip--published   { background: var(--color-primary-50); border-color: var(--color-malachite-100); }
+    .chip--partial     { background: var(--color-primary-50); border-color: var(--color-malachite-400); border-style: dashed; }
+    .chip--unpublished { background: var(--color-stone-200);  border-color: var(--color-stone-300); }
+
+    /* On hover the fill steps one shade darker, so the chip still reads against
+       a hovered table row instead of melting into it (Figma 1718-75705). */
+    .chip--published:hover,   .chip--published:focus-visible {
+      background: var(--color-malachite-100); border-color: var(--color-malachite-100);
+    }
+    .chip--partial:hover,     .chip--partial:focus-visible {
+      background: var(--color-malachite-100);
+    }
+    .chip--unpublished:hover, .chip--unpublished:focus-visible {
+      background: var(--color-stone-300); border-color: var(--color-stone-300);
+    }
 
     .chip-badge {
       width: 20px; height: 20px; flex-shrink: 0;
