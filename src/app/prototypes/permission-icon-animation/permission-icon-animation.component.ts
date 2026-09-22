@@ -413,7 +413,10 @@ const PERM_COLS: { label: string; icon: FvdrIconName }[] = [
     .chip-text {
       display: block;
       white-space: nowrap;
-      padding-left: 2px;
+      /* Figma nests the label in a "Wraper" with its own 4px right padding, on
+         top of the chip's 4px — 8px after the text, not 4. It lives on the text
+         (inside the clip) so it can't widen the collapsed chip. */
+      padding-right: 4px;
       font-size: var(--text-caption1-size, 12px);
       color: var(--color-text-primary);
     }
