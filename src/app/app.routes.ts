@@ -176,6 +176,11 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./prototypes/permission-icon-animation/permission-icon-animation.component').then(m => m.PermissionIconAnimationComponent),
   },
+    {
+    path: 'editor-color-contrast',
+    loadComponent: () =>
+      import('./prototypes/editor-color-contrast/editor-color-contrast.component').then(m => m.EditorColorContrastComponent),
+  },
   // PROTO_ROUTES_PLACEHOLDER
   {
     path: '**',

@@ -174,5 +174,12 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
     status: 'wip',
     description: 'Publish-state chip on permission rows: compact 47px pill that expands on hover to reveal its label (Published / Unpublished / Unpublished documents inside), with push-vs-overlay and timing comparison',
   },
+    {
+    slug: 'editor-color-contrast',
+    title: 'Editor colours — theme contrast audit',
+    figma: '',
+    status: 'wip',
+    description: 'TinyMCE forecolor palette audited against light (#FFFFFF) and dark (#1F2129) editor surfaces: live side-by-side preview, WCAG contrast table, and a dual-theme-safe palette proposal',
+  },
   // REGISTRY_PLACEHOLDER
 ];
