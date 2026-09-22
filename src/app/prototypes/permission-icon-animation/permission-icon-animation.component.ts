@@ -232,8 +232,7 @@ const PERM_COLS: { label: string; icon: FvdrIconName }[] = [
       display: flex; align-items: center; flex-wrap: wrap;
       gap: var(--space-5);
       padding: var(--space-3) var(--space-4);
-      border: 1px solid var(--color-divider);
-      border-radius: var(--radius-md);
+      border-radius: var(--radius-sm);
       background: var(--color-stone-100);
       flex-shrink: 0;
     }
@@ -279,14 +278,12 @@ const PERM_COLS: { label: string; icon: FvdrIconName }[] = [
 
     .groups-panel {
       width: 306px; flex-shrink: 0;
-      border: 1px solid var(--color-divider);
-      border-radius: var(--radius-md);
-      display: flex; flex-direction: column; overflow: hidden;
+      display: flex; flex-direction: column; gap: var(--space-2); overflow: hidden;
     }
     .panel-hdr {
       display: flex; align-items: center; justify-content: space-between;
-      height: 48px; padding: 0 var(--space-4);
-      border-bottom: 1px solid var(--color-divider);
+      height: 48px; padding: 0 var(--space-4); flex-shrink: 0;
+      border-radius: var(--radius-sm);
       background: var(--color-stone-200);
     }
     .panel-title { font-size: var(--text-body3-size, 14px); font-weight: var(--text-label-s-weight, 600); }
@@ -303,14 +300,12 @@ const PERM_COLS: { label: string; icon: FvdrIconName }[] = [
 
     .docs-panel {
       flex: 1; min-width: 0;
-      border: 1px solid var(--color-divider);
-      border-radius: var(--radius-md);
-      display: flex; flex-direction: column; overflow: hidden;
+      display: flex; flex-direction: column; gap: var(--space-2); overflow: hidden;
     }
     .docs-hdr {
       display: flex; align-items: center; justify-content: space-between;
-      min-height: 56px; padding: 0 var(--space-4);
-      border-bottom: 1px solid var(--color-divider);
+      min-height: 56px; padding: 0 var(--space-4); flex-shrink: 0;
+      border-radius: var(--radius-sm);
       background: var(--color-stone-200);
     }
     .docs-title { font-size: var(--text-body3-size, 14px); font-weight: var(--text-label-s-weight, 600); }
@@ -374,15 +369,9 @@ const PERM_COLS: { label: string; icon: FvdrIconName }[] = [
       cursor: pointer;
       transition: background-color var(--chip-dur) var(--chip-ease),
                   border-color     var(--chip-dur) var(--chip-ease),
-                  padding-right    var(--chip-dur) var(--chip-ease),
-                  box-shadow       var(--chip-dur) var(--chip-ease);
+                  padding-right    var(--chip-dur) var(--chip-ease);
     }
     .chip:hover, .chip:focus-visible { padding-right: 4px; z-index: 2; outline: none; }
-    .chip-slot--fixed .chip:hover,
-    .chip-slot--fixed .chip:focus-visible {
-      box-shadow: var(--shadow-card);
-    }
-
     .chip--published   { background: var(--color-primary-50); border-color: var(--color-primary-100); }
     .chip--partial     { background: var(--color-primary-50); border-color: var(--color-primary-500); border-style: dashed; }
     .chip--unpublished { background: var(--color-stone-200);   border-color: var(--color-stone-300); }
