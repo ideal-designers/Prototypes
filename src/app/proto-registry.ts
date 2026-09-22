@@ -167,5 +167,12 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
     status: 'wip',
     description: 'Documents table: hovering the Added column reveals the uploader\'s name + email with copy actions, and an icon to open their user card',
   },
+    {
+    slug: 'permission-icon-animation',
+    title: 'Permission icon animation',
+    figma: 'https://www.figma.com/design/E2LJ0seWC3c1bJrgenukSS/Permissions-%F0%9F%94%90?node-id=1718-75081',
+    status: 'wip',
+    description: 'Publish-state chip on permission rows: compact 47px pill that expands on hover to reveal its label (Published / Unpublished / Unpublished documents inside), with push-vs-overlay and timing comparison',
+  },
   // REGISTRY_PLACEHOLDER
 ];

@@ -171,6 +171,11 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./prototypes/added-column-hover/added-column-hover.component').then(m => m.AddedColumnHoverComponent),
   },
+    {
+    path: 'permission-icon-animation',
+    loadComponent: () =>
+      import('./prototypes/permission-icon-animation/permission-icon-animation.component').then(m => m.PermissionIconAnimationComponent),
+  },
   // PROTO_ROUTES_PLACEHOLDER
   {
     path: '**',
