@@ -181,5 +181,12 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
     status: 'wip',
     description: 'TinyMCE forecolor palette audited against light (#FFFFFF) and dark (#1F2129) editor surfaces: live side-by-side preview, WCAG contrast table, and a dual-theme-safe palette proposal',
   },
+    {
+    slug: 'column-admin-hint',
+    title: 'Documents — Column manager admin hint',
+    figma: 'https://www.figma.com/design/h9MR3O7N3kLV2xl2MGQDxs/Documents?node-id=29961-166557',
+    status: 'wip',
+    description: '4 interaction options for telling an admin, inside the column manager, that a column can be enabled for all users in Settings',
+  },
   // REGISTRY_PLACEHOLDER
 ];

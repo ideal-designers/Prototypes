@@ -181,6 +181,11 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./prototypes/editor-color-contrast/editor-color-contrast.component').then(m => m.EditorColorContrastComponent),
   },
+    {
+    path: 'column-admin-hint',
+    loadComponent: () =>
+      import('./prototypes/column-admin-hint/column-admin-hint.component').then(m => m.ColumnAdminHintComponent),
+  },
   // PROTO_ROUTES_PLACEHOLDER
   {
     path: '**',
