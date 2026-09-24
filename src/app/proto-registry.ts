@@ -186,7 +186,7 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
     title: 'Documents — Column manager admin hint',
     figma: 'https://www.figma.com/design/h9MR3O7N3kLV2xl2MGQDxs/Documents?node-id=29961-166557',
     status: 'wip',
-    description: '4 interaction options for telling an admin, inside the column manager, that a column can be enabled for all users in Settings',
+    description: '2 options for telling an admin, inside the column manager, that a column can be enabled for all users in Settings: inline hint on row hover, or a “For all” badge',
   },
   // REGISTRY_PLACEHOLDER
 ];

@@ -1,4 +1,4 @@
-import { Component, HostListener, OnDestroy, OnInit, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DS_COMPONENTS } from '../../shared/ds';
 import type { SidebarNavItem, HeaderAction, SegmentItem } from '../../shared/ds';
@@ -19,7 +19,7 @@ interface ColDef {
   adminManaged?: boolean;
 }
 
-type Variant = 'hovercard' | 'nudge' | 'footer' | 'quick';
+type Variant = 'hint' | 'badge';
 
 interface DocRow {
   fileType: FvdrFileType;
@@ -106,89 +106,46 @@ interface DocRow {
               </div>
             </div>
 
-            <!-- ═══════════ Column manager popover ═══════════ -->
+            <!-- ═══════════ Column manager popover (Figma 29961-166319 / 30022-168764) ═══════════ -->
             <div class="colmenu" *ngIf="menuOpen" (click)="$event.stopPropagation()">
               <div class="colmenu__top">
                 <fvdr-toggle size="s" [checked]="foldersFirst" (checkedChange)="foldersFirst = $event" label="Folders first"></fvdr-toggle>
               </div>
 
               <div class="colmenu__list">
-                <ng-container *ngFor="let c of cols">
+                <!-- One hover zone per column: the row + (option 1) its inline hint, so moving the
+                     pointer from the row down into the hint's "Change settings" link keeps it open. -->
+                <div class="citem" *ngFor="let c of cols"
+                     (mouseenter)="hoverCol = c.id"
+                     (mouseleave)="hoverCol = null">
                   <div class="crow"
                        [class.crow--on]="c.visible && !c.locked"
                        [class.crow--locked]="c.locked"
-                       [class.crow--managed]="c.adminManaged"
-                       (mouseenter)="onRowEnter(c, $event)"
-                       (mouseleave)="onRowLeave()">
-                    <fvdr-icon name="drag" class="crow__drag"></fvdr-icon>
-                    <fvdr-checkbox [checked]="c.visible" [disabled]="!!c.locked" (checkedChange)="toggleCol(c, $event)"></fvdr-checkbox>
-                    <span class="crow__label" (click)="!c.locked && toggleCol(c, !c.visible)">{{ c.label }}</span>
+                       [class.crow--hover]="hoverCol === c.id && !c.locked">
+                    <span class="crow__drag"><fvdr-icon name="drag"></fvdr-icon></span>
+                    <div class="crow__main">
+                      <fvdr-checkbox [checked]="c.visible" [disabled]="!!c.locked" (checkedChange)="toggleCol(c, $event)"></fvdr-checkbox>
+                      <span class="crow__label" (click)="!c.locked && toggleCol(c, !c.visible)">{{ c.label }}</span>
 
-                    <!-- V1 · Hover card trigger -->
-                    <span *ngIf="variant === 'hovercard' && c.adminManaged" class="crow__info"
-                          [class.crow__info--active]="hoverCol === c.id">
-                      <fvdr-icon name="participants"></fvdr-icon>
-                    </span>
-
-                    <!-- V3 · Footer: subtle marker that links the row to the footer -->
-                    <span *ngIf="variant === 'footer' && c.adminManaged" class="crow__dot" title="Hidden for other users"></span>
-
-                    <!-- V4 · Quick action revealed on row hover -->
-                    <button *ngIf="variant === 'quick' && c.adminManaged" class="crow__quick"
-                            (click)="openQuick(c, $event)">
-                      <fvdr-icon name="participants"></fvdr-icon><span>For all</span>
-                    </button>
-                  </div>
-
-                  <!-- V2 · Just-in-time nudge, slides in right after the admin turns the column on -->
-                  <div class="nudge" *ngIf="variant === 'nudge' && nudgeCol === c.id">
-                    <div class="nudge__inner">
-                      <fvdr-icon name="eye" class="nudge__icon"></fvdr-icon>
-                      <div class="nudge__text">
-                        Only you see this column.
-                        <a class="link" (click)="goSettings(c)">Show it for all users<fvdr-icon name="share"></fvdr-icon></a>
-                      </div>
-                      <button class="nudge__close" (click)="nudgeCol = null" aria-label="Dismiss"><fvdr-icon name="close"></fvdr-icon></button>
+                      <!-- Option 2 · "For all" badge, revealed on row hover -->
+                      <button *ngIf="variant === 'badge' && c.adminManaged && hoverCol === c.id"
+                              class="forall" (click)="goSettings(c)"
+                              title="Enable this column for all users in Settings">
+                        <fvdr-icon name="user"></fvdr-icon><span>For all</span>
+                      </button>
                     </div>
-                    <div class="nudge__timer"></div>
                   </div>
-                </ng-container>
-              </div>
 
-              <!-- V3 · Admin footer -->
-              <div class="cfooter" *ngIf="variant === 'footer'" [class.cfooter--pulse]="hoverManaged">
-                <div class="cfooter__icon"><fvdr-icon name="participants"></fvdr-icon></div>
-                <div class="cfooter__body">
-                  <div class="cfooter__title">Columns for all users</div>
-                  <div class="cfooter__text">
-                    <span class="crow__dot crow__dot--inline"></span>
-                    {{ managedHiddenCount }} columns are hidden for other users.
+                  <!-- Option 1 · Inline hint, revealed on row hover -->
+                  <div class="hint" *ngIf="variant === 'hint' && c.adminManaged && hoverCol === c.id">
+                    <div class="hint__box">
+                      <span class="hint__icon"><fvdr-icon name="eye-slash"></fvdr-icon></span>
+                      <div class="hint__body">
+                        <span class="hint__text">Only admin can see this column</span>
+                        <a class="hint__link" (click)="goSettings(c)">Change settings</a>
+                      </div>
+                    </div>
                   </div>
-                  <a class="link" (click)="goSettings(null)">Manage in Settings<fvdr-icon name="share"></fvdr-icon></a>
-                </div>
-              </div>
-
-              <!-- V1 · Hover card, anchored to the left of the hovered row -->
-              <div class="hcard" *ngIf="variant === 'hovercard' && hoverColDef as hc"
-                   [style.top.px]="hoverTop"
-                   (mouseenter)="cancelLeave()" (mouseleave)="onRowLeave()">
-                <div class="hcard__body">
-                  <div class="hcard__head">
-                    <span class="hcard__badge"><fvdr-icon name="lock-close"></fvdr-icon>Admin</span>
-                  </div>
-                  <div class="hcard__title">{{ hc.label }} is hidden for other users</div>
-                  <div class="hcard__text">Turning it on here changes only your view. Make it a default column for everyone in the room.</div>
-                  <a class="link link--strong" (click)="goSettings(hc)">Enable for everyone in Settings<fvdr-icon name="share"></fvdr-icon></a>
-                </div>
-              </div>
-
-              <!-- V4 · Quick action mini-dialog -->
-              <div class="qpop" *ngIf="variant === 'quick' && quickColDef as qc" [style.top.px]="quickTop">
-                <div class="qpop__title">Show “{{ qc.label }}” for all users?</div>
-                <div class="qpop__text">Default columns are managed in Settings. We'll open it with <b>{{ qc.label }}</b> preselected.</div>
-                <div class="qpop__actions">
-                  <fvdr-btn label="Cancel" variant="ghost" size="s" (clicked)="quickCol = null"></fvdr-btn>
-                  <fvdr-btn label="Open Settings" variant="primary" size="s" (clicked)="goSettings(qc)"></fvdr-btn>
                 </div>
               </div>
             </div>
@@ -240,78 +197,46 @@ interface DocRow {
     .cols-btn { width: 32px; height: 32px; border: none; border-radius: var(--radius-sm); background: transparent; display: flex; align-items: center; justify-content: center; font-size: 18px; color: var(--color-text-secondary); cursor: pointer; }
     .cols-btn:hover, .cols-btn--open { background: var(--color-hover-bg); color: var(--color-text-primary); }
 
-    /* ── Column manager ── */
+    /* ── Column manager (Figma: radius 4, pop-over shadow, 40px rows, 15/24 text) ── */
     .colmenu {
-      position: absolute; top: 44px; right: 0; z-index: 20; width: 256px;
-      background: var(--color-stone-0); border: 1px solid var(--color-divider); border-radius: var(--radius-md);
-      box-shadow: var(--shadow-popup); animation: pop-in 0.14s ease-out;
+      position: absolute; top: 44px; right: 0; z-index: 20; width: 268px;
+      background: var(--color-stone-0); border-radius: var(--radius-sm);
+      box-shadow: 0 0 5px 1px rgba(0, 0, 0, 0.2); overflow: hidden; animation: pop-in 0.14s ease-out;
     }
     @keyframes pop-in { from { opacity: 0; transform: translateY(-4px); } }
-    .colmenu__top { padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--color-divider); }
-    .colmenu__list { padding: var(--space-1) 0; max-height: 440px; overflow-y: auto; }
+    .colmenu__top { padding: var(--space-2) var(--space-4); border-bottom: 1px solid var(--color-divider); }
+    .colmenu__list { padding-top: var(--space-2); max-height: 560px; overflow-y: auto; }
 
-    .crow { position: relative; display: flex; align-items: center; gap: var(--space-2); height: 36px; padding: 0 var(--space-3) 0 var(--space-2); }
-    .crow:hover { background: var(--color-stone-200); }
+    .crow { display: flex; align-items: center; height: 40px; font-size: 15px; line-height: 24px; }
     .crow--on { background: var(--color-primary-50); }
-    .crow--on:hover { background: var(--color-primary-50); }
-    .crow--locked .crow__label { color: var(--color-text-disabled); cursor: default; }
-    .crow__drag { font-size: 14px; color: var(--color-stone-500); opacity: 0; transition: opacity 0.12s; }
-    .crow:hover .crow__drag { opacity: 1; }
-    .crow--locked .crow__drag { visibility: hidden; }
-    .crow__label { flex: 1; cursor: pointer; user-select: none; }
+    .crow--hover:not(.crow--on) { background: var(--color-stone-200); }
+    .crow--locked { opacity: 0.4; }
+    .crow__drag { display: flex; align-items: center; padding-left: var(--space-2); font-size: 16px; color: var(--color-stone-500); cursor: grab; }
+    .crow--locked .crow__drag { cursor: default; }
+    .crow__main { flex: 1; min-width: 0; display: flex; align-items: center; gap: var(--space-3); padding: var(--space-2) var(--space-4) var(--space-2) var(--space-3); }
+    .crow__label { flex: 1; min-width: 0; cursor: pointer; user-select: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .crow--locked .crow__label { cursor: default; }
 
-    .crow__info { display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: var(--radius-sm); font-size: 15px; color: var(--color-stone-600); cursor: help; transition: all 0.12s; }
-    .crow__info--active { background: var(--color-stone-0); color: var(--color-primary-600); box-shadow: var(--shadow-card); }
-
-    .crow__dot { width: 6px; height: 6px; border-radius: 50%; background: var(--color-info-500); flex-shrink: 0; margin-right: var(--space-2); }
-    .crow__dot--inline { display: inline-block; margin: 0 var(--space-1) 1px 0; }
-
-    .crow__quick {
-      display: inline-flex; align-items: center; gap: var(--space-1); height: 24px; padding: 0 var(--space-2);
-      border: 1px solid var(--color-divider); border-radius: var(--radius-lg); background: var(--color-stone-0);
-      font-family: inherit; font-size: var(--text-caption1-size); color: var(--color-text-secondary); cursor: pointer;
-      opacity: 0; transform: translateX(4px); transition: opacity 0.14s, transform 0.14s;
+    /* Option 2 · "For all" badge — green-50 bg, 12/16 semibold green-500, user icon 14 */
+    .forall {
+      display: inline-flex; align-items: center; justify-content: center; gap: var(--space-1);
+      min-width: 20px; padding: 2px 6px; border: none; border-radius: var(--radius-sm);
+      background: var(--color-primary-50); color: var(--color-primary-500);
+      font-family: inherit; font-size: var(--text-caption1-size); font-weight: 600; line-height: 16px;
+      white-space: nowrap; cursor: pointer; flex-shrink: 0; animation: fade-in 0.12s ease-out;
     }
-    .crow:hover .crow__quick { opacity: 1; transform: none; }
-    .crow__quick:hover { border-color: var(--color-primary-500); color: var(--color-primary-600); }
+    .forall fvdr-icon { font-size: 14px; }
+    .forall:hover { color: var(--color-primary-700); }
+    @keyframes fade-in { from { opacity: 0; } }
 
-    .link { display: inline-flex; align-items: center; white-space: nowrap; align-self: flex-start; gap: var(--space-1); color: var(--color-primary-500); cursor: pointer; text-decoration: none; font-weight: 500; }
-    .link fvdr-icon { font-size: 12px; }
-    .link:hover { color: var(--color-primary-700); text-decoration: underline; text-underline-offset: 2px; }
-
-    /* V1 hover card */
-    .hcard { position: absolute; right: 100%; padding-right: var(--space-2); width: 280px; z-index: 21; animation: slide-l 0.16s ease-out; }
-    @keyframes slide-l { from { opacity: 0; transform: translateX(6px); } }
-    .hcard__body { background: var(--color-stone-0); border: 1px solid var(--color-divider); border-radius: var(--radius-md); box-shadow: var(--shadow-popup); padding: var(--space-4); display: flex; flex-direction: column; gap: var(--space-2); }
-    .hcard__badge { display: inline-flex; align-items: center; gap: var(--space-1); height: 20px; padding: 0 var(--space-2); border-radius: var(--radius-sm); background: var(--color-stone-200); color: var(--color-text-secondary); font-size: var(--text-caption1-size); }
-    .hcard__title { font-weight: 600; }
-    .hcard__text { color: var(--color-text-secondary); font-size: var(--text-caption1-size); line-height: 18px; }
-    .link--strong { margin-top: var(--space-1); }
-
-    /* V2 nudge */
-    .nudge { overflow: hidden; animation: grow 0.22s ease-out; position: relative; }
-    @keyframes grow { from { max-height: 0; opacity: 0; } to { max-height: 80px; opacity: 1; } }
-    .nudge__inner { display: flex; gap: var(--space-2); align-items: flex-start; margin: var(--space-1) var(--space-2) var(--space-2) var(--space-8); padding: var(--space-2) var(--space-2) var(--space-2) var(--space-3); border-radius: var(--radius-md); background: var(--color-stone-200); font-size: var(--text-caption1-size); line-height: 18px; }
-    .nudge__icon { font-size: 14px; color: var(--color-text-secondary); margin-top: 2px; }
-    .nudge__text { flex: 1; color: var(--color-text-secondary); display: flex; flex-direction: column; }
-    .nudge__close { border: none; background: transparent; color: var(--color-stone-600); cursor: pointer; font-size: 12px; padding: 2px; display: flex; }
-    .nudge__close:hover { color: var(--color-text-primary); }
-    .nudge__timer { position: absolute; left: var(--space-8); right: var(--space-2); bottom: var(--space-2); height: 2px; border-radius: 1px; background: var(--color-primary-500); transform-origin: left; animation: timer 6s linear forwards; opacity: 0.5; }
-    @keyframes timer { from { transform: scaleX(1); } to { transform: scaleX(0); } }
-
-    /* V3 footer */
-    .cfooter { display: flex; gap: var(--space-3); padding: var(--space-3) var(--space-4); border-top: 1px solid var(--color-divider); background: var(--color-stone-100); border-radius: 0 0 var(--radius-md) var(--radius-md); transition: background 0.2s; }
-    .cfooter--pulse { background: var(--color-stone-300); }
-    .cfooter__icon { width: 28px; height: 28px; border-radius: 50%; background: var(--color-stone-0); border: 1px solid var(--color-divider); display: flex; align-items: center; justify-content: center; color: var(--color-text-secondary); flex-shrink: 0; }
-    .cfooter__body { display: flex; flex-direction: column; gap: 2px; font-size: var(--text-caption1-size); line-height: 18px; }
-    .cfooter__title { font-weight: 600; font-size: var(--font-size-base); }
-    .cfooter__text { color: var(--color-text-secondary); }
-
-    /* V4 quick dialog */
-    .qpop { position: absolute; right: calc(100% + var(--space-2)); width: 272px; z-index: 21; background: var(--color-stone-0); border: 1px solid var(--color-divider); border-radius: var(--radius-md); box-shadow: var(--shadow-popup); padding: var(--space-4); display: flex; flex-direction: column; gap: var(--space-2); animation: slide-l 0.16s ease-out; }
-    .qpop__title { font-weight: 600; }
-    .qpop__text { font-size: var(--text-caption1-size); line-height: 18px; color: var(--color-text-secondary); }
-    .qpop__actions { display: flex; justify-content: flex-end; gap: var(--space-2); margin-top: var(--space-2); }
+    /* Option 1 · Inline hint — stone-100 box, radius 8, eye-slash 16, 12/16 text */
+    .hint { padding: var(--space-1) var(--space-3); animation: fade-in 0.12s ease-out; }
+    .hint__box { display: flex; align-items: flex-start; gap: var(--space-3); padding: var(--space-2) var(--space-3); border-radius: var(--radius-md); background: var(--color-stone-200); }
+    .hint__icon { display: flex; padding: 2px 0; font-size: 16px; color: var(--color-text-secondary); }
+    .hint__body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--space-1); }
+    .hint__text { font-size: var(--text-caption1-size); line-height: 16px; color: var(--color-text-secondary); }
+    .hint__link { align-self: flex-start; font-size: var(--text-caption1-size); line-height: 14px; color: var(--color-primary-500); cursor: pointer; }
+    .hint__link:hover { color: var(--color-primary-700); text-decoration: underline; text-underline-offset: 2px; }
 
     /* Switcher */
     .switcher { position: fixed; left: 50%; bottom: var(--space-6); transform: translateX(-50%); z-index: 90; display: flex; align-items: center; gap: var(--space-3); padding: var(--space-2) var(--space-4); background: var(--color-stone-0); border: 1px solid var(--color-divider); border-radius: var(--radius-lg); box-shadow: var(--shadow-modal); }
@@ -335,18 +260,14 @@ export class ColumnAdminHintComponent implements OnInit, OnDestroy {
   ];
   headerActions: HeaderAction[] = [{ id: 'theme', icon: 'theme-dark' }, { id: 'help', icon: 'help' }];
 
-  variant: Variant = 'hovercard';
+  variant: Variant = 'hint';
   variantItems: SegmentItem[] = [
-    { id: 'hovercard', label: '1 · Hover card' },
-    { id: 'nudge', label: '2 · Just-in-time' },
-    { id: 'footer', label: '3 · Footer' },
-    { id: 'quick', label: '4 · Quick action' },
+    { id: 'hint', label: '1 · Inline hint' },
+    { id: 'badge', label: '2 · “For all” badge' },
   ];
   variantHint: Record<Variant, string> = {
-    hovercard: 'Hover the people icon next to Added on / Added by',
-    nudge: 'Turn on Added on or Added by',
-    footer: 'Persistent admin footer; blue dot marks affected columns',
-    quick: 'Hover Added on / Added by and click “For all”',
+    hint: 'Hover Added on or Added by',
+    badge: 'Hover Added on or Added by, then click “For all”',
   };
 
   menuOpen = true;
@@ -358,13 +279,13 @@ export class ColumnAdminHintComponent implements OnInit, OnDestroy {
     { id: 'publishing', label: 'Publishing', width: '100px', locked: true, visible: true },
     { id: 'size', label: 'Size', width: '120px', visible: true },
     { id: 'addedOn', label: 'Added on', width: '110px', visible: false, adminManaged: true },
+    { id: 'addedBy', label: 'Added by', width: '170px', visible: false, adminManaged: true },
     { id: 'notes', label: 'Notes', width: '72px', visible: true },
     { id: 'labels', label: 'Labels', width: '100px', visible: false },
     { id: 'viewedOn', label: 'Viewed on', width: '110px', visible: false },
     { id: 'permission', label: 'Permission', width: '110px', visible: false },
     { id: 'id', label: 'ID', width: '90px', visible: false },
     { id: 'redaction', label: 'Redaction', width: '110px', visible: true },
-    { id: 'addedBy', label: 'Added by', width: '170px', visible: false, adminManaged: true },
   ];
 
   rows: DocRow[] = [
@@ -382,21 +303,7 @@ export class ColumnAdminHintComponent implements OnInit, OnDestroy {
   get gridCols(): string { return ['32px', ...this.visibleCols.map(c => c.width), '48px'].join(' '); }
   get managedHiddenCount(): number { return this.cols.filter(c => c.adminManaged).length; }
 
-  // hover state (V1, V3)
   hoverCol: ColId | null = null;
-  hoverTop = 0;
-  hoverManaged = false;
-  private leaveTimer: ReturnType<typeof setTimeout> | null = null;
-  get hoverColDef(): ColDef | undefined { return this.cols.find(c => c.id === this.hoverCol); }
-
-  // V2
-  nudgeCol: ColId | null = null;
-  private nudgeTimer: ReturnType<typeof setTimeout> | null = null;
-
-  // V4
-  quickCol: ColId | null = null;
-  quickTop = 0;
-  get quickColDef(): ColDef | undefined { return this.cols.find(c => c.id === this.quickCol); }
 
   flashCol: ColId | null = null;
   toast = '';
@@ -404,18 +311,14 @@ export class ColumnAdminHintComponent implements OnInit, OnDestroy {
 
   setVariant(v: string): void {
     this.variant = v as Variant;
-    this.hoverCol = this.nudgeCol = this.quickCol = null;
+    this.hoverCol = null;
     this.menuOpen = true;
   }
 
   toggleMenu(e: Event): void {
     e.stopPropagation();
     this.menuOpen = !this.menuOpen;
-    this.quickCol = this.hoverCol = null;
   }
-
-  @HostListener('document:click')
-  onDocClick(): void { this.quickCol = null; }
 
   toggleCol(c: ColDef, on: boolean): void {
     if (c.locked) return;
@@ -424,44 +327,10 @@ export class ColumnAdminHintComponent implements OnInit, OnDestroy {
       this.flashCol = c.id;
       setTimeout(() => (this.flashCol = null), 50);
     }
-    if (this.variant === 'nudge') {
-      if (this.nudgeTimer) clearTimeout(this.nudgeTimer);
-      this.nudgeCol = on && c.adminManaged ? c.id : null;
-      if (this.nudgeCol) this.nudgeTimer = setTimeout(() => (this.nudgeCol = null), 6000);
-    }
   }
 
-  onRowEnter(c: ColDef, e: MouseEvent): void {
-    this.cancelLeave();
-    this.hoverManaged = !!c.adminManaged;
-    if (!c.adminManaged) { this.hoverCol = null; return; }
-    const row = e.currentTarget as HTMLElement;
-    const menu = row.closest('.colmenu') as HTMLElement;
-    this.hoverTop = row.getBoundingClientRect().top - menu.getBoundingClientRect().top - 8;
-    this.hoverCol = c.id;
-  }
-
-  onRowLeave(): void {
-    this.leaveTimer = setTimeout(() => { this.hoverCol = null; this.hoverManaged = false; }, 180);
-  }
-
-  cancelLeave(): void {
-    if (this.leaveTimer) { clearTimeout(this.leaveTimer); this.leaveTimer = null; }
-  }
-
-  openQuick(c: ColDef, e: MouseEvent): void {
-    e.stopPropagation();
-    const row = (e.currentTarget as HTMLElement).closest('.crow') as HTMLElement;
-    const menu = row.closest('.colmenu') as HTMLElement;
-    this.quickTop = row.getBoundingClientRect().top - menu.getBoundingClientRect().top - 8;
-    this.quickCol = c.id;
-  }
-
-  goSettings(c: ColDef | null): void {
-    this.quickCol = this.hoverCol = this.nudgeCol = null;
-    this.toast = c
-      ? `Opening Settings › Documents › Default columns — “${c.label}” preselected`
-      : 'Opening Settings › Documents › Default columns';
+  goSettings(c: ColDef): void {
+    this.toast = `Opening Settings › Documents › Default columns — “${c.label}” preselected`;
     if (this.toastTimer) clearTimeout(this.toastTimer);
     this.toastTimer = setTimeout(() => (this.toast = ''), 2600);
   }
@@ -470,6 +339,6 @@ export class ColumnAdminHintComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.tracker.destroyListeners();
-    [this.leaveTimer, this.nudgeTimer, this.toastTimer].forEach(t => t && clearTimeout(t));
+    if (this.toastTimer) clearTimeout(this.toastTimer);
   }
 }
