@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DS_COMPONENTS } from '../../shared/ds';
 import type { SidebarNavItem, HeaderAction, SegmentItem, TabItem } from '../../shared/ds';
@@ -109,7 +109,7 @@ interface DocRow {
             </div>
 
             <!-- ═══════════ Column manager popover (Figma 29961-166319 / 30022-168764) ═══════════ -->
-            <div class="colmenu" *ngIf="menuOpen" (click)="$event.stopPropagation()">
+            <div class="colmenu" *ngIf="menuOpen" (click)="$event.stopPropagation(); confirmCol = null">
               <div class="colmenu__top">
                 <fvdr-toggle size="s" [checked]="foldersFirst" (checkedChange)="foldersFirst = $event" label="Folders first"></fvdr-toggle>
               </div>
@@ -130,9 +130,8 @@ interface DocRow {
                       <span class="crow__label" (click)="!c.locked && toggleCol(c, !c.visible)">{{ c.label }}</span>
 
                       <!-- Option 2 · "For all" badge, revealed on row hover -->
-                      <button *ngIf="variant === 'badge' && c.adminManaged && !c.forAll && hoverCol === c.id"
-                              class="forall" (click)="goSettings(c)"
-                              title="Enable this column for all users in Settings">
+                      <button *ngIf="variant === 'badge' && c.adminManaged && !c.forAll && (hoverCol === c.id || confirmCol === c.id)"
+                              class="forall" (click)="openConfirm(c, $event)">
                         <fvdr-icon name="user"></fvdr-icon><span>For all</span>
                       </button>
                     </div>
@@ -148,6 +147,17 @@ interface DocRow {
                       </div>
                     </div>
                   </div>
+                </div>
+              </div>
+
+              <!-- Option 2 · confirm popover (Figma 30022-169108), anchored left of the clicked row -->
+              <div class="fa-pop" *ngIf="variant === 'badge' && confirmColDef as cc" [style.top.px]="confirmTop"
+                   role="dialog" [attr.aria-label]="'Show ' + cc.label.toLowerCase() + ' for all users'">
+                <div class="fa-pop__head">Show {{ cc.label.toLowerCase() }} for all users</div>
+                <div class="fa-pop__body">To enable this column for all users you can do it in Settings</div>
+                <div class="fa-pop__foot">
+                  <fvdr-btn label="Cancel" variant="secondary" size="s" (clicked)="confirmCol = null"></fvdr-btn>
+                  <fvdr-btn label="Open Settings" variant="primary" size="s" (clicked)="goSettings(cc)"></fvdr-btn>
                 </div>
               </div>
             </div>
@@ -219,11 +229,11 @@ interface DocRow {
     .colmenu {
       position: absolute; top: 44px; right: 0; z-index: 20; width: 268px;
       background: var(--color-stone-0); border-radius: var(--radius-sm);
-      box-shadow: 0 0 5px 1px rgba(0, 0, 0, 0.2); overflow: hidden; animation: pop-in 0.14s ease-out;
+      box-shadow: 0 0 5px 1px rgba(0, 0, 0, 0.2); animation: pop-in 0.14s ease-out;
     }
     @keyframes pop-in { from { opacity: 0; transform: translateY(-4px); } }
-    .colmenu__top { padding: var(--space-2) var(--space-4); border-bottom: 1px solid var(--color-divider); }
-    .colmenu__list { padding-top: var(--space-2); max-height: 560px; overflow-y: auto; }
+    .colmenu__top { border-radius: var(--radius-sm) var(--radius-sm) 0 0; padding: var(--space-2) var(--space-4); border-bottom: 1px solid var(--color-divider); }
+    .colmenu__list { padding-top: var(--space-2); max-height: 560px; overflow-y: auto; border-radius: 0 0 var(--radius-sm) var(--radius-sm); }
 
     .crow { display: flex; align-items: center; height: 40px; font-size: 15px; line-height: 24px; }
     .crow--on { background: var(--color-primary-50); }
@@ -246,6 +256,18 @@ interface DocRow {
     .forall fvdr-icon { font-size: 14px; }
     .forall:hover { color: var(--color-primary-700); }
     @keyframes fade-in { from { opacity: 0; } }
+
+    /* Option 2 · confirm popover — 338px, radius 4, 15/20 semibold title, 14/20 body, 32px buttons gap 16 */
+    .fa-pop {
+      position: absolute; right: calc(100% + var(--space-2)); width: 338px; z-index: 21;
+      background: var(--color-stone-0); border-radius: var(--radius-sm); overflow: hidden;
+      box-shadow: 0 42px 80px rgba(0,0,0,0.08), 0 15px 29px rgba(0,0,0,0.055), 0 7px 14px rgba(0,0,0,0.045), 0 4px 7px rgba(0,0,0,0.035), 0 1px 3px rgba(0,0,0,0.025), 0 0 0 1px var(--color-divider);
+      animation: slide-l 0.16s ease-out;
+    }
+    @keyframes slide-l { from { opacity: 0; transform: translateX(6px); } }
+    .fa-pop__head { padding: var(--space-3) var(--space-4); font-size: 15px; line-height: 20px; font-weight: 600; color: var(--color-text-primary); }
+    .fa-pop__body { padding: 0 var(--space-4) var(--space-2); font-size: var(--font-size-base); line-height: 20px; color: var(--color-text-primary); }
+    .fa-pop__foot { display: flex; justify-content: flex-end; gap: var(--space-4); padding: var(--space-3) var(--space-4); }
 
     /* Option 1 · Inline hint — stone-100 box, radius 8, eye-slash 16, 12/16 text */
     .hint { padding: var(--space-1) var(--space-3); animation: fade-in 0.12s ease-out; }
@@ -392,13 +414,33 @@ export class ColumnAdminHintComponent implements OnInit, OnDestroy {
 
   hoverCol: ColId | null = null;
 
+  // Option 2 confirm popover
+  confirmCol: ColId | null = null;
+  confirmTop = 0;
+  get confirmColDef(): ColDef | undefined { return this.cols.find(c => c.id === this.confirmCol); }
+
+  openConfirm(c: ColDef, e: MouseEvent): void {
+    e.stopPropagation();
+    const row = (e.currentTarget as HTMLElement).closest('.crow') as HTMLElement;
+    const menu = row.closest('.colmenu') as HTMLElement;
+    this.confirmTop = row.getBoundingClientRect().top - menu.getBoundingClientRect().top;
+    this.confirmCol = this.confirmCol === c.id ? null : c.id;
+  }
+
+  // Click anywhere outside the column manager closes the confirm popover
+  @HostListener('document:click')
+  onDocClick(): void { this.confirmCol = null; }
+
+  @HostListener('document:keydown.escape')
+  onEsc(): void { this.confirmCol = null; }
+
   flashCol: ColId | null = null;
   toast = '';
   private toastTimer: ReturnType<typeof setTimeout> | null = null;
 
   setVariant(v: string): void {
     this.variant = v as Variant;
-    this.hoverCol = null;
+    this.hoverCol = this.confirmCol = null;
     this.menuOpen = true;
   }
 
@@ -417,6 +459,7 @@ export class ColumnAdminHintComponent implements OnInit, OnDestroy {
   }
 
   goSettings(c: ColDef): void {
+    this.confirmCol = null;
     this.openView('settings');
     this.focusSetting = c.id;
     setTimeout(() => document.getElementById('setting-' + c.id)?.scrollIntoView({ block: 'center', behavior: 'smooth' }));
