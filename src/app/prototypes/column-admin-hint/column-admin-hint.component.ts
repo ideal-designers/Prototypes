@@ -19,6 +19,8 @@ interface ColDef {
   adminManaged?: boolean;
   /** Admin enabled it for everyone in Settings › Project › Documents. */
   forAll?: boolean;
+  /** What becomes visible to everyone, used in the confirm copy ("Uploader names"). */
+  revealNoun?: string;
 }
 
 type Variant = 'hint' | 'badge';
@@ -129,10 +131,12 @@ interface DocRow {
                       <fvdr-checkbox [checked]="c.visible" [disabled]="!!c.locked" (checkedChange)="toggleCol(c, $event)"></fvdr-checkbox>
                       <span class="crow__label" (click)="!c.locked && toggleCol(c, !c.visible)">{{ c.label }}</span>
 
-                      <!-- Option 2 · "For all" badge, revealed on row hover -->
-                      <button *ngIf="variant === 'badge' && c.adminManaged && !c.forAll && (hoverCol === c.id || confirmCol === c.id)"
-                              class="forall" (click)="openConfirm(c, $event)">
-                        <fvdr-icon name="user"></fvdr-icon><span>For all</span>
+                      <!-- Option 2 · Enable / Disable for all users badge, revealed on row hover.
+                           Same state as the toggle in Settings › Project › Documents. -->
+                      <button *ngIf="variant === 'badge' && c.adminManaged && (hoverCol === c.id || confirmCol === c.id)"
+                              class="forall" [class.forall--off]="c.forAll" (click)="openConfirm(c, $event)">
+                        <fvdr-icon [name]="c.forAll ? 'eye-slash' : 'user'"></fvdr-icon>
+                        <span>{{ c.forAll ? 'Disable for all users' : 'Enable for all users' }}</span>
                       </button>
                     </div>
                   </div>
@@ -158,12 +162,17 @@ interface DocRow {
 
               <!-- Option 2 · confirm popover (Figma 30022-169108), anchored left of the clicked row -->
               <div class="fa-pop" *ngIf="variant === 'badge' && confirmColDef as cc" [style.top.px]="confirmTop"
-                   role="dialog" [attr.aria-label]="'Show ' + cc.label.toLowerCase() + ' for all users'">
-                <div class="fa-pop__head">Show {{ cc.label.toLowerCase() }} for all users</div>
-                <div class="fa-pop__body">To enable this column for all users you can do it in Settings</div>
+                   role="dialog" [attr.aria-label]="confirmTitle(cc)">
+                <div class="fa-pop__head">{{ confirmTitle(cc) }}</div>
+                <div class="fa-pop__body">
+                  <ng-container *ngIf="!cc.forAll">This overrides group visibility. {{ cc.revealNoun }} become visible to everyone with document access. Enable column?</ng-container>
+                  <ng-container *ngIf="cc.forAll">{{ cc.revealNoun }} will be visible again only to users whose groups allow it. Disable column?</ng-container>
+                  <a class="fa-pop__settings" (click)="goSettings(cc)">Manage in Settings</a>
+                </div>
                 <div class="fa-pop__foot">
                   <fvdr-btn label="Cancel" variant="secondary" size="s" (clicked)="confirmCol = null"></fvdr-btn>
-                  <fvdr-btn label="Open Settings" variant="primary" size="s" (clicked)="goSettings(cc)"></fvdr-btn>
+                  <fvdr-btn [label]="cc.forAll ? 'Disable column' : 'Enable column'" variant="primary" size="s"
+                            (clicked)="applyForAll(cc, !cc.forAll)"></fvdr-btn>
                 </div>
               </div>
             </div>
@@ -233,7 +242,7 @@ interface DocRow {
 
     /* ── Column manager (Figma: radius 4, pop-over shadow, 40px rows, 15/24 text) ── */
     .colmenu {
-      position: absolute; top: 44px; right: 0; z-index: 20; width: 268px;
+      position: absolute; top: 44px; right: 0; z-index: 20; width: 320px;
       background: var(--color-stone-0); border-radius: var(--radius-sm);
       box-shadow: 0 0 5px 1px rgba(0, 0, 0, 0.2); animation: pop-in 0.14s ease-out;
     }
@@ -261,6 +270,8 @@ interface DocRow {
     }
     .forall fvdr-icon { font-size: 14px; }
     .forall:hover { color: var(--color-primary-700); }
+    .forall--off { background: var(--color-stone-300); color: var(--color-text-secondary); }
+    .forall--off:hover { color: var(--color-text-primary); }
     @keyframes fade-in { from { opacity: 0; } }
 
     /* Option 2 · confirm popover — 338px, radius 4, 15/20 semibold title, 14/20 body, 32px buttons gap 16 */
@@ -273,7 +284,9 @@ interface DocRow {
     @keyframes slide-l { from { opacity: 0; transform: translateX(6px); } }
     .fa-pop__head { padding: var(--space-3) var(--space-4); font-size: 15px; line-height: 20px; font-weight: 600; color: var(--color-text-primary); }
     .fa-pop__body { padding: 0 var(--space-4) var(--space-2); font-size: var(--font-size-base); line-height: 20px; color: var(--color-text-primary); }
-    .fa-pop__foot { display: flex; justify-content: flex-end; gap: var(--space-4); padding: var(--space-3) var(--space-4); }
+    .fa-pop__foot { display: flex; align-items: center; justify-content: flex-end; gap: var(--space-4); padding: var(--space-3) var(--space-4); }
+    .fa-pop__settings { display: block; width: fit-content; margin-top: var(--space-2); white-space: nowrap; font-size: var(--font-size-base); color: var(--color-primary-500); cursor: pointer; }
+    .fa-pop__settings:hover { color: var(--color-primary-700); text-decoration: underline; text-underline-offset: 2px; }
 
     /* Option 1 · Inline hint — stone-100 box, radius 8, eye-slash 16, 12/16 text */
     /* Smooth expand/collapse: animate grid rows 0fr → 1fr (real content height, no magic max-height),
@@ -365,10 +378,20 @@ export class ColumnAdminHintComponent implements OnInit, OnDestroy {
   setSetting(id: string, on: boolean): void {
     const col = this.cols.find(c => c.id === id);
     if (!col) { this.roomSettings[id] = on; return; }
+    this.applyForAll(col, on);
+  }
+
+  /** Shared by the Settings toggle and the column-manager confirm popover — one source of truth. */
+  applyForAll(col: ColDef, on: boolean): void {
     col.forAll = on;
+    this.confirmCol = null;
     // Enabling for everyone also shows it in the admin's own view; turning it off keeps their personal choice.
     if (on) col.visible = true;
     this.showToast(on ? `“${col.label}” column is now shown to all users` : `“${col.label}” column is hidden for other users`);
+  }
+
+  confirmTitle(c: ColDef): string {
+    return `${c.forAll ? 'Hide' : 'Show'} ${c.label.toLowerCase()} for all users`;
   }
 
   onNavClick(item: SidebarNavItem): void {
@@ -397,11 +420,11 @@ export class ColumnAdminHintComponent implements OnInit, OnDestroy {
   variant: Variant = 'hint';
   variantItems: SegmentItem[] = [
     { id: 'hint', label: '1 · Inline hint' },
-    { id: 'badge', label: '2 · “For all” badge' },
+    { id: 'badge', label: '2 · Enable for all badge' },
   ];
   variantHint: Record<Variant, string> = {
     hint: 'Hover Added on or Added by',
-    badge: 'Hover Added on or Added by, then click “For all”',
+    badge: 'Hover Added on or Added by, then click the badge',
   };
 
   menuOpen = true;
@@ -412,8 +435,8 @@ export class ColumnAdminHintComponent implements OnInit, OnDestroy {
     { id: 'name', label: 'Name', width: 'minmax(180px, 1fr)', locked: true, visible: true },
     { id: 'publishing', label: 'Publishing', width: '100px', locked: true, visible: true },
     { id: 'size', label: 'Size', width: '120px', visible: true },
-    { id: 'addedOn', label: 'Added on', width: '110px', visible: false, adminManaged: true },
-    { id: 'addedBy', label: 'Added by', width: '170px', visible: false, adminManaged: true },
+    { id: 'addedOn', label: 'Added on', width: '110px', visible: false, adminManaged: true, revealNoun: 'Upload dates' },
+    { id: 'addedBy', label: 'Added by', width: '170px', visible: false, adminManaged: true, revealNoun: 'Uploader names' },
     { id: 'notes', label: 'Notes', width: '72px', visible: true },
     { id: 'labels', label: 'Labels', width: '100px', visible: false },
     { id: 'viewedOn', label: 'Viewed on', width: '110px', visible: false },
