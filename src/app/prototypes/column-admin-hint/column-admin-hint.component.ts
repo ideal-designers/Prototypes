@@ -118,8 +118,8 @@ interface DocRow {
                 <!-- One hover zone per column: the row + (option 1) its inline hint, so moving the
                      pointer from the row down into the hint's "Change settings" link keeps it open. -->
                 <div class="citem" *ngFor="let c of cols"
-                     (mouseenter)="hoverCol = c.id"
-                     (mouseleave)="hoverCol = null">
+                     (mouseenter)="onItemEnter(c)"
+                     (mouseleave)="onItemLeave()">
                   <div class="crow"
                        [class.crow--on]="c.visible && !c.locked"
                        [class.crow--locked]="c.locked"
@@ -138,12 +138,18 @@ interface DocRow {
                   </div>
 
                   <!-- Option 1 · Inline hint, revealed on row hover -->
-                  <div class="hint" *ngIf="variant === 'hint' && c.adminManaged && !c.forAll && hoverCol === c.id">
-                    <div class="hint__box">
-                      <span class="hint__icon"><fvdr-icon name="eye-slash"></fvdr-icon></span>
-                      <div class="hint__body">
-                        <span class="hint__text">Only admin can see this column</span>
-                        <a class="hint__link" (click)="goSettings(c)">Change settings</a>
+                  <!-- Always rendered (collapsed) so it can animate both ways: grid rows 0fr ↔ 1fr -->
+                  <div class="hint" *ngIf="variant === 'hint' && c.adminManaged && !c.forAll"
+                       [class.hint--open]="hintCol === c.id" [attr.aria-hidden]="hintCol !== c.id">
+                    <div class="hint__clip">
+                      <div class="hint__pad">
+                        <div class="hint__box">
+                          <span class="hint__icon"><fvdr-icon name="eye-slash"></fvdr-icon></span>
+                          <div class="hint__body">
+                            <span class="hint__text">Only admin can see this column</span>
+                            <a class="hint__link" [attr.tabindex]="hintCol === c.id ? 0 : -1" (click)="goSettings(c)">Change settings</a>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -270,7 +276,26 @@ interface DocRow {
     .fa-pop__foot { display: flex; justify-content: flex-end; gap: var(--space-4); padding: var(--space-3) var(--space-4); }
 
     /* Option 1 · Inline hint — stone-100 box, radius 8, eye-slash 16, 12/16 text */
-    .hint { padding: var(--space-1) var(--space-3); animation: fade-in 0.12s ease-out; }
+    /* Smooth expand/collapse: animate grid rows 0fr → 1fr (real content height, no magic max-height),
+       with the box fading + sliding in slightly behind the height so it never looks clipped. */
+    .hint {
+      display: grid; grid-template-rows: 0fr;
+      transition: grid-template-rows 0.24s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .hint--open { grid-template-rows: 1fr; }
+    .hint__clip { min-height: 0; overflow: hidden; }
+    .hint__pad { padding: var(--space-1) var(--space-3); }
+    .hint__box {
+      opacity: 0; transform: translateY(-4px);
+      transition: opacity 0.14s ease, transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .hint--open .hint__box {
+      opacity: 1; transform: none;
+      transition: opacity 0.2s ease 0.06s, transform 0.24s cubic-bezier(0.4, 0, 0.2, 1) 0.04s;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .hint, .hint__box, .hint--open .hint__box { transition: none; }
+    }
     .hint__box { display: flex; align-items: flex-start; gap: var(--space-3); padding: var(--space-2) var(--space-3); border-radius: var(--radius-md); background: var(--color-stone-200); }
     .hint__icon { display: flex; padding: 2px 0; font-size: 16px; color: var(--color-text-secondary); }
     .hint__body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--space-1); }
@@ -357,7 +382,7 @@ export class ColumnAdminHintComponent implements OnInit, OnDestroy {
 
   private openView(v: 'docs' | 'settings'): void {
     this.view = v;
-    this.hoverCol = null;
+    this.hoverCol = this.hintCol = null;
     const activeId = v === 'docs' ? 'projects' : 'settings';
     this.navItems = this.navItems.map(n => ({ ...n, active: n.id === activeId }));
   }
@@ -414,6 +439,24 @@ export class ColumnAdminHintComponent implements OnInit, OnDestroy {
 
   hoverCol: ColId | null = null;
 
+  // Option 1 inline hint: opens after a short hover-intent delay so sweeping the pointer
+  // across the list doesn't make hints flicker open/closed.
+  hintCol: ColId | null = null;
+  private hintTimer: ReturnType<typeof setTimeout> | null = null;
+
+  onItemEnter(c: ColDef): void {
+    this.hoverCol = c.id;
+    if (this.hintTimer) clearTimeout(this.hintTimer);
+    if (this.hintCol === c.id) return;
+    this.hintTimer = setTimeout(() => (this.hintCol = c.adminManaged ? c.id : null), c.adminManaged ? 120 : 0);
+  }
+
+  onItemLeave(): void {
+    this.hoverCol = null;
+    if (this.hintTimer) clearTimeout(this.hintTimer);
+    this.hintTimer = setTimeout(() => (this.hintCol = null), 80);
+  }
+
   // Option 2 confirm popover
   confirmCol: ColId | null = null;
   confirmTop = 0;
@@ -440,7 +483,7 @@ export class ColumnAdminHintComponent implements OnInit, OnDestroy {
 
   setVariant(v: string): void {
     this.variant = v as Variant;
-    this.hoverCol = this.confirmCol = null;
+    this.hoverCol = this.confirmCol = this.hintCol = null;
     this.menuOpen = true;
   }
 
@@ -481,5 +524,6 @@ export class ColumnAdminHintComponent implements OnInit, OnDestroy {
     this.tracker.destroyListeners();
     if (this.toastTimer) clearTimeout(this.toastTimer);
     if (this.focusTimer) clearTimeout(this.focusTimer);
+    if (this.hintTimer) clearTimeout(this.hintTimer);
   }
 }
