@@ -1,7 +1,7 @@
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DS_COMPONENTS } from '../../shared/ds';
-import type { SidebarNavItem, HeaderAction, SegmentItem } from '../../shared/ds';
+import type { SidebarNavItem, HeaderAction, SegmentItem, TabItem } from '../../shared/ds';
 import { FvdrFileType } from '../../shared/ds/components/file-icon/file-icon.component';
 import { TrackerService } from '../../services/tracker.service';
 
@@ -17,6 +17,8 @@ interface ColDef {
   visible: boolean;
   /** Hidden for everyone by default — an admin can turn it on for all users in Settings. */
   adminManaged?: boolean;
+  /** Admin enabled it for everyone in Settings › Project › Documents. */
+  forAll?: boolean;
 }
 
 type Variant = 'hint' | 'badge';
@@ -44,12 +46,12 @@ interface DocRow {
   imports: [CommonModule, ...DS_COMPONENTS],
   template: `
     <div class="page-layout">
-      <fvdr-sidebar-nav variant="vdr" accountName="Room name" [items]="navItems" [(collapsed)]="sidebarCollapsed" />
+      <fvdr-sidebar-nav variant="vdr" accountName="Room name" [items]="navItems" [(collapsed)]="sidebarCollapsed" (itemClick)="onNavClick($event)" />
 
       <div class="main-area">
-        <fvdr-header [breadcrumbs]="breadcrumbItems" [actions]="headerActions" userName="LZ" />
+        <fvdr-header [breadcrumbs]="breadcrumbItems" [actions]="headerActions" userName="LZ" (breadcrumbClick)="onCrumb($event)" />
 
-        <div class="content-wrap">
+        <div class="content-wrap" *ngIf="view === 'docs'">
           <div class="toolbar">
             <div class="toolbar-left">
               <fvdr-btn label="Add" variant="primary" size="m" iconName="plus"></fvdr-btn>
@@ -128,7 +130,7 @@ interface DocRow {
                       <span class="crow__label" (click)="!c.locked && toggleCol(c, !c.visible)">{{ c.label }}</span>
 
                       <!-- Option 2 · "For all" badge, revealed on row hover -->
-                      <button *ngIf="variant === 'badge' && c.adminManaged && hoverCol === c.id"
+                      <button *ngIf="variant === 'badge' && c.adminManaged && !c.forAll && hoverCol === c.id"
                               class="forall" (click)="goSettings(c)"
                               title="Enable this column for all users in Settings">
                         <fvdr-icon name="user"></fvdr-icon><span>For all</span>
@@ -137,7 +139,7 @@ interface DocRow {
                   </div>
 
                   <!-- Option 1 · Inline hint, revealed on row hover -->
-                  <div class="hint" *ngIf="variant === 'hint' && c.adminManaged && hoverCol === c.id">
+                  <div class="hint" *ngIf="variant === 'hint' && c.adminManaged && !c.forAll && hoverCol === c.id">
                     <div class="hint__box">
                       <span class="hint__icon"><fvdr-icon name="eye-slash"></fvdr-icon></span>
                       <div class="hint__body">
@@ -151,11 +153,27 @@ interface DocRow {
             </div>
           </div>
         </div>
+
+        <!-- ═══════════ Settings › Project › Documents (Figma 29961-165793) ═══════════ -->
+        <div class="settings" *ngIf="view === 'settings'">
+          <fvdr-tabs [tabs]="settingsTabs" activeId="documents"></fvdr-tabs>
+          <div class="settings__list">
+            <div class="srow" *ngFor="let s of settingRows"
+                 [id]="'setting-' + s.id"
+                 [class.srow--focus]="focusSetting === s.id">
+              <div class="srow__text">
+                <div class="srow__title">{{ s.title }}</div>
+                <div class="srow__desc">{{ s.desc }}</div>
+              </div>
+              <fvdr-toggle [checked]="settingValue(s.id)" (checkedChange)="setSetting(s.id, $event)"></fvdr-toggle>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
     <!-- Variant switcher -->
-    <div class="switcher">
+    <div class="switcher" *ngIf="view === 'docs'">
       <span class="switcher__label">Interaction</span>
       <fvdr-segment [items]="variantItems" [activeId]="variant" (activeIdChange)="setVariant($event)" size="sm"></fvdr-segment>
       <span class="switcher__hint">{{ variantHint[variant] }}</span>
@@ -163,7 +181,7 @@ interface DocRow {
 
     <!-- Fake Settings destination -->
     <div class="toast" [class.toast--show]="toast">
-      <fvdr-icon name="settings"></fvdr-icon>{{ toast }}
+      <fvdr-icon name="check"></fvdr-icon>{{ toast }}
     </div>
   `,
   styles: [`
@@ -238,6 +256,19 @@ interface DocRow {
     .hint__link { align-self: flex-start; font-size: var(--text-caption1-size); line-height: 14px; color: var(--color-primary-500); cursor: pointer; }
     .hint__link:hover { color: var(--color-primary-700); text-decoration: underline; text-underline-offset: 2px; }
 
+    /* ── Settings page ── */
+    .settings { flex: 1; min-height: 0; overflow-y: auto; padding: var(--space-6); background: var(--color-stone-0); }
+    .settings__list { margin-top: var(--space-5); display: flex; flex-direction: column; gap: var(--space-4); max-width: 560px; }
+    .srow {
+      display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-6);
+      padding: var(--space-2) var(--space-3); margin: 0 calc(-1 * var(--space-3));
+      border-radius: var(--radius-md); transition: background 1.2s ease;
+    }
+    .srow--focus { background: var(--color-primary-50); transition: none; }
+    .srow__title { font-size: 15px; line-height: 24px; font-weight: 600; color: var(--color-text-primary); }
+    .srow__desc { white-space: nowrap; margin-top: var(--space-1); font-size: var(--font-size-base); line-height: 20px; color: var(--color-text-secondary); }
+    .srow fvdr-toggle { margin-top: 2px; flex-shrink: 0; }
+
     /* Switcher */
     .switcher { position: fixed; left: 50%; bottom: var(--space-6); transform: translateX(-50%); z-index: 90; display: flex; align-items: center; gap: var(--space-3); padding: var(--space-2) var(--space-4); background: var(--color-stone-0); border: 1px solid var(--color-divider); border-radius: var(--radius-lg); box-shadow: var(--shadow-modal); }
     .switcher__label { font-size: var(--text-caption1-size); font-weight: 600; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.04em; }
@@ -251,7 +282,63 @@ export class ColumnAdminHintComponent implements OnInit, OnDestroy {
   private tracker = inject(TrackerService);
 
   sidebarCollapsed = true;
-  breadcrumbItems = [{ id: 'docs', label: 'Documents' }, { id: 'all', label: 'All' }];
+  view: 'docs' | 'settings' = 'docs';
+
+  get breadcrumbItems() {
+    return this.view === 'docs'
+      ? [{ id: 'docs', label: 'Documents' }, { id: 'all', label: 'All' }]
+      : [{ id: 'settings', label: 'Settings' }, { id: 'project', label: 'Project' }, { id: 'documents', label: 'Documents' }];
+  }
+
+  settingsTabs: TabItem[] = [
+    { id: 'general', label: 'General' },
+    { id: 'branding', label: 'Branding' },
+    { id: 'documents', label: 'Documents' },
+    { id: 'labels', label: 'Labels' },
+    { id: 'terms', label: 'Terms of use' },
+    { id: 'watermarks', label: 'Watermarks' },
+    { id: 'security', label: 'Security' },
+  ];
+
+  settingRows: { id: string; title: string; desc: string }[] = [
+    { id: 'indexing', title: 'Automatic indexing', desc: 'Assign sequential indices to documents or sort them alphanumerically' },
+    { id: 'versioning', title: 'Versioning', desc: 'Add new versions to files and track version history' },
+    { id: 'publishing', title: 'Publishing', desc: 'Keep documents hidden until published, regardless of their permissions' },
+    { id: 'addedOn', title: 'Added on', desc: 'Show when each document was added, in its own column' },
+    { id: 'addedBy', title: 'Added by', desc: 'Show which user added each document, in its own column' },
+  ];
+  private roomSettings: Record<string, boolean> = { indexing: true, versioning: true, publishing: false };
+  focusSetting: string | null = null;
+
+  settingValue(id: string): boolean {
+    const col = this.cols.find(c => c.id === id);
+    return col ? !!col.forAll : !!this.roomSettings[id];
+  }
+
+  setSetting(id: string, on: boolean): void {
+    const col = this.cols.find(c => c.id === id);
+    if (!col) { this.roomSettings[id] = on; return; }
+    col.forAll = on;
+    // Enabling for everyone also shows it in the admin's own view; turning it off keeps their personal choice.
+    if (on) col.visible = true;
+    this.showToast(on ? `“${col.label}” column is now shown to all users` : `“${col.label}” column is hidden for other users`);
+  }
+
+  onNavClick(item: SidebarNavItem): void {
+    if (item.id === 'settings') this.openView('settings');
+    if (item.id === 'projects') this.openView('docs');
+  }
+
+  onCrumb(id: string): void {
+    if (id === 'docs') this.openView('docs');
+  }
+
+  private openView(v: 'docs' | 'settings'): void {
+    this.view = v;
+    this.hoverCol = null;
+    const activeId = v === 'docs' ? 'projects' : 'settings';
+    this.navItems = this.navItems.map(n => ({ ...n, active: n.id === activeId }));
+  }
   navItems: SidebarNavItem[] = [
     { id: 'overview', icon: 'nav-overview', iconActive: 'nav-overview-active', label: 'Dashboard', active: false },
     { id: 'projects', icon: 'nav-projects', iconActive: 'nav-projects-active', label: 'Documents', active: true },
@@ -330,7 +417,17 @@ export class ColumnAdminHintComponent implements OnInit, OnDestroy {
   }
 
   goSettings(c: ColDef): void {
-    this.toast = `Opening Settings › Documents › Default columns — “${c.label}” preselected`;
+    this.openView('settings');
+    this.focusSetting = c.id;
+    setTimeout(() => document.getElementById('setting-' + c.id)?.scrollIntoView({ block: 'center', behavior: 'smooth' }));
+    if (this.focusTimer) clearTimeout(this.focusTimer);
+    this.focusTimer = setTimeout(() => (this.focusSetting = null), 1600);
+  }
+
+  private focusTimer: ReturnType<typeof setTimeout> | null = null;
+
+  private showToast(msg: string): void {
+    this.toast = msg;
     if (this.toastTimer) clearTimeout(this.toastTimer);
     this.toastTimer = setTimeout(() => (this.toast = ''), 2600);
   }
@@ -340,5 +437,6 @@ export class ColumnAdminHintComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.tracker.destroyListeners();
     if (this.toastTimer) clearTimeout(this.toastTimer);
+    if (this.focusTimer) clearTimeout(this.focusTimer);
   }
 }
