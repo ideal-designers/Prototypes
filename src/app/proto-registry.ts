@@ -188,12 +188,5 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
     status: 'wip',
     description: '2 options for telling an admin, inside the column manager, that a column can be enabled for all users in Settings: inline hint on row hover linking to Settings, or an Enable/Disable for all users badge that toggles the room setting right from the column manager (with confirm)',
   },
-    {
-    slug: 'mobile-doc-filters',
-    title: 'Documents — Mobile filters',
-    figma: 'https://www.figma.com/design/h9MR3O7N3kLV2xl2MGQDxs/Documents?node-id=26704-90152',
-    status: 'wip',
-    description: 'All Documents filters in a mobile full-screen sheet. Files is a tri-state parent of every format (selecting it selects all), Folders is a leaf with no children, sections collapse with summaries, file-only filters disable for folders — with a toggle to compare against the Figma original',
-  },
   // REGISTRY_PLACEHOLDER
 ];
