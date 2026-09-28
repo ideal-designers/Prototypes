@@ -301,6 +301,7 @@ export type { FilterBtnSize, FilterBtnColor } from './components/filter-btn/filt
 export { AskIdeonComponent } from './components/ai/ask-ideon/ask-ideon.component';
 
 export { ThinkingOrbsComponent } from './components/ai/thinking-orbs/thinking-orbs.component';
+export type { ThinkingOrbsVariant } from './components/ai/thinking-orbs/thinking-orbs.component';
 
 export { AiComposerComponent } from './components/ai/ai-composer/ai-composer.component';
 export type { AiComposerLayout } from './components/ai/ai-composer/ai-composer.component';

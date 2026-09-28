@@ -13,40 +13,50 @@ import {
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 
 /**
- * MetalForge "thinking-orbs / twinkle" preset, ported from the designer's source
+ * MetalForge "thinking-orbs" presets, ported from the designer's source
  * (see .design/thinking-orbs-reference.md). Rasterised with Canvas 2D instead of
  * their WebGPU path — the dot generation below is their maths, unchanged.
+ *
+ *   vortex  (loop 3, default) — every dot slides up its meridian to the north pole,
+ *           fading out at the top and re-entering at the bottom, while the ball
+ *           spins the other way. The designer's pick for every AI "thinking" state.
+ *   twinkle (loop 2) — a turning ball whose dots blink on private clocks.
  */
-const TAU    = Math.PI * 2;
-const PERIOD = 4.6;      // style index 2 (twinkle)
-const TILT   = 0.36;     // fixed tilt inside the draw, on top of the pitch knob
+const TAU  = Math.PI * 2;
+const TILT = 0.36;       // fixed tilt inside every draw, on top of the pitch knob
 
-/** Preset knobs — `effect=thinking-orbs style=twinkle` from the designer's URL. */
-const KNOBS = {
-  n:  2.6,                        // dots  → NC(150, 2.6) = 390
-  sp: 1,                          // spread
-  pv: 3.2,                        // perspective → f = 3.5 * pv
-  dz: 1,                          // depth → dot radius
-  df: 1,                          // depth → alpha
-  op: 1,                          // dot opacity
-  sn: -3,                         // spin, extra yaw turns per period
-  yw: (-169 * Math.PI) / 180,     // yaw
-  pc: (-15 * Math.PI) / 180,      // pitch
+export type ThinkingOrbsVariant = 'vortex' | 'twinkle';
+
+interface Preset {
+  period: number;        // seconds per loop at speed 1
+  speed: number;
+  dotScale: number;      // multiplier on the size ramp
+  n: number; sp: number; pv: number; dz: number; df: number; op: number;
+  sn: number; yw: number; pc: number;
+}
+
+const PRESETS: Record<ThinkingOrbsVariant, Preset> = {
+  // `ThinkingOrbsPill` defaults from the designer's hand-off.
+  vortex:  { period: 4.4, speed: 0.95, dotScale: 1.55, n: 1.35, sp: 0.82, pv: 1,   dz: 1.1, df: 1, op: 1, sn: 0,  yw: 0,                   pc: 0 },
+  // `effect=thinking-orbs style=twinkle` from the designer's URL.
+  twinkle: { period: 4.6, speed: 1,    dotScale: 1,    n: 2.6,  sp: 1,    pv: 3.2, dz: 1,   df: 1, op: 1, sn: -3, yw: (-169 * Math.PI) / 180, pc: (-15 * Math.PI) / 180 },
 };
 
 const MAX_DT = 0.1;   // clamp the first frame after a tab-away
+const MAX_DPR = 2;   // the designer caps the backing store at 2x
 
-interface Sphere { x: Float64Array; y: Float64Array; z: Float64Array; phase: Float64Array; }
+/** Per-dot seeds. `x/y/z` — Fibonacci sphere (twinkle); `h1/h2` — golden-ratio
+ *  hashes (vortex: meridian phase and azimuth). Deterministic, built once per count. */
+interface Sphere { x: Float64Array; y: Float64Array; z: Float64Array; h1: Float64Array; h2: Float64Array; }
 
-/** Fibonacci sphere + golden-ratio phase — deterministic, so it is built once per count. */
 const SPHERES = new Map<number, Sphere>();
 function buildSphere(count: number): Sphere {
   const cached = SPHERES.get(count);
   if (cached) return cached;
 
   const s: Sphere = {
-    x: new Float64Array(count), y: new Float64Array(count),
-    z: new Float64Array(count), phase: new Float64Array(count),
+    x: new Float64Array(count), y: new Float64Array(count), z: new Float64Array(count),
+    h1: new Float64Array(count), h2: new Float64Array(count),
   };
   for (let i = 0; i < count; i++) {
     const y = count === 1 ? 0 : 1 - (i / (count - 1)) * 2;
@@ -55,7 +65,8 @@ function buildSphere(count: number): Sphere {
     s.x[i] = Math.cos(th) * r;
     s.y[i] = y;
     s.z[i] = Math.sin(th) * r;
-    s.phase[i] = (i * 0.61803398875) % 1;       // h1(i)
+    s.h1[i] = (i * 0.61803398875) % 1;
+    s.h2[i] = (i * 0.7548776662) % 1;
   }
   SPHERES.set(count, s);
   return s;
@@ -73,8 +84,8 @@ function sizeDotScale(s: number): number {
 }
 
 /** Phase 0..1 through one period. */
-function orbPhase(seconds: number, speed: number): number {
-  const span = PERIOD / Math.max(0.0001, speed);
+function orbPhase(seconds: number, period: number, speed: number): number {
+  const span = period / Math.max(0.0001, speed);
   const u = (Math.max(0, seconds) % span) / span;
   return u < 0 ? u + 1 : u;
 }
@@ -82,13 +93,13 @@ function orbPhase(seconds: number, speed: number): number {
 /**
  * fvdr-thinking-orbs — waiting indicator for a streaming / thinking state.
  *
- * Dots spread over a sphere by a golden-angle spiral (390 at the preset's
- * density) rotate in 3D behind a
- * pill carrying the label. Every frame runs two composed rotations (the draw's
- * own turn plus the yaw/spin knobs), a perspective divide, and a depth term
- * that drives both dot radius and alpha, then paints back-to-front. The
- * "twinkle" is a per-dot golden-ratio phase raised to the 6th power, so each
- * dot blinks sharply and the surface shimmers instead of pulsing in unison.
+ * Default preset "vortex": ~200 dots flow up their meridians to the north pole,
+ * fading at both poles (sin^0.4), while the whole ball turns the other way at a
+ * 0.36 rad tilt. Every frame runs the draw's rotation plus the view knobs, a
+ * perspective divide, and a depth term that drives both dot radius and alpha,
+ * then paints back-to-front. `variant="twinkle"` keeps the earlier blinking ball.
+ * Pill, dot and label ink come from --ai-orb-* tokens (white pill + #3BAE5B dots
+ * in light, black pill + #3DFF74 dots in dark); the label is monospace at 74%.
  *
  * Canvas, not CSS 3D: `preserve-3d` cannot scale or fade by depth, and depth is
  * the whole character of the effect.
@@ -101,6 +112,7 @@ function orbPhase(seconds: number, speed: number): number {
  *   <fvdr-thinking-orbs label="Thinking…" [running]="streaming" />
  *   <fvdr-thinking-orbs [showPill]="false" [showLabel]="false" [size]="24" />
  *   <fvdr-thinking-orbs [size]="28" [dots]="0.8" />   thinner field for a small orb
+ *   <fvdr-thinking-orbs variant="twinkle" />            the earlier blinking preset
  */
 @Component({
   selector: 'fvdr-thinking-orbs',
@@ -134,7 +146,7 @@ function orbPhase(seconds: number, speed: number): number {
        without. Snapped to the FVDR 4px scale. */
     .orbs--pill {
       padding: var(--space-2);
-      background: var(--color-stone-300);
+      background: var(--ai-orb-pill, #FFFFFF);
       border-radius: var(--radius-full);
     }
     .orbs--pill.orbs--labelled { padding-right: var(--space-5); }
@@ -143,9 +155,11 @@ function orbPhase(seconds: number, speed: number): number {
 
     .orbs__label {
       min-width: 0;
+      font-family: var(--font-family-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
       font-size: var(--font-size-base, 14px);
-      line-height: var(--line-height-base, 20px);
-      color: var(--color-text-secondary);
+      line-height: 1;
+      color: var(--ai-orb-label, #25242A);
+      opacity: 0.74;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -160,23 +174,38 @@ export class ThinkingOrbsComponent implements AfterViewInit, OnDestroy {
   /** Orb box in CSS pixels — 46 is the preset's own size. */
   @Input() size = 46;
   /** Any CSS colour; resolved through the element, so `var(--token)` works. */
-  @Input() dotColor = 'var(--color-primary-500)';
+  @Input() dotColor = 'var(--ai-orb-dot, #3BAE5B)';
+
+  /** Motion preset — `vortex` is the designer's default for every thinking state. */
+  @Input()
+  get variant(): ThinkingOrbsVariant { return this._variant; }
+  set variant(value: ThinkingOrbsVariant) {
+    this._variant = PRESETS[value] ? value : 'vortex';
+    this.preset = PRESETS[this._variant];
+    this.resize(this._dots ?? this.preset.n);
+  }
+  private _variant: ThinkingOrbsVariant = 'vortex';
+  private preset: Preset = PRESETS.vortex;
 
   /**
-   * Dot-count multiplier — the preset's `n` knob: `round(150 * dots)`, so 2.6
-   * gives the preset's 390. Below ~40px the dots merge into a blob, so thin the
+   * Dot-count multiplier — the preset's `n` knob: `round(150 * dots)`; vortex
+   * defaults to 1.35 (203 dots), twinkle to 2.6 (390). Below ~40px the dots merge into a blob, so thin the
    * field out rather than shrinking it further.
    */
   @Input()
-  get dots(): number { return this._dots; }
+  get dots(): number { return this._dots ?? this.preset.n; }
   set dots(value: number) {
     this._dots = value;
-    this.count = Math.max(1, Math.round(150 * value));
+    this.resize(value);
+  }
+  private _dots?: number;
+
+  private resize(n: number): void {
+    this.count = Math.max(1, Math.round(150 * n));
     this.sphere = buildSphere(this.count);
     this.allocate();
     if (this.ready && !this.rafId) this.render();
   }
-  private _dots = KNOBS.n;
 
   /** Host switch — false stops the loop and leaves the last frame on screen. */
   @Input()
@@ -206,7 +235,7 @@ export class ThinkingOrbsComponent implements AfterViewInit, OnDestroy {
   private sizeObserver?: ResizeObserver;
   private reduceMotion?: MediaQueryList;
 
-  private count = Math.max(1, Math.round(150 * KNOBS.n));   // 390 at the preset
+  private count = Math.max(1, Math.round(150 * PRESETS.vortex.n));   // 203 at the vortex preset
   private sphere = buildSphere(this.count);
 
   /** Projected dots for one frame — preallocated so the loop never allocates. */
@@ -294,7 +323,7 @@ export class ThinkingOrbsComponent implements AfterViewInit, OnDestroy {
 
     // Cheap safety net for a DPR change that resizes nothing (window moved to
     // another display) — once every ~30 frames, not every frame.
-    if (++this.frame % 30 === 0 && this.dpr !== (window.devicePixelRatio || 1)) this.syncSize();
+    if (++this.frame % 30 === 0 && this.dpr !== Math.min(MAX_DPR, window.devicePixelRatio || 1)) this.syncSize();
 
     this.render();
     this.rafId = requestAnimationFrame(this.tick);
@@ -315,7 +344,7 @@ export class ThinkingOrbsComponent implements AfterViewInit, OnDestroy {
   /** Back the canvas with a devicePixelRatio-sized buffer so dots stay crisp. */
   private syncSize(): void {
     const el = this.canvasRef.nativeElement;
-    const dpr = window.devicePixelRatio || 1;
+    const dpr = Math.min(MAX_DPR, window.devicePixelRatio || 1);
     const w = Math.max(1, el.clientWidth || this.size);
     const h = Math.max(1, el.clientHeight || this.size);
     const bw = Math.round(w * dpr);
@@ -344,7 +373,8 @@ export class ThinkingOrbsComponent implements AfterViewInit, OnDestroy {
 
     // Resolve the fit first: it probes 20 frames through the same buffers.
     const fit = this.fitFactor(s);
-    this.project(orbPhase(this.seconds, 1), s, sizeDotScale(s));
+    const P = this.preset;
+    this.project(orbPhase(this.seconds, P.period, P.speed), s, sizeDotScale(s) * P.dotScale);
 
     const half = s / 2;
     const pz = this.pz;
@@ -355,7 +385,7 @@ export class ThinkingOrbsComponent implements AfterViewInit, OnDestroy {
     for (let k = 0; k < this.count; k++) {
       const i = order[k];
       const fr = this.pr[i] * (0.55 + 0.45 * fit);
-      const fa = this.pa[i] * KNOBS.op;
+      const fa = this.pa[i] * P.op;
       if (fr <= 0.05 || fa <= 0.004) continue;
       ctx.globalAlpha = fa > 1 ? 1 : fa;
       ctx.beginPath();
@@ -366,25 +396,82 @@ export class ThinkingOrbsComponent implements AfterViewInit, OnDestroy {
     ctx.globalAlpha = 1;
   }
 
+  private project(t: number, s: number, ds: number): void {
+    this._variant === 'twinkle' ? this.projectTwinkle(t, s, ds) : this.projectVortex(t, s, ds);
+  }
+
+  /**
+   * draw3 ("vortex") + P3 from the reference, fused into the preallocated buffers.
+   * Each dot rides its own meridian: phase u = h1(i) + t runs pole → pole, azimuth
+   * h2(i)·τ + 2τt winds it around, and sin(πu)^0.4 fades it in and out at the poles.
+   */
+  private projectVortex(t: number, s: number, ds: number): void {
+    const K = this.preset;
+    // Rotation 1 — the draw's own turn (−τt, against the flow) at the fixed tilt.
+    const ca1 = Math.cos(-TAU * t), sa1 = Math.sin(-TAU * t);
+    const cb1 = Math.cos(TILT),     sb1 = Math.sin(TILT);
+    // Rotation 2 — VIEW: yaw + spin, then pitch (identity at the preset).
+    const ay2 = K.yw + TAU * K.sn * t;
+    const ca2 = Math.cos(ay2),  sa2 = Math.sin(ay2);
+    const cb2 = Math.cos(K.pc), sb2 = Math.sin(K.pc);
+
+    const c = s / 2;
+    const r = s * 0.3 * K.sp;
+    const f = 3.5 * K.pv;
+    const fade = 1.55 * K.df;
+    const wind = TAU * 2 * t;
+    const h1 = this.sphere.h1, h2 = this.sphere.h2;
+
+    for (let i = 0; i < this.count; i++) {
+      const u = (h1[i] + t) % 1;
+      const pol = Math.PI * u;
+      const ring = Math.sin(pol);
+      const az = h2[i] * TAU + wind;
+      const life = Math.pow(ring, 0.4);
+
+      let x = Math.cos(az) * ring, y = Math.cos(pol), z = Math.sin(az) * ring;
+
+      let nx = x * ca1 - z * sa1;
+      let nz = x * sa1 + z * ca1;
+      let ny = y * cb1 - nz * sb1;
+      nz = y * sb1 + nz * cb1;
+
+      x = nx * ca2 - nz * sa2;
+      z = nx * sa2 + nz * ca2;
+      y = ny * cb2 - z * sb2;
+      z = ny * sb2 + z * cb2;
+
+      const per = f / (f - z);
+      const d = z < -1.1 ? 0 : z > 1.1 ? 1 : (z + 1.1) / 2.2;
+
+      this.px[i] = c + x * r * per;
+      this.py[i] = c + y * r * per;
+      this.pr[i] = ds * (0.4 + 1.6 * K.dz * d) * per * 0.8;
+      this.pa[i] = (0.07 + 0.93 * Math.pow(d, fade)) * life;
+      this.pz[i] = z;
+    }
+  }
+
   /**
    * drawTwinkle + P3 from the reference, fused into the preallocated buffers.
    * Per-frame trigonometry is hoisted out of the dot loop; the maths is theirs.
    */
-  private project(t: number, s: number, ds: number): void {
+  private projectTwinkle(t: number, s: number, ds: number): void {
+    const K = this.preset;
     // Rotation 1 — the draw's own turn (TAU * t) at a fixed 0.36 rad tilt.
     const ca1 = Math.cos(TAU * t), sa1 = Math.sin(TAU * t);
     const cb1 = Math.cos(TILT),    sb1 = Math.sin(TILT);
     // Rotation 2 — VIEW: the yaw knob plus the accumulating spin, then pitch.
-    const ay2 = KNOBS.yw + TAU * KNOBS.sn * t;
-    const ca2 = Math.cos(ay2),     sa2 = Math.sin(ay2);
-    const cb2 = Math.cos(KNOBS.pc), sb2 = Math.sin(KNOBS.pc);
+    const ay2 = K.yw + TAU * K.sn * t;
+    const ca2 = Math.cos(ay2),  sa2 = Math.sin(ay2);
+    const cb2 = Math.cos(K.pc), sb2 = Math.sin(K.pc);
 
     const c = s / 2;
-    const r = s * 0.3 * KNOBS.sp;
-    const f = 3.5 * KNOBS.pv;
-    const fade = 1.55 * KNOBS.df;
+    const r = s * 0.3 * K.sp;
+    const f = 3.5 * K.pv;
+    const fade = 1.55 * K.df;
     const twinklePhase = TAU * 2 * t;         // two blinks per turn
-    const bx = this.sphere.x, by = this.sphere.y, bz = this.sphere.z, ph = this.sphere.phase;
+    const bx = this.sphere.x, by = this.sphere.y, bz = this.sphere.z, ph = this.sphere.h1;
 
     for (let i = 0; i < this.count; i++) {
       // Sharp blink: ^6 keeps each dot dark most of its cycle.
@@ -409,7 +496,7 @@ export class ThinkingOrbsComponent implements AfterViewInit, OnDestroy {
 
       this.px[i] = c + x * r * per;
       this.py[i] = c + y * r * per;
-      this.pr[i] = ds * (0.4 + 1.6 * KNOBS.dz * d) * per * (0.55 + 1.5 * b);
+      this.pr[i] = ds * (0.4 + 1.6 * K.dz * d) * per * (0.55 + 1.5 * b);
       this.pa[i] = (0.07 + 0.93 * Math.pow(d, fade)) * (0.2 + 0.8 * b);
       this.pz[i] = z;
     }
@@ -417,10 +504,10 @@ export class ThinkingOrbsComponent implements AfterViewInit, OnDestroy {
 
   /**
    * Probe 20 evenly spaced frames for the widest extent and scale so the orb
-   * never clips. Cached by box size — the knobs are fixed by the preset.
+   * never clips. Cached by preset + box size + dot count.
    */
   private fitFactor(s: number): number {
-    const key = `${s}|${this.count}`;
+    const key = `${this._variant}|${s}|${this.count}`;
     const cached = FIT_CACHE.get(key);
     if (cached !== undefined) return cached;
 

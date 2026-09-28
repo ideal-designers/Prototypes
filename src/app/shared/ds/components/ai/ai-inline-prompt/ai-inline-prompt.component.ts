@@ -55,7 +55,7 @@ import { ThinkingOrbsComponent } from '../thinking-orbs/thinking-orbs.component'
         (chosen)="promptSubmitted.emit($event)"
       ></fvdr-ai-suggestions>
 
-      <fvdr-thinking-orbs *ngIf="streaming && !answer" label="Reading the document…" [size]="28" [dots]="1.2"></fvdr-thinking-orbs>
+      <fvdr-thinking-orbs *ngIf="streaming && !answer" label="Reading the document…" [size]="28"></fvdr-thinking-orbs>
 
       <div class="inline__answer" *ngIf="answer">
         <fvdr-ai-markdown [source]="answer" [streaming]="streaming"></fvdr-ai-markdown>

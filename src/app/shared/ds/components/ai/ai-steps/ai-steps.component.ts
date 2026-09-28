@@ -16,7 +16,7 @@ import { AiStep } from './ai-step.model';
     <div class="steps">
       <!-- Live header -->
       <div class="steps__live" *ngIf="streaming">
-        <fvdr-thinking-orbs class="steps__orbs" [label]="liveLabel" [running]="streaming" [size]="32" [dots]="1.2"></fvdr-thinking-orbs>
+        <fvdr-thinking-orbs class="steps__orbs" [label]="liveLabel" [running]="streaming" [size]="32"></fvdr-thinking-orbs>
         <button type="button" class="steps__stop" (click)="stopped.emit()">Stop</button>
       </div>
 

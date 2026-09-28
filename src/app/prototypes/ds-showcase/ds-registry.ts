@@ -2179,7 +2179,7 @@ const thinkingOrbs: ComponentDocEntry = {
   category: 'ai',
   status: 'beta',
   description:
-    'Waiting indicator for a streaming or thinking state: dots spread over a sphere (390 at the preset density) rotate in 3D on a canvas, shrinking and fading with depth, behind a pill that carries the live label.',
+    'Waiting indicator for every AI thinking / streaming state. Default preset "vortex" (designer hand-off): ~200 dots slide up their meridians to the north pole, fading out at the top and re-entering at the bottom, while the ball spins the other way — on a canvas, shrinking and fading with depth, in a white (dark: black) pill with a monospace label. variant="twinkle" keeps the earlier blinking ball.',
   whenToUse: [
     'The assistant is streaming and the label changes as it works',
     'A wait with no measurable progress, where a bar would lie',
@@ -2192,13 +2192,13 @@ const thinkingOrbs: ComponentDocEntry = {
   ],
   anatomy: [
     { index: 1, part: 'Orb canvas',  spec: '46×46 CSS px by default · backing store scaled by devicePixelRatio' },
-    { index: 2, part: 'Dot field',   spec: 'round(150 × dots) points · golden-angle sphere · depth drives radius and alpha · painted back-to-front' },
-    { index: 3, part: 'Twinkle',     spec: 'per-dot golden-ratio phase, sin raised to the 6th → sharp blink, 2 per turn' },
-    { index: 4, part: 'Pill',        spec: 'padding 8px (20px right with a label) · border-radius: 9999px · --color-stone-300' },
-    { index: 5, part: 'Label',       spec: 'font-size: 14px · --color-text-secondary · truncates in a narrow column' },
+    { index: 2, part: 'Dot field',   spec: 'round(150 × dots) points (1.35 → 203) · spread 0.82 · depth 1.1 · depth drives radius and alpha · painted back-to-front' },
+    { index: 3, part: 'Vortex flow', spec: 'phase u = h1(i)+t pole→pole · azimuth h2(i)·τ + 2τt · alpha × sin(πu)^0.4 · ball turns −τt at 0.36 rad tilt · 4.4s ÷ 0.95 speed' },
+    { index: 4, part: 'Pill',        spec: 'padding 8px (20px right with a label) · border-radius: 9999px · --ai-orb-pill (white / black)' },
+    { index: 5, part: 'Label',       spec: '--font-family-mono 14px · line-height 1 · --ai-orb-label at 74% opacity · truncates in a narrow column' },
   ],
   states: [
-    { name: 'Running',        description: 'rAF loop drives one 4.6s period — a full turn plus the preset -3 spin knob' },
+    { name: 'Running',        description: 'rAF loop drives one 4.4s period at 0.95 speed (≈4.6s) — dots drain to the pole as the ball counter-spins' },
     { name: 'Stopped',        description: '[running]="false" cancels the frame and leaves the last frame on screen' },
     { name: 'No pill',        description: '[showPill]="false" — bare orb on the surface behind it' },
     { name: 'No label',       description: '[showLabel]="false" — square pill, orb only' },
@@ -2206,9 +2206,10 @@ const thinkingOrbs: ComponentDocEntry = {
     { name: 'Reduced motion', description: 'One static frame is drawn and the loop never starts' },
   ],
   tokens: [
-    { token: '--color-primary-500',   value: '#2C9C74', usage: 'Default dot colour (resolved to a computed value for canvas)' },
-    { token: '--color-stone-300',     value: '#ECEEF9', usage: 'Pill fill — dark theme maps it to #33383B' },
-    { token: '--color-text-secondary', value: '#5F616A', usage: 'Label colour' },
+    { token: '--ai-orb-dot',          value: '#3BAE5B', usage: 'Default dot colour — dark theme #3DFF74 (resolved to a computed value for canvas)' },
+    { token: '--ai-orb-pill',         value: '#FFFFFF', usage: 'Pill fill — dark theme #000000' },
+    { token: '--ai-orb-label',        value: '#25242A', usage: 'Label colour at 74% — dark theme #F4F1EA' },
+    { token: '--font-family-mono',     value: 'IBM Plex Mono…', usage: 'Label font' },
     { token: '--radius-full',         value: '9999px',  usage: 'Pill radius' },
     { token: '--space-2',             value: '8px',     usage: 'Pill padding and orb→label gap' },
     { token: '--space-5',             value: '20px',    usage: 'Pill padding-right when a label is shown' },
@@ -2217,14 +2218,14 @@ const thinkingOrbs: ComponentDocEntry = {
   usedIn: ['AI Assistant — streaming reasoning block (fvdr-ai-steps)'],
   relatedComponents: ['progress', 'ask-ideon'],
   codeSnippet: `<!-- Streaming state in a chat -->
-<fvdr-thinking-orbs [label]="liveLabel" [running]="streaming" [size]="32" [dots]="1.2"></fvdr-thinking-orbs>
+<fvdr-thinking-orbs [label]="liveLabel" [running]="streaming" [size]="32"></fvdr-thinking-orbs>
 
 <!-- Bare orb, no pill and no label -->
 <fvdr-thinking-orbs [showPill]="false" [showLabel]="false" [size]="46"></fvdr-thinking-orbs>
 
 <!-- Preset size, custom dot colour -->
 <fvdr-thinking-orbs label="Searching the data room…" dotColor="var(--color-info-500)"></fvdr-thinking-orbs>`,
-  claudePrompt: "Use fvdr-thinking-orbs for an indeterminate AI/streaming wait. @Input() label:string='Thinking…'. @Input() showLabel:boolean=true. @Input() showPill:boolean=true. @Input() size:number=46 (orb box in CSS px). @Input() dots:number=2.6 (dot-count multiplier, round(150*dots) — thin it to ~1.2 below 40px or the dots merge). @Input() dotColor:string='var(--color-primary-500)' — any CSS colour, resolved through the element so tokens work. @Input() running:boolean=true — false cancels the rAF loop. Canvas 2D port of the MetalForge thinking-orbs/twinkle preset: golden-angle sphere, perspective divide, depth-driven size and fade, per-dot twinkle. Renders a single static frame under prefers-reduced-motion. Never use it for determinate progress — use fvdr-progress.",
+  claudePrompt: "Use fvdr-thinking-orbs for every indeterminate AI thinking/streaming wait. @Input() label:string='Thinking…'. @Input() showLabel:boolean=true. @Input() showPill:boolean=true. @Input() size:number=46 (orb box in CSS px). @Input() variant:'vortex'|'twinkle'='vortex' — vortex is the designer's default (dots drain up their meridians while the ball counter-spins; n 1.35, spread 0.82, depth 1.1, period 4.4s, speed 0.95, dotScale 1.55). @Input() dots:number — override the preset dot multiplier, round(150*dots). @Input() dotColor:string='var(--ai-orb-dot)' — any CSS colour, resolved through the element so tokens work. @Input() running:boolean=true — false cancels the rAF loop. Pill/label ink: --ai-orb-pill / --ai-orb-label (74%), label in --font-family-mono. Canvas 2D port of the designer's WebGPU thinking-orbs; backing store capped at 2x DPR; one static frame under prefers-reduced-motion. Never use it for determinate progress — use fvdr-progress.",
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
