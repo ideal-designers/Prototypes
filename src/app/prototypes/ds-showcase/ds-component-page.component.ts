@@ -7,7 +7,7 @@ import {
   DS_COMPONENTS, ToastService, ToastAction, FloatingPanelItem, FilterBtnColor, RedactionMarkPage,
   FvdrPlanName, FVDR_PLAN_NAMES, SidebarNavItem,
   AiStep, AiRating, AiDocRef, AiSummaryGroup, AiReportSection, AiChatMessage, AiThread, AiPanelMode, AiFeedback,
-  SmartSearchResult, DocInfoField,
+  SmartSearchResult, DocInfoField, AiStat, AiBarItem, AiPersonRow,
 } from '../../shared/ds';
 import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, ComponentCategory } from './ds-registry';
 
@@ -924,6 +924,54 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
               <div class="anatomy-label anatomy-label--top"    style="top:-52px;left:0">gradient header · sparkle · title</div>
               <div class="anatomy-label anatomy-label--top"    style="top:-52px;right:0">collapse</div>
               <div class="anatomy-label anatomy-label--bottom" style="bottom:-42px;left:0">answer · actions · "What next?"</div>
+            </div>
+          </ng-container>
+
+          <!-- AI STAT LIST -->
+          <ng-container *ngSwitchCase="'ai-stat-list'">
+            <div class="anatomy-wrap" style="width:100%;max-width:560px">
+              <fvdr-ai-stat-list
+                title="Activity this week"
+                [meta]="['Project Nova', 'Last 7 days']"
+                [stats]="demoAiStats"
+                footnote="Calculated from activity log · Updated 2 min ago"
+              ></fvdr-ai-stat-list>
+              <div class="anatomy-label anatomy-label--top"    style="top:-52px;left:0">title · meta</div>
+              <div class="anatomy-label anatomy-label--top"    style="top:-52px;right:0">label | value rows</div>
+              <div class="anatomy-label anatomy-label--bottom" style="bottom:-42px;left:0">provenance footnote</div>
+            </div>
+          </ng-container>
+
+          <!-- AI BAR LIST -->
+          <ng-container *ngSwitchCase="'ai-bar-list'">
+            <div class="anatomy-wrap" style="width:100%;max-width:632px">
+              <fvdr-ai-bar-list
+                title="Buyer engagement, this week"
+                [meta]="['Project Nova', 'Last 7 days']"
+                chartTitle="Time spent by bidder group"
+                [items]="demoAiBars"
+                footnote="Calculated from activity log · Updated 2 min ago"
+              ></fvdr-ai-bar-list>
+              <div class="anatomy-label anatomy-label--top"    style="top:-52px;left:0">title · meta</div>
+              <div class="anatomy-label anatomy-label--top"    style="top:-52px;right:0">label · track · value</div>
+              <div class="anatomy-label anatomy-label--bottom" style="bottom:-42px;left:0">low bar (grey) · footnote</div>
+            </div>
+          </ng-container>
+
+          <!-- AI PEOPLE TABLE -->
+          <ng-container *ngSwitchCase="'ai-people-table'">
+            <div class="anatomy-wrap" style="width:100%;max-width:660px">
+              <fvdr-ai-people-table
+                title="Who downloaded the SPA"
+                [meta]="['Project Nova', 'Last 7 days']"
+                [rows]="demoAiPeople.slice(0, 3)"
+                [total]="23"
+                noun="downloads"
+                whenLabel="Downloaded"
+              ></fvdr-ai-people-table>
+              <div class="anatomy-label anatomy-label--top"    style="top:-52px;left:0">title · meta</div>
+              <div class="anatomy-label anatomy-label--top"    style="top:-52px;right:0">sticky header · sort</div>
+              <div class="anatomy-label anatomy-label--bottom" style="bottom:-42px;left:0">"Showing N of M" · report link · Share / Export</div>
             </div>
           </ng-container>
 
@@ -2835,6 +2883,130 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
                 <fvdr-ai-citation variant="chip" label="4.1 Master Services Agreement.pdf" fileType="pdf" [page]="12"></fvdr-ai-citation>,
                 has been outstanding since March.
               </fvdr-ai-overview>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- AI STAT LIST -->
+        <ng-container *ngSwitchCase="'ai-stat-list'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">Default</h3>
+            <div class="examples-row examples-row--stack examples-row--chat">
+              <fvdr-ai-stat-list
+                title="Sign-ins this week"
+                [meta]="['Project Nova', 'Last 7 days']"
+                [stats]="[{ label: 'Total sign-ins', value: '63' }, { label: 'Unique users', value: '21' }]"
+                footnote="Calculated from activity log · Updated 2 min ago"
+              ></fvdr-ai-stat-list>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">With notes — bold value + plain continuation</h3>
+            <div class="examples-row examples-row--stack examples-row--chat">
+              <fvdr-ai-stat-list
+                title="Activity this week"
+                [meta]="['Project Nova', 'Last 7 days']"
+                [stats]="demoAiStats"
+                footnote="Calculated from activity log · Updated 2 min ago"
+              ></fvdr-ai-stat-list>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Bare — no header (inside a running answer)</h3>
+            <div class="examples-row examples-row--stack examples-row--chat">
+              <fvdr-ai-stat-list
+                [stats]="[{ label: 'Open Q&A questions', value: '12', note: '4 overdue' }, { label: 'Avg. response time', value: '1.8 d' }]"
+                footnote="From Q&A module · Updated just now"
+              ></fvdr-ai-stat-list>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- AI BAR LIST -->
+        <ng-container *ngSwitchCase="'ai-bar-list'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">Default</h3>
+            <div class="examples-row examples-row--stack examples-row--chat">
+              <fvdr-ai-bar-list
+                title="Most viewed folders"
+                [meta]="['Project Nova', 'Last 30 days']"
+                chartTitle="Views by folder"
+                [items]="[
+                  { label: 'Financials', value: 412, display: '412 views' },
+                  { label: 'Legal', value: 298, display: '298 views' },
+                  { label: 'HR', value: 156, display: '156 views' },
+                  { label: 'IP', value: 97, display: '97 views' }
+                ]"
+                footnote="Calculated from activity log · Updated 2 min ago"
+              ></fvdr-ai-bar-list>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Low entry — under 10 % of the leader turns grey</h3>
+            <div class="examples-row examples-row--stack examples-row--chat">
+              <fvdr-ai-bar-list
+                title="Buyer engagement, this week"
+                [meta]="['Project Nova', 'Last 7 days']"
+                chartTitle="Time spent by bidder group"
+                [items]="demoAiBars"
+                footnote="Calculated from activity log · Updated 2 min ago"
+              ></fvdr-ai-bar-list>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Custom threshold — lowShare = 0.5</h3>
+            <div class="examples-row examples-row--stack examples-row--chat">
+              <fvdr-ai-bar-list
+                chartTitle="Time spent by bidder group"
+                [items]="demoAiBars"
+                [lowShare]="0.5"
+              ></fvdr-ai-bar-list>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- AI PEOPLE TABLE -->
+        <ng-container *ngSwitchCase="'ai-people-table'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">Default — rows fit, no scroll</h3>
+            <div class="examples-row examples-row--stack examples-row--chat">
+              <fvdr-ai-people-table
+                title="Who signed in today"
+                [meta]="['Project Nova', 'Today']"
+                [rows]="demoAiPeople.slice(0, 3)"
+                noun="sign-ins"
+                whenLabel="Signed in"
+                (reportRequested)="onAiPrompt('View activity log')"
+                (shared)="onAiPrompt('Share')"
+                (exported)="onAiPrompt('Export list')"
+              ></fvdr-ai-people-table>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Long list — scrolls under the sticky header, slice of a larger report</h3>
+            <div class="examples-row examples-row--stack examples-row--chat">
+              <fvdr-ai-people-table
+                title="Who downloaded the SPA"
+                [meta]="['Project Nova', 'Last 7 days']"
+                [rows]="demoAiPeople"
+                [total]="23"
+                noun="downloads"
+                whenLabel="Downloaded"
+                (reportRequested)="onAiPrompt('View activity log')"
+                (shared)="onAiPrompt('Share')"
+                (exported)="onAiPrompt('Export list')"
+              ></fvdr-ai-people-table>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">No report link — reportLinkLabel=""</h3>
+            <div class="examples-row examples-row--stack examples-row--chat">
+              <fvdr-ai-people-table
+                [rows]="demoAiPeople.slice(0, 2)"
+                noun="viewers"
+                whenLabel="Last viewed"
+                reportLinkLabel=""
+              ></fvdr-ai-people-table>
             </div>
           </div>
         </ng-container>
@@ -5403,6 +5575,28 @@ export class DsComponentPageComponent implements OnInit, OnDestroy {
   aiOverviewCollapsed = false;
   aiOverviewRating: AiRating = null;
   aiOverviewFollowUp = '';
+
+  demoAiStats: AiStat[] = [
+    { label: 'Total sign-ins', value: '63' },
+    { label: 'Active users', value: '8', note: 'of 50 (16 %)' },
+    { label: 'Documents viewed', value: '214', note: 'across 6 folders' },
+    { label: 'Downloads', value: '23', note: '+9 vs last week' },
+  ];
+  demoAiBars: AiBarItem[] = [
+    { label: 'Bidder A', value: 860, display: '14 h 20 m' },
+    { label: 'Bidder B', value: 510, display: '8 h 30 m' },
+    { label: 'Bidder D', value: 290, display: '4 h 50 m' },
+    { label: 'Bidder C', value: 40,  display: '40 m' },
+  ];
+  demoAiPeople: AiPersonRow[] = [
+    { id: 'p1', name: 'Olivia Bennett',  email: 'o.bennett@northbridge.com', initials: 'OB', group: 'Bidder A', when: 'Sep 26, 2026 · 07:20' },
+    { id: 'p2', name: 'Marcus Chen',     email: 'm.chen@northbridge.com',    initials: 'MC', group: 'Bidder A', when: 'Sep 25, 2026 · 18:02' },
+    { id: 'p3', name: 'Sofia Alvarez',   email: 's.alvarez@helixcap.com',    initials: 'SA', group: 'Bidder B', when: 'Sep 25, 2026 · 11:47' },
+    { id: 'p4', name: 'Daniel Okafor',   email: 'd.okafor@helixcap.com',     initials: 'DO', group: 'Bidder B', when: 'Sep 24, 2026 · 16:15' },
+    { id: 'p5', name: 'Hannah Weber',    email: 'h.weber@stonegate.eu',      initials: 'HW', group: 'Bidder D', when: 'Sep 24, 2026 · 09:31' },
+    { id: 'p6', name: 'James Whitfield', email: 'j.whitfield@stonegate.eu',  initials: 'JW', group: 'Bidder D', when: 'Sep 23, 2026 · 14:08' },
+    { id: 'p7', name: 'Priya Raman',     email: 'p.raman@acme-legal.com',    initials: 'PR', group: 'Advisors', when: 'Sep 22, 2026 · 10:54' },
+  ];
 
   /** Registry figmaNode is a DS-library node id, or a full URL for nodes in other files. */
   figmaUrl(node: string): string {

@@ -370,6 +370,185 @@ const aiOverview: ComponentDocEntry = {
     'Implement fvdr-ai-overview (FVDR DS, AI Assistant section; Figma AI-Assistant Vhy3jLaJ9nasbzTtqbu3qB, V1 234:13029, V2 426:18769). Inputs: title="AI Overview", headerMode:"collapse"|"dismiss"="collapse" (export type AiOverviewHeaderMode), collapsed:boolean (two-way with collapsedChange, collapse mode only), loading:boolean, loadingLabel="Reading the documents…", showActions=true, rating:AiRating, continueLabel="Continue in AI Assistant" (empty hides it), followUps:string[], followUpsLabel="What next?", showComposer=false, composerPlaceholder="Write a message...", composerValue (two-way with composerValueChange). Outputs: openInAssistant, dismissed, followUpChosen:string, promptSubmitted:string, rated:AiRating, copyRequested, moreRequested. Section card: --color-stone-0, 1px --color-stone-300, --radius-sm, --shadow-card, overflow hidden; collapsed → transparent border. Header min-height 48px, linear-gradient(90deg, --chip-bg-green, --chip-bg-indigo), fvdr-icon "sparkle" in --color-primary-500, 14px semibold h2; collapse mode → whole header toggles plus a 28×28 collapse/expand icon button with aria-expanded; dismiss mode → link + close icon buttons. Body (padding --space-4, gap --space-3): fvdr-thinking-orbs while loading, else ng-content answer, a foot row with fvdr-ai-actions [showRegenerate]=false (projected "more" button) and the continue link, fvdr-ai-suggestions [max]=3 after the "What next?" label, and fvdr-ai-composer layout="inline" [showAddContext]=false when showComposer. Tokens only, fvdr-icon only.',
 };
 
+const aiStatList: ComponentDocEntry = {
+  id: 'ai-stat-list',
+  name: 'AI Stat List',
+  selector: 'fvdr-ai-stat-list',
+  category: 'ai',
+  status: 'beta',
+  figmaNode: 'https://www.figma.com/design/Vhy3jLaJ9nasbzTtqbu3qB/AI-Assistant?node-id=169-14737',
+  description:
+    'A few headline numbers an AI answer computed, with where they came from. Title, a scope meta line ("Project Nova · Last 7 days"), then a bordered box of label / value rows (bold lead value + optional plain note, e.g. "8 of 50 (16 %)") and a provenance footnote. The footnote is the audit trail — keep it (Figma 169:14737, in context 324:29930).',
+  whenToUse: [
+    'Analytics questions answered with 2–6 headline figures ("How active was the room this week?")',
+    'Counts and ratios where the scope and freshness must be stated next to the numbers',
+    'The summary block above a ranked bar list or people table in the same answer',
+  ],
+  whenNotToUse: [
+    'Comparing many entities against each other — use AI Bar List',
+    'Lists of people or events — use AI People Table',
+    'A single number in running prose — just write it in the answer text',
+    'Dashboard KPI tiles outside an AI answer — use the regular dashboard widgets',
+  ],
+  anatomy: [
+    { index: 1, part: 'Title',    spec: '14px/20px semibold --color-text-primary' },
+    { index: 2, part: 'Meta',     spec: '12px/16px --color-text-secondary · items joined by a 2px dot' },
+    { index: 3, part: 'Box',      spec: 'inline-flex · min-width 280px · padding 16px · 1px --color-divider · radius 4px' },
+    { index: 4, part: 'Stat row', spec: 'grid label | value · column-gap 32px · 4px vertical padding · value semibold, note regular' },
+    { index: 5, part: 'Footnote', spec: '12px/16px --color-text-secondary · source + freshness' },
+  ],
+  states: [
+    { name: 'Default',    description: 'Title, meta, stat rows and footnote.' },
+    { name: 'With notes', description: 'AiStat.note adds a plain continuation after the bold value ("of 50 (16 %)").' },
+    { name: 'Bare',       description: 'Empty title hides the header; empty footnote hides the provenance line (avoid — keep the source).' },
+  ],
+  tokens: [
+    { token: '--color-text-primary',   value: '#1F2129', usage: 'Title · labels · values' },
+    { token: '--color-text-secondary', value: '#5F616A', usage: 'Meta line · dot · footnote' },
+    { token: '--color-divider',        value: '#DEE0EB', usage: 'Box border' },
+    { token: '--radius-sm',            value: '4px',     usage: 'Box radius' },
+    { token: '--space-4',              value: '16px',    usage: 'Box padding · gap to footnote' },
+    { token: '--space-8',              value: '32px',    usage: 'Label / value column gap' },
+  ],
+  usedIn: ['Dashboard & Activity log — AI search (analytics-ai-search prototype)'],
+  relatedComponents: ['ai-bar-list', 'ai-people-table', 'ai-overview'],
+  codeSnippet: `<fvdr-ai-stat-list
+  title="Activity this week"
+  [meta]="['Project Nova', 'Last 7 days']"
+  [stats]="[
+    { label: 'Total sign-ins', value: '63' },
+    { label: 'Active users', value: '8', note: 'of 50 (16 %)' },
+    { label: 'Documents viewed', value: '214' }
+  ]"
+  footnote="Calculated from activity log · Updated 2 min ago"
+></fvdr-ai-stat-list>`,
+  claudePrompt:
+    'Implement fvdr-ai-stat-list (FVDR DS, AI Assistant section; Figma AI-Assistant Vhy3jLaJ9nasbzTtqbu3qB, 169:14737 in context 324:29930). Inputs: title="", meta:string[]=[] (scope facts joined with a 2px round dot in --color-text-secondary), stats:AiStat[] (export interface AiStat { label; value; note? }), footnote="". Layout: section column gap --space-2; header h3 14px/20px semibold, meta 12px/16px --color-text-secondary. Box: inline-flex column, gap --space-4, align-self flex-start, min-width 280px, padding --space-4, 1px --color-divider border, --radius-sm. Stats as <dl>: each row a grid (minmax(140px,auto) 1fr), column-gap --space-8, padding --space-1 0, 14px/20px; <dd> holds <strong> semibold value + optional plain " note". Footnote 12px/16px --color-text-secondary. Font tokens with px fallbacks, tokens only.',
+};
+
+const aiBarList: ComponentDocEntry = {
+  id: 'ai-bar-list',
+  name: 'AI Bar List',
+  selector: 'fvdr-ai-bar-list',
+  category: 'ai',
+  status: 'beta',
+  figmaNode: 'https://www.figma.com/design/Vhy3jLaJ9nasbzTtqbu3qB/AI-Assistant?node-id=174-4982',
+  description:
+    'A ranked horizontal bar list — one bar per entity (bidder group, user, folder), scaled against the leader. Title + meta, then a bordered box with a chart title, the bars (label · track · formatted value) and a provenance footnote. Bars under lowShare of the leader turn grey: that is the "gone quiet" signal the answer text usually points at (Figma 174:4982, in context 367:20630).',
+  whenToUse: [
+    'Comparing one metric across 3–10 entities ("Which bidder group spent the most time?")',
+    'Engagement answers where a quiet entity should stand out',
+    'Under an AI Stat List when the headline numbers need a breakdown',
+  ],
+  whenNotToUse: [
+    'A handful of unrelated headline numbers — use AI Stat List',
+    'Trends over time — a bar list has no time axis',
+    'Individual people with dates — use AI People Table',
+    'Long tails of 20+ items — summarise and link to the full report instead',
+  ],
+  anatomy: [
+    { index: 1, part: 'Title + meta', spec: '14px/20px semibold title · 12px/16px --color-text-secondary meta, dot-joined' },
+    { index: 2, part: 'Box',          spec: 'max-width 632px · padding 16px · 1px --color-stone-300 · radius 4px' },
+    { index: 3, part: 'Chart title',  spec: '14px/20px semibold' },
+    { index: 4, part: 'Bar row',      spec: 'grid 72px | 1fr | 80px · gap 12px · label ellipsis' },
+    { index: 5, part: 'Track / fill', spec: 'height 14px · track --color-stone-300 · fill --color-primary-500 (low: --color-stone-500) · min 14px' },
+    { index: 6, part: 'Value',        spec: '12px/16px semibold, no wrap' },
+    { index: 7, part: 'Footnote',     spec: '12px/16px --color-text-secondary' },
+  ],
+  states: [
+    { name: 'Default', description: 'Bars in --color-primary-500, widths scaled to the largest value.' },
+    { name: 'Low',     description: 'value / max < lowShare (default 0.1) → the fill turns --color-stone-500.' },
+    { name: 'Animated', description: 'Width transitions 0.4s ease when items change.' },
+  ],
+  tokens: [
+    { token: '--color-primary-500',    value: '#2C9C74', usage: 'Bar fill' },
+    { token: '--color-stone-500',      value: '#BBBDC8', usage: 'Low bar fill' },
+    { token: '--color-stone-300',      value: '#ECEEF9', usage: 'Track · box border' },
+    { token: '--color-text-primary',   value: '#1F2129', usage: 'Titles · labels · values' },
+    { token: '--color-text-secondary', value: '#5F616A', usage: 'Meta · footnote' },
+    { token: '--radius-sm',            value: '4px',     usage: 'Box · track · fill radius' },
+    { token: '--space-3',              value: '12px',    usage: 'Row column gap' },
+    { token: '--space-4',              value: '16px',    usage: 'Box padding' },
+  ],
+  usedIn: ['Dashboard & Activity log — AI search (analytics-ai-search prototype)'],
+  relatedComponents: ['ai-stat-list', 'ai-people-table', 'ai-overview'],
+  codeSnippet: `<fvdr-ai-bar-list
+  title="Buyer engagement, this week"
+  [meta]="['Project Nova', 'Last 7 days']"
+  chartTitle="Time spent by bidder group"
+  [items]="[
+    { label: 'Bidder A', value: 860, display: '14 h 20 m' },
+    { label: 'Bidder B', value: 510, display: '8 h 30 m' },
+    { label: 'Bidder C', value: 40,  display: '40 m' }
+  ]"
+  footnote="Calculated from activity log · Updated 2 min ago"
+></fvdr-ai-bar-list>`,
+  claudePrompt:
+    'Implement fvdr-ai-bar-list (FVDR DS, AI Assistant section; Figma AI-Assistant Vhy3jLaJ9nasbzTtqbu3qB, 174:4982 in context 367:20630). Inputs: title="", meta:string[]=[], chartTitle="", items:AiBarItem[] (export interface AiBarItem { label; value:number; display:string }), footnote="", lowShare=0.1. The host sorts items; the component scales each fill to value / max(values) as a width %. Header like fvdr-ai-stat-list (14px semibold title, 12px --color-text-secondary meta joined by a 2px dot). Box: column, gap --space-2, max-width 632px, padding --space-4, 1px --color-stone-300, --radius-sm. Chart title 14px semibold. Bars as <ul>: row grid 72px 1fr 80px, column-gap --space-3; label 14px ellipsis; track 14px tall --color-stone-300, --radius-sm, overflow hidden, role="img" with aria-label "label: display"; fill --color-primary-500, min-width 14px, transition width .4s; fill --color-stone-500 when value/max < lowShare; value 12px semibold. Footnote 12px --color-text-secondary. Tokens only, font tokens with px fallbacks.',
+};
+
+const aiPeopleTable: ComponentDocEntry = {
+  id: 'ai-people-table',
+  name: 'AI People Table',
+  selector: 'fvdr-ai-people-table',
+  category: 'ai',
+  status: 'beta',
+  figmaNode: 'https://www.figma.com/design/Vhy3jLaJ9nasbzTtqbu3qB/AI-Assistant?node-id=190-18236',
+  description:
+    'Who did something, from which group, and when — the AI answer block for activity questions ("Who downloaded the SPA this week?"). Title + meta, a bordered table (#, avatar + name + email, group, sortable date column) that scrolls inside a fixed height under a sticky header, then a footer with "Showing N of M", a link to the full report and Share / Export list. The answer shows a slice; the report stays the source of truth (Figma 190:18236, in context 496:61652).',
+  whenToUse: [
+    'Activity questions whose answer is a list of people with a timestamp (downloads, sign-ins, views)',
+    'When the result is a slice of a larger report the user may want to open',
+    'Answers the user will likely share or export as-is',
+  ],
+  whenNotToUse: [
+    'Aggregates per group — use AI Bar List',
+    'Headline counts — use AI Stat List',
+    'Documents rather than people — use AI Answer Doc List',
+    'The full participants management table — use fvdr-table on the Participants page',
+  ],
+  anatomy: [
+    { index: 1, part: 'Title + meta', spec: '14px/20px semibold title · 12px/16px --color-text-secondary meta, dot-joined' },
+    { index: 2, part: 'Box',          spec: 'max-width 660px · 1px --color-stone-300 · radius 4px · overflow hidden' },
+    { index: 3, part: 'Header row',   spec: 'sticky · min-height 48px · --color-stone-200 · semibold · sort icon on the date column' },
+    { index: 4, part: 'Row',          spec: 'grid 40px | name | group | date · min-height 56px · zebra --color-stone-100' },
+    { index: 5, part: 'Person',       spec: 'fvdr-avatar md · 14px name + 12px --color-text-secondary email, ellipsis' },
+    { index: 6, part: 'Scroll area',  spec: 'max-height maxHeight px (default 272) · overflow-y auto' },
+    { index: 7, part: 'Footer',       spec: '"Showing N of M noun" · report link --color-primary-500 · Share / Export list secondary buttons' },
+  ],
+  states: [
+    { name: 'Default',     description: 'Rows fit — no scroll, footer count equals rows.length.' },
+    { name: 'Scrolling',   description: 'More rows than maxHeight — body scrolls under the sticky header.' },
+    { name: 'Slice',       description: 'total > rows.length → "Showing 5 of 23 downloads" + View activity log link.' },
+    { name: 'No link',     description: 'reportLinkLabel="" hides the report link.' },
+  ],
+  tokens: [
+    { token: '--color-stone-300',      value: '#ECEEF9', usage: 'Box border · footer divider' },
+    { token: '--color-stone-200',      value: '#F7F7F7', usage: 'Header row background' },
+    { token: '--color-stone-100',      value: '#FAFAFA', usage: 'Zebra rows' },
+    { token: '--color-text-primary',   value: '#1F2129', usage: 'Cells · names' },
+    { token: '--color-text-secondary', value: '#5F616A', usage: 'Emails · meta · sort icon' },
+    { token: '--color-primary-500',    value: '#2C9C74', usage: 'Report link' },
+    { token: '--radius-sm',            value: '4px',     usage: 'Box radius' },
+    { token: '--space-4',              value: '16px',    usage: 'Row padding · column gap' },
+  ],
+  usedIn: ['Dashboard & Activity log — AI search (analytics-ai-search prototype)'],
+  relatedComponents: ['ai-stat-list', 'ai-bar-list', 'ai-overview', 'avatar', 'button'],
+  codeSnippet: `<fvdr-ai-people-table
+  title="Who downloaded the SPA"
+  [meta]="['Project Nova', 'Last 7 days']"
+  [rows]="downloads"
+  [total]="23"
+  noun="downloads"
+  whenLabel="Downloaded"
+  (reportRequested)="openActivityLog()"
+  (shared)="share()"
+  (exported)="exportList()"
+></fvdr-ai-people-table>`,
+  claudePrompt:
+    'Implement fvdr-ai-people-table (FVDR DS, AI Assistant section; Figma AI-Assistant Vhy3jLaJ9nasbzTtqbu3qB, 190:18236 in context 496:61652). Inputs: title="", meta:string[]=[], rows:AiPersonRow[] (export interface AiPersonRow { id; name; email; initials; group; when }), total?:number, noun="rows", whenLabel="Date", reportLinkLabel="View activity log" (empty hides it), maxHeight=272. Outputs: shared, exported, reportRequested. Header like fvdr-ai-stat-list. Box: max-width 660px, 1px --color-stone-300, --radius-sm, overflow hidden. Table (role="table") scrolls with overflow-y auto inside [style.max-height.px]=maxHeight; rows are a grid 40px / minmax(160px,1.2fr) / minmax(100px,1fr) / minmax(160px,1fr), min-height 56px, padding 0 --space-4, column-gap --space-4, odd body rows --color-stone-100. Header row sticky top 0, min-height 48px, --color-stone-200, semibold, date column with fvdr-icon "sort" in --color-text-secondary. Name cell: fvdr-avatar size md + name / 12px secondary email with ellipsis. Footer: border-top --color-stone-300, padding --space-3 --space-4, "Showing {rows.length} of {total ?? rows.length} {noun}" 12px, link button --color-primary-500 (hover --color-primary-600 underline), spacer, fvdr-btn secondary m "Share" and "Export list". Tokens only, fvdr-icon only.',
+};
+
 const aiActions: ComponentDocEntry = {
   id: 'ai-actions',
   name: 'AI Actions',
@@ -1359,6 +1538,9 @@ export const DS_AI_SHIPPED: ComponentDocEntry[] = [
   aiBubble,
   aiCitation,
   aiOverview,
+  aiStatList,
+  aiBarList,
+  aiPeopleTable,
   aiActions,
 ];
 

@@ -365,3 +365,27 @@
     rgba(44, 156, 116, 0.45) 65%,
     rgba(255, 143, 177, 0.55) 100%);
 }
+
+/* ── Dashboard charts ─────────────────────────────────────────────────────────
+   Series colours for the VDR Dashboard (participant states, files accessed,
+   group engagement). Figma: AI-Assistant Vhy3jLaJ9nasbzTtqbu3qB › ↳ Dashboards (324:24202). */
+:root {
+  --chart-invited:      #EBD5FF;
+  --chart-signed-in:    #A9CBED;
+  --chart-engaged:      #B1EAC2;
+  --chart-deactivated:  #DDDDDD;
+  --chart-deleted:      #FFD2CD;
+  --chart-accessed:     var(--color-malachite-400, #3FB67D);
+  --chart-not-accessed: var(--color-stone-400, #DEE0EB);
+  --chart-views:        var(--color-malachite-400, #3FB67D);
+  --chart-downloads:    #5297DA;
+  --chart-prints:       #848CF1;
+  --chart-threshold:    #FF9333;
+}
+.dark-theme {
+  --chart-invited:      #5B4A73;
+  --chart-signed-in:    #3E5E7F;
+  --chart-engaged:      #3D6E4F;
+  --chart-deactivated:  #4A4C55;
+  --chart-deleted:      #7A4A45;
+}

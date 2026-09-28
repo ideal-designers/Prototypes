@@ -195,5 +195,19 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
     status: 'wip',
     description: 'Smart search on the Documents page answers questions with an AI Overview. Switch between 2 solutions: V1 puts the overview above the result table (tree rail / full width / with prompt field), V2 makes the overview the result itself (list / table), closable to the plain list. Covers suggestions, clarifying question, keyword search, file hover card, preview and hand-off to the full AI Assistant.',
   },
+  {
+    slug: 'dashboard-ai-search',
+    title: 'Dashboard — AI search (AI Overview)',
+    figma: 'https://www.figma.com/design/Vhy3jLaJ9nasbzTtqbu3qB/AI-Assistant?node-id=7-2',
+    status: 'wip',
+    description: 'Smart search on the Dashboard answers activity questions with an AI Overview built from a data block — stat list, ranked bars or people table. Switch V1 (overview above the dashboard; continue link or prompt field) vs V2 (overview replaces the dashboard) and the answer shape (block / text + block / text + block + text). Hands off to the full AI Assistant.',
+  },
+  {
+    slug: 'reports-ai-search',
+    title: 'Reports — Activity log AI search (AI Overview)',
+    figma: 'https://www.figma.com/design/Vhy3jLaJ9nasbzTtqbu3qB/AI-Assistant?node-id=7-3',
+    status: 'wip',
+    description: 'Smart search on the Activity log: V1 puts the AI Overview above the log and applies the matching filters (period, action) to the report; V2 shows the overview only. Same answer-shape switch and hand-off to the full AI Assistant as the Dashboard prototype.',
+  },
   // REGISTRY_PLACEHOLDER
 ];

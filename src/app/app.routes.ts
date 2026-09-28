@@ -191,6 +191,18 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./prototypes/docs-ai-search/docs-ai-search.component').then(m => m.DocsAiSearchComponent),
   },
+  {
+    path: 'dashboard-ai-search',
+    data: { page: 'dashboard' },
+    loadComponent: () =>
+      import('./prototypes/analytics-ai-search/analytics-ai-search.component').then(m => m.AnalyticsAiSearchComponent),
+  },
+  {
+    path: 'reports-ai-search',
+    data: { page: 'activity-log' },
+    loadComponent: () =>
+      import('./prototypes/analytics-ai-search/analytics-ai-search.component').then(m => m.AnalyticsAiSearchComponent),
+  },
   // PROTO_ROUTES_PLACEHOLDER
   {
     path: '**',

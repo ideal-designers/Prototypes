@@ -59,6 +59,9 @@
  *   <fvdr-ai-steps>            → Streaming reasoning trace ("Thought for Ns", audit trail)
  *   <fvdr-ai-bubble>           → Conversation turn container (user bubble / assistant column)
  *   <fvdr-ai-citation>         → Source reference to a document (+ page), inline / pill / chip, keyword highlight
+ *   <fvdr-ai-stat-list>        → Headline numbers block in an AI answer (label/value rows + provenance)
+ *   <fvdr-ai-bar-list>         → Ranked horizontal bars block (quiet entries go grey)
+ *   <fvdr-ai-people-table>     → Who / group / when table block with Share · Export list
  *   <fvdr-ai-overview>         → AI answer card embedded above page results (collapse / dismiss header, follow-ups, inline composer)
  *   <fvdr-ai-actions>          → Answer action row (regenerate · copy · thumbs up/down)
  *   <fvdr-ai-suggestions>      → Starter / follow-up prompt chips
@@ -144,6 +147,9 @@ import { AiStepsComponent } from './components/ai/ai-steps/ai-steps.component';
 import { AiBubbleComponent } from './components/ai/ai-bubble/ai-bubble.component';
 import { AiCitationComponent } from './components/ai/ai-citation/ai-citation.component';
 import { AiOverviewComponent } from './components/ai/ai-overview/ai-overview.component';
+import { AiStatListComponent } from './components/ai/ai-stat-list/ai-stat-list.component';
+import { AiBarListComponent } from './components/ai/ai-bar-list/ai-bar-list.component';
+import { AiPeopleTableComponent } from './components/ai/ai-people-table/ai-people-table.component';
 import { AiActionsComponent } from './components/ai/ai-actions/ai-actions.component';
 import { AiSuggestionsComponent } from './components/ai/ai-suggestions/ai-suggestions.component';
 import { AiMarkdownComponent } from './components/ai/ai-markdown/ai-markdown.component';
@@ -309,6 +315,12 @@ export { AiCitationComponent } from './components/ai/ai-citation/ai-citation.com
 export type { AiCitationVariant } from './components/ai/ai-citation/ai-citation.component';
 export { AiOverviewComponent } from './components/ai/ai-overview/ai-overview.component';
 export type { AiOverviewHeaderMode } from './components/ai/ai-overview/ai-overview.component';
+export { AiStatListComponent } from './components/ai/ai-stat-list/ai-stat-list.component';
+export type { AiStat } from './components/ai/ai-stat-list/ai-stat-list.component';
+export { AiBarListComponent } from './components/ai/ai-bar-list/ai-bar-list.component';
+export type { AiBarItem } from './components/ai/ai-bar-list/ai-bar-list.component';
+export { AiPeopleTableComponent } from './components/ai/ai-people-table/ai-people-table.component';
+export type { AiPersonRow } from './components/ai/ai-people-table/ai-people-table.component';
 
 export { AiActionsComponent } from './components/ai/ai-actions/ai-actions.component';
 export type { AiRating } from './components/ai/ai-actions/ai-actions.component';
@@ -442,6 +454,9 @@ export const DS_COMPONENTS = [
   AiBubbleComponent,
   AiCitationComponent,
   AiOverviewComponent,
+  AiStatListComponent,
+  AiBarListComponent,
+  AiPeopleTableComponent,
   AiActionsComponent,
   AiSuggestionsComponent,
   AiMarkdownComponent,
