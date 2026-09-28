@@ -3,11 +3,13 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DS_COMPONENTS } from '../../shared/ds';
-import type { AiChatMessage, BreadcrumbItem, HeaderAction, SegmentItem, SidebarNavItem, SidebarNavSubItem } from '../../shared/ds';
+import type { BreadcrumbItem, HeaderAction, SegmentItem, SidebarNavItem, SidebarNavSubItem } from '../../shared/ds';
 import { TrackerService } from '../../services/tracker.service';
 import { AnswerShape, VdrAnalyticsAnswerComponent } from './analytics-answer.component';
 import { VdrAnalyticsDashboardComponent } from './analytics-dashboard.component';
 import { VdrActivityLogTableComponent } from './activity-log-table.component';
+import { VdrAssistantChatComponent, VdrChatThread, VdrChatTurn } from '../_shared/assistant-chat.component';
+import { VdrProtoSwitcherComponent, ProtoGroup } from '../_shared/proto-switcher.component';
 import { AnalyticsAnswer, AnalyticsPage, PROMPTS, RECENTS, answerFor, logFor } from './analytics-ai-search.data';
 
 type Solution = 'v1' | 'v2';
@@ -23,7 +25,7 @@ type V1Layout = 'link' | 'composer';
 @Component({
   selector: 'fvdr-analytics-ai-search',
   standalone: true,
-  imports: [CommonModule, FormsModule, ...DS_COMPONENTS, VdrAnalyticsAnswerComponent, VdrAnalyticsDashboardComponent, VdrActivityLogTableComponent],
+  imports: [CommonModule, FormsModule, ...DS_COMPONENTS, VdrAnalyticsAnswerComponent, VdrAnalyticsDashboardComponent, VdrActivityLogTableComponent, VdrAssistantChatComponent, VdrProtoSwitcherComponent],
   template: `
     <div class="page">
       <fvdr-sidebar-nav variant="vdr" accountName="Nike" accountMark="N" [items]="navItems"
@@ -100,58 +102,26 @@ type V1Layout = 'link' | 'composer';
 
         <!-- ═══════════ Full AI Assistant ═══════════ -->
         <div class="chat" *ngIf="view === 'chat'">
-          <div class="chat__bar">
-            <button type="button" class="icon-btn" title="Chat history" aria-label="Chat history"><fvdr-icon name="sidebar-mode"></fvdr-icon></button>
-            <button type="button" class="chat__new" (click)="newChat()"><fvdr-icon name="new-session"></fvdr-icon>New chat</button>
-            <span class="chat__spacer"></span>
-            <button type="button" class="icon-btn" title="Sources" aria-label="Sources"><fvdr-icon name="note"></fvdr-icon></button>
-            <button type="button" class="icon-btn" title="Export" aria-label="Export"><fvdr-icon name="share"></fvdr-icon></button>
-          </div>
-          <div class="chat__conv">
-            <fvdr-ai-conversation [messages]="chatMessages" [streaming]="chatStreaming" placeholder="Write a message..."
-              [answerTemplate]="answerTpl" (promptSubmitted)="ask($event)"
-              (stepsToggled)="$event.stepsExpanded = !$event.stepsExpanded" (rated)="$event.message.rating = $event.rating">
-              <div conv-dock-top class="chat__scope">
-                <fvdr-ai-scope-bar kind="room" label="All files and folders" [editable]="false"></fvdr-ai-scope-bar>
-              </div>
-            </fvdr-ai-conversation>
-          </div>
-          <p class="chat__note">Every answer comes only from files you're already allowed to see in this project</p>
+          <fvdr-vdr-assistant-chat [turns]="chatMessages" [busy]="chatStreaming" [answerTemplate]="answerTpl"
+            [threads]="chatThreads" activeThreadId="current"
+            (submitted)="ask($event)" (stop)="stopChat()" (newChat)="newChat()" (regenerate)="ask(lastUserPrompt)"></fvdr-vdr-assistant-chat>
 
           <ng-template #answerTpl let-m>
             <ng-container *ngIf="chatAnswers[m.id] as a; else plainMsg">
-              <fvdr-vdr-analytics-answer *ngIf="!m.streaming" [answer]="a" shape="text-block-text"
-                (reportRequested)="goTo('activity-log')"></fvdr-vdr-analytics-answer>
+              <fvdr-vdr-analytics-answer [answer]="a" shape="text-block-text" (reportRequested)="goTo('activity-log')"></fvdr-vdr-analytics-answer>
               <div class="chat__next" *ngIf="m.done && m.id === lastAssistantId">
                 <span class="chat__next-label">What next?</span>
                 <fvdr-ai-suggestions [items]="a.followUps" (chosen)="ask($event)"></fvdr-ai-suggestions>
               </div>
             </ng-container>
-            <ng-template #plainMsg><fvdr-ai-markdown [source]="m.text"></fvdr-ai-markdown></ng-template>
+            <ng-template #plainMsg><p class="chat__plain">{{ m.text }}</p></ng-template>
           </ng-template>
         </div>
       </div>
     </div>
 
     <!-- Prototype controls -->
-    <div class="switcher" role="group" aria-label="Prototype options">
-      <span class="switcher__label">Page</span>
-      <fvdr-segment [items]="pageItems" [activeId]="page" (activeIdChange)="goTo($any($event))"></fvdr-segment>
-      <span class="switcher__div"></span>
-      <span class="switcher__label">Solution</span>
-      <fvdr-segment [items]="solutionItems" [activeId]="solution" (activeIdChange)="solution = $any($event)"></fvdr-segment>
-      <ng-container *ngIf="solution === 'v1'">
-        <span class="switcher__div"></span>
-        <fvdr-segment [items]="v1Items" [activeId]="v1Layout" (activeIdChange)="v1Layout = $any($event)"></fvdr-segment>
-      </ng-container>
-      <span class="switcher__div"></span>
-      <span class="switcher__label">Answer</span>
-      <fvdr-segment [items]="shapeItems" [activeId]="shape" (activeIdChange)="shape = $any($event)"></fvdr-segment>
-      <span class="switcher__div"></span>
-      <button type="button" class="switcher__reset" (click)="reset()" title="Back to the page, clear history">
-        <fvdr-icon name="refresh"></fvdr-icon>Restart
-      </button>
-    </div>
+    <fvdr-vdr-proto-switcher [groups]="switcherGroups" (changed)="onOption($event)" (restart)="reset()"></fvdr-vdr-proto-switcher>
   `,
   styles: [`
     :host { display: block; height: 100vh; overflow: hidden; font-family: var(--font-family);
@@ -160,7 +130,7 @@ type V1Layout = 'link' | 'composer';
     .main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 
     .body { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: var(--space-6);
-      padding: var(--space-6) var(--space-6) 152px; /* clears the prototype switcher */ }
+      padding: var(--space-6) var(--space-6) 64px; /* clears the prototype switcher */ }
     .toolbar { display: flex; align-items: center; gap: var(--space-4); flex: 0 0 auto; }
     .toolbar__spacer { flex: 1; }
     .toolbar__search { flex: 0 1 380px; min-width: 240px; }
@@ -184,31 +154,11 @@ type V1Layout = 'link' | 'composer';
       color: var(--color-text-secondary); font-size: var(--font-size-lg, 16px); }
     .icon-btn:hover { background: var(--color-hover-bg); color: var(--color-text-primary); }
 
-    .chat { flex: 1; min-height: 0; display: flex; flex-direction: column; padding: 0 var(--space-6) 136px; }
-    .chat__bar { display: flex; align-items: center; gap: var(--space-2); height: 56px; flex: 0 0 auto; }
-    .chat__new { display: inline-flex; align-items: center; gap: var(--space-2); height: 32px; padding: 0 var(--space-2);
-      border: none; background: transparent; border-radius: var(--radius-sm); cursor: pointer;
-      font-family: var(--font-family); font-size: var(--font-size-base, 14px); color: var(--color-text-primary); }
-    .chat__new:hover { background: var(--color-hover-bg); }
-    .chat__spacer { flex: 1; }
-    .chat__conv { flex: 1; min-height: 0; }
-    .chat__scope { display: block; max-width: 720px; width: 100%; margin: 0 auto var(--space-2); }
-    .chat__note { margin: var(--space-2) 0 0; text-align: center; font-size: var(--text-caption1-size, 12px); color: var(--color-text-secondary); }
+    .chat { flex: 1; min-height: 0; display: flex; flex-direction: column; padding-bottom: 40px; /* clears the prototype switcher */ }
+    .chat__plain { margin: 0; }
     .chat__next { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-3); }
     .chat__next-label { font-weight: var(--font-weight-semi, 600); }
 
-    .switcher { position: fixed; left: 50%; bottom: var(--space-6); transform: translateX(-50%); z-index: 350;
-      display: flex; align-items: center; gap: var(--space-3); padding: var(--space-2) var(--space-4);
-      background: var(--color-stone-0); border: 1px solid var(--color-divider); border-radius: var(--radius-lg);
-      box-shadow: var(--shadow-modal, 0 8px 32px rgba(0, 0, 0, 0.2)); white-space: nowrap; flex-wrap: wrap; justify-content: center;
-      row-gap: var(--space-2); width: max-content; max-width: min(1040px, calc(100vw - var(--space-8))); box-sizing: border-box; }
-    .switcher__label { font-size: var(--text-caption1-size, 12px); font-weight: var(--font-weight-semi, 600);
-      color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.04em; }
-    .switcher__div { width: 1px; height: 24px; background: var(--color-divider); flex: 0 0 auto; }
-    .switcher__reset { display: inline-flex; align-items: center; gap: var(--space-2); height: 32px; padding: 0 var(--space-2);
-      border: none; background: transparent; border-radius: var(--radius-sm); cursor: pointer;
-      font-family: var(--font-family); font-size: var(--font-size-base, 14px); color: var(--color-text-secondary); }
-    .switcher__reset:hover { background: var(--color-hover-bg); color: var(--color-text-primary); }
   `],
 })
 export class AnalyticsAiSearchComponent implements OnInit, OnDestroy {
@@ -221,12 +171,25 @@ export class AnalyticsAiSearchComponent implements OnInit, OnDestroy {
   solution: Solution = 'v1';
   v1Layout: V1Layout = 'link';
   shape: AnswerShape = 'text-block-text';
-  readonly pageItems: SegmentItem[] = [{ id: 'dashboard', label: 'Dashboard' }, { id: 'activity-log', label: 'Activity log' }];
-  readonly solutionItems: SegmentItem[] = [{ id: 'v1', label: 'V1 · Above the page' }, { id: 'v2', label: 'V2 · Instead of the page' }];
-  readonly v1Items: SegmentItem[] = [{ id: 'link', label: 'Continue link' }, { id: 'composer', label: 'Prompt field' }];
-  readonly shapeItems: SegmentItem[] = [
-    { id: 'block', label: 'Block' }, { id: 'text-block', label: 'Text + block' }, { id: 'text-block-text', label: 'Text + block + text' },
-  ];
+  /** Cached — rebuilt only when an option changes, so the switcher's buttons stay put under the pointer. */
+  switcherGroups: ProtoGroup[] = [];
+  private syncSwitcher(): void {
+    this.switcherGroups = [
+      { id: 'page', label: 'Page', value: this.page, options: [{ id: 'dashboard', label: 'Dashboard' }, { id: 'activity-log', label: 'Activity log' }] },
+      { id: 'solution', label: 'Solution', value: this.solution, options: [{ id: 'v1', label: 'V1 · Above the page' }, { id: 'v2', label: 'V2 · Instead of the page' }] },
+      ...(this.solution === 'v1' ? [{ id: 'v1Layout', value: this.v1Layout, options: [{ id: 'link', label: 'Continue link' }, { id: 'composer', label: 'Prompt field' }] }] : []),
+      { id: 'shape', label: 'Answer', value: this.shape, options: [
+        { id: 'block', label: 'Block' }, { id: 'text-block', label: 'Text + block' }, { id: 'text-block-text', label: 'Text + block + text' }] },
+    ];
+  }
+
+  onOption(e: { group: string; value: string }): void {
+    if (e.group === 'page') this.goTo(e.value as AnalyticsPage);
+    if (e.group === 'solution') this.solution = e.value as Solution;
+    if (e.group === 'v1Layout') this.v1Layout = e.value as V1Layout;
+    if (e.group === 'shape') this.shape = e.value as AnswerShape;
+    this.syncSwitcher();
+  }
 
   // ── Shell ──
   sidebarCollapsed = false;
@@ -254,7 +217,14 @@ export class AnalyticsAiSearchComponent implements OnInit, OnDestroy {
   private aiTimer?: ReturnType<typeof setTimeout>;
 
   // ── Chat ──
-  chatMessages: AiChatMessage[] = [];
+  chatMessages: VdrChatTurn[] = [];
+  lastUserPrompt = '';
+  readonly chatThreads: VdrChatThread[] = [
+    { id: 'qna', title: 'Q&A questions', pinned: true },
+    { id: 'current', title: 'Current chat' },
+    { id: 'eng', title: 'Buyer engagement this week' },
+    { id: 'fin', title: 'Key Financial Highlights' },
+  ];
   chatAnswers: Record<string, AnalyticsAnswer> = {};
   chatStreaming = false;
   chatTitle = '';
@@ -267,6 +237,7 @@ export class AnalyticsAiSearchComponent implements OnInit, OnDestroy {
     this.page = (this.route.snapshot.data['page'] as AnalyticsPage) ?? 'dashboard';
     this.recents = [...RECENTS[this.page]];
     this.buildNav();
+    this.syncSwitcher();
     this.tracker.trackPageView(this.page === 'dashboard' ? 'dashboard-ai-search' : 'reports-ai-search');
   }
 
@@ -299,7 +270,7 @@ export class AnalyticsAiSearchComponent implements OnInit, OnDestroy {
   }
 
   private buildCrumbs(): BreadcrumbItem[] {
-    if (this.view === 'chat') return [{ id: 'ai', label: 'AI Assistant' }, { id: 'thread', label: this.chatTitle }];
+    if (this.view === 'chat') return this.chatMessages.length ? [{ id: 'ai', label: 'AI Assistant' }, { id: 'thread', label: this.chatTitle }] : [{ id: 'ai', label: 'AI Assistant' }];
     const base = this.page === 'dashboard'
       ? [{ id: 'dashboard', label: 'Dashboard' }]
       : [{ id: 'reports', label: 'Reports' }, { id: 'activity-log', label: 'Activity log' }];
@@ -344,6 +315,7 @@ export class AnalyticsAiSearchComponent implements OnInit, OnDestroy {
     this.clear();
     this.recents = [...RECENTS[page]];
     this.buildNav();
+    this.syncSwitcher();
     this.router.navigate([page === 'dashboard' ? '/dashboard-ai-search' : '/reports-ai-search'], { replaceUrl: true });
   }
 
@@ -367,8 +339,8 @@ export class AnalyticsAiSearchComponent implements OnInit, OnDestroy {
     const u = this.msgId(), a = this.msgId();
     this.chatAnswers = { [a]: this.answer };
     this.chatMessages = [
-      { id: u, role: 'user', text: this.activeQuery },
-      { id: a, role: 'assistant', text: '', done: true, steps: this.steps(), thoughtMs: 3800 },
+      { id: u, role: 'user', text: this.activeQuery, at: 'just now' },
+      { id: a, role: 'assistant', text: '', done: true, steps: this.steps(), took: '1min', at: 'just now' },
     ];
     this.chatStreaming = false;
     this.composerValue = '';
@@ -379,9 +351,11 @@ export class AnalyticsAiSearchComponent implements OnInit, OnDestroy {
 
   ask(prompt: string): void {
     if (this.chatStreaming) return;
+    if (!this.chatMessages.length) this.chatTitle = prompt.length > 40 ? prompt.slice(0, 40) + '…' : prompt;
     const u = this.msgId(), a = this.msgId();
-    const msg: AiChatMessage = { id: a, role: 'assistant', text: '', streaming: true, steps: [] };
-    this.chatMessages = [...this.chatMessages, { id: u, role: 'user', text: prompt }, msg];
+    const msg: VdrChatTurn = { id: a, role: 'assistant', text: '', streaming: true, steps: [] };
+    this.lastUserPrompt = prompt;
+    this.chatMessages = [...this.chatMessages, { id: u, role: 'user', text: prompt, at: 'just now' }, msg];
     this.chatAnswers = { ...this.chatAnswers, [a]: answerFor(prompt) };
     this.chatStreaming = true;
     const all = this.steps();
@@ -390,10 +364,23 @@ export class AnalyticsAiSearchComponent implements OnInit, OnDestroy {
       this.chatMessages = [...this.chatMessages];
     }, 400 + i * 450)));
     this.chatTimers.push(setTimeout(() => {
-      msg.steps = all; msg.streaming = false; msg.done = true; msg.thoughtMs = 2100;
+      msg.steps = all; msg.streaming = false; msg.done = true; msg.took = '2s'; msg.at = 'just now';
       this.chatStreaming = false;
       this.chatMessages = [...this.chatMessages];
     }, 400 + all.length * 450 + 300));
+  }
+
+  /** Stop: keep the finished steps, drop the unfinished answer. */
+  stopChat(): void {
+    this.chatTimers.forEach(clearTimeout);
+    const last = this.chatMessages[this.chatMessages.length - 1];
+    if (last?.streaming) {
+      last.streaming = false; last.done = true; last.text = 'Response stopped.';
+      last.steps = (last.steps ?? []).filter(st => st.done);
+      delete this.chatAnswers[last.id];
+      this.chatMessages = [...this.chatMessages];
+    }
+    this.chatStreaming = false;
   }
 
   newChat(): void {
@@ -406,9 +393,9 @@ export class AnalyticsAiSearchComponent implements OnInit, OnDestroy {
 
   private steps() {
     return [
-      { id: 's1', kind: 'thought' as const, label: 'Understood the question', done: true },
-      { id: 's2', kind: 'result' as const, label: 'Read the activity log', detail: 'last 7 days', done: true },
-      { id: 's3', kind: 'result' as const, label: 'Grouped by participant and group', done: true },
+      { id: 's1', kind: 'result' as const, label: 'Read the activity log', detail: 'last 7 days · 2,406 events', done: true },
+      { id: 's2', kind: 'result' as const, label: 'Grouped events by participant and group', done: true },
+      { id: 's3', kind: 'result' as const, label: 'Comparing with last week', done: true },
       { id: 's4', kind: 'thought' as const, label: 'Checked the answer against your access', done: true },
     ];
   }

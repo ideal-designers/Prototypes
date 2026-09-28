@@ -3,12 +3,14 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DS_COMPONENTS } from '../../shared/ds';
 import type {
-  AiChatMessage, BreadcrumbItem, HeaderAction, QuickAccessItem, SegmentItem, SidebarNavItem, SmartSearchResult,
+  BreadcrumbItem, HeaderAction, QuickAccessItem, SegmentItem, SidebarNavItem, SmartSearchResult,
 } from '../../shared/ds';
 import type { FvdrIconName } from '../../shared/ds/icons/icons';
 import { TrackerService } from '../../services/tracker.service';
 import { VdrAnswerBodyComponent, DocHoverEvent } from './answer-body.component';
 import { VdrDocPreviewComponent } from './doc-preview.component';
+import { VdrAssistantChatComponent, VdrChatThread, VdrChatTurn } from '../_shared/assistant-chat.component';
+import { VdrProtoSwitcherComponent, ProtoGroup } from '../_shared/proto-switcher.component';
 import {
   AI_PROMPTS, ANSWER_CONSENT, ANSWER_KEYWORD, CLARIFY, FOLDER_ROWS, KEYWORD_ROWS, MockAnswer, MockDoc,
   RECENTS_SEED, ResultRow, SEARCH_POOL, TREE_ROWS, answerFor, docsOf, isKeywordQuery, needsClarifying,
@@ -30,7 +32,7 @@ type AiState = 'loading' | 'clarify' | 'answer';
 @Component({
   selector: 'fvdr-docs-ai-search',
   standalone: true,
-  imports: [CommonModule, FormsModule, ...DS_COMPONENTS, VdrAnswerBodyComponent, VdrDocPreviewComponent],
+  imports: [CommonModule, FormsModule, ...DS_COMPONENTS, VdrAnswerBodyComponent, VdrDocPreviewComponent, VdrAssistantChatComponent, VdrProtoSwitcherComponent],
   template: `
     <div class="page">
       <fvdr-sidebar-nav
@@ -198,41 +200,29 @@ type AiState = 'loading' | 'clarify' | 'answer';
 
           <!-- ═══════════════ Full AI Assistant ═══════════════ -->
           <div class="chat" *ngIf="view === 'chat'">
-            <div class="chat__bar">
-              <button type="button" class="icon-btn" title="Chat history" aria-label="Chat history"><fvdr-icon name="sidebar-mode"></fvdr-icon></button>
-              <button type="button" class="chat__new" (click)="newChat()"><fvdr-icon name="new-session"></fvdr-icon>New chat</button>
-              <span class="chat__spacer"></span>
-              <button type="button" class="icon-btn" title="Sources" aria-label="Sources"><fvdr-icon name="note"></fvdr-icon></button>
-              <button type="button" class="icon-btn" title="Export" aria-label="Export"><fvdr-icon name="share"></fvdr-icon></button>
-            </div>
-            <div class="chat__conv">
-              <fvdr-ai-conversation
-                [messages]="chatMessages"
-                [streaming]="chatStreaming"
-                placeholder="Write a message..."
-                [answerTemplate]="answerTpl"
-                (promptSubmitted)="askInChat($event)"
-                (stepsToggled)="$event.stepsExpanded = !$event.stepsExpanded"
-                (rated)="$event.message.rating = $event.rating"
-              >
-                <div conv-dock-top class="chat__scope">
-                  <fvdr-ai-scope-bar [kind]="chatScopeDocs ? 'selection' : 'room'"
-                    [label]="chatScopeDocs ? chatScopeDocs + ' files' : 'All files and folders'" [editable]="false"></fvdr-ai-scope-bar>
-                </div>
-              </fvdr-ai-conversation>
-            </div>
-            <p class="chat__note">Every answer comes only from files you're already allowed to see in this project</p>
+            <fvdr-vdr-assistant-chat
+              [turns]="chatMessages"
+              [busy]="chatStreaming"
+              [answerTemplate]="answerTpl"
+              [threads]="chatThreads"
+              activeThreadId="current"
+              [scopeLabel]="chatScopeDocs ? chatScopeDocs + ' files' : 'All files and folders'"
+              (submitted)="askInChat($event)"
+              (stop)="stopChat()"
+              (newChat)="newChat()"
+              (regenerate)="askInChat(lastUserPrompt)"
+            ></fvdr-vdr-assistant-chat>
 
             <ng-template #answerTpl let-m>
               <ng-container *ngIf="chatAnswers[m.id] as a; else plainMsg">
-                <fvdr-vdr-answer-body *ngIf="!m.streaming" [answer]="a"
+                <fvdr-vdr-answer-body [answer]="a"
                   (docOpened)="openPreview($event)" (docHover)="onDocHover($event)"></fvdr-vdr-answer-body>
                 <div class="chat__next" *ngIf="m.done && a.followUps.length && m.id === lastAssistantId">
                   <span class="chat__next-label">What next?</span>
                   <fvdr-ai-suggestions [items]="a.followUps" (chosen)="askInChat($event)"></fvdr-ai-suggestions>
                 </div>
               </ng-container>
-              <ng-template #plainMsg><fvdr-ai-markdown [source]="m.text"></fvdr-ai-markdown></ng-template>
+              <ng-template #plainMsg><p class="chat__plain">{{ m.text }}</p></ng-template>
             </ng-template>
           </div>
         </div>
@@ -262,18 +252,7 @@ type AiState = 'loading' | 'clarify' | 'answer';
     ></fvdr-doc-info-card>
 
     <!-- Prototype controls -->
-    <div class="switcher" role="group" aria-label="Prototype options">
-      <span class="switcher__label">Solution</span>
-      <fvdr-segment [items]="solutionItems" [activeId]="solution" (activeIdChange)="setSolution($event)"></fvdr-segment>
-      <span class="switcher__div"></span>
-      <span class="switcher__label">{{ solution === 'v1' ? 'Layout' : 'Answer' }}</span>
-      <fvdr-segment *ngIf="solution === 'v1'" [items]="v1Items" [activeId]="v1Layout" (activeIdChange)="v1Layout = $any($event)"></fvdr-segment>
-      <fvdr-segment *ngIf="solution === 'v2'" [items]="v2Items" [activeId]="v2View" (activeIdChange)="v2View = $any($event)"></fvdr-segment>
-      <span class="switcher__div"></span>
-      <button type="button" class="switcher__reset" (click)="reset()" title="Back to the folder, clear history">
-        <fvdr-icon name="refresh"></fvdr-icon>Restart
-      </button>
-    </div>
+    <fvdr-vdr-proto-switcher [groups]="switcherGroups" (changed)="onOption($event)" (restart)="reset()"></fvdr-vdr-proto-switcher>
   `,
   styles: [`
     :host { display: block; height: 100vh; overflow: hidden; font-family: var(--font-family);
@@ -293,7 +272,7 @@ type AiState = 'loading' | 'clarify' | 'answer';
 
     .content { flex: 1; min-height: 0; display: flex; gap: var(--space-6); }
     .results { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--space-2); overflow-y: auto;
-      padding-bottom: 88px; /* room for the prototype switcher */ }
+      padding-bottom: 56px; /* room for the prototype switcher */ }
 
     /* Quick access */
     .qa { flex: 0 0 320px; display: flex; flex-direction: column; min-height: 0; }
@@ -349,34 +328,14 @@ type AiState = 'loading' | 'clarify' | 'answer';
     .icon-btn:hover { background: var(--color-hover-bg); color: var(--color-text-primary); }
 
     /* ── Chat ── */
-    .chat { flex: 1; min-height: 0; display: flex; flex-direction: column; padding: 0 var(--space-6) 88px; /* clears the prototype switcher */ }
-    .chat__bar { display: flex; align-items: center; gap: var(--space-2); height: 56px; flex: 0 0 auto; }
-    .chat__new { display: inline-flex; align-items: center; gap: var(--space-2); height: 32px; padding: 0 var(--space-2);
-      border: none; background: transparent; border-radius: var(--radius-sm); cursor: pointer;
-      font-family: var(--font-family); font-size: var(--font-size-base, 14px); color: var(--color-text-primary); }
-    .chat__new:hover { background: var(--color-hover-bg); }
-    .chat__spacer { flex: 1; }
-    .chat__conv { flex: 1; min-height: 0; }
-    .chat__scope { display: block; max-width: 720px; width: 100%; margin: 0 auto var(--space-2); }
-    .chat__note { margin: var(--space-2) 0 0; text-align: center; font-size: var(--text-caption1-size, 12px); color: var(--color-text-secondary); }
+    .chat { flex: 1; min-height: 0; display: flex; flex-direction: column; padding-bottom: 40px; /* clears the prototype switcher */ }
+    .chat__plain { margin: 0; }
     .chat__next { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-3); }
     .chat__next-label { font-weight: var(--font-weight-semi, 600); }
 
     /* ── Hover card ── */
     .hovercard { position: fixed; z-index: 400; }
 
-    /* ── Prototype switcher ── */
-    .switcher { position: fixed; left: 50%; bottom: var(--space-6); transform: translateX(-50%); z-index: 350;
-      display: flex; align-items: center; gap: var(--space-3); padding: var(--space-2) var(--space-4);
-      background: var(--color-stone-0); border: 1px solid var(--color-divider); border-radius: var(--radius-lg);
-      box-shadow: var(--shadow-modal, 0 8px 32px rgba(0, 0, 0, 0.2)); white-space: nowrap; max-width: calc(100vw - var(--space-8)); overflow-x: auto; }
-    .switcher__label { font-size: var(--text-caption1-size, 12px); font-weight: var(--font-weight-semi, 600);
-      color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.04em; }
-    .switcher__div { width: 1px; height: 24px; background: var(--color-divider); }
-    .switcher__reset { display: inline-flex; align-items: center; gap: var(--space-2); height: 32px; padding: 0 var(--space-2);
-      border: none; background: transparent; border-radius: var(--radius-sm); cursor: pointer;
-      font-family: var(--font-family); font-size: var(--font-size-base, 14px); color: var(--color-text-secondary); }
-    .switcher__reset:hover { background: var(--color-hover-bg); color: var(--color-text-primary); }
   `],
 })
 export class DocsAiSearchComponent implements OnInit, OnDestroy {
@@ -386,19 +345,26 @@ export class DocsAiSearchComponent implements OnInit, OnDestroy {
   solution: Solution = 'v1';
   v1Layout: V1Layout = 'rail';
   v2View: V2View = 'list';
-  readonly solutionItems: SegmentItem[] = [
-    { id: 'v1', label: 'V1 · Overview + table' },
-    { id: 'v2', label: 'V2 · Overview with docs' },
-  ];
-  readonly v1Items: SegmentItem[] = [
-    { id: 'rail', label: 'Tree rail' },
-    { id: 'full', label: 'Full width' },
-    { id: 'composer', label: 'With prompt field' },
-  ];
-  readonly v2Items: SegmentItem[] = [
-    { id: 'list', label: 'List' },
-    { id: 'table', label: 'Table' },
-  ];
+  /** Cached — rebuilt only when an option changes, so the switcher's buttons stay put under the pointer. */
+  switcherGroups: ProtoGroup[] = [];
+  private syncSwitcher(): void {
+    this.switcherGroups = [
+      { id: 'solution', label: 'Solution', value: this.solution, options: [
+        { id: 'v1', label: 'V1 · Overview + table' }, { id: 'v2', label: 'V2 · Overview with docs' } ] },
+      this.solution === 'v1'
+        ? { id: 'v1Layout', label: 'Layout', value: this.v1Layout, options: [
+            { id: 'rail', label: 'Tree rail' }, { id: 'full', label: 'Full width' }, { id: 'composer', label: 'Prompt field' } ] }
+        : { id: 'v2View', label: 'Answer', value: this.v2View, options: [
+            { id: 'list', label: 'List' }, { id: 'table', label: 'Table' } ] },
+    ];
+  }
+
+  onOption(e: { group: string; value: string }): void {
+    if (e.group === 'solution') this.setSolution(e.value);
+    if (e.group === 'v1Layout') this.v1Layout = e.value as V1Layout;
+    if (e.group === 'v2View') this.v2View = e.value as V2View;
+    this.syncSwitcher();
+  }
 
   // ── Shell ──
   sidebarCollapsed = false;
@@ -452,7 +418,13 @@ export class DocsAiSearchComponent implements OnInit, OnDestroy {
   private hoverTimer?: ReturnType<typeof setTimeout>;
 
   // ── Chat ──
-  chatMessages: AiChatMessage[] = [];
+  chatMessages: VdrChatTurn[] = [];
+  readonly chatThreads: VdrChatThread[] = [
+    { id: 'qna', title: 'Q&A questions', pinned: true },
+    { id: 'current', title: 'Current chat' },
+    { id: 'qna-2', title: 'Q&A questions' },
+    { id: 'fin', title: 'Key Financial Highlights' },
+  ];
   chatAnswers: Record<string, MockAnswer> = {};
   chatStreaming = false;
   chatTitle = '';
@@ -460,7 +432,7 @@ export class DocsAiSearchComponent implements OnInit, OnDestroy {
   private chatTimers: ReturnType<typeof setTimeout>[] = [];
   private seq = 0;
 
-  ngOnInit(): void { this.tracker.trackPageView('docs-ai-search'); }
+  ngOnInit(): void { this.tracker.trackPageView('docs-ai-search'); this.syncSwitcher(); }
 
   ngOnDestroy(): void {
     this.tracker.destroyListeners();
@@ -489,7 +461,7 @@ export class DocsAiSearchComponent implements OnInit, OnDestroy {
   private crumbCache: BreadcrumbItem[] = [];
 
   private buildCrumbs(): BreadcrumbItem[] {
-    if (this.view === 'chat') return [{ id: 'ai', label: 'AI Assistant' }, { id: 'thread', label: this.chatTitle }];
+    if (this.view === 'chat') return this.chatMessages.length ? [{ id: 'ai', label: 'AI Assistant' }, { id: 'thread', label: this.chatTitle }] : [{ id: 'ai', label: 'AI Assistant' }];
     const base = [{ id: 'docs', label: 'Documents' }, { id: 'all', label: 'All' }];
     if (this.mode === 'folder') return [...base, { id: 'folder', label: '5 Legal Agreements' }];
     // V2 keeps the answer as the page, so the crumb stays on the folder level until it is closed.
@@ -561,6 +533,7 @@ export class DocsAiSearchComponent implements OnInit, OnDestroy {
   // ── Options ──
   setSolution(id: string): void {
     this.solution = id as Solution;
+    this.syncSwitcher();
     this.overviewDismissed = false;
     this.overviewCollapsed = false;
   }
@@ -670,8 +643,8 @@ export class DocsAiSearchComponent implements OnInit, OnDestroy {
     const u = this.msgId(), a = this.msgId();
     this.chatAnswers = { [a]: this.answer };
     this.chatMessages = [
-      { id: u, role: 'user', text: this.activeQuery },
-      { id: a, role: 'assistant', text: '', done: true, steps: this.steps(true), thoughtMs: 4200 },
+      { id: u, role: 'user', text: this.activeQuery, at: 'just now' },
+      { id: a, role: 'assistant', text: '', done: true, steps: this.steps(true), took: '1min', at: 'just now' },
     ];
     this.composerValue = '';
     this.closePreview();
@@ -682,10 +655,12 @@ export class DocsAiSearchComponent implements OnInit, OnDestroy {
 
   askInChat(prompt: string): void {
     if (this.chatStreaming) return;
+    if (!this.chatMessages.length) this.chatTitle = prompt.length > 40 ? prompt.slice(0, 40) + '…' : prompt;
     const u = this.msgId(), a = this.msgId();
     const reply = answerFor(prompt);
-    const msg: AiChatMessage = { id: a, role: 'assistant', text: '', streaming: true, steps: [] };
-    this.chatMessages = [...this.chatMessages, { id: u, role: 'user', text: prompt }, msg];
+    const msg: VdrChatTurn = { id: a, role: 'assistant', text: '', streaming: true, steps: [] };
+    this.lastUserPrompt = prompt;
+    this.chatMessages = [...this.chatMessages, { id: u, role: 'user', text: prompt, at: 'just now' }, msg];
     this.chatAnswers = { ...this.chatAnswers, [a]: reply };
     this.chatStreaming = true;
     const all = this.steps(true);
@@ -697,10 +672,28 @@ export class DocsAiSearchComponent implements OnInit, OnDestroy {
       msg.steps = all;
       msg.streaming = false;
       msg.done = true;
-      msg.thoughtMs = 2200;
+      msg.took = '2s';
+      msg.at = 'just now';
       this.chatStreaming = false;
       this.chatMessages = [...this.chatMessages];
     }, 400 + all.length * 450 + 300));
+  }
+
+  lastUserPrompt = '';
+
+  /** Stop: keep what the steps found, drop the unfinished answer. */
+  stopChat(): void {
+    this.chatTimers.forEach(clearTimeout);
+    const last = this.chatMessages[this.chatMessages.length - 1];
+    if (last?.streaming) {
+      last.streaming = false;
+      last.done = true;
+      last.text = 'Response stopped.';
+      last.steps = (last.steps ?? []).filter(st => st.done);
+      delete this.chatAnswers[last.id];
+      this.chatMessages = [...this.chatMessages];
+    }
+    this.chatStreaming = false;
   }
 
   newChat(): void {
@@ -714,9 +707,9 @@ export class DocsAiSearchComponent implements OnInit, OnDestroy {
 
   private steps(done: boolean) {
     return [
-      { id: 's1', kind: 'thought' as const, label: 'Understood the question', done },
-      { id: 's2', kind: 'result' as const, label: 'Searched 5 Legal Agreements', detail: '12 documents', done },
-      { id: 's3', kind: 'result' as const, label: 'Read 3 agreements', done },
+      { id: 's1', kind: 'result' as const, label: 'Searched all files and folders you can open', detail: '1,248 files', done },
+      { id: 's2', kind: 'result' as const, label: 'Found 3 agreements in 5 Legal Agreements', done },
+      { id: 's3', kind: 'result' as const, label: 'Reading 5.5.1 Merger Agreement – Project Falcon.pdf', done },
       { id: 's4', kind: 'thought' as const, label: 'Checked the answer against your access', done },
     ];
   }

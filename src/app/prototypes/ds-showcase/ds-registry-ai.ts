@@ -675,7 +675,7 @@ const aiEmptyState = ai({
   name: 'AI Empty State',
   selector: 'fvdr-ai-empty-state',
   description:
-    'The zero-message screen: Ideon mark, greeting, the composer, and scope-aware starter prompts. This is where the assistant teaches what it can do, so the starters must change with the scope the chat was opened from (data room vs folder vs single document).',
+    'The zero-message screen: the vortex thinking orb (80px, bare — Figma AI-Assistant 115:9784), greeting, the composer, and scope-aware starter prompts. This is where the assistant teaches what it can do, so the starters must change with the scope the chat was opened from (data room vs folder vs single document).',
   whenToUse: [
     'First open of the assistant, or after starting a new chat',
     'Teaching the three or four things worth asking in this scope',
@@ -686,7 +686,7 @@ const aiEmptyState = ai({
   ],
   relatedComponents: ['ai-suggestions', 'ai-composer', 'ai-conversation'],
   anatomy: [
-    { index: 1, part: 'Ideon mark', spec: "40px fvdr-icon 'ideon' · --color-primary-500 (28px compact)" },
+    { index: 1, part: 'Orb', spec: 'fvdr-thinking-orbs vortex · 80×80, no pill, no label (56px compact) · --ai-orb-dot' },
     { index: 2, part: 'Greeting',   spec: "24px semibold · --color-text-primary" },
     { index: 3, part: 'Subtitle',   spec: "optional · 14px --color-text-secondary · max-width 420px" },
     { index: 4, part: 'Composer',   spec: "fvdr-ai-composer, max-width 680px" },
@@ -699,7 +699,7 @@ const aiEmptyState = ai({
     { name: 'Disabled', description: "AI unavailable: composer inert, starters still visible as an explanation of what it would do." },
   ],
   tokens: [
-    { token: '--color-primary-500', value: '#2C9C74', usage: "Ideon mark" },
+    { token: '--ai-orb-dot', value: '#3BAE5B', usage: 'Orb dots (dark #3DFF74)' },
     { token: '--font-size-2xl',     value: '24px',    usage: "Greeting" },
     { token: '--space-8',           value: '32px',    usage: "Gap between intro and actions" },
     { token: '--space-3',           value: '12px',    usage: "Composer ↔ starters gap" },
@@ -710,7 +710,7 @@ const aiEmptyState = ai({
   (promptSubmitted)="send($event)"
 ></fvdr-ai-empty-state>`,
   claudePrompt:
-    'Implement fvdr-ai-empty-state (FVDR DS, AI Assistant section). Inputs: greeting:string="How can I help you today?", subtitle:string, placeholder:string, suggestions:string[], compact:boolean, busy:boolean, disabled:boolean. Outputs: promptSubmitted:string, contextRequested, voiceRequested. Public focus() forwards to the composer. Centred column: 40px fvdr-icon "ideon" in --color-primary-500, 24px semibold greeting, then an actions block (max-width 680px) holding fvdr-ai-composer and fvdr-ai-suggestions. Composer and suggestions travel together so compact shells can dock the pair; compact drops the mark to 28px, the greeting to 16px and stacks the chips.',
+    'Implement fvdr-ai-empty-state (FVDR DS, AI Assistant section). Inputs: greeting:string="How can I help you today?", subtitle:string, placeholder:string, suggestions:string[], compact:boolean, busy:boolean, disabled:boolean. Outputs: promptSubmitted:string, contextRequested, voiceRequested. Public focus() forwards to the composer. Centred column: an 80px bare fvdr-thinking-orbs (vortex, [showPill]=false [showLabel]=false), 24px semibold greeting, then an actions block (max-width 680px) holding fvdr-ai-composer and fvdr-ai-suggestions. Composer and suggestions travel together so compact shells can dock the pair; compact drops the orb to 56px, the greeting to 16px and stacks the chips.',
 });
 
 const aiSuggestions = ai({

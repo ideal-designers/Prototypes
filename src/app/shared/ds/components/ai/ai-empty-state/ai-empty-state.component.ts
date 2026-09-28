@@ -1,21 +1,21 @@
 import { Component, EventEmitter, Input, Output, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FvdrIconComponent } from '../../../icons/icon.component';
 import { AiComposerComponent } from '../ai-composer/ai-composer.component';
 import { AiSuggestionsComponent } from '../ai-suggestions/ai-suggestions.component';
+import { ThinkingOrbsComponent } from '../thinking-orbs/thinking-orbs.component';
 
 /**
- * The zero-message screen: Ideon mark, greeting, composer, scope-aware starters.
+ * The zero-message screen: vortex orb (80px, bare), greeting, composer, scope-aware starters.
  * Composer and suggestions travel together so compact shells can dock the pair.
  */
 @Component({
   selector: 'fvdr-ai-empty-state',
   standalone: true,
-  imports: [CommonModule, FvdrIconComponent, AiComposerComponent, AiSuggestionsComponent],
+  imports: [CommonModule, AiComposerComponent, AiSuggestionsComponent, ThinkingOrbsComponent],
   template: `
     <div class="empty" [class.empty--compact]="compact">
       <div class="empty__intro">
-        <span class="empty__mark"><fvdr-icon name="ideon"></fvdr-icon></span>
+        <fvdr-thinking-orbs class="empty__mark" label="AI Assistant" [size]="compact ? 56 : 80" [showPill]="false" [showLabel]="false"></fvdr-thinking-orbs>
         <h1 class="empty__title">{{ greeting }}</h1>
         <p class="empty__sub" *ngIf="subtitle">{{ subtitle }}</p>
       </div>
@@ -52,7 +52,7 @@ import { AiSuggestionsComponent } from '../ai-suggestions/ai-suggestions.compone
     }
 
     .empty__intro { display: flex; flex-direction: column; align-items: center; gap: var(--space-3); text-align: center; }
-    .empty__mark { font-size: 40px; line-height: 1; color: var(--color-primary-500); }
+    .empty__mark { display: inline-flex; }
     .empty__title {
       margin: 0;
       font-size: var(--font-size-2xl, 24px);
@@ -74,7 +74,6 @@ import { AiSuggestionsComponent } from '../ai-suggestions/ai-suggestions.compone
 
     /* Sidebar / floating shells: smaller mark, chips stack, less air. */
     .empty--compact { gap: var(--space-5); padding: var(--space-4); }
-    .empty--compact .empty__mark { font-size: var(--font-size-5xl, 28px); }
     .empty--compact .empty__title { font-size: var(--font-size-lg, 16px); line-height: var(--line-height-normal, 22px); }
   `],
 })
