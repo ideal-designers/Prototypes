@@ -186,6 +186,11 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./prototypes/column-admin-hint/column-admin-hint.component').then(m => m.ColumnAdminHintComponent),
   },
+  {
+    path: 'docs-ai-search',
+    loadComponent: () =>
+      import('./prototypes/docs-ai-search/docs-ai-search.component').then(m => m.DocsAiSearchComponent),
+  },
   // PROTO_ROUTES_PLACEHOLDER
   {
     path: '**',

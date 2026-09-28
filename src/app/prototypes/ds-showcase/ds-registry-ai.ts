@@ -26,11 +26,12 @@ const aiComposer: ComponentDocEntry = {
   category: 'ai',
   status: 'beta',
   description:
-    'The prompt input. Auto-grows with the typed text, submits on Enter (Shift+Enter for a newline) and exposes add-context, voice and send affordances. Fluid — it fills whatever shell it is dropped into: full-screen, right sidebar or floating panel.',
+    'The prompt input. Auto-grows with the typed text, submits on Enter (Shift+Enter for a newline) and exposes add-context, voice and send affordances. Fluid — it fills whatever shell it is dropped into: full-screen, right sidebar or floating panel. Two layouts: `stacked` (default — textarea over an action bar, for chat shells) and `inline` (one row, 4px radius, mic + send at the right edge — for prompts embedded in a page, e.g. the AI Overview follow-up).',
   whenToUse: [
     'The single entry field of any AI conversation surface',
     'Docked at the bottom of an active transcript',
     'Centred under the greeting in the empty state',
+    'layout="inline" — a one-line follow-up field embedded in a page (AI Overview)',
   ],
   whenNotToUse: [
     'Plain multi-line text entry in a form (use Textarea)',
@@ -43,8 +44,11 @@ const aiComposer: ComponentDocEntry = {
     { index: 3, part: 'Add context', spec: '32×32 ghost button · plus icon · opens the doc/folder picker' },
     { index: 4, part: 'Voice',       spec: '32×32 ghost button · mic icon' },
     { index: 5, part: 'Send',        spec: '32×32 · --color-primary-500 · radius 8px · muted to primary-200 when empty or streaming' },
+    { index: 6, part: 'Inline layout', spec: 'layout="inline" · one row · radius 4px · padding 8px 8px 8px 16px · square send (radius 4px)' },
   ],
   states: [
+    { name: 'Stacked',  description: 'Default layout — textarea on top, add-context / voice / send in a bar below.' },
+    { name: 'Inline',   description: 'layout="inline" — textarea and buttons share one row; 4px radius matches the page inputs around it (Figma AI-Assistant 422:16769).' },
     { name: 'Empty',    description: 'Placeholder visible, send button muted (--color-primary-200) and inert.' },
     { name: 'Typing',   description: 'Textarea grows one line at a time up to 160px, then scrolls internally. Send turns full primary.' },
     { name: 'Focused',  description: 'Container border switches to --color-primary-500 via :focus-within.' },
@@ -58,11 +62,12 @@ const aiComposer: ComponentDocEntry = {
     { token: '--color-primary-200',    value: '#95DBA9', usage: 'Send background when empty or busy' },
     { token: '--radius-lg',            value: '12px',    usage: 'Container radius' },
     { token: '--radius-md',            value: '8px',     usage: 'Send button radius' },
+    { token: '--radius-sm',            value: '4px',     usage: 'Inline layout — container and send radius' },
     { token: '--space-3',              value: '12px',    usage: 'Container padding' },
     { token: '--color-text-placeholder', value: '#9C9EA8', usage: 'Placeholder text' },
   ],
-  usedIn: ['AI Assistant (full screen)', 'AI Assistant (sidebar)', 'AI Assistant (floating)'],
-  relatedComponents: ['ai-suggestions', 'ai-attachment', 'ai-steps', 'textarea'],
+  usedIn: ['AI Assistant (full screen)', 'AI Assistant (sidebar)', 'AI Assistant (floating)', 'Documents — AI search (docs-ai-search prototype)'],
+  relatedComponents: ['ai-suggestions', 'ai-attachment', 'ai-steps', 'ai-overview', 'textarea'],
   codeSnippet: `<!-- Docked composer -->
 <fvdr-ai-composer
   [busy]="engine.streaming()"
@@ -83,9 +88,17 @@ const aiComposer: ComponentDocEntry = {
 ></fvdr-ai-composer>
 
 <!-- AI unavailable -->
-<fvdr-ai-composer [disabled]="true" placeholder="AI assistant is disabled for this data room"></fvdr-ai-composer>`,
+<fvdr-ai-composer [disabled]="true" placeholder="AI assistant is disabled for this data room"></fvdr-ai-composer>
+
+<!-- Inline — one-row follow-up embedded in a page -->
+<fvdr-ai-composer
+  layout="inline"
+  placeholder="Write a message..."
+  [showAddContext]="false"
+  (submitted)="askFollowUp($event)"
+></fvdr-ai-composer>`,
   claudePrompt:
-    'Implement fvdr-ai-composer (FVDR DS, AI Assistant section). Inputs: placeholder (default "Ask AI assistant anything ..."), busy:boolean (streaming — disables send), disabled:boolean (whole composer inert), showAddContext:boolean=true, showVoice:boolean=true, value:string (two-way with valueChange). Outputs: submitted:string (trimmed, clears the field), contextRequested, voiceRequested. Public focus() method puts the caret in the textarea. Enter submits, Shift+Enter inserts a newline. The textarea starts at rows=1 and auto-grows to max-height 160px, then scrolls. Container: --radius-lg, 1px --color-divider, --space-3 padding, border turns --color-primary-500 on :focus-within. Send button 32×32, --radius-md, background --color-primary-500 → --color-primary-600 on hover, muted to --color-primary-200 when it cannot send. Ghost buttons are 32×32 with --radius-sm and --color-hover-bg on hover. Use fvdr-icon (plus / mic / send) — never inline SVG.',
+    'Implement fvdr-ai-composer (FVDR DS, AI Assistant section). Inputs: placeholder (default "Ask AI assistant anything ..."), busy:boolean (streaming — disables send), disabled:boolean (whole composer inert), showAddContext:boolean=true, showVoice:boolean=true, layout:"stacked"|"inline"="stacked" (export type AiComposerLayout), value:string (two-way with valueChange). Outputs: submitted:string (trimmed, clears the field), contextRequested, voiceRequested. Public focus() method puts the caret in the textarea. Enter submits, Shift+Enter inserts a newline. The textarea starts at rows=1 and auto-grows to max-height 160px, then scrolls. Container: --radius-lg, 1px --color-divider, --space-3 padding, border turns --color-primary-500 on :focus-within. Send button 32×32, --radius-md, background --color-primary-500 → --color-primary-600 on hover, muted to --color-primary-200 when it cannot send. Ghost buttons are 32×32 with --radius-sm and --color-hover-bg on hover. Use fvdr-icon (plus / mic / send) — never inline SVG. layout="inline" (.composer--inline) puts textarea and buttons in one row: flex-direction row, align-items center, gap --space-2, --radius-sm, padding --space-2 --space-2 --space-2 --space-4, hides the bar spacer and gives the send button --radius-sm.',
 };
 
 const aiSteps: ComponentDocEntry = {
@@ -207,11 +220,13 @@ const aiCitation: ComponentDocEntry = {
   category: 'ai',
   status: 'beta',
   description:
-    'A source reference from an AI answer to the document (and page) it came from. The trust primitive of the whole assistant: in a data room a generated sentence is worthless unless the reader can open the page it was drawn from.',
+    'A source reference from an AI answer to the document (and page) it came from. The trust primitive of the whole assistant: in a data room a generated sentence is worthless unless the reader can open the page it was drawn from. Three variants: inline (link), pill (bordered chip in a source row) and chip (grey 4px tag that sits mid-sentence in an AI Overview). `highlight` marks every occurrence of a keyword inside the name — for keyword-search results.',
   whenToUse: [
     'Under or after every generated claim, key point or figure',
     'As a row of sources beneath a paragraph (pill variant)',
     'Alongside a numbered source list (pass index)',
+    'Mid-sentence inside AI Overview prose, at body size (chip variant)',
+    'Keyword-search results where the matched term must be visible in the name (highlight)',
   ],
   whenNotToUse: [
     'Linking to a document outside an AI answer (use a plain link or the document row)',
@@ -224,11 +239,15 @@ const aiCitation: ComponentDocEntry = {
     { index: 3, part: 'Name',         spec: '12px · --color-primary-500 (inline) · ellipsis on overflow' },
     { index: 4, part: 'Page',         spec: '"· p. 12" · --color-text-secondary' },
     { index: 5, part: 'Pill border',  spec: 'pill variant only · 1px --color-divider · radius 9999px' },
+    { index: 6, part: 'Chip',         spec: 'chip variant only · height 24px · --color-stone-200 bg · 1px --color-divider · radius 4px · 14px --color-text-primary' },
+    { index: 7, part: 'Keyword mark', spec: '<mark> around each highlight match · --color-highlight-mark bg · inherits text colour' },
   ],
   states: [
     { name: 'Inline',  description: 'Link-styled, no border — sits at the end of a sentence or under a key point.' },
     { name: 'Pill',    description: 'Bordered chip on white — for a row of sources under a paragraph.' },
-    { name: 'Hover',   description: 'Inline underlines and darkens; pill fills with --color-hover-bg and darkens its border.' },
+    { name: 'Chip',    description: 'Grey 4px tag at body size, vertically centred in the line — reads as part of the sentence in an AI Overview (Figma AI-Assistant 234:13029).' },
+    { name: 'Highlighted', description: 'highlight="nda" wraps every case-insensitive match of the keyword in a yellow mark; works with every variant.' },
+    { name: 'Hover',   description: 'Inline underlines and darkens; pill fills with --color-hover-bg and darkens its border; chip fills with --color-hover-bg, border --color-stone-500.' },
   ],
   tokens: [
     { token: '--color-primary-500',    value: '#2C9C74', usage: 'Inline name colour' },
@@ -239,9 +258,13 @@ const aiCitation: ComponentDocEntry = {
     { token: '--color-hover-bg',       value: '#ECEEF9', usage: 'Pill hover background' },
     { token: '--radius-full',          value: '9999px',  usage: 'Pill radius' },
     { token: '--font-size-xs',         value: '12px',    usage: 'Label size' },
+    { token: '--color-stone-200',      value: '#F7F7F7', usage: 'Chip background' },
+    { token: '--radius-sm',            value: '4px',     usage: 'Chip radius' },
+    { token: '--font-size-base',       value: '14px',    usage: 'Chip label size' },
+    { token: '--color-highlight-mark', value: '#FFDA07', usage: 'Keyword highlight background' },
   ],
-  usedIn: ['AI Assistant (answers)', 'AI answer summary', 'AI due-diligence report'],
-  relatedComponents: ['ai-source-list', 'ai-permission-note', 'file-icon', 'chip'],
+  usedIn: ['AI Assistant (answers)', 'AI answer summary', 'AI due-diligence report', 'Documents — AI search (docs-ai-search prototype)'],
+  relatedComponents: ['ai-source-list', 'ai-permission-note', 'ai-overview', 'doc-info-card', 'file-icon', 'chip'],
   codeSnippet: `<!-- Inline, end of a sentence -->
 <fvdr-ai-citation
   label="Master Services Agreement.pdf"
@@ -260,9 +283,91 @@ const aiCitation: ComponentDocEntry = {
   [label]="s.name"
   [fileType]="s.type"
   (opened)="openDoc(s)"
-></fvdr-ai-citation>`,
+></fvdr-ai-citation>
+
+<!-- Chip — mid-sentence in an AI Overview, with the keyword marked -->
+<p>
+  The NDA is in
+  <fvdr-ai-citation variant="chip" label="5.1 NDA — Acme.pdf" fileType="pdf" highlight="nda" (opened)="openDoc(doc)"></fvdr-ai-citation>
+  and expires in March.
+</p>`,
   claudePrompt:
-    'Implement fvdr-ai-citation (FVDR DS, AI Assistant section). Inputs: label:string (required, document name), page?:number|string, index?:number, fileType:FvdrFileType="pdf", showIcon:boolean=true, variant:"inline"|"pill"="inline". Output: opened. Renders a button: optional index marker (min-width 16px, height 16px, --color-primary-50 background, 10px semibold --color-primary-700, --radius-sm), then fvdr-file-icon, then the name (12px, ellipsis, no wrap), then "· p. N" in --color-text-secondary. Inline variant is link-styled in --color-primary-500 and underlines the name on hover. Pill variant adds a 1px --color-divider border, --radius-full, white background, --color-text-secondary text, and fills --color-hover-bg on hover. title/aria-label read "Open <name>, page <n>" / "Source: …". Tokens only.',
+    'Implement fvdr-ai-citation (FVDR DS, AI Assistant section). Inputs: label:string (required, document name), page?:number|string, index?:number, fileType:FvdrFileType="pdf", showIcon:boolean=true, variant:"inline"|"pill"|"chip"="inline", highlight:string="" (keyword to mark, case-insensitive). Output: opened. Renders a button: optional index marker (min-width 16px, height 16px, --color-primary-50 background, 10px semibold --color-primary-700, --radius-sm), then fvdr-file-icon, then the name (12px, ellipsis, no wrap), then "· p. N" in --color-text-secondary. Inline variant is link-styled in --color-primary-500 and underlines the name on hover. Pill variant adds a 1px --color-divider border, --radius-full, white background, --color-text-secondary text, and fills --color-hover-bg on hover. Chip variant: height 24px, padding 2px --space-2, gap --space-2, --color-stone-200 background, 1px --color-divider border, --radius-sm, 14px/20px --color-text-primary (page too), vertical-align middle; hover → --color-hover-bg + --color-stone-500 border, no underline. highlight: split the label on an escaped, case-insensitive RegExp and wrap matches in <mark> with --color-highlight-mark background and inherited colour. title/aria-label read "Open <name>, page <n>" / "Source: …". Tokens only.',
+};
+
+const aiOverview: ComponentDocEntry = {
+  id: 'ai-overview',
+  name: 'AI Overview',
+  selector: 'fvdr-ai-overview',
+  category: 'ai',
+  status: 'beta',
+  figmaNode: 'https://www.figma.com/design/Vhy3jLaJ9nasbzTtqbu3qB/AI-Assistant?node-id=234-13029',
+  description:
+    'An AI answer embedded at the top of a product page, above (or instead of) the regular results — the Documents page answers a question typed into Smart Search without opening the assistant. Gradient header with a sparkle, projected answer body, an action row with "Continue in AI Assistant", "What next?" follow-ups and an optional inline composer. Two header modes: collapse (V1, folds above a results table) and dismiss (V2, open-in-assistant + close, the card is the result).',
+  whenToUse: [
+    'A Smart Search query that reads as a question — answer it on the Documents page, above the matches',
+    'Any page that can offer a cited summary before the raw list (search results, a folder, a report)',
+    'When the user should be able to hand the thread over to the full AI Assistant',
+  ],
+  whenNotToUse: [
+    'A running conversation — use AI Conversation inside AI Panel',
+    'Plain keyword matches with nothing to summarise — show the results table alone',
+    'System notices or tips (use Info Banner / Inline Message)',
+    'Answers that cannot cite a document the user can open — show the permission note instead',
+  ],
+  anatomy: [
+    { index: 1, part: 'Card',          spec: '--color-stone-0 · 1px --color-stone-300 · radius 4px · --shadow-card' },
+    { index: 2, part: 'Header',        spec: 'min-height 48px · gradient --chip-bg-green → --chip-bg-indigo · sparkle 16px --color-primary-500 · 14px semibold title' },
+    { index: 3, part: 'Header actions', spec: 'collapse: one 28×28 collapse/expand button (whole header clickable) · dismiss: link + close buttons' },
+    { index: 4, part: 'Answer',        spec: 'ng-content · 14px/20px --color-text-primary · body padding 16px, gap 12px' },
+    { index: 5, part: 'Action row',    spec: 'fvdr-ai-actions (copy · rate · more) + "Continue in AI Assistant" link in --color-primary-500' },
+    { index: 6, part: 'What next?',    spec: 'semibold label + fvdr-ai-suggestions (max 3)' },
+    { index: 7, part: 'Composer',      spec: 'optional fvdr-ai-composer layout="inline", no add-context' },
+  ],
+  states: [
+    { name: 'Loading',   description: 'Body replaced by fvdr-thinking-orbs with loadingLabel ("Reading the documents…").' },
+    { name: 'Answered',  description: 'Projected answer, action row, follow-ups and (optionally) the inline composer.' },
+    { name: 'Collapsed', description: 'headerMode="collapse" only — folds to the header, border goes transparent. [(collapsed)] is two-way.' },
+    { name: 'Dismiss header', description: 'headerMode="dismiss" — header carries Open in AI Assistant + Close; emits openInAssistant / dismissed (Figma 426:18769).' },
+  ],
+  tokens: [
+    { token: '--color-stone-0',        value: '#FFFFFF', usage: 'Card background' },
+    { token: '--color-stone-300',      value: '#ECEEF9', usage: 'Card border' },
+    { token: '--shadow-card',          value: '0 1px 4px rgba(0,0,0,.08)', usage: 'Card elevation' },
+    { token: '--chip-bg-green',        value: '#EAF6ED', usage: 'Header gradient start' },
+    { token: '--chip-bg-indigo',       value: '#F0F0FF', usage: 'Header gradient end' },
+    { token: '--color-primary-500',    value: '#2C9C74', usage: 'Sparkle · Continue link' },
+    { token: '--color-text-primary',   value: '#1F2129', usage: 'Title · answer text' },
+    { token: '--color-text-secondary', value: '#5F616A', usage: 'Header icon buttons' },
+    { token: '--radius-sm',            value: '4px',     usage: 'Card radius' },
+    { token: '--space-4',              value: '16px',    usage: 'Body padding' },
+  ],
+  usedIn: ['Documents — AI search (docs-ai-search prototype)'],
+  relatedComponents: ['smart-search', 'ai-citation', 'ai-actions', 'ai-suggestions', 'ai-composer', 'thinking-orbs'],
+  codeSnippet: `<!-- V1 — collapsible, above the results table -->
+<fvdr-ai-overview
+  [(collapsed)]="overviewCollapsed"
+  [loading]="answering"
+  [followUps]="['Who signed it?', 'When does it expire?']"
+  (openInAssistant)="continueInAssistant()"
+  (followUpChosen)="ask($event)"
+>
+  The NDA with Acme is in
+  <fvdr-ai-citation variant="chip" label="5.1 NDA — Acme.pdf" fileType="pdf" (opened)="openDoc(nda)"></fvdr-ai-citation>
+  and expires on 12 March 2025.
+</fvdr-ai-overview>
+
+<!-- V2 — the card is the result: dismiss header + inline follow-up -->
+<fvdr-ai-overview
+  headerMode="dismiss"
+  [showComposer]="true"
+  [(composerValue)]="followUp"
+  (promptSubmitted)="ask($event)"
+  (dismissed)="closeOverview()"
+  (openInAssistant)="continueInAssistant()"
+>…answer…</fvdr-ai-overview>`,
+  claudePrompt:
+    'Implement fvdr-ai-overview (FVDR DS, AI Assistant section; Figma AI-Assistant Vhy3jLaJ9nasbzTtqbu3qB, V1 234:13029, V2 426:18769). Inputs: title="AI Overview", headerMode:"collapse"|"dismiss"="collapse" (export type AiOverviewHeaderMode), collapsed:boolean (two-way with collapsedChange, collapse mode only), loading:boolean, loadingLabel="Reading the documents…", showActions=true, rating:AiRating, continueLabel="Continue in AI Assistant" (empty hides it), followUps:string[], followUpsLabel="What next?", showComposer=false, composerPlaceholder="Write a message...", composerValue (two-way with composerValueChange). Outputs: openInAssistant, dismissed, followUpChosen:string, promptSubmitted:string, rated:AiRating, copyRequested, moreRequested. Section card: --color-stone-0, 1px --color-stone-300, --radius-sm, --shadow-card, overflow hidden; collapsed → transparent border. Header min-height 48px, linear-gradient(90deg, --chip-bg-green, --chip-bg-indigo), fvdr-icon "sparkle" in --color-primary-500, 14px semibold h2; collapse mode → whole header toggles plus a 28×28 collapse/expand icon button with aria-expanded; dismiss mode → link + close icon buttons. Body (padding --space-4, gap --space-3): fvdr-thinking-orbs while loading, else ng-content answer, a foot row with fvdr-ai-actions [showRegenerate]=false (projected "more" button) and the continue link, fvdr-ai-suggestions [max]=3 after the "What next?" label, and fvdr-ai-composer layout="inline" [showAddContext]=false when showComposer. Tokens only, fvdr-icon only.',
 };
 
 const aiActions: ComponentDocEntry = {
@@ -1247,12 +1352,13 @@ const aiUsageMeter = ai({
 // SECTION EXPORT — order is the order shown in the /ds sidebar
 // ─────────────────────────────────────────────────────────────────────────────
 
-/** The five atoms the section started from. */
+/** The five atoms the section started from, plus the answer surfaces built straight on them. */
 export const DS_AI_SHIPPED: ComponentDocEntry[] = [
   aiComposer,
   aiSteps,
   aiBubble,
   aiCitation,
+  aiOverview,
   aiActions,
 ];
 

@@ -188,5 +188,12 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
     status: 'wip',
     description: '2 options for telling an admin, inside the column manager, that a column can be enabled for all users in Settings: inline hint on row hover linking to Settings, or an Enable/Disable for all users badge that toggles the room setting right from the column manager (with confirm)',
   },
+  {
+    slug: 'docs-ai-search',
+    title: 'Documents — AI search (AI Overview)',
+    figma: 'https://www.figma.com/design/Vhy3jLaJ9nasbzTtqbu3qB/AI-Assistant?node-id=1-5',
+    status: 'wip',
+    description: 'Smart search on the Documents page answers questions with an AI Overview. Switch between 2 solutions: V1 puts the overview above the result table (tree rail / full width / with prompt field), V2 makes the overview the result itself (list / table), closable to the plain list. Covers suggestions, clarifying question, keyword search, file hover card, preview and hand-off to the full AI Assistant.',
+  },
   // REGISTRY_PLACEHOLDER
 ];

@@ -966,6 +966,72 @@ const search: ComponentDocEntry = {
   claudePrompt: 'Use fvdr-search for list filtering. Import: @fvdr/ui/search. @Output() queryChange emits debounced string.',
 };
 
+const smartSearch: ComponentDocEntry = {
+  id: 'smart-search',
+  name: 'Smart Search',
+  selector: 'fvdr-smart-search',
+  category: 'controls',
+  status: 'beta',
+  figmaNode: 'https://www.figma.com/design/Vhy3jLaJ9nasbzTtqbu3qB/AI-Assistant?node-id=208-22423',
+  description:
+    'The Documents search field that also takes a question for AI. Empty, its menu offers Recents and "Try asking AI" prompts; while typing it lists live name matches ("Results: N", capped, + Show more). The menu always ends with a trust note about access rights. Enter submits the raw text — the host decides whether it becomes a plain search, a keyword search or an AI Overview. ControlValueAccessor.',
+  whenToUse: [
+    'The single search entry on the Documents page when the room has AI enabled',
+    'Anywhere one field should both find a file by name and answer a question about the room',
+    'When recent queries and starter AI prompts help the user begin',
+  ],
+  whenNotToUse: [
+    'Filtering a list or table by text (use Search)',
+    'A running AI conversation (use AI Composer)',
+    'Rooms with AI disabled — fall back to Search so the field does not promise answers',
+  ],
+  anatomy: [
+    { index: 1, part: 'Field',          spec: 'height 40px · 1px --color-stone-500 · radius 4px · hover/focus → --color-primary-500' },
+    { index: 2, part: 'AI search icon', spec: 'fvdr-icon "ai-search" 16px · magnifier --color-stone-900, sparkle brand green' },
+    { index: 3, part: 'Input',          spec: '14px · --color-text-primary · placeholder --color-text-placeholder · role combobox' },
+    { index: 4, part: 'Clear · Filter', spec: '20×20 buttons · close (when value) · settings-filter (filter=true) → filterClick' },
+    { index: 5, part: 'Menu',           spec: 'width max(100%, 464px) · right-aligned · radius 4px · --shadow-popup · z-index 300' },
+    { index: 6, part: 'Section title',  spec: '12px semibold · "Recents" / "Try asking AI" / "Results: N"' },
+    { index: 7, part: 'Item',           spec: '32px row · history / sparkle icon or fvdr-file-icon + room index · active → --color-hover-bg' },
+    { index: 8, part: 'Trust note',     spec: 'lock-close icon + 12px --color-text-secondary · footerNote ("" hides it)' },
+  ],
+  states: [
+    { name: 'Default',  description: 'Resting field, stone-500 border, "Smart search" placeholder.' },
+    { name: 'Focused · empty', description: 'Menu opens with Recents (if any) and "Try asking AI" prompts (Figma 216:1310 / 208:22534).' },
+    { name: 'Typing',   description: 'Menu switches to "Results: N" — up to maxResults name matches, then "Show more" when resultsTotal exceeds them (216:1980).' },
+    { name: 'No matches', description: '"No names match — press Enter to ask AI across the room." (238:17451).' },
+    { name: 'Keyboard', description: 'ArrowUp/Down move the active row, Enter picks it (or submits the text), Escape closes the menu.' },
+    { name: 'Disabled', description: 'Field at 45% opacity, no pointer events, menu never opens.' },
+  ],
+  tokens: [
+    { token: '--color-stone-500',        value: '#BBBDC8', usage: 'Field border' },
+    { token: '--color-primary-500',      value: '#2C9C74', usage: 'Hover/focus border · sparkle · Show more' },
+    { token: '--color-text-placeholder', value: '#9C9EA8', usage: 'Placeholder · recent icon' },
+    { token: '--color-hover-bg',         value: '#ECEEF9', usage: 'Active menu row' },
+    { token: '--shadow-popup',           value: '0 4px 16px rgba(0,0,0,.12)', usage: 'Menu elevation' },
+    { token: '--radius-sm',              value: '4px',     usage: 'Field and menu radius' },
+    { token: '--text-caption1-size',     value: '12px',    usage: 'Section titles · trust note' },
+  ],
+  usedIn: ['Documents — AI search (docs-ai-search prototype)'],
+  relatedComponents: ['search', 'ai-overview', 'ai-composer', 'file-icon', 'droplist'],
+  codeSnippet: `<fvdr-smart-search
+  [(ngModel)]="query"
+  [recents]="['NDA Acme', 'Board minutes 2023']"
+  [aiSuggestions]="['Which contracts expire this year?', 'Summarise the FY23 audit']"
+  [results]="matches"
+  [resultsTotal]="12"
+  (submitted)="runQuery($event)"
+  (resultPicked)="openDoc($event)"
+  (showMore)="openAllResults($event)"
+  (filterClick)="openSearchSettings()"
+></fvdr-smart-search>
+
+<!-- SmartSearchResult shape -->
+const match: SmartSearchResult = { id: 'd1', name: 'Asset Purchase Agreement.pdf', type: 'pdf', index: '5.5.3' };`,
+  claudePrompt:
+    'Implement fvdr-smart-search (FVDR DS, Form/Controls; Figma AI-Assistant Vhy3jLaJ9nasbzTtqbu3qB node 208:22423, menu states 216:1310, 208:22534, 216:1980, 238:17451). ControlValueAccessor over a string. Inputs: placeholder="Smart search", ariaLabel, disabled, filter=true, recents:string[], aiSuggestions:string[], results:SmartSearchResult[] ({ id, name, type:FvdrFileType, index? }), resultsTotal?:number, maxResults=5, recentsTitle="Recents", aiTitle="Try asking AI", footerNote (empty hides it). Outputs: submitted:string, resultPicked:SmartSearchResult, showMore:string, cleared, filterClick. Field: 40px, 1px --color-stone-500, --radius-sm, --color-primary-500 border on hover/focus, fvdr-icon "ai-search" left, clear (close) + settings-filter buttons right. Menu opens on focus: empty value → Recents (history icon) and AI prompts (sparkle icon in --color-primary-500); typed value → "Results: N" rows with fvdr-file-icon + room index + name, capped at maxResults, then "Show more" link. Always end with a lock-close trust note in 12px --color-text-secondary. Menu: absolute, right-aligned, width max(100%, 464px), --shadow-popup, --radius-sm. role=combobox/listbox/option with aria-activedescendant; ArrowUp/Down, Enter, Escape; outside mousedown closes. Picking a recent/prompt fills the field and emits submitted. Tokens only, fvdr-icon only.',
+};
+
 const calendar: ComponentDocEntry = {
   id: 'calendar',
   name: 'Calendar',
@@ -1695,6 +1761,69 @@ const fileIcon: ComponentDocEntry = {
   claudePrompt: 'Use fvdr-file-icon to represent file types. Import: @fvdr/ui/file-icon. @Input() extension?:string. @Input() mimeType?:string. @Input() size:"sm"|"md"|"lg"="md".',
 };
 
+const docInfoCard: ComponentDocEntry = {
+  id: 'doc-info-card',
+  name: 'Document Info Card',
+  selector: 'fvdr-doc-info-card',
+  category: 'display',
+  status: 'beta',
+  figmaNode: 'https://www.figma.com/design/Vhy3jLaJ9nasbzTtqbu3qB/AI-Assistant?node-id=422-20411',
+  description:
+    'The hover preview of a file: name with its file icon, a first-page thumbnail and key facts (Added on, Size, Pages, ID). Presentational only — the host positions it and decides when it shows, so the same card works under an AI citation chip, a table row or a tree node. Without thumbSrc it draws a neutral page placeholder, never a broken image.',
+  whenToUse: [
+    'Hovering an AI citation chip in an AI Overview, to check the source before opening it',
+    'Hover or focus previews of a document in a results table or tree',
+    'Anywhere the user needs "is this the right file?" without leaving the page',
+  ],
+  whenNotToUse: [
+    'Plain text hints (use a tooltip)',
+    'Full document details or editing metadata (use the document side panel)',
+    'Folders with many children — a card is for a single file',
+  ],
+  anatomy: [
+    { index: 1, part: 'Card',      spec: '320px wide · padding 16px · gap 12px · --color-stone-0 · radius 4px · --shadow-popup · role tooltip' },
+    { index: 2, part: 'Head',      spec: 'fvdr-file-icon + name · 14px/20px · ellipsis on overflow (full name in title)' },
+    { index: 3, part: 'Thumbnail', spec: '80×113px · 1px --color-divider · thumbSrc image or drawn page placeholder' },
+    { index: 4, part: 'Fields',    spec: 'dl · rows gap 4px · label 80px --color-text-primary · value --color-text-secondary · 12px/16px' },
+  ],
+  states: [
+    { name: 'With thumbnail', description: 'thumbSrc set — the first page renders object-fit: cover inside the 80×113 frame.' },
+    { name: 'Placeholder',    description: 'No thumbSrc — a drawn page (title bars + text lines in stone-700 / stone-400).' },
+    { name: 'No fields',      description: 'fields empty — the definition list is dropped, the card is head + thumbnail.' },
+  ],
+  tokens: [
+    { token: '--color-stone-0',        value: '#FFFFFF', usage: 'Card and page background' },
+    { token: '--shadow-popup',         value: '0 4px 16px rgba(0,0,0,.12)', usage: 'Card elevation' },
+    { token: '--radius-sm',            value: '4px',     usage: 'Card radius' },
+    { token: '--color-divider',        value: '#DEE0EB', usage: 'Thumbnail frame' },
+    { token: '--color-stone-400',      value: '#DEE0EB', usage: 'Placeholder text lines' },
+    { token: '--color-stone-700',      value: '#73757F', usage: 'Placeholder title bars' },
+    { token: '--color-text-primary',   value: '#1F2129', usage: 'Name · field labels' },
+    { token: '--color-text-secondary', value: '#5F616A', usage: 'Field values' },
+    { token: '--space-4',              value: '16px',    usage: 'Card padding' },
+  ],
+  usedIn: ['Documents — AI search (docs-ai-search prototype)'],
+  relatedComponents: ['ai-citation', 'ai-overview', 'file-icon', 'table'],
+  codeSnippet: `<fvdr-doc-info-card
+  name="5.5.3 Asset Purchase Agreement.pdf"
+  type="pdf"
+  [fields]="[
+    { label: 'Added on:', value: 'Apr 4, 2023' },
+    { label: 'Size:',     value: '2.4 MB' },
+    { label: 'Pages:',    value: '40' },
+    { label: 'ID:',       value: '5.5.3' }
+  ]"
+></fvdr-doc-info-card>
+
+<!-- Host positions it — e.g. under a hovered citation chip -->
+<span class="cite-host" (mouseenter)="hover = doc" (mouseleave)="hover = null">
+  <fvdr-ai-citation variant="chip" [label]="doc.name" [fileType]="doc.type"></fvdr-ai-citation>
+  <fvdr-doc-info-card *ngIf="hover === doc" class="cite-host__card" [name]="doc.name" [type]="doc.type" [fields]="doc.fields"></fvdr-doc-info-card>
+</span>`,
+  claudePrompt:
+    'Implement fvdr-doc-info-card (FVDR DS, Data Display; Figma AI-Assistant Vhy3jLaJ9nasbzTtqbu3qB "Folder info" popover 422:20411). Presentational, no positioning logic. Inputs: name:string (required), type:FvdrFileType="pdf", thumbSrc?:string, fields:DocInfoField[] ({ label, value }). :host is block, 320px wide. Card (role tooltip): flex column, gap --space-3, padding --space-4, --color-stone-0, --radius-sm, --shadow-popup. Head: fvdr-file-icon + name 14px/20px with ellipsis and a title attribute. Thumbnail centred, 80×113 with a 1px --color-divider frame: an img (object-fit cover) when thumbSrc, else a drawn page — two --color-stone-700 title bars and ~18 --color-stone-400 text lines of varied width. Fields as a dl: rows gap --space-1, 12px/16px, dt 80px --color-text-primary, dd --color-text-secondary. Tokens only.',
+};
+
 const planIcon: ComponentDocEntry = {
   id: 'plan-icon',
   name: 'Plan Icon',
@@ -2118,6 +2247,7 @@ export const DS_REGISTRY: ComponentDocEntry[] = [
   // Stubs
   textarea,
   search,
+  smartSearch,
   calendar,
   datepicker,
   timepicker,
@@ -2141,6 +2271,7 @@ export const DS_REGISTRY: ComponentDocEntry[] = [
   sidebarNav,
   quickAccessMenu,
   fileIcon,
+  docInfoCard,
   planIcon,
   redactionMarkCard,
   ghostBtn,

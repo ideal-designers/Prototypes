@@ -3,6 +3,10 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { FvdrIconComponent } from '../../../icons/icon.component';
 
+/** `stacked` — textarea over an action bar (chat shells).
+ *  `inline` — one row, mic + send at the right edge (embedded prompts, AI Overview). */
+export type AiComposerLayout = 'stacked' | 'inline';
+
 /**
  * Composer — auto-growing prompt input with add-context / mic / send affordances.
  * Fluid: fills whatever container it is dropped into (full-screen, sidebar, floating).
@@ -12,7 +16,8 @@ import { FvdrIconComponent } from '../../../icons/icon.component';
   standalone: true,
   imports: [CommonModule, FormsModule, FvdrIconComponent],
   template: `
-    <div class="composer" [class.composer--busy]="busy" [class.composer--disabled]="disabled">
+    <div class="composer" [class.composer--busy]="busy" [class.composer--disabled]="disabled"
+         [class.composer--inline]="layout === 'inline'">
       <textarea
         #input
         class="composer__input"
@@ -103,6 +108,17 @@ import { FvdrIconComponent } from '../../../icons/icon.component';
     .composer__btn:disabled { cursor: not-allowed; color: var(--color-text-disabled); }
     .composer__btn:disabled:hover { background: transparent; color: var(--color-text-disabled); }
 
+    /* Inline — one row, 4px radius, square 32px send (Figma AI-Assistant 422:16769). */
+    .composer--inline {
+      flex-direction: row; align-items: center; gap: var(--space-2);
+      border-radius: var(--radius-sm);
+      padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4);
+    }
+    .composer--inline .composer__input { flex: 1; min-width: 0; }
+    .composer--inline .composer__bar { gap: var(--space-2); }
+    .composer--inline .composer__spacer { display: none; }
+    .composer--inline .composer__btn--send { border-radius: var(--radius-sm); }
+
     .composer__btn--send {
       background: var(--color-primary-500); color: var(--color-stone-0);
       border-radius: var(--radius-md);
@@ -124,6 +140,7 @@ export class AiComposerComponent {
   @Input() disabled = false;
   @Input() showAddContext = true;
   @Input() showVoice = true;
+  @Input() layout: AiComposerLayout = 'stacked';
 
   /** Two-way bindable, so suggestion chips can pre-fill the prompt. */
   @Input() value = '';

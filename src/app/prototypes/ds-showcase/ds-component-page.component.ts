@@ -7,6 +7,7 @@ import {
   DS_COMPONENTS, ToastService, ToastAction, FloatingPanelItem, FilterBtnColor, RedactionMarkPage,
   FvdrPlanName, FVDR_PLAN_NAMES, SidebarNavItem,
   AiStep, AiRating, AiDocRef, AiSummaryGroup, AiReportSection, AiChatMessage, AiThread, AiPanelMode, AiFeedback,
+  SmartSearchResult, DocInfoField,
 } from '../../shared/ds';
 import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, ComponentCategory } from './ds-registry';
 
@@ -47,7 +48,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
         <span class="doc-hero__tag doc-hero__selector">{{ entry.selector }}</span>
         <span class="doc-hero__tag doc-hero__status" [ngClass]="statusClass(entry.status)">{{ entry.status }}</span>
         <span class="doc-hero__tag doc-hero__category">{{ categoryLabel(entry.category) }}</span>
-        <a *ngIf="entry.figmaNode" class="doc-hero__tag doc-hero__figma" [href]="'https://www.figma.com/design/liyNDiFf1piO8SQmHNKoeU/FVDR---Design-System?node-id=' + entry.figmaNode" target="_blank">Figma ↗</a>
+        <a *ngIf="entry.figmaNode" class="doc-hero__tag doc-hero__figma" [href]="figmaUrl(entry.figmaNode)" target="_blank">Figma ↗</a>
       </div>
       <p class="doc-hero__desc">{{ entry.description }}</p>
 
@@ -504,6 +505,17 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
             </div>
           </ng-container>
 
+          <!-- SMART SEARCH -->
+          <ng-container *ngSwitchCase="'smart-search'">
+            <div class="anatomy-wrap" style="width:320px">
+              <fvdr-smart-search [(ngModel)]="demoSmartAnatomy"></fvdr-smart-search>
+              <div class="anatomy-label anatomy-label--top"    style="top:-52px;left:0">ai-search icon</div>
+              <div class="anatomy-label anatomy-label--top"    style="top:-52px;right:0">filter</div>
+              <div class="anatomy-label anatomy-label--bottom" style="bottom:-42px;left:50%;transform:translateX(-50%)">field · 40px · menu opens on focus</div>
+              <div class="dim-v" style="left:-24px;top:0;height:40px">40px</div>
+            </div>
+          </ng-container>
+
           <!-- PHONE INPUT -->
           <ng-container *ngSwitchCase="'phone-input'">
             <div class="anatomy-wrap anatomy-wrap--phone">
@@ -662,6 +674,17 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
               <fvdr-file-icon type="folder-colored"></fvdr-file-icon>
               <div class="anatomy-label anatomy-label--top" style="top:-42px;left:50%;transform:translateX(-50%)">icon glyph</div>
               <div class="dim-h" style="bottom:-26px;left:0;width:20px">20px</div>
+            </div>
+          </ng-container>
+
+          <!-- DOC INFO CARD -->
+          <ng-container *ngSwitchCase="'doc-info-card'">
+            <div class="anatomy-wrap">
+              <fvdr-doc-info-card name="5.5.3 Asset Purchase Agreement.pdf" type="pdf" [fields]="demoDocFields"></fvdr-doc-info-card>
+              <div class="anatomy-label anatomy-label--top"    style="top:-52px;left:0">file icon · name</div>
+              <div class="anatomy-label anatomy-label--top"    style="top:-52px;right:0">first-page thumb</div>
+              <div class="anatomy-label anatomy-label--bottom" style="bottom:-42px;left:50%;transform:translateX(-50%)">fields · label 80px + value</div>
+              <div class="dim-h" style="bottom:-26px;left:0;width:320px">320px</div>
             </div>
           </ng-container>
 
@@ -887,6 +910,20 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
               <div class="anatomy-label anatomy-label--top"    style="top:-52px;left:-10px">index marker</div>
               <div class="anatomy-label anatomy-label--top"    style="top:-52px;right:-10px">page reference</div>
               <div class="anatomy-label anatomy-label--bottom" style="bottom:-42px;left:50%;transform:translateX(-50%)">file icon · document name</div>
+            </div>
+          </ng-container>
+
+          <!-- AI OVERVIEW -->
+          <ng-container *ngSwitchCase="'ai-overview'">
+            <div class="anatomy-wrap" style="width:100%;max-width:560px">
+              <fvdr-ai-overview [followUps]="['Who signed it?', 'When does it expire?']">
+                The NDA with Acme is in
+                <fvdr-ai-citation variant="chip" label="5.1 NDA — Acme.pdf" fileType="pdf"></fvdr-ai-citation>
+                and expires on 12 March 2025.
+              </fvdr-ai-overview>
+              <div class="anatomy-label anatomy-label--top"    style="top:-52px;left:0">gradient header · sparkle · title</div>
+              <div class="anatomy-label anatomy-label--top"    style="top:-52px;right:0">collapse</div>
+              <div class="anatomy-label anatomy-label--bottom" style="bottom:-42px;left:0">answer · actions · "What next?"</div>
             </div>
           </ng-container>
 
@@ -1366,6 +1403,43 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
             <div class="examples-col">
               <fvdr-search label="No active filters" placeholder="Search…" [filter]="true" helperText="Click the filter icon to narrow results"></fvdr-search>
               <fvdr-search label="Active filters" placeholder="Search…" [filter]="true" [indicator]="true" helperText="3 filters applied"></fvdr-search>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- SMART SEARCH -->
+        <ng-container *ngSwitchCase="'smart-search'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">Interactive — focus for Recents + AI prompts, type for live matches</h3>
+            <div class="examples-row examples-row--menu examples-row--end">
+              <fvdr-smart-search
+                style="width:380px"
+                [(ngModel)]="demoSmartQuery"
+                [recents]="demoSmartRecents"
+                [aiSuggestions]="demoSmartPrompts"
+                [results]="demoSmartMatches"
+                (submitted)="onAiPrompt($event)"
+                (resultPicked)="onSmartPick($event)"
+                (showMore)="onAiPrompt('Show all results for: ' + $event)"
+              ></fvdr-smart-search>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">No recents, no filter button, no trust note</h3>
+            <div class="examples-row examples-row--menu examples-row--end">
+              <fvdr-smart-search
+                style="width:380px"
+                [filter]="false"
+                footerNote=""
+                [aiSuggestions]="demoSmartPrompts"
+                (submitted)="onAiPrompt($event)"
+              ></fvdr-smart-search>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Disabled</h3>
+            <div class="examples-row">
+              <fvdr-smart-search style="width:380px" [disabled]="true"></fvdr-smart-search>
             </div>
           </div>
         </ng-container>
@@ -2053,6 +2127,34 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
           </div>
         </ng-container>
 
+        <!-- DOC INFO CARD -->
+        <ng-container *ngSwitchCase="'doc-info-card'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">Default — page placeholder + key facts</h3>
+            <div class="examples-row">
+              <fvdr-doc-info-card name="5.5.3 Asset Purchase Agreement.pdf" type="pdf" [fields]="demoDocFields"></fvdr-doc-info-card>
+              <fvdr-doc-info-card name="FY23 Audit — consolidated statements and notes.xlsx" type="xls" [fields]="demoDocFieldsXls"></fvdr-doc-info-card>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">No fields</h3>
+            <div class="examples-row">
+              <fvdr-doc-info-card name="Board Minutes 2023-11.doc" type="doc"></fvdr-doc-info-card>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">In context — hover a citation chip</h3>
+            <div class="examples-row examples-row--menu">
+              <span>The purchase price is set in</span>
+              <span class="dic-host" (mouseenter)="demoDocHover = true" (mouseleave)="demoDocHover = false">
+                <fvdr-ai-citation variant="chip" label="5.5.3 Asset Purchase Agreement.pdf" fileType="pdf" [page]="4"></fvdr-ai-citation>
+                <fvdr-doc-info-card *ngIf="demoDocHover" class="dic-host__card"
+                  name="5.5.3 Asset Purchase Agreement.pdf" type="pdf" [fields]="demoDocFields"></fvdr-doc-info-card>
+              </span>
+            </div>
+          </div>
+        </ng-container>
+
         <!-- REDACTION MARK CARD -->
         <ng-container *ngSwitchCase="'redaction-mark-card'">
           <div class="examples-group">
@@ -2582,6 +2684,18 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
               ></fvdr-ai-composer>
             </div>
           </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Inline layout — one-row follow-up embedded in a page</h3>
+            <div class="examples-row examples-row--stack examples-row--chat">
+              <fvdr-ai-composer
+                style="max-width:640px;width:100%"
+                layout="inline"
+                placeholder="Write a message..."
+                [showAddContext]="false"
+                (submitted)="onAiPrompt($event)"
+              ></fvdr-ai-composer>
+            </div>
+          </div>
         </ng-container>
 
         <!-- AI STEPS -->
@@ -2655,6 +2769,72 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
               <fvdr-ai-citation variant="pill" label="Cap Table.xlsx" fileType="xls"></fvdr-ai-citation>
               <fvdr-ai-citation variant="pill" label="Employment Agreements" fileType="folder"></fvdr-ai-citation>
               <fvdr-ai-citation variant="pill" label="NDA — Acme.pdf" [page]="2" fileType="pdf"></fvdr-ai-citation>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Chip — mid-sentence in an AI Overview</h3>
+            <div class="examples-row examples-row--chat">
+              <p class="example-prose">
+                The NDA with Acme is in
+                <fvdr-ai-citation variant="chip" label="5.1 NDA — Acme.pdf" fileType="pdf" (opened)="onAiPrompt('Open 5.1 NDA — Acme.pdf')"></fvdr-ai-citation>
+                and was countersigned in
+                <fvdr-ai-citation variant="chip" label="Board Minutes 2023-11.doc" fileType="doc" [page]="3"></fvdr-ai-citation>.
+              </p>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Keyword highlight — highlight="nda"</h3>
+            <div class="examples-row">
+              <fvdr-ai-citation variant="chip" label="5.1 NDA — Acme.pdf" fileType="pdf" highlight="nda"></fvdr-ai-citation>
+              <fvdr-ai-citation variant="pill" label="Mutual NDA (Standalone).pdf" fileType="pdf" highlight="nda"></fvdr-ai-citation>
+              <fvdr-ai-citation label="Addendum to the NDA.doc" fileType="doc" highlight="nda"></fvdr-ai-citation>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- AI OVERVIEW -->
+        <ng-container *ngSwitchCase="'ai-overview'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">V1 — collapsible, above the results table</h3>
+            <div class="examples-row examples-row--stack examples-row--chat">
+              <fvdr-ai-overview
+                [(collapsed)]="aiOverviewCollapsed"
+                [rating]="aiOverviewRating"
+                [followUps]="['Who signed it?', 'When does it expire?', 'Are there other NDAs?']"
+                (rated)="aiOverviewRating = $event"
+                (followUpChosen)="onAiPrompt($event)"
+                (openInAssistant)="onAiPrompt('Continue in AI Assistant')"
+              >
+                The NDA with Acme is in
+                <fvdr-ai-citation variant="chip" label="5.1 NDA — Acme.pdf" fileType="pdf"></fvdr-ai-citation>
+                and expires on 12 March 2025. It was countersigned by the CFO, see
+                <fvdr-ai-citation variant="chip" label="Board Minutes 2023-11.doc" fileType="doc" [page]="3"></fvdr-ai-citation>.
+              </fvdr-ai-overview>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Loading</h3>
+            <div class="examples-row examples-row--stack examples-row--chat">
+              <fvdr-ai-overview [loading]="true"></fvdr-ai-overview>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">V2 — dismiss header, inline follow-up composer</h3>
+            <div class="examples-row examples-row--stack examples-row--chat">
+              <fvdr-ai-overview
+                headerMode="dismiss"
+                [showComposer]="true"
+                [(composerValue)]="aiOverviewFollowUp"
+                [followUps]="['Summarise the termination clause']"
+                (promptSubmitted)="onAiPrompt($event)"
+                (followUpChosen)="onAiPrompt($event)"
+                (dismissed)="onAiPrompt('Close AI Overview')"
+                (openInAssistant)="onAiPrompt('Open in AI Assistant')"
+              >
+                Three contracts in <b>4 ACME Inc.</b> are still unsigned — the oldest,
+                <fvdr-ai-citation variant="chip" label="4.1 Master Services Agreement.pdf" fileType="pdf" [page]="12"></fvdr-ai-citation>,
+                has been outstanding since March.
+              </fvdr-ai-overview>
             </div>
           </div>
         </ng-container>
@@ -4191,6 +4371,21 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
       background: var(--color-stone-0, #ffffff);
       border: 1px solid var(--color-divider, #dee0eb);
     }
+    /* Room below for an absolutely positioned menu / popover (Smart Search, Doc Info Card). */
+    .examples-row--menu {
+      align-items: flex-start;
+      min-height: calc(var(--space-10) * 10);
+    }
+    /* Smart Search's menu is right-aligned to the field (it sits at the right of the toolbar). */
+    .examples-row--end { justify-content: flex-end; }
+    .example-prose {
+      margin: 0;
+      font-size: var(--font-size-base, 14px);
+      line-height: var(--space-8);
+      color: var(--color-text-primary);
+    }
+    .dic-host { position: relative; display: inline-block; }
+    .dic-host__card { position: absolute; top: calc(100% + var(--space-1)); left: 0; z-index: 10; }
     /* Anatomy parts — the registry has always carried these; now they render. */
     .anatomy-parts {
       list-style: none;
@@ -5167,6 +5362,53 @@ export class DsComponentPageComponent implements OnInit, OnDestroy {
 
   onAiPrompt(prompt: string): void {
     this.toastSvc.show({ variant: 'info', title: 'Prompt sent', message: prompt });
+  }
+
+  // ── Smart Search / Doc Info Card / AI Overview demo data ──
+  demoSmartAnatomy = '';
+  demoSmartQuery = '';
+  readonly demoSmartRecents = ['NDA Acme', 'Board minutes 2023'];
+  readonly demoSmartPrompts = ['Which contracts expire this year?', 'Summarise the FY23 audit', 'Find unsigned agreements'];
+  private readonly demoSmartDocs: SmartSearchResult[] = [
+    { id: 'd1', name: 'Asset Purchase Agreement.pdf', type: 'pdf', index: '5.5.3' },
+    { id: 'd2', name: 'Asset register FY23.xlsx', type: 'xls', index: '3.2.1' },
+    { id: 'd3', name: 'Assignment of IP rights.doc', type: 'doc', index: '2.4' },
+    { id: 'd4', name: 'NDA — Acme.pdf', type: 'pdf', index: '5.1' },
+    { id: 'd5', name: 'Mutual NDA (Standalone).pdf', type: 'pdf', index: '5.2' },
+    { id: 'd6', name: 'Board Minutes 2023-11.doc', type: 'doc', index: '1.3' },
+    { id: 'd7', name: 'Master Services Agreement.pdf', type: 'pdf', index: '4.1' },
+    { id: 'd8', name: 'Shareholders Agreement.pdf', type: 'pdf', index: '1.1' },
+  ];
+  get demoSmartMatches(): SmartSearchResult[] {
+    const q = this.demoSmartQuery.trim().toLowerCase();
+    return q ? this.demoSmartDocs.filter(d => d.name.toLowerCase().includes(q)) : [];
+  }
+  onSmartPick(r: SmartSearchResult): void {
+    this.toastSvc.show({ variant: 'info', message: `Would open ${r.index ? r.index + ' ' : ''}${r.name}` });
+  }
+
+  readonly demoDocFields: DocInfoField[] = [
+    { label: 'Added on:', value: 'Apr 4, 2023' },
+    { label: 'Size:', value: '2.4 MB' },
+    { label: 'Pages:', value: '40' },
+    { label: 'ID:', value: '5.5.3' },
+  ];
+  readonly demoDocFieldsXls: DocInfoField[] = [
+    { label: 'Added on:', value: 'Jan 12, 2024' },
+    { label: 'Size:', value: '860 KB' },
+    { label: 'ID:', value: '3.2.1' },
+  ];
+  demoDocHover = false;
+
+  aiOverviewCollapsed = false;
+  aiOverviewRating: AiRating = null;
+  aiOverviewFollowUp = '';
+
+  /** Registry figmaNode is a DS-library node id, or a full URL for nodes in other files. */
+  figmaUrl(node: string): string {
+    return node.startsWith('http')
+      ? node
+      : 'https://www.figma.com/design/liyNDiFf1piO8SQmHNKoeU/FVDR---Design-System?node-id=' + node;
   }
 
   statusClass(status: ComponentStatus): string {

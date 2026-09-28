@@ -49,6 +49,8 @@
  *   <fvdr-ghost-btn>           → Ghost button (circle-plus icon, optional label + shortcut, S/M)
  *   <fvdr-floating-panel>      → Floating toolbar of ghost buttons (vertical/horizontal × big/small)
  *   <fvdr-filter-btn>          → Filter button (12 colors, M/S, status dot, counter, arrow)
+ *   <fvdr-smart-search>        → Documents search that also takes AI questions (recents · AI prompts · live matches)
+ *   <fvdr-doc-info-card>       → File hover preview (name · first-page thumb · Added on / Size / Pages / ID)
  *
  * AI Assistant section — components/ai/* (see also DS category "AI Assistant" on /ds):
  *   <fvdr-ask-ideon>           → Branded 'Ask Ideon' AI pill (glass + animated mesh gradient)
@@ -56,7 +58,8 @@
  *   <fvdr-ai-composer>         → Prompt input (auto-grow, add-context / voice / send)
  *   <fvdr-ai-steps>            → Streaming reasoning trace ("Thought for Ns", audit trail)
  *   <fvdr-ai-bubble>           → Conversation turn container (user bubble / assistant column)
- *   <fvdr-ai-citation>         → Source reference to a document (+ page), inline or pill
+ *   <fvdr-ai-citation>         → Source reference to a document (+ page), inline / pill / chip, keyword highlight
+ *   <fvdr-ai-overview>         → AI answer card embedded above page results (collapse / dismiss header, follow-ups, inline composer)
  *   <fvdr-ai-actions>          → Answer action row (regenerate · copy · thumbs up/down)
  *   <fvdr-ai-suggestions>      → Starter / follow-up prompt chips
  *   <fvdr-ai-markdown>         → Safe markdown answer renderer (streaming-tolerant)
@@ -100,6 +103,8 @@ import { FvdrIconComponent } from './icons/icon.component';
 import { InputComponent } from './components/input/input.component';
 import { TextareaComponent } from './components/textarea/textarea.component';
 import { SearchComponent } from './components/search/search.component';
+import { SmartSearchComponent } from './components/smart-search/smart-search.component';
+import { DocInfoCardComponent } from './components/doc-info-card/doc-info-card.component';
 import { DatepickerComponent } from './components/datepicker/datepicker.component';
 import { TimepickerComponent } from './components/timepicker/timepicker.component';
 import { PhoneInputComponent } from './components/phone-input/phone-input.component';
@@ -138,6 +143,7 @@ import { AiComposerComponent } from './components/ai/ai-composer/ai-composer.com
 import { AiStepsComponent } from './components/ai/ai-steps/ai-steps.component';
 import { AiBubbleComponent } from './components/ai/ai-bubble/ai-bubble.component';
 import { AiCitationComponent } from './components/ai/ai-citation/ai-citation.component';
+import { AiOverviewComponent } from './components/ai/ai-overview/ai-overview.component';
 import { AiActionsComponent } from './components/ai/ai-actions/ai-actions.component';
 import { AiSuggestionsComponent } from './components/ai/ai-suggestions/ai-suggestions.component';
 import { AiMarkdownComponent } from './components/ai/ai-markdown/ai-markdown.component';
@@ -196,6 +202,10 @@ export { TextareaComponent } from './components/textarea/textarea.component';
 export type { TextareaState } from './components/textarea/textarea.component';
 
 export { SearchComponent } from './components/search/search.component';
+export { SmartSearchComponent } from './components/smart-search/smart-search.component';
+export type { SmartSearchResult } from './components/smart-search/smart-search.component';
+export { DocInfoCardComponent } from './components/doc-info-card/doc-info-card.component';
+export type { DocInfoField } from './components/doc-info-card/doc-info-card.component';
 
 export { DatepickerComponent } from './components/datepicker/datepicker.component';
 export { TimepickerComponent } from './components/timepicker/timepicker.component';
@@ -287,6 +297,7 @@ export { AskIdeonComponent } from './components/ai/ask-ideon/ask-ideon.component
 export { ThinkingOrbsComponent } from './components/ai/thinking-orbs/thinking-orbs.component';
 
 export { AiComposerComponent } from './components/ai/ai-composer/ai-composer.component';
+export type { AiComposerLayout } from './components/ai/ai-composer/ai-composer.component';
 
 export { AiStepsComponent } from './components/ai/ai-steps/ai-steps.component';
 export type { AiStep, AiStepKind } from './components/ai/ai-steps/ai-step.model';
@@ -296,6 +307,8 @@ export type { AiBubbleRole } from './components/ai/ai-bubble/ai-bubble.component
 
 export { AiCitationComponent } from './components/ai/ai-citation/ai-citation.component';
 export type { AiCitationVariant } from './components/ai/ai-citation/ai-citation.component';
+export { AiOverviewComponent } from './components/ai/ai-overview/ai-overview.component';
+export type { AiOverviewHeaderMode } from './components/ai/ai-overview/ai-overview.component';
 
 export { AiActionsComponent } from './components/ai/ai-actions/ai-actions.component';
 export type { AiRating } from './components/ai/ai-actions/ai-actions.component';
@@ -380,6 +393,8 @@ export const DS_COMPONENTS = [
   InputComponent,
   TextareaComponent,
   SearchComponent,
+  SmartSearchComponent,
+  DocInfoCardComponent,
   DatepickerComponent,
   TimepickerComponent,
   PhoneInputComponent,
@@ -426,6 +441,7 @@ export const DS_COMPONENTS = [
   AiStepsComponent,
   AiBubbleComponent,
   AiCitationComponent,
+  AiOverviewComponent,
   AiActionsComponent,
   AiSuggestionsComponent,
   AiMarkdownComponent,
