@@ -1,4 +1,5 @@
 import type { AiBarItem, AiPersonRow, AiStat } from '../../shared/ds';
+import type { VdrChatCategory } from '../_shared/assistant-chat.component';
 
 export type AnalyticsPage = 'dashboard' | 'activity-log';
 
@@ -280,3 +281,27 @@ export function logFor(a: AnalyticsAnswer | null): LogDay[] {
     { day: 'This week', rows: SIGNED_IN.slice(2).map(p => L(p.when.split(' · ')[1] + ':00', p.name, p.email, 'user', 'Login', 'Application type: Web application')) },
   ];
 }
+
+/** Empty-state starters for the analytics pages — activity questions the answers above can serve. */
+export const CHAT_CATEGORIES: VdrChatCategory[] = [
+  { id: 'summarise', label: 'Summarise', icon: 'finished', examples: [
+    'Summarise this week’s buyer activity for the client status update',
+    'Give me the full activity history for this project.',
+    'Summarise who can access 04. HR and flag anyone outside the deal team',
+  ] },
+  { id: 'find', label: 'Find across files', icon: 'search', examples: [
+    'Who’s been downloading files this week, and from which groups?',
+    'Who has signed in this week?',
+    'Which files did Floyd Miles download?',
+  ] },
+  { id: 'catch-up', label: 'Catch up', icon: 'trending-up', examples: [
+    'How much time has each bidder group spent in the room?',
+    'What did Bidder C look at last week?',
+    'How many files have been opened this week?',
+  ] },
+  { id: 'draft', label: 'Draft', icon: 'edit', examples: [
+    'Draft a nudge to Bidder C',
+    'Draft a reminder to participants who haven’t signed in yet',
+    'Check Floyd Miles’ permissions before I send the update',
+  ] },
+];

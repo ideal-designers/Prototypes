@@ -10,7 +10,7 @@ import { VdrAnalyticsDashboardComponent } from './analytics-dashboard.component'
 import { VdrActivityLogTableComponent } from './activity-log-table.component';
 import { VdrAssistantChatComponent, VdrChatThread, VdrChatTurn } from '../_shared/assistant-chat.component';
 import { VdrProtoSwitcherComponent, ProtoGroup } from '../_shared/proto-switcher.component';
-import { AnalyticsAnswer, AnalyticsPage, PROMPTS, RECENTS, answerFor, logFor } from './analytics-ai-search.data';
+import { AnalyticsAnswer, AnalyticsPage, CHAT_CATEGORIES, PROMPTS, RECENTS, answerFor, logFor } from './analytics-ai-search.data';
 
 type Solution = 'v1' | 'v2';
 type V1Layout = 'link' | 'composer';
@@ -40,7 +40,7 @@ type V1Layout = 'link' | 'composer';
         <div class="body" *ngIf="view === 'page'">
           <!-- Toolbar -->
           <div class="toolbar" *ngIf="page === 'dashboard'">
-            <fvdr-segment variant="table" [items]="dashTabs" [activeId]="dashTab" (activeIdChange)="dashTab = $event"></fvdr-segment>
+            <fvdr-segment variant="table" size="md" [items]="dashTabs" [activeId]="dashTab" (activeIdChange)="dashTab = $event"></fvdr-segment>
             <span class="toolbar__spacer"></span>
             <fvdr-btn label="10 groups" variant="secondary" iconName="filter"></fvdr-btn>
             <fvdr-btn label="Export" variant="secondary"></fvdr-btn>
@@ -103,7 +103,7 @@ type V1Layout = 'link' | 'composer';
         <!-- ═══════════ Full AI Assistant ═══════════ -->
         <div class="chat" *ngIf="view === 'chat'">
           <fvdr-vdr-assistant-chat [turns]="chatMessages" [busy]="chatStreaming" [answerTemplate]="answerTpl"
-            [threads]="chatThreads" activeThreadId="current"
+            [threads]="chatThreads" activeThreadId="current" [categories]="chatCategories"
             (submitted)="ask($event)" (stop)="stopChat()" (newChat)="newChat()" (regenerate)="ask(lastUserPrompt)"></fvdr-vdr-assistant-chat>
 
           <ng-template #answerTpl let-m>
@@ -219,6 +219,7 @@ export class AnalyticsAiSearchComponent implements OnInit, OnDestroy {
   // ── Chat ──
   chatMessages: VdrChatTurn[] = [];
   lastUserPrompt = '';
+  readonly chatCategories = CHAT_CATEGORIES;
   readonly chatThreads: VdrChatThread[] = [
     { id: 'qna', title: 'Q&A questions', pinned: true },
     { id: 'current', title: 'Current chat' },
