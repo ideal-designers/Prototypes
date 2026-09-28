@@ -36,8 +36,8 @@ interface Preset {
 }
 
 const PRESETS: Record<ThinkingOrbsVariant, Preset> = {
-  // `ThinkingOrbsPill` defaults from the designer's hand-off.
-  vortex:  { period: 4.4, speed: 0.95, dotScale: 1.55, n: 1.35, sp: 0.82, pv: 1,   dz: 1.1, df: 1, op: 1, sn: 0,  yw: 0,                   pc: 0 },
+  // `ThinkingOrbsPill` defaults from the designer's hand-off; dots halved (1.55 → 0.775) on request.
+  vortex:  { period: 4.4, speed: 0.95, dotScale: 0.775, n: 1.35, sp: 0.82, pv: 1,   dz: 1.1, df: 1, op: 1, sn: 0,  yw: 0,                   pc: 0 },
   // `effect=thinking-orbs style=twinkle` from the designer's URL.
   twinkle: { period: 4.6, speed: 1,    dotScale: 1,    n: 2.6,  sp: 1,    pv: 3.2, dz: 1,   df: 1, op: 1, sn: -3, yw: (-169 * Math.PI) / 180, pc: (-15 * Math.PI) / 180 },
 };
