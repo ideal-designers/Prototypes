@@ -2519,26 +2519,34 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
         <ng-container *ngSwitchCase="'thinking-orbs'">
 
           <div class="example-block">
-            <p class="example-label">Default — preset size (46px orb)</p>
+            <p class="example-label">Default — vortex preset, 46px orb (the designer's hand-off)</p>
             <div class="example-row">
               <fvdr-thinking-orbs label="Thinking…"></fvdr-thinking-orbs>
             </div>
           </div>
 
           <div class="example-block">
-            <p class="example-label">Inline in a chat — 32px orb, thinned to 1.2 so the dots stay separate</p>
+            <p class="example-label">Inline in a chat — 32px orb (AI Steps, AI Overview loading)</p>
             <div class="example-row" style="flex-wrap:wrap; gap:16px">
-              <fvdr-thinking-orbs [size]="32" [dots]="1.2" label="Searching the data room…"></fvdr-thinking-orbs>
-              <fvdr-thinking-orbs [size]="32" [dots]="1.2" label="Reading 14 documents…"></fvdr-thinking-orbs>
+              <fvdr-thinking-orbs [size]="32" label="Searching the data room…"></fvdr-thinking-orbs>
+              <fvdr-thinking-orbs [size]="32" label="Reading 14 documents…"></fvdr-thinking-orbs>
             </div>
           </div>
 
           <div class="example-block">
-            <p class="example-label">Density — the preset's n knob. 2.6 (390 dots) needs room; thin it out below ~40px</p>
+            <p class="example-label">Density — the preset's n knob (vortex default 1.35 → 203 dots)</p>
             <div class="example-row" style="flex-wrap:wrap; gap:16px">
-              <fvdr-thinking-orbs [size]="28" [dots]="2.6" label="2.6 at 28px"></fvdr-thinking-orbs>
               <fvdr-thinking-orbs [size]="28" [dots]="0.8" label="0.8 at 28px"></fvdr-thinking-orbs>
-              <fvdr-thinking-orbs [size]="46" [dots]="2.6" label="2.6 at 46px"></fvdr-thinking-orbs>
+              <fvdr-thinking-orbs [size]="46" label="1.35 at 46px"></fvdr-thinking-orbs>
+              <fvdr-thinking-orbs [size]="46" [dots]="2" label="2 at 46px"></fvdr-thinking-orbs>
+            </div>
+          </div>
+
+          <div class="example-block">
+            <p class="example-label">variant="twinkle" — the earlier blinking preset, kept for comparison</p>
+            <div class="example-row" style="flex-wrap:wrap; gap:16px">
+              <fvdr-thinking-orbs variant="twinkle" label="Listening…"></fvdr-thinking-orbs>
+              <fvdr-thinking-orbs variant="twinkle" [size]="32" [dots]="1.2" label="Twinkle at 32px"></fvdr-thinking-orbs>
             </div>
           </div>
 

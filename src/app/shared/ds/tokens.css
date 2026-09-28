@@ -389,3 +389,17 @@
   --chart-deactivated:  #4A4C55;
   --chart-deleted:      #7A4A45;
 }
+
+/* ── AI thinking orb (fvdr-thinking-orbs, "vortex" preset) ─────────────────────
+   Designer's ink: dot / pill / label per scheme. */
+:root {
+  --ai-orb-dot:   #3BAE5B;
+  --ai-orb-pill:  #FFFFFF;
+  --ai-orb-label: #25242A;
+  --font-family-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.dark-theme {
+  --ai-orb-dot:   #3DFF74;
+  --ai-orb-pill:  #000000;
+  --ai-orb-label: #F4F1EA;
+}
