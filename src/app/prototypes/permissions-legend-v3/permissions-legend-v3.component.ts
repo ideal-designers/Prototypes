@@ -14,6 +14,16 @@ const SLUG = 'permissions-legend-v3';
 const COACH_KEY = 'vdsn32-permissions-coachmark-seen-v3';
 const PUBLISH_CONFIRM_SKIP_KEY = 'vdsn32-publish-confirm-skip-v3';
 
+/** Publish state of a document — drives the chip's colours and its hover label
+ *  (Figma 1718-75705 / permission-icon-animation lab). */
+type PubState = 'published' | 'partial' | 'unpublished';
+
+const STATE_LABEL: Record<PubState, string> = {
+  published:   'Published',
+  partial:     'Unpublished documents inside',
+  unpublished: 'Unpublished',
+};
+
 interface TreeItem {
   id: number;
   index: string;
@@ -21,7 +31,8 @@ interface TreeItem {
   type: 'folder' | 'xlsx' | 'pdf' | 'doc' | 'video';
   perms: number[];       // index = groupIdx (0–5), value = level 0–7
   restricted?: number[]; // levels (1–7) not offered for this file type
-  published?: boolean;   // shown as a tiny corner badge on the file/folder icon
+  published?: boolean;   // toggled by the "···" menu / chip click
+  partial?: boolean;     // folder-only: published itself, but has unpublished children
 }
 
 interface GroupUser {
@@ -468,23 +479,26 @@ const GROUPS: Group[] = [
       </div><!-- /main -->
     </div><!-- /shell -->
 
-    <!-- Publishing status — Figma node 1718-75081: a tinted background behind the file/folder
-         icon (green when published, grey when not) plus a small check/cross glyph beside it.
-         Clicking the glyph directly requests the toggle, same as the publish icon in v1/v2 — the
-         full context menu (with the rest of the row actions) lives behind the "···" trigger. -->
+    <!-- Publishing status — matches the permission-icon-animation lab: a bordered chip
+         (green when published, dashed green when partially published, grey when not)
+         that pushes the row content aside as it grows on hover to reveal its label.
+         Clicking it directly requests the toggle, same as v1/v2 — the full context menu
+         (with the rest of the row actions) lives behind the "···" trigger instead. -->
     <ng-template #pubBadge let-item>
-      <span class="file-icon-wrap" [class.file-icon-wrap--published]="item.published">
-        <span class="file-icon-slot">
-          <fvdr-file-icon [type]="fileType(item.type)" />
+      <span class="file-icon-wrap"
+            [ngClass]="'file-icon-wrap--' + pubState(item)"
+            role="button"
+            tabindex="0"
+            data-track="permission-chip"
+            [attr.aria-label]="stateLabel(item) + ' — click to toggle'"
+            (click)="$event.stopPropagation(); requestPublishToggle(item)">
+        <fvdr-file-icon [type]="fileType(item.type)" />
+        <span class="pub-check-icon">
+          <fvdr-icon [name]="pubState(item) === 'unpublished' ? 'close' : 'check'" />
         </span>
-        <button class="pub-check"
-                (click)="$event.stopPropagation(); requestPublishToggle(item)"
-                [attr.aria-label]="(item.published ? 'Published' : 'Unpublished') + ' — click to toggle'">
-          <span class="pub-check-icon">
-            <fvdr-icon [name]="item.published ? 'check' : 'close'" />
-          </span>
-          <span class="pub-check-label">{{ item.published ? 'Published' : 'Unpublished' }}</span>
-        </button>
+        <span class="pub-check-label">
+          <span class="pub-check-label-in"><span class="pub-check-text">{{ stateLabel(item) }}</span></span>
+        </span>
       </span>
     </ng-template>
 
@@ -829,66 +843,79 @@ const GROUPS: Group[] = [
       flex-shrink: 0;
     }
 
-    /* Publishing status — Figma node 1718-75705 (hover variants of 1718-75081): one
-       continuous pill (no gap) — tinted background (grey when unpublished, green when
-       published) holding the file/folder icon, capped by a check/cross glyph. On hover
-       the pill grows to the right to reveal a "Published"/"Unpublished" label, pushing
-       the index/name that follow it further right. */
+    /* Publishing status chip — permission-icon-animation lab (push behaviour, 260ms
+       ease-out): a bordered chip that sits in the row's normal flow, so growing it on
+       hover pushes the index/name that follow it further right. The 0fr → 1fr grid on
+       .pub-check-label animates to the label's own natural width (nothing hard-coded),
+       which matters here since "Unpublished documents inside" is much longer than
+       "Published" / "Unpublished". */
     .file-icon-wrap {
-      position: relative;
       display: inline-flex;
       align-items: center;
-      padding: 4px;
+      position: relative;
+      height: 30px;
+      padding: 4px 1px 4px 4px;
+      box-sizing: border-box;
+      border: 1px solid;
       border-radius: var(--radius-sm);
-      background: var(--color-stone-200);
-      flex-shrink: 0;
-    }
-    .file-icon-wrap--published { background: var(--color-primary-50); }
-    .file-icon-slot {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 20px;
-      height: 20px;
-      flex-shrink: 0;
-    }
-    .pub-check {
-      display: flex;
-      align-items: center;
-      max-width: 20px;
-      height: 20px;
-      padding: 0;
-      background: none;
-      border: none;
-      border-top-right-radius: var(--radius-sm);
-      border-bottom-right-radius: var(--radius-sm);
       cursor: pointer;
       flex-shrink: 0;
-      color: var(--color-text-secondary);
-      overflow: hidden;
-      transition: max-width 0.18s ease;
+      transition: background-color 260ms cubic-bezier(.33,1,.68,1),
+                  border-color     260ms cubic-bezier(.33,1,.68,1),
+                  padding-right    260ms cubic-bezier(.33,1,.68,1);
     }
-    .file-icon-wrap:hover .pub-check { max-width: 140px; }
+    .file-icon-wrap:hover,
+    .file-icon-wrap:focus-visible { padding-right: 4px; z-index: 2; outline: none; }
+
+    .file-icon-wrap--published   { background: var(--color-primary-50); border-color: var(--color-malachite-100); }
+    .file-icon-wrap--partial     { background: var(--color-primary-50); border-color: var(--color-malachite-400); border-style: dashed; }
+    .file-icon-wrap--unpublished { background: var(--color-stone-200);  border-color: var(--color-stone-300); }
+
+    /* On hover the fill steps one shade darker, so the chip still reads against a
+       hovered table row instead of melting into it. */
+    .file-icon-wrap--published:hover,   .file-icon-wrap--published:focus-visible {
+      background: var(--color-malachite-100); border-color: var(--color-malachite-100);
+    }
+    .file-icon-wrap--partial:hover,     .file-icon-wrap--partial:focus-visible {
+      background: var(--color-malachite-100);
+    }
+    .file-icon-wrap--unpublished:hover, .file-icon-wrap--unpublished:focus-visible {
+      background: var(--color-stone-300); border-color: var(--color-stone-300);
+    }
+
     .pub-check-icon {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 20px;
-      height: 20px;
-      flex-shrink: 0;
+      width: 20px; height: 20px; flex-shrink: 0;
+      display: inline-flex; align-items: center; justify-content: center;
     }
-    .file-icon-wrap .pub-check-icon fvdr-icon { font-size: 9px; }
+    .file-icon-wrap .pub-check-icon fvdr-icon { font-size: 12px; }
+    .file-icon-wrap--published .pub-check-icon,
+    .file-icon-wrap--partial   .pub-check-icon { color: var(--color-primary-500); }
+    .file-icon-wrap--unpublished .pub-check-icon { color: var(--color-text-secondary); }
+
+    /* 0fr → 1fr animates to the label's natural width, so nothing is hard-coded. */
     .pub-check-label {
-      font-size: 12px;
-      line-height: 16px;
-      color: var(--color-text-primary);
+      display: inline-grid;
+      grid-template-columns: 0fr;
+      opacity: 0;
+      transition: grid-template-columns 260ms cubic-bezier(.33,1,.68,1),
+                  opacity               260ms cubic-bezier(.33,1,.68,1);
+    }
+    .file-icon-wrap:hover .pub-check-label,
+    .file-icon-wrap:focus-visible .pub-check-label { grid-template-columns: 1fr; opacity: 1; }
+    /* The inner wrapper clips; its padding must live on a child, or a 0fr column
+       still leaks the padding width into the collapsed chip. */
+    .pub-check-label-in { overflow: hidden; }
+    .pub-check-text {
+      display: block;
       white-space: nowrap;
       padding-right: 4px;
-      opacity: 0;
-      transition: opacity 0.12s ease;
+      font-size: 12px;
+      color: var(--color-text-primary);
     }
-    .file-icon-wrap:hover .pub-check-label { opacity: 1; transition-delay: 0.06s; }
-    .file-icon-wrap--published .pub-check-icon { color: var(--color-primary-600); }
+
+    @media (prefers-reduced-motion: reduce) {
+      .file-icon-wrap, .pub-check-label { transition-duration: 1ms; }
+    }
 
     /* Publishing context menu — opened by clicking the "···" trigger elsewhere on the row.
        Anchored to .file-icon-wrap (already position:relative). */
@@ -1377,7 +1404,7 @@ export class PermissionsLegendV3Component implements OnInit, AfterViewInit, OnDe
   readonly treeItems: TreeItem[] = [
     { id: 1, index: '1',   name: 'Stage folder',                        type: 'folder', perms: [6,6,5,4,3,6], published: true },
     { id: 2, index: '2',   name: 'Organizational chart and manage',     type: 'folder', perms: [7,7,6,5,4,5], published: true },
-    { id: 3, index: '3.1', name: 'Corporate DD — Product and Services', type: 'folder', perms: [5,6,4,2,3,5] },
+    { id: 3, index: '3.1', name: 'Corporate DD — Product and Services', type: 'folder', perms: [5,6,4,2,3,5], published: true, partial: true },
     { id: 4, index: '4',   name: 'Financial DD — Accounts Receivables', type: 'folder', perms: [6,6,5,3,4,6], published: true },
     { id: 5, index: '5',   name: 'Key contacts by function',            type: 'xlsx',   perms: [4,5,3,1,2,4], published: true },
     { id: 6, index: '6',   name: 'Tax accounting.xlsx',                 type: 'xlsx',   perms: [5,5,4,2,3,5], published: true },
@@ -1491,6 +1518,15 @@ export class PermissionsLegendV3Component implements OnInit, AfterViewInit, OnDe
       folder: 'folder', xlsx: 'xls', pdf: 'pdf', doc: 'doc', video: 'video',
     };
     return map[type] ?? 'placeholder';
+  }
+
+  pubState(item: TreeItem): PubState {
+    if (item.partial) return 'partial';
+    return item.published ? 'published' : 'unpublished';
+  }
+
+  stateLabel(item: TreeItem): string {
+    return STATE_LABEL[this.pubState(item)];
   }
 
   selectItem(id: number): void { this.selectedDocId = id; }
