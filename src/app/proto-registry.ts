@@ -209,5 +209,18 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
     status: 'wip',
     description: 'Smart search on the Activity log: V1 puts the AI Overview above the log and applies the matching filters (period, action) to the report; V2 shows the overview only. Same answer-shape switch and hand-off to the full AI Assistant as the Dashboard prototype.',
   },
+  {
+    slug: 'mobile-doc-filters',
+    title: 'Documents — Mobile filters',
+    figma: 'https://www.figma.com/design/h9MR3O7N3kLV2xl2MGQDxs/Documents?node-id=30138-310856',
+    status: 'wip',
+    description: 'All Documents filters in a mobile full-screen sheet. Files is a tri-state parent of every format (selecting it selects all), Folders is a leaf with no children, sections collapse with summaries, file-only filters disable for folders — with a toggle to compare against the Figma original',
+  },
+  {
+    slug: 'qna-column-resize',
+    title: 'Q&A — Column resize',
+    status: 'wip',
+    description: 'Q&A threads page with the same resize behavior as the Documents Quick access panel: resizable Quick access panel, resizable table columns (drag, double-click to auto-fit, arrow keys), and when a thread is open the right thread panel is resizable from its left edge (double-click resets)',
+  },
   // REGISTRY_PLACEHOLDER
 ];

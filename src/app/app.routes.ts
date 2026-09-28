@@ -203,6 +203,16 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./prototypes/analytics-ai-search/analytics-ai-search.component').then(m => m.AnalyticsAiSearchComponent),
   },
+  {
+    path: 'mobile-doc-filters',
+    loadComponent: () =>
+      import('./prototypes/mobile-doc-filters/mobile-doc-filters.component').then(m => m.MobileDocFiltersComponent),
+  },
+  {
+    path: 'qna-column-resize',
+    loadComponent: () =>
+      import('./prototypes/qna-column-resize/qna-column-resize.component').then(m => m.QnaColumnResizeComponent),
+  },
   // PROTO_ROUTES_PLACEHOLDER
   {
     path: '**',
