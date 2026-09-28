@@ -261,7 +261,7 @@ type AiState = 'loading' | 'clarify' | 'answer';
     .page { display: flex; height: 100%; background: var(--color-stone-0); }
     .main { flex: 1; min-width: 0; display: flex; }
     .work { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-    .preview { flex: 0 0 44%; max-width: 640px; min-width: 420px; }
+    .preview { flex: 0 0 50vw; width: 50vw; min-width: 0; } /* file preview = half the viewport */
 
     /* ── Documents ── */
     .docs { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: var(--space-5); padding: var(--space-6); }
