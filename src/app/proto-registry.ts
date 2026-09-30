@@ -220,7 +220,7 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
     slug: 'qna-column-resize',
     title: 'Q&A — Column resize',
     status: 'wip',
-    description: 'Q&A threads page with the same resize behavior as the Documents Quick access panel: resizable Quick access panel, resizable table columns (drag, double-click to auto-fit, arrow keys), and when a thread is open the right thread panel is resizable from its left edge (double-click resets)',
+    description: 'Q&A threads page with the same resize behavior as the Documents Quick access panel: resizable Quick access panel, resizable table columns (drag or arrow keys), and when a thread is open the right thread panel is resizable from its left edge. Double-clicking any resize line resets it to the default width; an onboarding badge on the line teaches this after the first resize',
   },
   // REGISTRY_PLACEHOLDER
 ];

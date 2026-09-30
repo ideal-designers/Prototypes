@@ -119,9 +119,10 @@ interface ColDef { id: ResizableColId; label: string; }
                    *ngIf="!panelCollapsed"
                    role="separator" aria-orientation="vertical" aria-label="Resize Quick access panel"
                    tabindex="0"
-                   (mouseenter)="panelHandleHovered = true"
-                   (mouseleave)="panelHandleHovered = false"
+                   (mouseenter)="panelHandleHovered = true; onHandleEnter($event, 'panel')"
+                   (mouseleave)="panelHandleHovered = false; onHandleLeave()"
                    (mousedown)="startPanelResize($event)"
+                   (dblclick)="resetPanelWidth()"
                    (keydown)="onPanelResizeKeydown($event)"></div>
             </div>
 
@@ -134,14 +135,16 @@ interface ColDef { id: ResizableColId; label: string; }
                      [class.th-hover]="hoveredColRect?.colId === col.id"
                      [class.th-active]="resizingCol === col.id"
                      (mouseenter)="onColHeaderEnter($event, col.id)" (mouseleave)="onColHeaderLeave()">
-                  <span class="th-label" [attr.data-col-measure]="col.id">{{ col.label }}</span>
+                  <span class="th-label">{{ col.label }}</span>
                   <span class="col-resize-handle"
                         [class.col-resize-handle--active]="resizingCol === col.id"
                         role="separator" aria-orientation="vertical" [attr.aria-label]="'Resize column ' + col.label"
                         tabindex="0"
+                        (mouseenter)="onHandleEnter($event, col.id)"
+                        (mouseleave)="onHandleLeave()"
                         (mousedown)="startColResize($event, col.id)"
                         (keydown)="onColResizeKeydown($event, col.id)"
-                        (dblclick)="autoFitColumn(col.id)"></span>
+                        (dblclick)="resetColumnWidth(col.id)"></span>
                 </div>
                 <div class="col-act">
                   <button *ngIf="!openThread" class="icon-btn" title="Columns"><fvdr-icon name="table-view"></fvdr-icon></button>
@@ -158,20 +161,20 @@ interface ColDef { id: ResizableColId; label: string; }
                 </div>
                 <ng-container *ngFor="let col of visibleCols">
                   <div [ngSwitch]="col.id">
-                    <span *ngSwitchCase="'num'" class="td-text" data-col-measure="num">{{ t.id }}</span>
-                    <span *ngSwitchCase="'subject'" class="td-text td-ellipsis" data-col-measure="subject">{{ t.subject }}</span>
-                    <span *ngSwitchCase="'status'" class="status-chip" [ngClass]="'status-chip--' + t.status" data-col-measure="status">{{ statusLabel(t.status) }}</span>
-                    <span *ngSwitchCase="'team'" class="td-inline" data-col-measure="team">
+                    <span *ngSwitchCase="'num'" class="td-text">{{ t.id }}</span>
+                    <span *ngSwitchCase="'subject'" class="td-text td-ellipsis">{{ t.subject }}</span>
+                    <span *ngSwitchCase="'status'" class="status-chip" [ngClass]="'status-chip--' + t.status">{{ statusLabel(t.status) }}</span>
+                    <span *ngSwitchCase="'team'" class="td-inline">
                       <fvdr-icon name="group" class="team-icon"></fvdr-icon>{{ t.team }}
                     </span>
-                    <span *ngSwitchCase="'author'" class="td-inline" data-col-measure="author">
+                    <span *ngSwitchCase="'author'" class="td-inline">
                       <span class="mini-avatar">{{ t.initials }}</span><span class="td-ellipsis">{{ t.author }}</span>
                     </span>
                     <span *ngSwitchCase="'priority'" class="prio" [ngClass]="'prio--' + t.priority" [title]="t.priority">
                       <fvdr-icon [name]="t.priority === 'low' ? 'chevron-up' : 'angle-double-right'"></fvdr-icon>
                     </span>
-                    <span *ngSwitchCase="'updated'" class="td-text" data-col-measure="updated">{{ t.updated }}</span>
-                    <span *ngSwitchCase="'category'" class="td-inline" data-col-measure="category">
+                    <span *ngSwitchCase="'updated'" class="td-text">{{ t.updated }}</span>
+                    <span *ngSwitchCase="'category'" class="td-inline">
                       <ng-container *ngIf="t.category">
                         <fvdr-icon name="label" class="cat-icon" [ngClass]="'cat-icon--' + (t.category === 'Finance' ? 'teal' : 'green')"></fvdr-icon>{{ t.category }}
                       </ng-container>
@@ -203,9 +206,8 @@ interface ColDef { id: ResizableColId; label: string; }
               <div class="v-handle v-handle--left"
                    role="separator" aria-orientation="vertical" aria-label="Resize thread panel"
                    tabindex="0"
-                   title="Drag to resize · double-click to reset"
-                   (mouseenter)="threadHandleHovered = true"
-                   (mouseleave)="threadHandleHovered = false"
+                   (mouseenter)="threadHandleHovered = true; onHandleEnter($event, 'thread')"
+                   (mouseleave)="threadHandleHovered = false; onHandleLeave()"
                    (mousedown)="startThreadResize($event)"
                    (dblclick)="resetThreadWidth()"
                    (keydown)="onThreadResizeKeydown($event)"></div>
@@ -276,6 +278,19 @@ interface ColDef { id: ResizableColId; label: string; }
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- Onboarding: reset-width hint. Sits right on the resize line, only while that line's width
+         differs from its default, and retires after the user double-clicks a line once. -->
+    <div class="reset-hint" *ngIf="resetHint as hint"
+         [style.left.px]="hint.x" [style.top.px]="hint.y" aria-hidden="true">
+      <!-- Double-click animation: the cursor tip sits on the line and presses twice;
+           each press sends out a ripple and three click marks. -->
+      <span class="reset-hint__ripple"></span>
+      <span class="reset-hint__ripple reset-hint__ripple--second"></span>
+      <span class="reset-hint__marks"><i></i><i></i><i></i></span>
+      <span class="reset-hint__cursor"><span class="reset-hint__cursor-shape"></span></span>
+      <span class="reset-hint__label">Double-click to reset width</span>
     </div>
   `,
   styles: [`
@@ -557,6 +572,105 @@ interface ColDef { id: ResizableColId; label: string; }
       color: var(--color-text-secondary);
     }
 
+    /* ── Reset-width onboarding hint ── */
+    .reset-hint {
+      position: fixed;
+      z-index: 1000;
+      pointer-events: none; /* the dblclick must land on the handle underneath */
+      animation: reset-hint-in 0.16s ease-out;
+    }
+    /* Timeline (1.6s loop): press at 8%, release 16%, press 24%, release 32%, then rest. */
+    .reset-hint__cursor {
+      position: absolute;
+      left: 0; top: 0;
+      width: 14px; height: 20px;
+      transform-origin: 0 0; /* press toward the tip */
+      /* White outline around the clipped arrow — keeps it legible on the gray header */
+      filter:
+        drop-shadow(1px 0 0 var(--color-stone-0)) drop-shadow(-1px 0 0 var(--color-stone-0))
+        drop-shadow(0 1px 0 var(--color-stone-0)) drop-shadow(0 -1px 0 var(--color-stone-0))
+        drop-shadow(0 2px 3px rgba(31, 33, 41, 0.25));
+      animation: reset-hint-press 1.6s ease-in-out infinite;
+    }
+    .reset-hint__cursor-shape {
+      display: block;
+      width: 100%; height: 100%;
+      background: var(--color-text-primary);
+      clip-path: polygon(0 0, 0 86%, 28% 66%, 48% 100%, 66% 92%, 47% 60%, 90% 60%);
+    }
+    .reset-hint__ripple {
+      position: absolute;
+      left: -13px; top: -13px;
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      border: 2px solid var(--color-primary-500);
+      box-sizing: border-box;
+      opacity: 0;
+      animation: reset-hint-ripple 1.6s ease-out infinite;
+    }
+    /* Second press is 16% of the loop later */
+    .reset-hint__ripple--second { animation-delay: 0.256s; }
+    .reset-hint__marks {
+      position: absolute;
+      left: 0; top: 0;
+      animation: reset-hint-marks 1.6s ease-out infinite;
+      opacity: 0;
+    }
+    .reset-hint__marks i {
+      position: absolute;
+      left: -1px; top: -13px;
+      width: 2px; height: 5px;
+      border-radius: 1px;
+      background: var(--color-primary-500);
+      transform-origin: 1px 13px; /* rotate around the cursor tip */
+    }
+    .reset-hint__marks i:nth-child(1) { transform: rotate(-60deg); }
+    .reset-hint__marks i:nth-child(2) { transform: rotate(-15deg); }
+    .reset-hint__marks i:nth-child(3) { transform: rotate(30deg); }
+    .reset-hint__label {
+      position: absolute;
+      left: 0; top: 28px; /* below the 20px cursor */
+      transform: translateX(-50%);
+      padding: var(--space-1) var(--space-2);
+      border-radius: var(--radius-sm);
+      background: var(--color-text-primary);
+      color: var(--color-stone-0);
+      font-size: var(--text-caption1-size);
+      line-height: 16px;
+      white-space: nowrap;
+    }
+    @keyframes reset-hint-in {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+    @keyframes reset-hint-press {
+      0%, 6%   { transform: scale(1); }
+      9%       { transform: scale(0.82); }
+      15%      { transform: scale(1); }
+      22%      { transform: scale(1); }
+      25%      { transform: scale(0.82); }
+      31%, 100% { transform: scale(1); }
+    }
+    @keyframes reset-hint-ripple {
+      0%, 8%   { transform: scale(0.25); opacity: 0; }
+      9%       { transform: scale(0.25); opacity: 0.9; }
+      38%      { transform: scale(1.2);  opacity: 0; }
+      100%     { transform: scale(1.2);  opacity: 0; }
+    }
+    @keyframes reset-hint-marks {
+      0%, 8%   { opacity: 0; transform: scale(0.5); }
+      11%      { opacity: 1; transform: scale(1); }
+      18%      { opacity: 0; transform: scale(1.15); }
+      24%      { opacity: 0; transform: scale(0.5); }
+      27%      { opacity: 1; transform: scale(1); }
+      34%      { opacity: 0; transform: scale(1.15); }
+      100%     { opacity: 0; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .reset-hint, .reset-hint__cursor { animation: none; }
+      .reset-hint__ripple, .reset-hint__marks { display: none; }
+    }
+
     .icon-btn {
       display: flex; align-items: center; justify-content: center;
       width: 28px; height: 28px; flex-shrink: 0;
@@ -675,8 +789,6 @@ export class QnaColumnResizeComponent implements OnInit, OnDestroy {
   private readonly COL_DEFAULTS: Record<ResizableColId, number> = { num: 62, subject: 276, status: 130, team: 145, author: 174, priority: 98, updated: 131, category: 130 };
   private readonly COL_MIN: Record<ResizableColId, number>      = { num: 56, subject: 120, status: 96,  team: 96,  author: 110, priority: 80, updated: 100, category: 96 };
   private readonly COL_MAX: Record<ResizableColId, number>      = { num: 160, subject: 720, status: 240, team: 320, author: 360, priority: 200, updated: 240, category: 320 };
-  /** Fixed content (icon/avatar + gap) that precedes the measured text in a cell, added on auto-fit. */
-  private readonly COL_MEASURE_OFFSET: Partial<Record<ResizableColId, number>> = {};
 
   colWidths: Record<ResizableColId, number> = { ...this.COL_DEFAULTS };
   resizingCol: ResizableColId | null = null;
@@ -713,6 +825,7 @@ export class QnaColumnResizeComponent implements OnInit, OnDestroy {
     event.preventDefault();
     event.stopPropagation();
     this.resizingCol = colId;
+    this.beginHandleDrag(event);
     this.colStartX = event.clientX;
     this.colStartWidth = this.colWidths[colId];
     this.lockBody();
@@ -738,6 +851,7 @@ export class QnaColumnResizeComponent implements OnInit, OnDestroy {
         this.colWidths = { ...this.colWidths, [this.resizingCol]: this.pendingColWidth };
       }
       this.saveState();
+      this.afterHandleDrag(this.resizingCol);
     }
     this.pendingColWidth = null;
     this.stopColResize();
@@ -755,17 +869,15 @@ export class QnaColumnResizeComponent implements OnInit, OnDestroy {
     this.colWidths = { ...this.colWidths, [colId]: this.clampColWidth(colId, this.colWidths[colId] + delta) };
     this.saveState();
   }
-  autoFitColumn(colId: ResizableColId): void {
+  resetColumnWidth(colId: ResizableColId): void {
     if (this.isMobileViewport) return;
-    const els = Array.from(document.querySelectorAll<HTMLElement>(`[data-col-measure="${colId}"]`));
-    const widest = els.length ? Math.max(...els.map(el => el.scrollWidth)) : this.COL_MIN[colId];
-    const cellPadding = 24; // --space-3 on both sides
-    this.colWidths = { ...this.colWidths, [colId]: this.clampColWidth(colId, widest + (this.COL_MEASURE_OFFSET[colId] ?? 0) + cellPadding) };
-    this.saveState();
+    this.colWidths = { ...this.colWidths, [colId]: this.COL_DEFAULTS[colId] };
+    this.onResetDone();
   }
 
   // ── Quick access panel width ──────────────────────────────────────────────
-  panelWidthPx = 204;
+  private readonly PANEL_DEFAULT = 204;
+  panelWidthPx = this.PANEL_DEFAULT;
   isResizingPanel = false;
   panelHandleHovered = false;
   readonly PANEL_LINE_WIDTH = 4;
@@ -781,6 +893,7 @@ export class QnaColumnResizeComponent implements OnInit, OnDestroy {
     if (this.isMobileViewport) return;
     event.preventDefault();
     this.isResizingPanel = true;
+    this.beginHandleDrag(event);
     this.panelStartX = event.clientX;
     this.panelStartWidth = this.panelWidthPx;
     this.lockBody();
@@ -793,7 +906,7 @@ export class QnaColumnResizeComponent implements OnInit, OnDestroy {
     // A wider left panel eats into the thread panel if the table is already at its minimum.
     if (this.openThread) this.threadWidthPx = this.clampThreadWidth(this.threadWidthPx);
   };
-  private onPanelMouseUp = () => { this.stopPanelResize(); this.saveState(); };
+  private onPanelMouseUp = () => { this.stopPanelResize(); this.saveState(); this.afterHandleDrag('panel'); };
   private stopPanelResize(): void {
     this.isResizingPanel = false;
     this.unlockBody();
@@ -805,6 +918,13 @@ export class QnaColumnResizeComponent implements OnInit, OnDestroy {
     if (delta === 0) return;
     this.panelWidthPx = this.clampPanelWidth(this.panelWidthPx + delta);
     this.saveState();
+  }
+
+  resetPanelWidth(): void {
+    if (this.isMobileViewport) return;
+    this.panelWidthPx = this.PANEL_DEFAULT;
+    if (this.openThread) this.threadWidthPx = this.clampThreadWidth(this.threadWidthPx);
+    this.onResetDone();
   }
 
   // ── Thread panel width (handle on the LEFT edge: drag left = wider) ───────
@@ -834,6 +954,7 @@ export class QnaColumnResizeComponent implements OnInit, OnDestroy {
     if (this.isMobileViewport) return;
     event.preventDefault();
     this.isResizingThread = true;
+    this.beginHandleDrag(event);
     this.threadStartX = event.clientX;
     this.threadStartWidth = this.threadWidthPx;
     this.lockBody();
@@ -844,7 +965,7 @@ export class QnaColumnResizeComponent implements OnInit, OnDestroy {
     if (!this.isResizingThread) return;
     this.threadWidthPx = this.clampThreadWidth(this.threadStartWidth - (e.clientX - this.threadStartX));
   };
-  private onThreadMouseUp = () => { this.stopThreadResize(); this.saveState(); };
+  private onThreadMouseUp = () => { this.stopThreadResize(); this.saveState(); this.afterHandleDrag('thread'); };
   private stopThreadResize(): void {
     this.isResizingThread = false;
     this.unlockBody();
@@ -859,8 +980,75 @@ export class QnaColumnResizeComponent implements OnInit, OnDestroy {
     this.saveState();
   }
   resetThreadWidth(): void {
+    if (this.isMobileViewport) return;
     this.threadWidthPx = this.clampThreadWidth(this.THREAD_DEFAULT);
+    this.onResetDone();
+  }
+
+  // ── Reset-width onboarding hint ───────────────────────────────────────────
+  // Shown on a resize line only when its width differs from the default (that's the only time a
+  // reset does anything): on hover, and for a few seconds right after a drag ends. Once the user
+  // double-clicks any line, they've learned it — the hint retires for the session.
+  private readonly HINT_SEEN_KEY = 'fvdr-qna-column-resize:reset-hint-seen';
+  private readonly HINT_HOVER_DELAY = 300;
+  private readonly HINT_AFTER_DRAG_MS = 4000;
+  /** Header rows are 44px tall; the cursor tip sits on the line at the header's vertical middle. */
+  private readonly HINT_Y_OFFSET = 22;
+  resetHint: { x: number; y: number } | null = null;
+  private resetHintSeen = false;
+  private hintTimer: ReturnType<typeof setTimeout> | null = null;
+  private dragHandleEl: HTMLElement | null = null;
+
+  private isChanged(target: ResizableColId | 'panel' | 'thread'): boolean {
+    if (target === 'panel') return this.panelWidthPx !== this.PANEL_DEFAULT;
+    if (target === 'thread') return this.threadWidthPx !== this.clampThreadWidth(this.THREAD_DEFAULT);
+    return this.colWidths[target] !== this.COL_DEFAULTS[target];
+  }
+  private get isAnyResizing(): boolean {
+    return !!this.resizingCol || this.isResizingPanel || this.isResizingThread;
+  }
+  private showHintAt(el: HTMLElement): void {
+    const r = el.getBoundingClientRect();
+    this.resetHint = { x: r.left + r.width / 2, y: r.top + this.HINT_Y_OFFSET };
+  }
+  private clearHintTimer(): void {
+    if (this.hintTimer) { clearTimeout(this.hintTimer); this.hintTimer = null; }
+  }
+  onHandleEnter(event: MouseEvent, target: ResizableColId | 'panel' | 'thread'): void {
+    if (this.resetHintSeen || this.isMobileViewport || this.isAnyResizing || !this.isChanged(target)) return;
+    const el = event.currentTarget as HTMLElement;
+    this.clearHintTimer();
+    this.hintTimer = setTimeout(() => this.showHintAt(el), this.HINT_HOVER_DELAY);
+  }
+  onHandleLeave(): void {
+    if (this.isAnyResizing) return;
+    this.clearHintTimer();
+    this.resetHint = null;
+  }
+  private beginHandleDrag(event: MouseEvent): void {
+    this.dragHandleEl = event.currentTarget as HTMLElement;
+    this.clearHintTimer();
+    this.resetHint = null;
+  }
+  private afterHandleDrag(target: ResizableColId | 'panel' | 'thread'): void {
+    const el = this.dragHandleEl;
+    this.dragHandleEl = null;
+    if (!el || this.resetHintSeen || !this.isChanged(target)) return;
+    // Wait for change detection so the handle has moved to the new edge before measuring it.
+    setTimeout(() => {
+      // A double-click is two mousedown/mouseup pairs — if it already reset the width, stay quiet.
+      if (!el.isConnected || this.resetHintSeen || !this.isChanged(target)) return;
+      this.showHintAt(el);
+      this.clearHintTimer();
+      this.hintTimer = setTimeout(() => this.resetHint = null, this.HINT_AFTER_DRAG_MS);
+    }, 0);
+  }
+  private onResetDone(): void {
     this.saveState();
+    this.clearHintTimer();
+    this.resetHint = null;
+    this.resetHintSeen = true;
+    try { sessionStorage.setItem(this.HINT_SEEN_KEY, '1'); } catch { /* in-memory only */ }
   }
 
   // ── Shared ────────────────────────────────────────────────────────────────
@@ -913,6 +1101,7 @@ export class QnaColumnResizeComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.tracker.trackPageView('qna-column-resize');
     this.loadState();
+    try { this.resetHintSeen = sessionStorage.getItem(this.HINT_SEEN_KEY) === '1'; } catch { /* default: not seen */ }
     this.isMobileViewport = window.innerWidth < 768;
     window.addEventListener('resize', this.onWindowResize);
   }
@@ -921,6 +1110,7 @@ export class QnaColumnResizeComponent implements OnInit, OnDestroy {
     this.stopColResize();
     this.stopPanelResize();
     this.stopThreadResize();
+    this.clearHintTimer();
     window.removeEventListener('resize', this.onWindowResize);
   }
 }
