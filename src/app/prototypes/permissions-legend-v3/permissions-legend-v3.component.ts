@@ -485,6 +485,7 @@ const GROUPS: Group[] = [
          Clicking it directly requests the toggle, same as v1/v2 — the full context menu
          (with the rest of the row actions) lives behind the "···" trigger instead. -->
     <ng-template #pubBadge let-item>
+      <span class="file-icon-slot">
       <span class="file-icon-wrap"
             [ngClass]="'file-icon-wrap--' + pubState(item)"
             role="button"
@@ -499,6 +500,7 @@ const GROUPS: Group[] = [
         <span class="pub-check-label">
           <span class="pub-check-label-in"><span class="pub-check-text">{{ stateLabel(item) }}</span></span>
         </span>
+      </span>
       </span>
     </ng-template>
 
@@ -843,12 +845,21 @@ const GROUPS: Group[] = [
       flex-shrink: 0;
     }
 
-    /* Publishing status chip — permission-icon-animation lab (push behaviour, 260ms
-       ease-out): a bordered chip that sits in the row's normal flow, so growing it on
-       hover pushes the index/name that follow it further right. The 0fr → 1fr grid on
+    /* Publishing status chip — permission-icon-animation lab (overlay behaviour, 260ms
+       ease-out): the slot keeps the collapsed 47px footprint, so the chip grows over
+       the index/name that follow it instead of pushing them. The 0fr → 1fr grid on
        .pub-check-label animates to the label's own natural width (nothing hard-coded),
        which matters here since "Unpublished documents inside" is much longer than
-       "Published" / "Unpublished". */
+       "Published" / "Unpublished". The slot is a plain width box rather than an
+       absolutely positioned chip: an abspos shrink-to-fit box resolves 1fr to 0. */
+    .file-icon-slot {
+      display: inline-flex;
+      align-items: center;
+      position: relative;
+      width: 47px;
+      flex-shrink: 0;
+    }
+    .file-icon-slot .file-icon-wrap { flex: 0 0 auto; }
     .file-icon-wrap {
       display: inline-flex;
       align-items: center;
