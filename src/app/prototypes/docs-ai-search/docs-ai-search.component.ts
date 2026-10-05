@@ -66,12 +66,10 @@ type AiState = 'loading' | 'clarify' | 'answer';
           <div class="docs" *ngIf="view === 'docs'">
             <div class="toolbar">
               <div class="toolbar__group">
-                <!-- With a file preview open the actions fold into the ⋯ menu -->
-                <ng-container *ngIf="!narrow">
-                  <fvdr-btn *ngIf="mode === 'folder'" label="New" variant="primary" iconName="plus" ariaLabel="New"></fvdr-btn>
-                  <fvdr-btn label="Download" variant="secondary" iconName="download" ariaLabel="Download"></fvdr-btn>
-                  <fvdr-btn label="Project index" variant="secondary" iconName="action-list" ariaLabel="Project index"></fvdr-btn>
-                </ng-container>
+                <!-- With a file preview open only Download stays; the rest folds into the ⋯ menu -->
+                <fvdr-btn *ngIf="mode === 'folder' && !narrow" label="New" variant="primary" iconName="plus" ariaLabel="New"></fvdr-btn>
+                <fvdr-btn label="Download" variant="secondary" iconName="download" ariaLabel="Download"></fvdr-btn>
+                <fvdr-btn *ngIf="!narrow" label="Project index" variant="secondary" iconName="action-list" ariaLabel="Project index"></fvdr-btn>
                 <span class="more-wrap">
                   <fvdr-btn variant="secondary" iconName="more" [iconOnly]="true" ariaLabel="More actions"
                             (clicked)="$event.stopPropagation(); moreOpen = !moreOpen"></fvdr-btn>
@@ -528,7 +526,6 @@ export class DocsAiSearchComponent implements OnInit, OnDestroy {
     this.moreKey = key;
     const folded: DroplistItem[] = this.narrow ? [
       ...(this.mode === 'folder' ? [{ id: 'new', label: 'New', icon: 'plus' as FvdrIconName }] : []),
-      { id: 'download', label: 'Download', icon: 'download' as FvdrIconName },
       { id: 'index', label: 'Project index', icon: 'action-list' as FvdrIconName },
       { id: 'view-as', label: 'View as', icon: 'view-as' as FvdrIconName, dividerAfter: true },
     ] : [];
