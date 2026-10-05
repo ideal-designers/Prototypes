@@ -184,6 +184,9 @@ export type FvdrIconName =
   | 'ai-search'
   | 'sparkle'
   | 'stop'
+  | 'voice'
+  | 'enter'
+  | 'qna'
 ;
 
 export const FVDR_ICONS: Record<FvdrIconName, string> = {
@@ -297,7 +300,7 @@ export const FVDR_ICONS: Record<FvdrIconName, string> = {
   'comment': `<svg viewBox="0 0 16 16" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M1 1H15V12H4L1 15V1ZM3 3V11L4.5 9.5H13V3H3ZM5 6H11V8H5V6Z" fill="currentColor"/></svg>`,
   'bookmark': `<svg viewBox="0 0 16 16" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M3 1H13V15L8 12L3 15V1ZM5 3V12L8 10.5L11 12V3H5Z" fill="currentColor"/></svg>`,
   'pin': `<svg viewBox="0 0 16 16" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M10 1L15 6L11.5 9.5L9 8L5 12L4 11L8 7L6.5 4.5L10 1ZM8.6 5.1L10.9 7.4L12.5 5.8L10.2 3.5L8.6 5.1ZM7 13V15H9V13H7Z" fill="currentColor"/></svg>`,
-  'print': `<svg viewBox="0 0 16 16" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M4 1H12V4H14V11H12V14H4V11H2V4H4V1ZM5 3V4H11V3H5ZM4 6H3V9H4V6ZM5 6H11V12H5V6ZM12 6H13V9H12V6Z" fill="currentColor"/></svg>`,
+  'print': `<svg viewBox="0 0 16 16" fill="none"><path d="M13.6 5H12.8V1H3.2V5H2.4C1.072 5 0 6.072 0 7.4V12.2H3.2V15.4H12.8V12.2H16V7.4C16 6.072 14.928 5 13.6 5ZM4.8 2.6H11.2V5H4.8V2.6ZM11.2 13.8H4.8V10.6H11.2V13.8ZM12.8 10.6V9H3.2V10.6H1.6V7.4C1.6 6.96 1.96 6.6 2.4 6.6H13.6C14.04 6.6 14.4 6.96 14.4 7.4V10.6H12.8Z" fill="currentColor"/><path d="M12.8 8.6C13.2418 8.6 13.6 8.24183 13.6 7.8C13.6 7.35817 13.2418 7 12.8 7C12.3582 7 12 7.35817 12 7.8C12 8.24183 12.3582 8.6 12.8 8.6Z" fill="currentColor"/></svg>`,
   'image': `<svg viewBox="0 0 16 16" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M1 1H15V15H1V1ZM3 3V13H13V3H3ZM10.5 4C11.3284 4 12 4.67157 12 5.5C12 6.32843 11.3284 7 10.5 7C9.67157 7 9 6.32843 9 5.5C9 4.67157 9.67157 4 10.5 4ZM3 11L6 8L8.5 10.5L10 9L13 12V13H3V11Z" fill="currentColor"/></svg>`,
   'phone': `<svg viewBox="0 0 16 16" fill="none"><path d="M3 1H6L8 5L6 7C6.667 8.333 7.667 9.333 9 10L11 8L15 10V13C15 14 14 15 12 15C5.373 15 1 10.627 1 4C1 2 2 1 3 1ZM4 3C3.5 3 3 3.5 3 4C3 9.523 6.477 13 12 13C12.5 13 13 12.5 13 12L11.5 10.5L9.5 11.5C7.5 10.5 5.5 8.5 4.5 6.5L5.5 4.5L4 3Z" fill="currentColor"/></svg>`,
   'add-folder': `<svg viewBox="0 0 16 16" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M1 2H7L8.5 4H15V13H1V2ZM3 4V11H13V6H7.5L6 4H3ZM8 7H9V9H11V10H9V12H8V10H6V9H8V7Z" fill="currentColor"/></svg>`,
@@ -356,6 +359,10 @@ export const FVDR_ICONS: Record<FvdrIconName, string> = {
 
   // ── AI assistant (16x16) ───────────────────────────────────────────────────
   'mic': `<svg viewBox="0 0 16 16" fill="none"><path d="M8 1C6.895 1 6 1.895 6 3V8C6 9.105 6.895 10 8 10C9.105 10 10 9.105 10 8V3C10 1.895 9.105 1 8 1Z" fill="currentColor"/><path d="M3 7H4.4C4.4 8.988 6.012 10.6 8 10.6C9.988 10.6 11.6 8.988 11.6 7H13C13 9.474 11.204 11.529 8.7 11.93V14H7.3V11.93C4.796 11.529 3 9.474 3 7Z" fill="currentColor"/></svg>`,
+  // Designer hand-off 2026-10-05 — AI field (voice, enter) and viewer (Q&A notes)
+  'voice': `<svg viewBox="0 0 24 24" fill="none"><rect x="9.75" y="4.5" width="4.5" height="9" rx="2.25" stroke="currentColor" stroke-width="1.5"/><path d="M6.75 10.5V11.25C6.75 14.1495 9.10051 16.5 12 16.5C14.8995 16.5 17.25 14.1495 17.25 11.25V10.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 16.5V19.5M12 19.5H9.75M12 19.5H14.25" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  'enter': `<svg viewBox="0 0 16 16" fill="none"><path d="M9.0129 11.9131L9.9999 12.9001L14.8999 8.0001L9.9999 3.1001L9.0059 4.0871L12.2189 7.3001H2C1.44772 7.3001 1 7.74781 1 8.3001L1 12.0002H2.5V8.7001H12.2189L9.0129 11.9131Z" fill="currentColor"/></svg>`,
+  'qna': `<svg viewBox="0 0 16 16" fill="none"><path d="M13.8799 3.7998C14.4959 3.7998 15 4.30396 15 4.91992V15L12.2002 12.9004H4.84961C4.23382 12.9002 3.7998 12.4127 3.7998 11.7969V11.5H12.5498L13.5996 12.3018V3.7998H13.8799ZM11.0801 1C11.696 1.00004 12.2002 1.50414 12.2002 2.12012V8.99707C12.2002 9.61294 11.7662 10.0994 11.1504 10.0996H3.7998L1 12.2002V2.12012C1 1.50412 1.50412 1 2.12012 1H11.0801ZM2.40039 9.50195L3.4502 8.7002H10.7998V2.40039H2.40039V9.50195Z" fill="currentColor"/></svg>`,
   'send': `<svg viewBox="0 0 16 16" fill="none"><path d="M1 14.2L15 8L1 1.8V6.7L9.6 8L1 9.3V14.2Z" fill="currentColor"/></svg>`,
   'thumbs-up': `<svg viewBox="0 0 16 16" fill="none"><path d="M1 6.5H4V15H1V6.5Z" fill="currentColor"/><path d="M5 6.5L8.3 1.3C8.5 1 8.9 0.9 9.2 1.1C10 1.6 10.4 2.6 10.2 3.5L9.7 6H13.3C14.3 6 15.1 6.9 14.9 7.9L14 12.9C13.8 13.9 13 14.6 12 14.6H5V6.5Z" fill="currentColor"/></svg>`,
   'thumbs-down': `<svg viewBox="0 0 16 16" fill="none"><path d="M1 1H4V9.5H1V1Z" fill="currentColor"/><path d="M5 9.5L8.3 14.7C8.5 15 8.9 15.1 9.2 14.9C10 14.4 10.4 13.4 10.2 12.5L9.7 10H13.3C14.3 10 15.1 9.1 14.9 8.1L14 3.1C13.8 2.1 13 1.4 12 1.4H5V9.5Z" fill="currentColor"/></svg>`,

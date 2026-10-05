@@ -17,9 +17,9 @@ import { FvdrIconComponent } from '../../shared/ds/icons/icon.component';
       <input #input class="fld__input" type="text" [placeholder]="placeholder" [attr.aria-label]="ariaLabel"
              [ngModel]="value" (ngModelChange)="value = $event; valueChange.emit($event)"
              (focus)="focused = true" (blur)="focused = false" (keydown.enter)="send()" />
-      <button type="button" class="ib" title="Voice input" aria-label="Voice input"><fvdr-icon name="mic"></fvdr-icon></button>
-      <button type="button" class="ib ib--send" [class.ib--ready]="value.trim()" [disabled]="!value.trim()"
-              title="Send" aria-label="Send" (click)="send()"><fvdr-icon name="send"></fvdr-icon></button>
+      <button type="button" class="ib" title="Voice input" aria-label="Voice input"><fvdr-icon name="voice" class="ib__voice"></fvdr-icon></button>
+      <button type="button" class="ib ib--send" [class.ib--ready]="value.trim()" [attr.aria-disabled]="!value.trim()"
+              [title]="sendHint" [attr.aria-label]="sendHint" (click)="send()"><fvdr-icon name="enter"></fvdr-icon></button>
     </div>
   `,
   styles: [`
@@ -37,7 +37,9 @@ import { FvdrIconComponent } from '../../shared/ds/icons/icon.component';
       border: none; background: transparent; border-radius: var(--radius-sm); cursor: pointer; color: var(--color-text-secondary);
       font-size: var(--font-size-base, 14px); }
     .ib:hover:not(:disabled) { background: var(--color-hover-bg); color: var(--color-text-primary); }
-    .ib--send:disabled { color: var(--color-text-disabled); cursor: default; }
+    .ib__voice { font-size: var(--font-size-xl, 20px); }
+    .ib--send:not(.ib--ready) { color: var(--color-text-disabled); cursor: default; }
+    .ib--send:not(.ib--ready):hover { background: transparent; color: var(--color-text-disabled); }
     .ib--ready { background: var(--color-primary-500); color: var(--color-stone-0); }
     .ib--ready:hover:not(:disabled) { background: var(--color-primary-600); color: var(--color-stone-0); }
   `],
@@ -46,6 +48,8 @@ export class VdrV12FieldComponent {
   @Input() value = '';
   @Input() placeholder = 'Ask about this documents or describe a task';
   @Input() ariaLabel = 'Ask the AI Assistant';
+  /** Tooltip on the enter button — tells where the question goes. */
+  @Input() sendHint = 'Send';
   @Output() valueChange = new EventEmitter<string>();
   @Output() submitted = new EventEmitter<string>();
   @ViewChild('input') private input?: ElementRef<HTMLInputElement>;

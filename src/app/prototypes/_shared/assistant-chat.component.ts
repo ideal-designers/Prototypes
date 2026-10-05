@@ -218,7 +218,7 @@ export interface VdrChatSourceGroup { title: string; items: VdrChatSourceItem[] 
                 <button type="button" class="ibtn ibtn--l" title="Add files" aria-label="Add files"><fvdr-icon name="plus"></fvdr-icon></button>
                 <button *ngIf="showTools" type="button" class="tools"><fvdr-icon name="settings-filter"></fvdr-icon>Tools</button>
                 <span class="bar__spacer"></span>
-                <button *ngIf="!draft.trim() && !busy" type="button" class="ibtn ibtn--l" title="Voice input" aria-label="Voice input"><fvdr-icon name="mic"></fvdr-icon></button>
+                <button *ngIf="!draft.trim() && !busy" type="button" class="ibtn ibtn--l" title="Voice input" aria-label="Voice input"><fvdr-icon name="voice" class="voice-ico"></fvdr-icon></button>
                 <button *ngIf="busy" type="button" class="ibtn ibtn--l ibtn--stop" title="Stop" aria-label="Stop generating" (click)="stop.emit()"><fvdr-icon name="stop"></fvdr-icon></button>
                 <button *ngIf="draft.trim() && !busy" type="button" class="send" title="Send" aria-label="Send" (click)="send(draft)"><fvdr-icon name="send"></fvdr-icon></button>
               </div>
@@ -426,6 +426,7 @@ export interface VdrChatSourceGroup { title: string; items: VdrChatSourceItem[] 
     .side__status { display: inline-flex; align-items: center; height: 20px; padding: 0 var(--space-2); border-radius: var(--radius-sm);
       background: var(--color-success-bg); color: var(--color-success-text); font-size: var(--text-caption1-size, 12px); }
 
+    .voice-ico { font-size: var(--font-size-xl, 20px); }
     .note { margin: 0; text-align: center; font-size: var(--text-caption1-size, 12px); line-height: 16px; color: var(--color-text-secondary); }
   `],
 })

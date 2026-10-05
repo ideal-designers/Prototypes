@@ -28,7 +28,7 @@ interface MockPage { n: number; heading?: string; paras: string[] }
         <span class="pv__spacer"></span>
         <span class="pv__tools">
           <ng-container *ngIf="!isReport">
-            <button type="button" class="pv__icon pv__icon--l" title="Notes" aria-label="Notes"><fvdr-icon name="comment"></fvdr-icon></button>
+            <button type="button" class="pv__icon pv__icon--l" title="Q&A" aria-label="Q&A"><fvdr-icon name="qna"></fvdr-icon></button>
             <button type="button" class="pv__icon pv__icon--l" title="Print" aria-label="Print"><fvdr-icon name="print"></fvdr-icon></button>
             <fvdr-btn label="Open" variant="secondary" size="m"></fvdr-btn>
           </ng-container>

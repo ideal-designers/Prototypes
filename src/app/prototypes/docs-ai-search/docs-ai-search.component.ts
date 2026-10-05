@@ -147,7 +147,7 @@ type AiState = 'loading' | 'clarify' | 'answer';
                           <button type="button" class="opt" (mouseenter)="v12Hint = o" (mouseleave)="v12Hint = ''"
                                   (focus)="v12Hint = o" (blur)="v12Hint = ''" (click)="resolveClarify(o)">
                             <span class="opt__n">{{ i + 1 }}</span><span class="opt__t">{{ o }}</span>
-                            <fvdr-icon name="send" class="opt__go"></fvdr-icon>
+                            <fvdr-icon name="enter" class="opt__go"></fvdr-icon>
                           </button>
                         </li>
                       </ol>
@@ -163,6 +163,7 @@ type AiState = 'loading' | 'clarify' | 'answer';
 
                     <fvdr-vdr-v12-field #v12FieldRef [(value)]="composerValue"
                       [placeholder]="aiState === 'clarify' ? (v12Hint || 'Or reply directly...') : 'Ask about this documents or describe a task'"
+                      [sendHint]="aiState === 'clarify' ? 'Send your answer' : 'Ask in AI Assistant — opens the full assistant'"
                       (submitted)="onV12Submit($event)"></fvdr-vdr-v12-field>
                   </div>
                 </fvdr-ai-overview>
@@ -387,9 +388,6 @@ type AiState = 'loading' | 'clarify' | 'answer';
     .opts { margin: 0; padding: var(--space-1) var(--space-2); list-style: none; display: flex; flex-direction: column;
       border: 1px solid transparent; border-radius: var(--radius-sm);
       background: linear-gradient(var(--color-stone-0), var(--color-stone-0)) padding-box, var(--ai-edge) border-box; }
-    .opts li + li { border-top: 1px solid var(--color-divider); }
-    /* Figma 720:131784 — the hovered option's grey row swallows the rules on both sides */
-    .opts li + li:hover, .opts li:hover + li, .opts li + li:focus-within, .opts li:focus-within + li { border-top-color: transparent; }
     .opt { display: flex; align-items: center; gap: var(--space-3); width: 100%; min-height: 44px; padding: 0 var(--space-2);
       border: none; background: transparent; border-radius: var(--radius-sm); cursor: pointer; text-align: left;
       font-family: var(--font-family); font-size: var(--font-size-base, 14px); color: var(--color-text-primary); }
