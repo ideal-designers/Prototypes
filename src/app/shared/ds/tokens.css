@@ -762,3 +762,6 @@
   --ai-cite-active-bg:   #C98500;
   --ai-cite-highlight:   #6B5320;
 }
+
+/* ── Document viewer chrome (Figma 720:132217 / 720:132257) ──────────────────── */
+:root { --shadow-viewer: 0 0 4px rgba(52, 58, 64, 0.08); }

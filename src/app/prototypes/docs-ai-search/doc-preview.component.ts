@@ -16,19 +16,24 @@ interface MockPage { n: number; heading?: string; paras: string[] }
   template: `
     <aside class="pv" aria-label="File preview">
       <header class="pv__head">
-        <button type="button" class="pv__icon" title="Close preview" aria-label="Close preview" (click)="closed.emit()">
+        <!-- Figma 720:132216 — close · file · version chip … notes · print · Open -->
+        <button type="button" class="pv__icon pv__close" title="Close preview" aria-label="Close preview" (click)="closed.emit()">
           <fvdr-icon name="close"></fvdr-icon>
         </button>
-        <fvdr-file-icon [type]="doc.type"></fvdr-file-icon>
-        <span class="pv__name" [title]="doc.name">{{ doc.index }}&nbsp; {{ doc.name }}</span>
+        <span class="pv__file">
+          <fvdr-file-icon [type]="doc.type"></fvdr-file-icon>
+          <span class="pv__name" [title]="doc.name">{{ doc.index }}&nbsp; {{ doc.name }}</span>
+        </span>
         <span class="pv__ver" *ngIf="version">{{ version }}</span>
         <span class="pv__spacer"></span>
-        <ng-container *ngIf="!isReport">
-          <button type="button" class="pv__icon" title="Notes" aria-label="Notes"><fvdr-icon name="comment"></fvdr-icon></button>
-          <button type="button" class="pv__icon" title="Print" aria-label="Print"><fvdr-icon name="print"></fvdr-icon></button>
-          <fvdr-btn label="Open" variant="secondary" size="m"></fvdr-btn>
-        </ng-container>
-        <fvdr-btn *ngIf="isReport" label="Download" variant="primary" size="m" iconName="download"></fvdr-btn>
+        <span class="pv__tools">
+          <ng-container *ngIf="!isReport">
+            <button type="button" class="pv__icon pv__icon--l" title="Notes" aria-label="Notes"><fvdr-icon name="comment"></fvdr-icon></button>
+            <button type="button" class="pv__icon pv__icon--l" title="Print" aria-label="Print"><fvdr-icon name="print"></fvdr-icon></button>
+            <fvdr-btn label="Open" variant="secondary" size="m"></fvdr-btn>
+          </ng-container>
+          <fvdr-btn *ngIf="isReport" label="Download" variant="primary" size="m" iconName="download"></fvdr-btn>
+        </span>
       </header>
 
       <!-- Figma 720:132036 — step through the passages the answer used -->
@@ -37,18 +42,22 @@ interface MockPage { n: number; heading?: string; paras: string[] }
         <ng-container *ngIf="resultList.length > 1">
           <button type="button" class="pv__icon pv__icon--s" title="Next result" aria-label="Next result" (click)="step(1)"><fvdr-icon name="chevron-down"></fvdr-icon></button>
           <button type="button" class="pv__icon pv__icon--s" title="Previous result" aria-label="Previous result" (click)="step(-1)"><fvdr-icon name="chevron-up"></fvdr-icon></button>
-          <span class="pv__res-pos" aria-live="polite">{{ resultIdx + 1 }} / {{ resultList.length }}</span>
+          <span class="sr-only" aria-live="polite">Result {{ resultIdx + 1 }} of {{ resultList.length }}</span>
         </ng-container>
       </div>
 
       <div class="pv__body">
-        <div class="pv__rail">
-          <span class="pv__page-no">{{ currentPage }}</span>
+        <!-- Figma 720:132257 — floating page / zoom panel over the bottom-left corner -->
+        <div class="pv__rail" role="toolbar" aria-label="Page and zoom">
+          <input class="pv__page-no" type="text" inputmode="numeric" aria-label="Page number"
+                 [value]="currentPage" (keydown.enter)="goTo($any($event.target).value)" (blur)="$any($event.target).value = currentPage" />
           <span class="pv__page-total">{{ totalPages }}</span>
           <span class="pv__sep"></span>
-          <button type="button" class="pv__icon" title="Zoom in" aria-label="Zoom in" (click)="zoom(10)"><fvdr-icon name="plus"></fvdr-icon></button>
-          <span class="pv__zoom">{{ scale }}%</span>
-          <button type="button" class="pv__icon" title="Zoom out" aria-label="Zoom out" (click)="zoom(-10)"><fvdr-icon name="minus"></fvdr-icon></button>
+          <button type="button" class="pv__icon pv__icon--rail" title="Zoom in" aria-label="Zoom in" (click)="zoom(10)"><fvdr-icon name="plus"></fvdr-icon></button>
+          <button type="button" class="pv__zoom" title="Reset zoom" (click)="scale = 75">{{ scale }}%</button>
+          <button type="button" class="pv__icon pv__icon--rail" title="Zoom out" aria-label="Zoom out" (click)="zoom(-10)"><fvdr-icon name="minus"></fvdr-icon></button>
+          <span class="pv__sep"></span>
+          <button type="button" class="pv__icon pv__icon--rail" title="Fit to width" aria-label="Fit to width" (click)="scale = 100"><fvdr-icon name="expand"></fvdr-icon></button>
         </div>
 
         <div class="pv__scroll" #scroller (scroll)="onScroll()">
@@ -88,42 +97,62 @@ interface MockPage { n: number; heading?: string; paras: string[] }
   `,
   styles: [`
     :host { display: flex; min-width: 0; height: 100%; font-family: var(--font-family); }
-    .pv { display: flex; flex-direction: column; width: 100%; height: 100%; background: var(--color-stone-0);
-      border-left: 1px solid var(--color-divider); }
-    .pv__head { display: flex; align-items: center; gap: var(--space-3); height: 64px; flex: 0 0 64px;
-      padding: 0 var(--space-4); box-sizing: border-box; border-bottom: 1px solid var(--color-divider); }
+    .pv { position: relative; display: flex; flex-direction: column; width: 100%; height: 100%;
+      background: var(--color-stone-200); border-left: 1px solid var(--color-divider); }
+
+    /* Header — 64px, 12/16/12/24 */
+    .pv__head { display: flex; align-items: center; gap: var(--space-4); height: 64px; flex: 0 0 64px;
+      padding: var(--space-3) var(--space-4) var(--space-3) var(--space-6); box-sizing: border-box;
+      background: var(--color-stone-0); border-bottom: 1px solid var(--color-divider); }
+    .pv__close { margin-left: calc(var(--space-2) * -1); }
+    .pv__file { display: inline-flex; align-items: center; gap: var(--space-2); min-width: 0; }
+    .pv__name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      font-size: var(--font-size-lg, 16px); line-height: 24px; font-weight: var(--font-weight-semi, 600); color: var(--color-text-primary); }
+    .pv__ver { flex: 0 0 auto; display: inline-flex; align-items: center; height: 28px; padding: 0 var(--space-3); margin-left: calc(var(--space-1) * -1);
+      border-radius: var(--radius-sm); background: var(--color-stone-300); font-size: var(--font-size-base, 14px); color: var(--color-text-primary); }
     .pv__spacer { flex: 1; }
-    .pv__name { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-      font-size: var(--font-size-md, 15px); font-weight: var(--font-weight-semi, 600); color: var(--color-text-primary); }
+    .pv__tools { display: inline-flex; align-items: center; gap: var(--space-6); }
     .pv__icon { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px;
       padding: 0; border: none; background: transparent; border-radius: var(--radius-sm); cursor: pointer;
-      color: var(--color-text-secondary); font-size: var(--font-size-base, 14px); }
+      color: var(--color-text-secondary); font-size: var(--font-size-lg, 16px); }
     .pv__icon:hover { background: var(--color-hover-bg); color: var(--color-text-primary); }
+    .pv__icon--l { width: 24px; height: 24px; font-size: var(--font-size-xl, 20px); }
+    .pv__icon--s { width: 20px; height: 20px; font-size: var(--font-size-lg, 16px); }
 
-    .pv__body { flex: 1; min-height: 0; display: flex; background: var(--color-stone-200); }
-    .pv__rail { flex: 0 0 48px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
-      gap: var(--space-2); padding: var(--space-4) 0; }
-    .pv__page-no { min-width: 28px; padding: var(--space-1) 0; text-align: center; background: var(--color-stone-0);
-      border: 1px solid var(--color-divider); border-radius: var(--radius-sm); font-size: var(--text-caption1-size, 12px); }
-    .pv__page-total, .pv__zoom { font-size: var(--text-caption1-size, 12px); color: var(--color-text-secondary); }
-    .pv__sep { width: 20px; height: 1px; background: var(--color-divider); }
+    /* "3 results used in answer" — 36px white strip with a soft shadow */
+    .pv__res { flex: 0 0 36px; display: flex; align-items: center; gap: var(--space-2); padding: var(--space-2) var(--space-6);
+      box-sizing: border-box; background: var(--color-stone-0); box-shadow: var(--shadow-viewer); position: relative; z-index: 1; }
+    .pv__res-label { margin-right: var(--space-2); font-size: var(--font-size-md, 15px); line-height: 24px; color: var(--color-text-primary); }
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 
-    .pv__scroll { flex: 1; min-width: 0; overflow: auto; padding: var(--space-4) var(--space-4) var(--space-4) 0; }
-    .pv__pages { display: flex; flex-direction: column; gap: var(--space-4); }
-    .pv__page { position: relative; padding: var(--space-10) var(--space-10) var(--space-8); background: var(--color-stone-0);
-      box-shadow: var(--shadow-card); min-height: 640px; box-sizing: border-box;
+    /* Pages on the grey canvas, A4 centred */
+    .pv__body { position: relative; flex: 1; min-height: 0; display: flex; }
+    .pv__scroll { flex: 1; min-width: 0; overflow: auto; padding: var(--space-4) var(--space-8) var(--space-8); }
+    .pv__pages { display: flex; flex-direction: column; align-items: center; gap: var(--space-4); }
+    .pv__page { position: relative; width: 568px; max-width: 100%; min-height: 804px; box-sizing: border-box;
+      padding: 57px 61px; background: var(--color-stone-0);
       font-size: var(--text-caption1-size, 12px); line-height: 18px; color: var(--color-text-primary); }
-    .pv__h { margin: 0 0 var(--space-3); font-size: var(--font-size-base, 14px); font-weight: var(--font-weight-bold, 700); text-transform: uppercase; }
+    .pv__h { margin: 0 0 var(--space-3); font-size: var(--font-size-base, 14px); line-height: 20px; font-weight: var(--font-weight-bold, 700); text-transform: uppercase; }
     .pv__para { margin: 0 0 var(--space-3); }
     .pv__para mark { background: var(--color-highlight-mark, #FFDA07); color: inherit; }
-    .pv__ver { flex: 0 0 auto; padding: 0 var(--space-2); height: 20px; line-height: 20px; border-radius: var(--radius-sm);
-      background: var(--color-stone-300); font-size: var(--text-caption1-size, 12px); }
-    .pv__res { flex: 0 0 auto; display: flex; align-items: center; gap: var(--space-1); height: 40px; padding: 0 var(--space-4);
-      box-sizing: border-box; background: var(--color-stone-0); border-bottom: 1px solid var(--color-divider); }
-    .pv__res-label { margin-right: var(--space-2); font-size: var(--font-size-base, 14px); color: var(--color-text-primary); }
-    .pv__res-pos { margin-left: var(--space-1); font-size: var(--text-caption1-size, 12px); color: var(--color-text-secondary); }
-    .pv__icon--s { width: 24px; height: 24px; }
     .pv__hl { background: var(--ai-cite-highlight) !important; color: inherit; box-shadow: 0 0 0 2px var(--ai-cite-highlight); }
+    .pv__folio { position: absolute; bottom: var(--space-4); left: 50%; transform: translateX(-50%); color: var(--color-text-secondary); }
+
+    /* Floating rail — 48px wide card, bottom-left */
+    .pv__rail { position: absolute; left: var(--space-4); bottom: var(--space-6); z-index: 2; width: 48px;
+      display: flex; flex-direction: column; align-items: center; gap: var(--space-2); padding: var(--space-2) 0;
+      box-sizing: border-box; background: var(--color-stone-0); border-radius: var(--radius-md);
+      box-shadow: var(--shadow-viewer), var(--shadow-card); }
+    .pv__page-no { width: 32px; height: 32px; padding: 0; box-sizing: border-box; text-align: center; background: var(--color-stone-0);
+      border: 1px solid var(--color-stone-500); border-radius: var(--radius-sm); outline: none;
+      font-family: var(--font-family); font-size: var(--font-size-base, 14px); color: var(--color-text-primary); }
+    .pv__page-no:focus { border-color: var(--color-primary-500); }
+    .pv__page-total { font-size: var(--text-caption1-size, 12px); line-height: 16px; color: var(--color-text-primary); }
+    .pv__sep { width: 16px; height: 1px; background: var(--color-divider); }
+    .pv__icon--rail { width: 32px; height: 32px; }
+    .pv__zoom { width: 48px; height: 32px; padding: 0; border: none; background: transparent; cursor: pointer;
+      font-family: var(--font-family); font-size: var(--font-size-base, 14px); color: var(--color-text-primary); }
+    .pv__zoom:hover { background: var(--color-hover-bg); }
     .rp__top { display: flex; justify-content: space-between; margin-bottom: var(--space-8); font-size: var(--font-size-3xs, 10px);
       letter-spacing: 0.06em; color: var(--color-text-secondary); }
     .rp__title { margin: 0; font-size: var(--font-size-xl, 20px); line-height: 28px; }
@@ -137,7 +166,6 @@ interface MockPage { n: number; heading?: string; paras: string[] }
     .rp__track { height: 6px; border-radius: var(--radius-full); background: var(--color-stone-200); overflow: hidden; }
     .rp__fill { display: block; height: 100%; background: var(--color-primary-500); }
     .rp__fill--warn { background: var(--color-warning-500); }
-    .pv__folio { position: absolute; bottom: var(--space-3); left: 50%; transform: translateX(-50%); color: var(--color-text-secondary); }
   `],
 })
 export class VdrDocPreviewComponent implements OnChanges {
@@ -192,6 +220,14 @@ export class VdrDocPreviewComponent implements OnChanges {
     this.resultIdx = hit >= 0 ? hit : 0;
     this.currentPage = this.resultList.length ? this.activePage : this.page ?? 1;
     setTimeout(() => this.jumpTo(this.currentPage));
+  }
+
+  goTo(v: string): void {
+    const n = Math.round(Number(v));
+    if (!n || n < 1) return;
+    const target = Math.min(n, this.pages.length || 1);
+    this.currentPage = target;
+    this.jumpTo(target);
   }
 
   zoom(delta: number): void {
