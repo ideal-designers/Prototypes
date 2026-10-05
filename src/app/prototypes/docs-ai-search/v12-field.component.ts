@@ -27,7 +27,7 @@ import { FvdrIconComponent } from '../../shared/ds/icons/icon.component';
     .fld { display: flex; align-items: center; gap: var(--space-2); height: 48px; padding: 0 var(--space-2);
       box-sizing: border-box; border: 1px solid transparent; border-radius: var(--radius-sm);
       background: linear-gradient(var(--color-stone-0), var(--color-stone-0)) padding-box, var(--ai-edge) border-box;
-      box-shadow: var(--shadow-card); transition: box-shadow 0.15s ease; }
+      box-shadow: var(--shadow-ai-field); transition: box-shadow 0.15s ease; }
     .fld--focus { background: linear-gradient(var(--color-stone-0), var(--color-stone-0)) padding-box,
       linear-gradient(90deg, var(--color-primary-500), var(--color-primary-500)) border-box; }
     .fld__input { flex: 1; min-width: 0; height: 100%; border: none; outline: none; background: transparent; padding: 0 var(--space-1);

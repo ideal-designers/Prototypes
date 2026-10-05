@@ -731,17 +731,27 @@
   --ai-orb-label: #F4F1EA;
 }
 
-/* ── AI field edge (docs-ai-search V1.2 small input, Figma 720:131529) ─────────
-   Green → indigo hairline around AI inputs and the clarifying-options box. */
+/* ── AI field edge + tray (docs-ai-search V1.2, Figma 720:131702) ───────────
+   Hairline on AI inputs: green → yellow → lilac → indigo. The tray behind them is
+   the same palette washed at ~40% over --color-stone-200. */
 :root {
-  --ai-edge-start: #A8E6BE;
-  --ai-edge-end:   #C9C7FF;
-  --ai-edge: linear-gradient(90deg, var(--ai-edge-start), var(--ai-edge-end));
+  --ai-edge-green:  #93F6A4;
+  --ai-edge-yellow: #F8EB81;
+  --ai-edge-lilac:  #D8D8F1;
+  --ai-edge-indigo: #C3C4E8;
+  --ai-edge: linear-gradient(90deg, var(--ai-edge-green) 0%, var(--ai-edge-yellow) 34%, var(--ai-edge-lilac) 71%, var(--ai-edge-indigo) 100%);
+  --ai-wash: radial-gradient(120% 140% at 0% 50%, rgba(147, 246, 164, 0.55) 0%, rgba(147, 246, 164, 0) 55%),
+             radial-gradient(80% 120% at 45% 0%, rgba(248, 235, 129, 0.45) 0%, rgba(248, 235, 129, 0) 60%),
+             radial-gradient(120% 140% at 100% 50%, rgba(195, 196, 232, 0.6) 0%, rgba(195, 196, 232, 0) 60%);
 }
 .dark-theme {
-  --ai-edge-start: #2F7A4C;
-  --ai-edge-end:   #4B4891;
-  --ai-edge: linear-gradient(90deg, var(--ai-edge-start), var(--ai-edge-end));
+  --ai-edge-green:  #2F7A4C;
+  --ai-edge-yellow: #7A6E2A;
+  --ai-edge-lilac:  #45466B;
+  --ai-edge-indigo: #4B4891;
+  --ai-edge: linear-gradient(90deg, var(--ai-edge-green) 0%, var(--ai-edge-yellow) 34%, var(--ai-edge-lilac) 71%, var(--ai-edge-indigo) 100%);
+  --ai-wash: radial-gradient(120% 140% at 0% 50%, rgba(47, 122, 76, 0.45) 0%, rgba(47, 122, 76, 0) 55%),
+             radial-gradient(120% 140% at 100% 50%, rgba(75, 72, 145, 0.45) 0%, rgba(75, 72, 145, 0) 60%);
 }
 
 /* ── AI orb thinking ring (fvdr-ai-orb, Figma 627:80204 angular gradient) ───── */
@@ -765,3 +775,4 @@
 
 /* ── Document viewer chrome (Figma 720:132217 / 720:132257) ──────────────────── */
 :root { --shadow-viewer: 0 0 4px rgba(52, 58, 64, 0.08); }
+:root { --shadow-ai-field: 0 0.5px 1.75px rgba(0, 0, 0, 0.08); }

@@ -137,21 +137,10 @@ type AiState = 'loading' | 'clarify' | 'answer';
                   continueLabel=""
                 >
                   <div class="v12">
-                    <ng-container *ngIf="aiState === 'clarify'">
-                      <div class="clarify">
-                        <p class="clarify__q clarify__q--v12">{{ v12Clarify.question }}</p>
-                        <p class="clarify__hint">{{ v12Clarify.hint }}</p>
-                      </div>
-                      <ol class="opts" aria-label="Choose one">
-                        <li *ngFor="let o of v12Clarify.options; let i = index">
-                          <button type="button" class="opt" (mouseenter)="v12Hint = o" (mouseleave)="v12Hint = ''"
-                                  (focus)="v12Hint = o" (blur)="v12Hint = ''" (click)="resolveClarify(o)">
-                            <span class="opt__n">{{ i + 1 }}</span><span class="opt__t">{{ o }}</span>
-                            <fvdr-icon name="enter" class="opt__go"></fvdr-icon>
-                          </button>
-                        </li>
-                      </ol>
-                    </ng-container>
+                    <div class="clarify" *ngIf="aiState === 'clarify'">
+                      <p class="clarify__q clarify__q--v12">{{ v12Clarify.question }}</p>
+                      <p class="clarify__hint">{{ v12Clarify.hint }}</p>
+                    </div>
 
                     <ng-container *ngIf="aiState === 'answer'">
                       <fvdr-vdr-v12-answer [answer]="v12Answer" [selectedDocId]="selectedId" [openDocId]="preview?.doc?.id || null"
@@ -161,10 +150,22 @@ type AiState = 'loading' | 'clarify' | 'answer';
                         (chosen)="onV12FollowUp($event)"></fvdr-ai-suggestions>
                     </ng-container>
 
-                    <fvdr-vdr-v12-field #v12FieldRef [(value)]="composerValue"
-                      [placeholder]="aiState === 'clarify' ? (v12Hint || 'Or reply directly...') : 'Ask about this documents or describe a task'"
-                      [sendHint]="aiState === 'clarify' ? 'Send your answer' : 'Ask in AI Assistant — opens the full assistant'"
-                      (submitted)="onV12Submit($event)"></fvdr-vdr-v12-field>
+                    <!-- Figma 720:131702 — one washed tray holds the options and the field -->
+                    <div class="tray">
+                      <ol class="opts" *ngIf="aiState === 'clarify'" aria-label="Choose one">
+                        <li *ngFor="let o of v12Clarify.options; let i = index">
+                          <button type="button" class="opt" (mouseenter)="v12Hint = o" (mouseleave)="v12Hint = ''"
+                                  (focus)="v12Hint = o" (blur)="v12Hint = ''" (click)="resolveClarify(o)">
+                            <span class="opt__n">{{ i + 1 }}</span><span class="opt__t">{{ o }}</span>
+                            <fvdr-icon name="enter" class="opt__go"></fvdr-icon>
+                          </button>
+                        </li>
+                      </ol>
+                      <fvdr-vdr-v12-field #v12FieldRef [(value)]="composerValue"
+                        [placeholder]="aiState === 'clarify' ? (v12Hint || 'Or reply directly...') : 'Ask about this documents or describe a task'"
+                        [sendHint]="aiState === 'clarify' ? 'Send your answer' : 'Ask in AI Assistant — opens the full assistant'"
+                        (submitted)="onV12Submit($event)"></fvdr-vdr-v12-field>
+                    </div>
                   </div>
                 </fvdr-ai-overview>
 
@@ -385,6 +386,8 @@ type AiState = 'loading' | 'clarify' | 'answer';
     /* V1.2 */
     .v12 { display: flex; flex-direction: column; gap: var(--space-3); }
     .clarify__q--v12 { font-weight: var(--font-weight-semi, 600); }
+    .tray { display: flex; flex-direction: column; gap: var(--space-1); padding: var(--space-1); border-radius: var(--radius-md);
+      background: var(--ai-wash), var(--color-stone-200); }
     .opts { margin: 0; padding: var(--space-1); /* same inset on every side so the hover row sits evenly */ list-style: none; display: flex; flex-direction: column;
       border: 1px solid transparent; border-radius: var(--radius-sm);
       background: linear-gradient(var(--color-stone-0), var(--color-stone-0)) padding-box, var(--ai-edge) border-box; }
