@@ -6,6 +6,7 @@ import { FormsModule } from '@angular/forms';
 import { DS_COMPONENTS } from '../../shared/ds';
 import type { AiRating, AiStep } from '../../shared/ds';
 import type { FvdrIconName } from '../../shared/ds/icons/icons';
+import type { FvdrFileType } from '../../shared/ds/components/file-icon/file-icon.component';
 
 /** One turn of the full assistant. The assistant body is rendered by the host's template. */
 export interface VdrChatTurn {
@@ -25,6 +26,11 @@ export interface VdrChatTurn {
 
 export interface VdrChatThread { id: string; title: string; pinned?: boolean }
 export interface VdrChatCategory { id: string; label: string; icon: FvdrIconName; examples: string[] }
+/** Project brief card on the empty state (Chat V2, Figma 622:10383). */
+export interface VdrChatBriefCard { id: string; icon: FvdrIconName | string; title: string; value: string; hint: string; prompt: string }
+/** A row in the right-hand Sources panel (Figma 649:85625) or its detail view (649:82928). */
+export interface VdrChatSourceItem { id: string; index: string; name: string; type: FvdrFileType; fields?: { label: string; value: string }[] }
+export interface VdrChatSourceGroup { title: string; items: VdrChatSourceItem[] }
 
 /**
  * Full-page AI Assistant, as designed in Figma AI-Assistant (Vhy3jLaJ9nasbzTtqbu3qB),
@@ -64,26 +70,53 @@ export interface VdrChatCategory { id: string; label: string; icon: FvdrIconName
 
       <div class="main">
         <!-- Actions top -->
-        <div class="bar" *ngIf="turns.length || historyOpen">
+        <div class="bar" *ngIf="turns.length || historyOpen || brief.length">
           <ng-container *ngIf="!historyOpen">
             <button type="button" class="ibtn" title="Show chat history" aria-label="Show chat history" (click)="historyOpen = true">
               <fvdr-icon name="sidebar-mode"></fvdr-icon>
             </button>
-            <button type="button" class="bar__new" (click)="newChat.emit()"><fvdr-icon name="new-session"></fvdr-icon>New chat</button>
+            <button type="button" class="bar__new" *ngIf="turns.length" (click)="newChat.emit()"><fvdr-icon name="new-session"></fvdr-icon>New chat</button>
           </ng-container>
           <span class="bar__spacer"></span>
           <button type="button" class="bar__back" *ngIf="backLabel" (click)="back.emit()">
             <fvdr-icon name="chevron-left"></fvdr-icon>{{ backLabel }}
           </button>
           <span class="bar__spacer" *ngIf="backLabel"></span>
-          <button type="button" class="ibtn" title="Sources" aria-label="Sources"><fvdr-icon name="note"></fvdr-icon></button>
-          <button type="button" class="ibtn" title="Export" aria-label="Export"><fvdr-icon name="share"></fvdr-icon></button>
+          <ng-container *ngIf="turns.length">
+            <button type="button" class="ibtn" [class.ibtn--panel]="!!panel" title="Sources" aria-label="Sources"
+                    [attr.aria-pressed]="!!panel" (click)="panel ? closePanel() : openSources()"><fvdr-icon name="panel-right"></fvdr-icon></button>
+            <button type="button" class="ibtn" title="Export" aria-label="Export"><fvdr-icon name="share"></fvdr-icon></button>
+          </ng-container>
         </div>
 
         <div class="content">
           <div class="scroll" #scroll>
             <!-- ── Empty state ── -->
-            <div class="empty" *ngIf="!turns.length">
+            <!-- ── Empty state · project brief (Chat V2) ── -->
+            <div class="empty empty--brief" *ngIf="!turns.length && brief.length">
+              <fvdr-thinking-orbs label="AI Assistant" [size]="80" [showPill]="false" [showLabel]="false"></fvdr-thinking-orbs>
+              <div class="empty__txt empty__txt--wide">
+                <h2 class="empty__title">{{ greeting }}</h2>
+                <p class="empty__sub">{{ subtitle }}</p>
+              </div>
+              <section class="brief" aria-label="Project brief">
+                <div class="brief__head">
+                  <span class="brief__checked">Checked just now</span>
+                  <button type="button" class="brief__custom">Customise brief</button>
+                </div>
+                <div class="brief__cards">
+                  <button type="button" class="bcard" *ngFor="let b of brief; trackBy: byId"
+                          (mouseenter)="preview = b.prompt" (mouseleave)="preview = ''" (focus)="preview = b.prompt" (blur)="preview = ''"
+                          (click)="pick(b.prompt)">
+                    <span class="bcard__title"><fvdr-icon [name]="$any(b.icon)"></fvdr-icon>{{ b.title }}</span>
+                    <span class="bcard__value">{{ b.value }}</span>
+                    <span class="bcard__hint">{{ b.hint }}</span>
+                  </button>
+                </div>
+              </section>
+            </div>
+
+            <div class="empty" *ngIf="!turns.length && !brief.length">
               <fvdr-thinking-orbs label="AI Assistant" [size]="80" [showPill]="false" [showLabel]="false"></fvdr-thinking-orbs>
               <div class="empty__txt">
                 <h2 class="empty__title">{{ greeting }}</h2>
@@ -136,7 +169,7 @@ export interface VdrChatCategory { id: string; label: string; icon: FvdrIconName
                   <!-- Finished -->
                   <ng-container *ngIf="!t.streaming">
                     <button type="button" class="done" *ngIf="t.steps?.length" [attr.aria-expanded]="!!t.stepsOpen" (click)="t.stepsOpen = !t.stepsOpen">
-                      Completed {{ t.steps!.length }} steps{{ t.took ? ' for ' + t.took : '' }}
+                      Completed {{ t.steps!.length }} steps{{ t.took ? ' in ' + t.took : '' }}
                       <fvdr-icon [name]="t.stepsOpen ? 'chevron-down' : 'chevron-right'"></fvdr-icon>
                     </button>
                     <ul class="steps steps--audit" *ngIf="t.stepsOpen">
@@ -167,8 +200,15 @@ export interface VdrChatCategory { id: string; label: string; icon: FvdrIconName
             </div>
           </div>
 
+          <!-- ── Starter / follow-up chips over the field ── -->
+          <div class="chips" *ngIf="chips.length && !busy" [class.chips--narrow]="!turns.length && brief.length">
+            <button type="button" class="chip" *ngFor="let c of chips"
+                    (mouseenter)="preview = c" (mouseleave)="preview = ''" (focus)="preview = c" (blur)="preview = ''"
+                    (click)="send(c)">{{ c }}</button>
+          </div>
+
           <!-- ── Composer ── -->
-          <div class="prompt">
+          <div class="prompt" [class.prompt--narrow]="!turns.length && brief.length">
             <button type="button" class="scope"><fvdr-icon name="documents"></fvdr-icon>{{ scopeLabel }}<fvdr-icon name="chevron-down" class="scope__caret"></fvdr-icon></button>
             <div class="field" [class.field--focus]="focused">
               <textarea #input class="field__input" rows="2" [placeholder]="preview || placeholder"
@@ -178,15 +218,49 @@ export interface VdrChatCategory { id: string; label: string; icon: FvdrIconName
                 <button type="button" class="ibtn ibtn--l" title="Add files" aria-label="Add files"><fvdr-icon name="plus"></fvdr-icon></button>
                 <button *ngIf="showTools" type="button" class="tools"><fvdr-icon name="settings-filter"></fvdr-icon>Tools</button>
                 <span class="bar__spacer"></span>
-                <button type="button" class="ibtn ibtn--l" title="Voice input" aria-label="Voice input"><fvdr-icon name="mic"></fvdr-icon></button>
+                <button *ngIf="!draft.trim() && !busy" type="button" class="ibtn ibtn--l" title="Voice input" aria-label="Voice input"><fvdr-icon name="mic"></fvdr-icon></button>
                 <button *ngIf="busy" type="button" class="ibtn ibtn--l ibtn--stop" title="Stop" aria-label="Stop generating" (click)="stop.emit()"><fvdr-icon name="stop"></fvdr-icon></button>
-                <button type="button" class="send" [disabled]="!canSend" title="Send" aria-label="Send" (click)="send(draft)"><fvdr-icon name="send"></fvdr-icon></button>
+                <button *ngIf="draft.trim() && !busy" type="button" class="send" title="Send" aria-label="Send" (click)="send(draft)"><fvdr-icon name="send"></fvdr-icon></button>
               </div>
             </div>
           </div>
           <p class="note">{{ footnote }}</p>
         </div>
       </div>
+
+      <!-- ── Right panel: Sources / item detail ── -->
+      <aside class="side" *ngIf="panel" [attr.aria-label]="panel === 'sources' ? 'Sources' : panel.name">
+        <ng-container *ngIf="panel === 'sources'; else detail">
+          <header class="side__head">
+            <h3 class="side__title">Sources</h3>
+            <button type="button" class="ibtn ibtn--m" title="Close" aria-label="Close sources" (click)="closePanel()"><fvdr-icon name="close"></fvdr-icon></button>
+          </header>
+          <section class="side__group" *ngFor="let g of sources">
+            <h4 class="side__h">{{ g.title }}</h4>
+            <button type="button" class="side__item" *ngFor="let it of g.items; trackBy: byId" (click)="sourceClicked.emit(it)">
+              <fvdr-file-icon [type]="it.type"></fvdr-file-icon><span class="side__idx">{{ it.index }}</span><span class="side__name">{{ it.name }}</span>
+            </button>
+          </section>
+        </ng-container>
+        <ng-template #detail>
+          <ng-container *ngIf="detailItem as d">
+            <header class="side__head">
+              <button type="button" class="ibtn ibtn--m" title="Back to sources" aria-label="Back to sources" (click)="openSources()"><fvdr-icon name="chevron-left"></fvdr-icon></button>
+              <fvdr-file-icon [type]="d.type"></fvdr-file-icon>
+              <h3 class="side__title side__title--item">{{ d.index }} {{ d.name }}</h3>
+              <button type="button" class="ibtn ibtn--m" title="Copy link" aria-label="Copy link"><fvdr-icon name="copy"></fvdr-icon></button>
+              <button type="button" class="ibtn ibtn--m" title="Open" aria-label="Open" (click)="sourceClicked.emit(d)"><fvdr-icon name="share"></fvdr-icon></button>
+              <button type="button" class="ibtn ibtn--m" title="Close" aria-label="Close panel" (click)="closePanel()"><fvdr-icon name="close"></fvdr-icon></button>
+            </header>
+            <dl class="side__fields">
+              <ng-container *ngFor="let f of d.fields">
+                <dt>{{ f.label }}</dt>
+                <dd><span [class.side__status]="f.label === 'Status'">{{ f.value }}</span></dd>
+              </ng-container>
+            </dl>
+          </ng-container>
+        </ng-template>
+      </aside>
     </div>
   `,
   styles: [`
@@ -280,18 +354,45 @@ export interface VdrChatCategory { id: string; label: string; icon: FvdrIconName
     .a__actions { display: flex; align-items: center; gap: var(--space-2); margin-top: var(--space-2); }
     .a__time { margin-left: var(--space-2); font-size: var(--text-caption1-size, 12px); color: var(--color-text-placeholder); }
 
-    /* Composer */
+    /* Brief empty state (Chat V2) */
+    .empty--brief { gap: var(--space-5); }
+    .empty__txt--wide { max-width: 640px; }
+    .empty--brief .empty__title { font-size: var(--font-size-xl, 20px); line-height: 28px; }
+    .brief { width: 100%; max-width: 960px; display: flex; flex-direction: column; gap: var(--space-2); text-align: left; }
+    .brief__head { display: flex; align-items: center; justify-content: space-between; }
+    .brief__checked { font-size: var(--text-caption1-size, 12px); color: var(--color-text-secondary); }
+    .brief__custom { padding: 0; border: none; background: transparent; cursor: pointer; font-family: var(--font-family);
+      font-size: var(--text-caption1-size, 12px); color: var(--color-primary-600); }
+    .brief__custom:hover { text-decoration: underline; }
+    .brief__cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-3); }
+    .bcard { display: flex; flex-direction: column; gap: var(--space-1); padding: var(--space-3) var(--space-4); border: 1px solid var(--color-divider);
+      border-radius: var(--radius-sm); background: var(--color-stone-0); cursor: pointer; text-align: left; font-family: var(--font-family);
+      color: var(--color-text-primary); transition: border-color 0.12s ease, box-shadow 0.12s ease; }
+    .bcard:hover, .bcard:focus-visible { border-color: var(--color-primary-500); box-shadow: var(--shadow-card); outline: none; }
+    .bcard__title { display: inline-flex; align-items: center; gap: var(--space-2); font-size: var(--text-caption1-size, 12px); line-height: 16px; }
+    .bcard__title fvdr-icon { color: var(--color-text-secondary); }
+    .bcard__value { margin-top: var(--space-1); font-size: var(--font-size-base, 14px); line-height: 20px; font-weight: var(--font-weight-semi, 600); }
+    .bcard__hint { font-size: var(--text-caption1-size, 12px); line-height: 16px; color: var(--color-text-secondary); }
+
+    .chips { display: flex; flex-wrap: wrap; gap: var(--space-2); margin: 0 var(--space-2); }
+    .chips--narrow, .prompt--narrow { width: 100%; max-width: 960px; align-self: center; margin: 0; box-sizing: border-box; }
+    .chip { height: 28px; padding: 0 var(--space-3); border: none; border-radius: var(--radius-full); background: var(--chip-bg-indigo);
+      cursor: pointer; font-family: var(--font-family); font-size: var(--font-size-base, 14px); color: var(--color-text-primary); }
+    .chip:hover, .chip:focus-visible { background: var(--color-hover-bg); outline: none; }
+
+    /* Composer — green → indigo wash with the scope chip, white field on the AI edge */
     .prompt { flex: 0 0 auto; display: flex; flex-direction: column; gap: var(--space-1); padding: var(--space-1); margin: 0 var(--space-2);
-      background: var(--color-stone-200); border-radius: var(--radius-md); }
+      background: linear-gradient(90deg, var(--chip-bg-green) 0%, var(--chip-bg-indigo) 100%); border-radius: var(--radius-md); }
     .scope { align-self: flex-start; display: inline-flex; align-items: center; gap: var(--space-2); height: 40px; padding: 0 var(--space-3);
       border: none; background: transparent; border-radius: var(--radius-sm); cursor: pointer; font-family: var(--font-family);
       font-size: var(--font-size-md, 15px); color: var(--color-text-primary); }
     .scope:hover { background: var(--color-hover-bg); }
     .scope__caret { color: var(--color-text-secondary); font-size: var(--text-caption1-size, 12px); }
     .field { display: flex; flex-direction: column; gap: var(--space-4); padding: var(--space-3) var(--space-2) var(--space-3) var(--space-4);
-      background: var(--color-stone-0); border: 1px solid var(--color-stone-300); border-radius: var(--radius-sm); box-shadow: var(--shadow-card);
-      transition: border-color 0.15s ease; }
-    .field--focus { border-color: var(--color-primary-500); }
+      border: 1px solid transparent; border-radius: var(--radius-sm); box-shadow: var(--shadow-card);
+      background: linear-gradient(var(--color-stone-0), var(--color-stone-0)) padding-box, var(--ai-edge) border-box; }
+    .field--focus { background: linear-gradient(var(--color-stone-0), var(--color-stone-0)) padding-box,
+      linear-gradient(var(--color-primary-500), var(--color-primary-500)) border-box; }
     .field__input { min-height: 48px; max-height: 160px; padding: 0 var(--space-2); border: none; outline: none; resize: none; background: transparent;
       font-family: var(--font-family); font-size: var(--font-size-md, 15px); line-height: 24px; color: var(--color-text-primary); }
     .field__input::placeholder { color: var(--color-text-placeholder); }
@@ -301,6 +402,28 @@ export interface VdrChatCategory { id: string; label: string; icon: FvdrIconName
       font-size: var(--font-size-base, 14px); }
     .send:hover { background: var(--color-primary-600); }
     .send:disabled { background: var(--color-primary-200); cursor: not-allowed; }
+    .ibtn--m { width: 28px; height: 28px; font-size: var(--font-size-base, 14px); }
+    .ibtn--panel, .ibtn--panel:hover { background: var(--color-primary-50); color: var(--color-primary-600); }
+
+    /* Right panel */
+    .side { flex: 0 0 360px; display: flex; flex-direction: column; gap: var(--space-4); padding: var(--space-2) var(--space-4);
+      box-sizing: border-box; border-left: 1px solid var(--color-divider); overflow-y: auto; }
+    .side__head { display: flex; align-items: center; gap: var(--space-2); min-height: 40px; }
+    .side__title { flex: 1; margin: 0; font-size: var(--font-size-base, 14px); line-height: 20px; font-weight: var(--font-weight-semi, 600); }
+    .side__title--item { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .side__group { display: flex; flex-direction: column; gap: var(--space-1); }
+    .side__h { margin: 0 0 var(--space-1); font-size: var(--font-size-base, 14px); font-weight: var(--font-weight-semi, 600); }
+    .side__item { display: flex; align-items: center; gap: var(--space-3); min-height: 40px; padding: 0 var(--space-3); border: none;
+      border-radius: var(--radius-sm); background: var(--color-stone-100); cursor: pointer; text-align: left; font-family: var(--font-family);
+      font-size: var(--font-size-base, 14px); color: var(--color-text-primary); }
+    .side__item:hover { background: var(--color-hover-bg); }
+    .side__name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .side__fields { margin: 0; display: flex; flex-direction: column; }
+    .side__fields dt { font-size: var(--text-caption1-size, 12px); line-height: 16px; font-weight: var(--font-weight-semi, 600); }
+    .side__fields dd { margin: 0 0 var(--space-3); font-size: var(--font-size-base, 14px); line-height: 20px; color: var(--color-text-secondary); }
+    .side__status { display: inline-flex; align-items: center; height: 20px; padding: 0 var(--space-2); border-radius: var(--radius-sm);
+      background: var(--color-success-bg); color: var(--color-success-text); font-size: var(--text-caption1-size, 12px); }
+
     .note { margin: 0; text-align: center; font-size: var(--text-caption1-size, 12px); line-height: 16px; color: var(--color-text-secondary); }
   `],
 })
@@ -320,6 +443,14 @@ export class VdrAssistantChatComponent implements AfterViewChecked {
   @Input() showTools = false;
   @Input() placeholder = 'Write a message...';
   @Output() back = new EventEmitter<void>();
+  /** Chat V2 empty state — replaces the category chips when set. */
+  @Input() brief: readonly VdrChatBriefCard[] = [];
+  /** Starters on the empty state, follow-ups after an answer — sit right above the field. */
+  @Input() chips: string[] = [];
+  @Input() sources: VdrChatSourceGroup[] = [];
+  @Output() sourceClicked = new EventEmitter<VdrChatSourceItem>();
+  /** Fires when the right panel opens or closes, so the host can fold its nav. */
+  @Output() panelChange = new EventEmitter<boolean>();
 
   @Output() submitted = new EventEmitter<string>();
   @Output() stop = new EventEmitter<void>();
@@ -330,6 +461,25 @@ export class VdrAssistantChatComponent implements AfterViewChecked {
   @ViewChild('scroll') private scrollRef?: ElementRef<HTMLElement>;
 
   historyOpen = false;
+  panel: 'sources' | VdrChatSourceItem | null = null;
+  get detailItem(): VdrChatSourceItem | null { return this.panel && this.panel !== 'sources' ? this.panel : null; }
+
+  openSources(): void { this.setPanel('sources'); }
+  showSource(item: VdrChatSourceItem): void { this.setPanel(item); }
+  closePanel(): void { this.setPanel(null); }
+  private setPanel(p: 'sources' | VdrChatSourceItem | null): void {
+    const was = !!this.panel;
+    this.panel = p;
+    if (was !== !!p) this.panelChange.emit(!!p);
+  }
+
+  /** A brief card puts its question in the field; the user sends it. */
+  pick(prompt: string): void {
+    this.draft = prompt;
+    this.preview = '';
+    queueMicrotask(() => this.inputRef?.nativeElement.focus());
+  }
+  @ViewChild('input') private inputRef?: ElementRef<HTMLTextAreaElement>;
   activeCategory = '';
   preview = '';
   draft = '';

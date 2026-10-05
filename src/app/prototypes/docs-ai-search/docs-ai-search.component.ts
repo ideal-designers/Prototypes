@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DS_COMPONENTS } from '../../shared/ds';
@@ -9,12 +9,14 @@ import type { FvdrIconName } from '../../shared/ds/icons/icons';
 import { TrackerService } from '../../services/tracker.service';
 import { VdrAnswerBodyComponent, DocHoverEvent } from './answer-body.component';
 import { VdrDocPreviewComponent } from './doc-preview.component';
-import { VdrAssistantChatComponent, VdrChatThread, VdrChatTurn } from '../_shared/assistant-chat.component';
-import { VdrProtoSwitcherComponent, ProtoGroup } from '../_shared/proto-switcher.component';
+import {
+  VdrAssistantChatComponent, VdrChatSourceGroup, VdrChatSourceItem, VdrChatThread, VdrChatTurn,
+} from '../_shared/assistant-chat.component';
+import type { ProtoGroup } from '../_shared/proto-switcher.component';
 import { VdrV12AnswerComponent, V12DocOpen } from './v12-answer.component';
 import { VdrV12FieldComponent } from './v12-field.component';
 import {
-  REPORT_DOC, V12Answer, V12Source, V12_CLARIFY, V12_CONSENT, V12_PROMPTS, V12_REPORT, v12ChatReply, v12For,
+  CHAT_BRIEF, CHAT_STARTERS, REPORT_DOC, V12Answer, V12Source, V12_CLARIFY, V12_CONSENT, V12_PROMPTS, V12_REPORT, v12ChatReply, v12For,
 } from './v12.data';
 import {
   AI_PROMPTS, ANSWER_CONSENT, ANSWER_KEYWORD, CLARIFY, FOLDER_ROWS, KEYWORD_ROWS, MockAnswer, MockDoc,
@@ -38,7 +40,7 @@ type AiState = 'loading' | 'clarify' | 'answer';
   selector: 'fvdr-docs-ai-search',
   standalone: true,
   imports: [CommonModule, FormsModule, ...DS_COMPONENTS, VdrAnswerBodyComponent, VdrDocPreviewComponent, VdrAssistantChatComponent,
-    VdrProtoSwitcherComponent, VdrV12AnswerComponent, VdrV12FieldComponent],
+    VdrV12AnswerComponent, VdrV12FieldComponent],
   template: `
     <div class="page">
       <fvdr-sidebar-nav
@@ -46,7 +48,7 @@ type AiState = 'loading' | 'clarify' | 'answer';
         accountName="Nike"
         accountMark="N"
         [items]="navItems"
-        [collapsed]="sidebarCollapsed || !!preview"
+        [collapsed]="sidebarCollapsed || !!preview || chatPanelOpen"
         (collapsedChange)="sidebarCollapsed = $event"
         (itemClick)="onNav($event)"
       ></fvdr-sidebar-nav>
@@ -258,6 +260,13 @@ type AiState = 'loading' | 'clarify' | 'answer';
               [showTools]="solution === 'v12'"
               [placeholder]="solution === 'v12' ? 'Ask about this project or describe a task' : 'Write a message...'"
               (back)="backToResults()"
+              [brief]="solution === 'v12' ? brief : []"
+              [chips]="chatChips"
+              [sources]="chatSourceGroups"
+              [greeting]="solution === 'v12' ? 'Good morning, Parker. Let’s get the project ready' : 'Tap into Ideals AI Assistant'"
+              [subtitle]="solution === 'v12' ? 'Review the brief overview that requires your attention' : 'Get instant answers to your most complex work questions without having to dig through the project.'"
+              (sourceClicked)="onChatSource($event)"
+              (panelChange)="chatPanelOpen = $event"
               (submitted)="askInChat($event)"
               (stop)="stopChat()"
               (newChat)="newChat()"
@@ -266,8 +275,10 @@ type AiState = 'loading' | 'clarify' | 'answer';
 
             <ng-template #answerTpl let-m>
               <ng-container *ngIf="chatV12[m.id] as v; else v1Msg">
-                <fvdr-vdr-v12-answer [answer]="v" footer="sources" [selectedDocId]="selectedId"
-                  (docOpened)="openV12Doc($event, v)" (docHover)="onDocHover($event)" (reportOpened)="openReport()"></fvdr-vdr-v12-answer>
+                <fvdr-vdr-v12-answer [answer]="v" footer="sources" [selectedDocId]="selectedId" [sourcesPanel]="true"
+                  (docOpened)="chatRef.closePanel(); openV12Doc($event, v)" (docHover)="onDocHover($event)" (reportOpened)="openReport()"
+                  (sourcesRequested)="chatSourcesFor = v; chatRef.openSources()"
+                  (folderOpened)="chatSourcesFor = v; selectedId = $event.id; chatRef.showSource(sourceItem($event))"></fvdr-vdr-v12-answer>
                 <button type="button" class="chat__suggest" *ngIf="m.done && v.next && m.id === lastAssistantId"
                         (click)="chatRef.draft = v.next!">
                   <fvdr-thinking-orbs label="Suggested" [size]="16" [showPill]="false" [showLabel]="false"></fvdr-thinking-orbs>{{ v.next }}
@@ -315,8 +326,6 @@ type AiState = 'loading' | 'clarify' | 'answer';
       (mouseleave)="onDocHover(null)"
     ></fvdr-doc-info-card>
 
-    <!-- Prototype controls -->
-    <fvdr-vdr-proto-switcher [groups]="switcherGroups" (changed)="onOption($event)" (restart)="reset()"></fvdr-vdr-proto-switcher>
   `,
   styles: [`
     :host { display: block; height: 100vh; overflow: hidden; font-family: var(--font-family);
@@ -336,7 +345,7 @@ type AiState = 'loading' | 'clarify' | 'answer';
 
     .content { flex: 1; min-height: 0; display: flex; gap: var(--space-6); }
     .results { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--space-2); overflow-y: auto;
-      padding-bottom: 56px; /* room for the prototype switcher */ }
+      padding-bottom: var(--space-6); }
 
     /* Quick access */
     .qa { flex: 0 0 320px; display: flex; flex-direction: column; min-height: 0; }
@@ -410,7 +419,7 @@ type AiState = 'loading' | 'clarify' | 'answer';
     .icon-btn:hover { background: var(--color-hover-bg); color: var(--color-text-primary); }
 
     /* ── Chat ── */
-    .chat { flex: 1; min-height: 0; display: flex; flex-direction: column; padding-bottom: 40px; /* clears the prototype switcher */ }
+    .chat { flex: 1; min-height: 0; display: flex; flex-direction: column; }
     .chat__plain { margin: 0; }
     .chat__suggest { align-self: flex-start; display: inline-flex; align-items: center; gap: var(--space-2); margin-top: var(--space-3);
       padding: var(--space-1) var(--space-2); border: none; border-radius: var(--radius-sm); background: transparent; cursor: pointer;
@@ -502,6 +511,9 @@ export class DocsAiSearchComponent implements OnInit, OnDestroy {
   v12Answer: V12Answer = V12_CONSENT;
   v12Hint = '';
   chatV12: Record<string, V12Answer> = {};
+  readonly brief = CHAT_BRIEF;
+  chatPanelOpen = false;
+  chatSourcesFor: V12Answer | null = null;
   chatFromSearch = false;
   private aiTimer?: ReturnType<typeof setTimeout>;
 
@@ -646,6 +658,8 @@ export class DocsAiSearchComponent implements OnInit, OnDestroy {
     this.chatAnswers = {};
     this.chatV12 = {};
     this.chatFromSearch = false;
+    this.chatSourcesFor = null;
+    this.chatPanelOpen = false;
     this.chatStreaming = false;
     this.qaCollapsed = false;
     this.sidebarCollapsed = false;
@@ -717,9 +731,69 @@ export class DocsAiSearchComponent implements OnInit, OnDestroy {
     this.hover = null;
   }
 
+  // ── Chat V2 (Figma 622:9873) ──
+  /** Starters on the empty chat, then the newest answer's follow-ups. Cached so the chips stay put under the pointer. */
+  get chatChips(): string[] {
+    let next: string[] = [];
+    if (this.solution === 'v12') {
+      const last = this.chatMessages[this.chatMessages.length - 1];
+      if (!this.chatMessages.length) next = CHAT_STARTERS;
+      else if (last?.role === 'assistant' && last.done) next = this.chatV12[last.id]?.followUps ?? [];
+    }
+    const key = next.join('|');
+    if (key !== this.chipsKey) { this.chipsKey = key; this.chipsCache = next; }
+    return this.chipsCache;
+  }
+  private chipsKey = '';
+  private chipsCache: string[] = [];
+
+  get chatSourceGroups(): VdrChatSourceGroup[] {
+    const a = this.chatSourcesFor;
+    if (a === this.groupsFor) return this.groupsCache;
+    this.groupsFor = a;
+    const items = (a?.sources ?? []).map(s => this.sourceItem(s.doc));
+    const folders = items.filter(i => i.type.startsWith('folder'));
+    const files = items.filter(i => !i.type.startsWith('folder'));
+    return this.groupsCache = [
+      ...(folders.length ? [{ title: 'Folders', items: folders }] : []),
+      ...(files.length ? [{ title: 'Files', items: files }] : []),
+    ];
+  }
+  private groupsFor: V12Answer | null = null;
+  private groupsCache: VdrChatSourceGroup[] = [];
+
+  sourceItem(d: MockDoc): VdrChatSourceItem {
+    const folder = d.type.startsWith('folder');
+    return {
+      id: d.id, index: d.index, name: d.name.replace(/\.(pdf|xlsx?|docx?)$/i, ''), type: d.type,
+      fields: [
+        { label: 'Location', value: d.location ?? '—' },
+        ...(folder ? [{ label: 'Folder path', value: '/1 Team Structure' }] : []),
+        { label: 'Added on', value: d.addedOn ?? '—' },
+        { label: 'Size', value: d.size ?? '—' },
+        ...(!folder && d.pages ? [{ label: 'Pages', value: String(d.pages) }] : []),
+        { label: 'Status', value: 'Published' },
+        { label: 'ID', value: d.docId ?? '—' },
+      ],
+    };
+  }
+
+  /** Folders open their details in the panel; files open the preview. */
+  onChatSource(item: VdrChatSourceItem): void {
+    const src = this.chatSourcesFor?.sources.find(s => s.doc.id === item.id);
+    if (!src) return;
+    if (item.type.startsWith('folder')) { this.selectedId = item.id; this.chatRef?.showSource(item); return; }
+    this.chatRef?.closePanel();
+    this.openV12Doc({ doc: src.doc, page: src.page, source: src }, this.chatSourcesFor!);
+  }
+
+  @ViewChild('chatRef') private chatRef?: VdrAssistantChatComponent;
+
   /** "Back to search results" — the results page is kept as it was. */
   backToResults(): void {
     this.chatTimers.forEach(clearTimeout);
+    this.chatRef?.closePanel();
+    this.chatPanelOpen = false;
     this.chatStreaming = false;
     this.closePreview();
     this.view = 'docs';
@@ -867,9 +941,9 @@ export class DocsAiSearchComponent implements OnInit, OnDestroy {
   lastUserPrompt = '';
 
   private askV12(prompt: string): void {
-    if (!this.chatMessages.length) this.chatTitle = prompt.length > 40 ? prompt.slice(0, 40) + '…' : prompt;
-    const u = this.msgId(), a = this.msgId();
     const reply = v12ChatReply(prompt);
+    if (!this.chatMessages.length) this.chatTitle = reply.title ?? (prompt.length > 40 ? prompt.slice(0, 40) + '…' : prompt);
+    const u = this.msgId(), a = this.msgId();
     const msg: VdrChatTurn = { id: a, role: 'assistant', text: '', streaming: true, steps: [] };
     this.lastUserPrompt = prompt;
     this.chatMessages = [...this.chatMessages, { id: u, role: 'user', text: prompt, at: 'just now' }, msg];
@@ -914,6 +988,8 @@ export class DocsAiSearchComponent implements OnInit, OnDestroy {
     this.chatAnswers = {};
     this.chatV12 = {};
     this.chatFromSearch = false;
+    this.chatSourcesFor = null;
+    this.chatRef?.closePanel();
     this.chatStreaming = false;
     this.chatTitle = 'New chat';
     this.chatScopeDocs = 0;
@@ -936,13 +1012,14 @@ export class DocsAiSearchComponent implements OnInit, OnDestroy {
       if (this.view !== 'chat') { this.newChat(); this.view = 'chat'; this.closePreview(); }
       this.setNav('ai');
     } else if (item.id === 'documents') {
+      this.chatPanelOpen = false; // the chat (and its panel) is torn down without emitting
       this.view = 'docs';
       this.setNav('documents');
     }
   }
 
   onCrumb(id: string): void {
-    if (id === 'docs' || id === 'all') { this.view = 'docs'; this.backToFolder(); this.setNav('documents'); }
+    if (id === 'docs' || id === 'all') { this.chatPanelOpen = false; this.view = 'docs'; this.backToFolder(); this.setNav('documents'); }
     if (id === 'ai') this.newChat();
   }
 

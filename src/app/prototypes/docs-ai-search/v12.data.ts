@@ -24,7 +24,18 @@ export type V12Block =
   | { kind: 'files'; items: { doc: MockDoc; text: string; viewed: boolean; published: boolean }[] }
   | { kind: 'kpis'; items: { label: string; value: string; badge?: string; tone?: 'green' | 'yellow' | 'red' }[] }
   | { kind: 'coverage'; title: string; unit: string; items: { label: string; pct: number }[] }
-  | { kind: 'report'; name: string; meta: string };
+  | { kind: 'report'; name: string; meta: string }
+  | { kind: 'folders'; items: V12FolderGap[] };
+
+/** An empty folder in the chat answer — Figma 655:86495. `note` may end in a link to a cited file. */
+export interface V12FolderGap {
+  folder: MockDoc;
+  missing: string;
+  note: string;
+  link?: { doc: MockDoc; page?: number; label: string };
+  /** The folder is expected for this room type (✓) or only sometimes (×). */
+  expected: boolean;
+}
 
 export interface V12Answer {
   id: string;
@@ -39,6 +50,8 @@ export interface V12Answer {
   /** Steps shown while the full assistant works on it. */
   steps: string[];
   took: string;
+  /** Chat breadcrumb when this answer starts a thread. */
+  title?: string;
 }
 
 // ── Documents behind the answers ─────────────────────────────────────────────
@@ -202,9 +215,120 @@ export function v12For(q: string): { clarify: boolean; answer: V12Answer } {
   return { clarify: false, answer: V12_CONSENT };
 }
 
+// ── General AI chat · V2 (Figma 622:9873) ───────────────────────────────────
+
+const folder = (index: string, name: string, docId: string): MockDoc =>
+  ({ id: 'f' + index, index, name, type: 'folder-colored', location: 'Root folder', size: '0 Kb', addedOn: 'Apr 4, 2023', docId });
+const F_TAX = folder('7', 'Tax', '2445996');
+const F_INS = folder('8', 'Insurance', '2445997');
+const F_EHS = folder('9', 'Environmental, health and safety', '2445998');
+const F_IT = folder('10', 'IT and data protection', '2445999');
+const DDR: MockDoc = { id: 'ddr', index: '4.2', name: 'Due Diligence Report.xlsx', type: 'xls', location: '4 Commercial', pages: 24, size: '1.2 Mb', addedOn: 'Sep 12, 2026', docId: '2446081' };
+const APA_553: MockDoc = { ...DOC_APA, index: '5.5.3' };
+
+/** "Which 4 folders are empty…" — Figma 655:86495. */
+export const V12_EMPTY_FOLDERS: V12Answer = {
+  id: 'empty',
+  title: 'Empty folders vs the DD index',
+  lead: 'Four of the twelve folders have nothing in them. Three of the four are standard for a sell-side room at this stage, and two are already promised by documents that are in the room — so a buyer will ask for them by name.',
+  blocks: [{ kind: 'folders', items: [
+    { folder: F_TAX, expected: true, missing: 'Corporate tax returns for the last three years, VAT filings, the transfer pricing file, and correspondence on any open dispute',
+      note: 'Asked for in the first week of diligence. Nothing anywhere in the room covers tax.' },
+    { folder: F_INS, expected: false, missing: 'Policies in force, certificates of insurance, claims history for three years, and any run-off cover.',
+      note: 'Already promised: Annex 4 of ', link: { doc: APA_553, page: 31, label: '5.5.3 Asset Purchase Agreement, p. 31.' } },
+    { folder: F_EHS, expected: true, missing: 'Permits and licences, audit reports, the incident log, and any remediation obligations.',
+      note: 'Only if the target has sites or manufacturing. Confirm before requesting.' },
+    { folder: F_IT, expected: false, missing: 'System inventory, licence list, data-processing agreements, security policy, and the breach log.',
+      note: 'Listed as outstanding in ', link: { doc: DDR, page: 22, label: '4.2 Due Diligence Report, p. 22.' } },
+  ] }],
+  sources: [
+    { n: 1, doc: F_TAX, quote: '', where: 'Folder · 0 files' },
+    { n: 2, doc: F_INS, quote: '', where: 'Folder · 0 files' },
+    { n: 3, doc: F_EHS, quote: '', where: 'Folder · 0 files' },
+    { n: 4, doc: F_IT, quote: '', where: 'Folder · 0 files' },
+    { n: 5, doc: APA_553, quote: 'Annex 4 — Insurance: the Seller shall make available all policies in force and the claims history for the last three years.', where: 'Annex 4 · Page 31', page: 31 },
+    { n: 6, doc: DDR, quote: 'IT and data protection — outstanding: system inventory, DPAs, breach log.', where: 'Sheet Outstanding · Page 22', page: 22 },
+  ],
+  followUps: ['Draft the request list for the seller', 'What else is missing vs the index?'],
+  next: 'Draft the request list for the seller?',
+  rows: [],
+  steps: ['Selected folders', 'Compared them with a standard DD index', 'Checked the documents that mention them'],
+  took: '18s',
+};
+
+export const V12_REQUEST_LIST: V12Answer = {
+  id: 'request',
+  title: 'Request list for the seller',
+  lead: 'Here is a request list for the seller, ordered by what buyers ask for first. Insurance and IT are already promised in the room, so the request points at those documents [1] [2].',
+  blocks: [{ kind: 'table', title: 'Request list', head: ['Folder', 'What to request', 'Source'], rows: [
+    { term: '7 Tax', says: 'Tax returns FY2023–25, VAT filings, transfer pricing file, open dispute correspondence', cite: 0, loc: 'DD index' },
+    { term: '8 Insurance', says: 'Policies in force, certificates, 3-year claims history, run-off cover', cite: 1, loc: 'p. 31' },
+    { term: '10 IT and data protection', says: 'System inventory, licence list, DPAs, security policy, breach log', cite: 2, loc: 'p. 22' },
+    { term: '9 EHS', says: 'Permits, audit reports, incident log — only if the target has sites', cite: 0, loc: 'DD index' },
+  ] }],
+  sources: [
+    { n: 1, doc: APA_553, quote: 'Annex 4 — Insurance: the Seller shall make available all policies in force and the claims history for the last three years.', where: 'Annex 4 · Page 31', page: 31 },
+    { n: 2, doc: DDR, quote: 'IT and data protection — outstanding: system inventory, DPAs, breach log.', where: 'Sheet Outstanding · Page 22', page: 22 },
+  ],
+  followUps: ['What else is missing vs the index?', 'Who uploads to 7 Tax?'],
+  next: 'Send it to the seller as a Q&A question?',
+  rows: [],
+  steps: ['Read the four empty folders', 'Matched them with the DD index', 'Drafted the request list'],
+  took: '9s',
+};
+
+const V12_TEXT = (id: string, title: string, lead: string, items: string[], followUps: string[], next?: string): V12Answer => ({
+  id, title, lead, blocks: [{ kind: 'bullets', title: '', items }], sources: [], followUps, next, rows: [],
+  steps: ['Read the project settings', 'Checked the room against a standard sell-side setup'], took: '6s',
+});
+
+export const V12_READINESS = V12_TEXT('ready', 'Room readiness',
+  'The room is not ready for bidders yet. Three things block the launch:',
+  ['**Structure:** 4 of 12 folders are empty — Tax, Insurance, EHS and IT.', '**Participants:** no user groups yet, so bidders can’t be invited.', '**Permissions:** all files are open to everyone. Set up group permissions before inviting anyone.'],
+  ['Which 4 folders are empty, and what does a standard DD index put in them?', 'Suggest user groups for the bidders'], 'Fix the empty folders first?');
+
+export const V12_STRUCTURE = V12_TEXT('structure', 'Folder structure',
+  'For a sell-side room this size, a standard DD index uses 12 top-level folders. You already have them all; four are empty.',
+  ['1 Corporate · 2 Legal · 3 Financials · 4 Commercial', '5 HR · 6 IT · 7 Tax · 8 Insurance', '9 Environmental, health and safety · 10 IT and data protection · 11 Real estate · 12 Q&A'],
+  ['Which 4 folders are empty, and what does a standard DD index put in them?', 'Check room readiness']);
+
+export const V12_ABILITIES = V12_TEXT('abilities', 'What the assistant can do',
+  'I work only with files and settings you can already see in this project. I can:',
+  ['Find documents and summarise them, with sources you can open.', 'Check the room against a DD checklist and show what’s missing.', 'Draft Q&A answers, request lists and reports.'],
+  ['Check room readiness', 'Suggest a folder structure']);
+
+export const V12_GROUPS = V12_TEXT('groups', 'User groups for bidders',
+  'Create one group per bidder so permissions and Q&A stay separate. A typical sell-side setup:',
+  ['**Seller team** — full access, can upload.', '**Advisors** — view and download, Q&A experts.', '**Bidder A / B / C** — view only, watermark on, no download for 2 Legal.'],
+  ['Which files should be restricted before bidders join?', 'Check room readiness']);
+
+export const V12_RESTRICT = V12_TEXT('restrict', 'Files to restrict',
+  'All 1,248 files are open to everyone. Restrict these before inviting bidders:',
+  ['**5 HR** — employee contracts and salaries (personal data).', '**2.1 SPA.pdf** drafts — keep v3 and older seller-only.', '**4.3 CoC tracker** — supplier names are commercially sensitive.'],
+  ['Suggest user groups for the bidders', 'Check room readiness']);
+
+/** Project brief on the empty state — Figma 622:10383. Hover previews the question, click puts it in the field. */
+export const CHAT_BRIEF = [
+  { id: 'structure', icon: 'add-folder', title: 'Structure', value: '4 of 12 folders are empty', hint: 'Vs. a standard DD index',
+    prompt: 'Which 4 folders are empty, and what does a standard DD index put in them?' },
+  { id: 'participants', icon: 'users-groups', title: 'Participants', value: 'No user groups yet', hint: 'Invite bidders when ready',
+    prompt: 'Which user groups should I set up for the bidders?' },
+  { id: 'permissions', icon: 'nav-permissions', title: 'Permissions', value: 'All files open to everyone', hint: 'Setup permissions',
+    prompt: 'Which files should be restricted before bidders join?' },
+] as const;
+
+export const CHAT_STARTERS = ['Suggest a folder structure', 'Check room readiness', 'What can the assistant do?'];
+
 /** Follow-up asked in the full assistant → reply. */
 export function v12ChatReply(q: string): V12Answer {
   const s = q.toLowerCase();
+  if (/empty|missing vs the index|fix the empty/.test(s)) return /else is missing/.test(s) ? V12_READINESS : V12_EMPTY_FOLDERS;
+  if (/request list/.test(s)) return V12_REQUEST_LIST;
+  if (/readiness|ready/.test(s)) return V12_READINESS;
+  if (/folder structure/.test(s)) return V12_STRUCTURE;
+  if (/what can the assistant/.test(s)) return V12_ABILITIES;
+  if (/user groups|bidders\?$|groups for/.test(s)) return V12_GROUPS;
+  if (/restrict|permission/.test(s)) return V12_RESTRICT;
   if (/p&l|p & l|profit/.test(s)) return V12_PL;
   if (/spa/.test(s)) return V12_SPA;
   if (/checklist|gaps/.test(s)) return V12_DD;

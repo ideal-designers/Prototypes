@@ -41,7 +41,7 @@ export interface V12DocOpen { doc: MockDoc; page?: number; source?: V12Source }
 
         <!-- Bullets -->
         <section class="blk" *ngIf="b.kind === 'bullets'">
-          <h3 class="blk__h">{{ b.title }}</h3>
+          <h3 class="blk__h" *ngIf="b.title">{{ b.title }}</h3>
           <ul class="bul">
             <li *ngFor="let it of b.items"><ng-container *ngTemplateOutlet="rich; context: { $implicit: it }"></ng-container></li>
           </ul>
@@ -90,6 +90,33 @@ export interface V12DocOpen { doc: MockDoc; page?: number; source?: V12Source }
           </div>
         </section>
 
+        <!-- Empty folders (chat V2, Figma 655:86495) -->
+        <div class="files" *ngIf="b.kind === 'folders'">
+          <div class="fc fc--folder" *ngFor="let f of b.items" role="button" tabindex="0"
+               [class.fc--on]="selectedDocId === f.folder.id"
+               (click)="folderOpened.emit(f.folder)" (keydown.enter)="folderOpened.emit(f.folder)">
+            <div class="fc__top">
+              <span class="fc__ico">
+                <fvdr-file-icon type="folder-colored"></fvdr-file-icon>
+                <fvdr-icon [name]="f.expected ? 'check' : 'close'" class="fc__mark"
+                           [attr.title]="f.expected ? 'Standard for this room' : 'Not always needed'"></fvdr-icon>
+              </span>
+              <span class="fc__name" (mouseenter)="hoverDoc(f.folder, $event)" (mouseleave)="docHover.emit(null)">
+                <span class="fc__idx">{{ f.folder.index }}</span>{{ f.folder.name }}
+              </span>
+              <span class="fc__acts">
+                <button type="button" class="ib" title="Copy link" aria-label="Copy link" (click)="$event.stopPropagation()"><fvdr-icon name="copy"></fvdr-icon></button>
+                <button type="button" class="ib" title="Open folder" aria-label="Open folder" (click)="$event.stopPropagation(); folderOpened.emit(f.folder)"><fvdr-icon name="share"></fvdr-icon></button>
+                <button type="button" class="ib" title="More" aria-label="More" (click)="$event.stopPropagation()"><fvdr-icon name="more"></fvdr-icon></button>
+              </span>
+              <span class="tag tag--grey">Empty</span>
+            </div>
+            <p class="fc__txt fc__txt--plain"><span class="fc__lbl">What can missed:</span> {{ f.missing }}</p>
+            <p class="fc__note">{{ f.note }}<button *ngIf="f.link" type="button" class="lnk"
+                 (click)="$event.stopPropagation(); docOpened.emit({ doc: f.link.doc, page: f.link.page, source: linkSource(f.link.doc) })">{{ f.link.label }}</button></p>
+          </div>
+        </div>
+
         <!-- Generated report -->
         <div class="rep" *ngIf="b.kind === 'report'" role="button" tabindex="0"
              [class.fc--on]="selectedDocId === 'report'"
@@ -109,7 +136,8 @@ export interface V12DocOpen { doc: MockDoc; page?: number; source?: V12Source }
 
       <!-- Footer -->
       <div class="foot" *ngIf="footer !== 'none'">
-        <button type="button" class="srcs" [attr.aria-expanded]="sourcesOpen" (click)="sourcesOpen = !sourcesOpen">
+        <button type="button" class="srcs" [attr.aria-expanded]="sourcesPanel ? null : sourcesOpen"
+                (click)="sourcesPanel ? sourcesRequested.emit() : (sourcesOpen = !sourcesOpen)">
           <fvdr-icon name="link"></fvdr-icon>{{ answer.sources.length }} {{ answer.sources.length === 1 ? 'source' : 'sources' }}
         </button>
         <ng-container *ngIf="footer === 'full'">
@@ -141,7 +169,7 @@ export interface V12DocOpen { doc: MockDoc; page?: number; source?: V12Source }
     </ng-template>
 
     <ng-template #cite let-n let-key="key" let-page="page">
-      <button type="button" class="cite" [class.cite--on]="pop?.key === key"
+      <button *ngIf="n > 0" type="button" class="cite" [class.cite--on]="pop?.key === key"
               [attr.aria-label]="'Source ' + n"
               (mouseenter)="showPop(n, $event, key, page)" (mouseleave)="hidePop()" (focus)="showPop(n, $event, key, page)" (blur)="hidePop()"
               (click)="openSource(sourceOf(n), page)">{{ n }}</button>
@@ -202,6 +230,18 @@ export interface V12DocOpen { doc: MockDoc; page?: number; source?: V12Source }
     .fc:hover .fc__acts, .fc:focus-within .fc__acts, .rep:hover .fc__acts, .rep:focus-within .fc__acts { display: inline-flex; }
     .fc:hover .tag, .fc:focus-within .tag { display: none; }
     .fc__txt { margin: 0; padding-left: var(--space-8); color: var(--color-text-secondary); }
+    .fc--folder .fc__txt, .fc__note { padding-left: var(--space-1); }
+    .fc__txt--plain { color: var(--color-text-primary); font-size: var(--text-caption1-size, 12px); line-height: 18px; }
+    .fc__lbl { color: var(--color-text-secondary); }
+    .fc__note { margin: var(--space-1) 0 0; padding: 0 0 0 var(--space-2); border-left: 2px solid var(--color-divider);
+      font-size: var(--text-caption1-size, 12px); line-height: 18px; }
+    .fc--folder .fc__note { margin-left: var(--space-1); }
+    .fc__ico { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 2px; padding: 2px var(--space-1);
+      border-radius: var(--radius-sm); background: var(--color-primary-50); }
+    .fc__mark { font-size: var(--font-size-3xs, 10px); color: var(--color-text-secondary); }
+    .lnk { padding: 0; border: none; background: transparent; cursor: pointer; font-family: var(--font-family); font-size: inherit;
+      line-height: inherit; color: var(--color-primary-600); }
+    .lnk:hover { text-decoration: underline; }
 
     .ib { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; padding: 0; border: none;
       background: transparent; border-radius: var(--radius-sm); cursor: pointer; color: var(--color-text-secondary); font-size: var(--font-size-base, 14px); }
@@ -278,6 +318,10 @@ export class VdrV12AnswerComponent implements OnDestroy {
   @Output() docHover = new EventEmitter<DocHoverEvent | null>();
   @Output() reportOpened = new EventEmitter<void>();
   @Output() regenerated = new EventEmitter<void>();
+  /** Chat V2 — "N sources" opens the right-hand Sources panel instead of the inline list. */
+  @Input() sourcesPanel = false;
+  @Output() sourcesRequested = new EventEmitter<void>();
+  @Output() folderOpened = new EventEmitter<MockDoc>();
 
   rating: 'up' | 'down' | null = null;
   sourcesOpen = false;
@@ -336,6 +380,8 @@ export class VdrV12AnswerComponent implements OnDestroy {
   openDoc(doc: MockDoc, n: number): void {
     this.docOpened.emit({ doc, page: this.sourceOf(n)?.page, source: this.sourceOf(n) });
   }
+
+  linkSource(doc: MockDoc): V12Source | undefined { return this.answer.sources.find(s => s.doc.id === doc.id); }
 
   hoverDoc(doc: MockDoc, ev: MouseEvent): void {
     this.docHover.emit({ doc, rect: (ev.currentTarget as HTMLElement).getBoundingClientRect() });
