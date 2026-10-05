@@ -1,9 +1,9 @@
-import { Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DS_COMPONENTS } from '../../shared/ds';
 import type {
-  BreadcrumbItem, HeaderAction, QuickAccessItem, SegmentItem, SidebarNavItem, SmartSearchResult,
+  BreadcrumbItem, DroplistItem, HeaderAction, QuickAccessItem, SegmentItem, SidebarNavItem, SmartSearchResult,
 } from '../../shared/ds';
 import type { FvdrIconName } from '../../shared/ds/icons/icons';
 import { TrackerService } from '../../services/tracker.service';
@@ -66,13 +66,21 @@ type AiState = 'loading' | 'clarify' | 'answer';
           <div class="docs" *ngIf="view === 'docs'">
             <div class="toolbar">
               <div class="toolbar__group">
-                <fvdr-btn *ngIf="mode === 'folder'" label="New" variant="primary" iconName="plus" [iconOnly]="narrow" ariaLabel="New"></fvdr-btn>
-                <fvdr-btn label="Download" variant="secondary" iconName="download" [iconOnly]="narrow" ariaLabel="Download"></fvdr-btn>
-                <fvdr-btn label="Project index" variant="secondary" iconName="action-list" [iconOnly]="narrow" ariaLabel="Project index"></fvdr-btn>
-                <fvdr-btn variant="secondary" iconName="more" [iconOnly]="true" ariaLabel="More actions"></fvdr-btn>
+                <!-- With a file preview open the actions fold into the ⋯ menu -->
+                <ng-container *ngIf="!narrow">
+                  <fvdr-btn *ngIf="mode === 'folder'" label="New" variant="primary" iconName="plus" ariaLabel="New"></fvdr-btn>
+                  <fvdr-btn label="Download" variant="secondary" iconName="download" ariaLabel="Download"></fvdr-btn>
+                  <fvdr-btn label="Project index" variant="secondary" iconName="action-list" ariaLabel="Project index"></fvdr-btn>
+                </ng-container>
+                <span class="more-wrap">
+                  <fvdr-btn variant="secondary" iconName="more" [iconOnly]="true" ariaLabel="More actions"
+                            (clicked)="$event.stopPropagation(); moreOpen = !moreOpen"></fvdr-btn>
+                  <fvdr-droplist *ngIf="moreOpen" class="more-menu" [items]="moreItems" [minWidth]="220"
+                                 (click)="$event.stopPropagation()" (itemClick)="moreOpen = false"></fvdr-droplist>
+                </span>
               </div>
               <div class="toolbar__group toolbar__group--end">
-                <fvdr-btn label="View as" variant="secondary" iconName="view-as" [iconOnly]="narrow" ariaLabel="View as"></fvdr-btn>
+                <fvdr-btn *ngIf="!narrow" label="View as" variant="secondary" iconName="view-as" ariaLabel="View as"></fvdr-btn>
                 <fvdr-smart-search
                   class="toolbar__search"
                   [(ngModel)]="query"
@@ -141,7 +149,7 @@ type AiState = 'loading' | 'clarify' | 'answer';
                           <button type="button" class="opt" (mouseenter)="v12Hint = o" (mouseleave)="v12Hint = ''"
                                   (focus)="v12Hint = o" (blur)="v12Hint = ''" (click)="resolveClarify(o)">
                             <span class="opt__n">{{ i + 1 }}</span><span class="opt__t">{{ o }}</span>
-                            <fvdr-icon name="chevron-right" class="opt__go"></fvdr-icon>
+                            <fvdr-icon name="send" class="opt__go"></fvdr-icon>
                           </button>
                         </li>
                       </ol>
@@ -341,6 +349,8 @@ type AiState = 'loading' | 'clarify' | 'answer';
     .toolbar { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); flex: 0 0 auto; }
     .toolbar__group { display: flex; align-items: center; gap: var(--space-4); min-width: 0; }
     .toolbar__group--end { flex: 1; justify-content: flex-end; }
+    .more-wrap { position: relative; display: inline-flex; }
+    .more-menu { position: absolute; top: calc(100% + var(--space-1)); left: 0; z-index: 300; }
     .toolbar__search { flex: 0 1 380px; min-width: 240px; }
 
     .content { flex: 1; min-height: 0; display: flex; gap: var(--space-6); }
@@ -380,6 +390,8 @@ type AiState = 'loading' | 'clarify' | 'answer';
       border: 1px solid transparent; border-radius: var(--radius-sm);
       background: linear-gradient(var(--color-stone-0), var(--color-stone-0)) padding-box, var(--ai-edge) border-box; }
     .opts li + li { border-top: 1px solid var(--color-divider); }
+    /* Figma 720:131784 — the hovered option's grey row swallows the rules on both sides */
+    .opts li + li:hover, .opts li:hover + li, .opts li + li:focus-within, .opts li:focus-within + li { border-top-color: transparent; }
     .opt { display: flex; align-items: center; gap: var(--space-3); width: 100%; min-height: 44px; padding: 0 var(--space-2);
       border: none; background: transparent; border-radius: var(--radius-sm); cursor: pointer; text-align: left;
       font-family: var(--font-family); font-size: var(--font-size-base, 14px); color: var(--color-text-primary); }
@@ -507,6 +519,27 @@ export class DocsAiSearchComponent implements OnInit, OnDestroy {
   composerValue = '';
   // V1.2
   readonly v12Prompts = V12_PROMPTS;
+  moreOpen = false;
+  @HostListener('document:click') closeMore(): void { this.moreOpen = false; }
+  /** ⋯ menu — holds the toolbar actions while a preview narrows the page. */
+  get moreItems(): DroplistItem[] {
+    const key = `${this.narrow}|${this.mode}`;
+    if (key === this.moreKey) return this.moreCache;
+    this.moreKey = key;
+    const folded: DroplistItem[] = this.narrow ? [
+      ...(this.mode === 'folder' ? [{ id: 'new', label: 'New', icon: 'plus' as FvdrIconName }] : []),
+      { id: 'download', label: 'Download', icon: 'download' as FvdrIconName },
+      { id: 'index', label: 'Project index', icon: 'action-list' as FvdrIconName },
+      { id: 'view-as', label: 'View as', icon: 'view-as' as FvdrIconName, dividerAfter: true },
+    ] : [];
+    return this.moreCache = [
+      ...folded,
+      { id: 'export', label: 'Export index', icon: 'share' as FvdrIconName },
+      { id: 'history', label: 'Activity history', icon: 'history' as FvdrIconName },
+    ];
+  }
+  private moreKey = '';
+  private moreCache: DroplistItem[] = [];
   readonly v12Clarify = V12_CLARIFY;
   v12Answer: V12Answer = V12_CONSENT;
   v12Hint = '';
