@@ -730,3 +730,16 @@
   --ai-orb-pill:  #000000;
   --ai-orb-label: #F4F1EA;
 }
+
+/* ── AI field edge (docs-ai-search V1.2 small input, Figma 720:131529) ─────────
+   Green → indigo hairline around AI inputs and the clarifying-options box. */
+:root {
+  --ai-edge-start: #A8E6BE;
+  --ai-edge-end:   #C9C7FF;
+  --ai-edge: linear-gradient(90deg, var(--ai-edge-start), var(--ai-edge-end));
+}
+.dark-theme {
+  --ai-edge-start: #2F7A4C;
+  --ai-edge-end:   #4B4891;
+  --ai-edge: linear-gradient(90deg, var(--ai-edge-start), var(--ai-edge-end));
+}

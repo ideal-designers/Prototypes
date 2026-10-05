@@ -11,12 +11,17 @@ import { VdrAnswerBodyComponent, DocHoverEvent } from './answer-body.component';
 import { VdrDocPreviewComponent } from './doc-preview.component';
 import { VdrAssistantChatComponent, VdrChatThread, VdrChatTurn } from '../_shared/assistant-chat.component';
 import { VdrProtoSwitcherComponent, ProtoGroup } from '../_shared/proto-switcher.component';
+import { VdrV12AnswerComponent, V12DocOpen } from './v12-answer.component';
+import { VdrV12FieldComponent } from './v12-field.component';
+import {
+  REPORT_DOC, V12Answer, V12Source, V12_CLARIFY, V12_CONSENT, V12_PROMPTS, V12_REPORT, v12ChatReply, v12For,
+} from './v12.data';
 import {
   AI_PROMPTS, ANSWER_CONSENT, ANSWER_KEYWORD, CLARIFY, FOLDER_ROWS, KEYWORD_ROWS, MockAnswer, MockDoc,
   RECENTS_SEED, ResultRow, SEARCH_POOL, TREE_ROWS, answerFor, docsOf, isKeywordQuery, needsClarifying,
 } from './docs-ai-search.data';
 
-type Solution = 'v1' | 'v2';
+type Solution = 'v1' | 'v2' | 'v12';
 /** V1 sub-options — Figma rows 2112 / 3624 / 5136 of section 136:17314. */
 type V1Layout = 'rail' | 'full' | 'composer';
 /** V2 sub-options — Figma "List view" / "Table view" (454:50979, 454:50982). */
@@ -32,7 +37,8 @@ type AiState = 'loading' | 'clarify' | 'answer';
 @Component({
   selector: 'fvdr-docs-ai-search',
   standalone: true,
-  imports: [CommonModule, FormsModule, ...DS_COMPONENTS, VdrAnswerBodyComponent, VdrDocPreviewComponent, VdrAssistantChatComponent, VdrProtoSwitcherComponent],
+  imports: [CommonModule, FormsModule, ...DS_COMPONENTS, VdrAnswerBodyComponent, VdrDocPreviewComponent, VdrAssistantChatComponent,
+    VdrProtoSwitcherComponent, VdrV12AnswerComponent, VdrV12FieldComponent],
   template: `
     <div class="page">
       <fvdr-sidebar-nav
@@ -69,7 +75,7 @@ type AiState = 'loading' | 'clarify' | 'answer';
                   class="toolbar__search"
                   [(ngModel)]="query"
                   [recents]="recents"
-                  [aiSuggestions]="aiPrompts"
+                  [aiSuggestions]="solution === 'v12' ? v12Prompts : aiPrompts"
                   [results]="liveMatches"
                   [resultsTotal]="liveMatches.length"
                   (submitted)="runSearch($event)"
@@ -113,9 +119,49 @@ type AiState = 'loading' | 'clarify' | 'answer';
               </aside>
 
               <div class="results">
+                <!-- ── V1.2 · AI Overview with small input field (Figma 720:131529) ── -->
+                <fvdr-ai-overview
+                  *ngIf="mode === 'results' && solution === 'v12'"
+                  headerMode="collapse"
+                  [(collapsed)]="overviewCollapsed"
+                  [loading]="aiState === 'loading'"
+                  [showActions]="false"
+                  continueLabel=""
+                >
+                  <div class="v12">
+                    <ng-container *ngIf="aiState === 'clarify'">
+                      <div class="clarify">
+                        <p class="clarify__q clarify__q--v12">{{ v12Clarify.question }}</p>
+                        <p class="clarify__hint">{{ v12Clarify.hint }}</p>
+                      </div>
+                      <ol class="opts" aria-label="Choose one">
+                        <li *ngFor="let o of v12Clarify.options; let i = index">
+                          <button type="button" class="opt" (mouseenter)="v12Hint = o" (mouseleave)="v12Hint = ''"
+                                  (focus)="v12Hint = o" (blur)="v12Hint = ''" (click)="resolveClarify(o)">
+                            <span class="opt__n">{{ i + 1 }}</span><span class="opt__t">{{ o }}</span>
+                            <fvdr-icon name="chevron-right" class="opt__go"></fvdr-icon>
+                          </button>
+                        </li>
+                      </ol>
+                    </ng-container>
+
+                    <ng-container *ngIf="aiState === 'answer'">
+                      <fvdr-vdr-v12-answer [answer]="v12Answer" [selectedDocId]="selectedId"
+                        (docOpened)="openV12Doc($event)" (docHover)="onDocHover($event)"
+                        (reportOpened)="openReport()" (regenerated)="think('answer')"></fvdr-vdr-v12-answer>
+                      <fvdr-ai-suggestions *ngIf="v12Answer.followUps.length" class="v12__next" [items]="v12Answer.followUps" [max]="3"
+                        (chosen)="onV12FollowUp($event)"></fvdr-ai-suggestions>
+                    </ng-container>
+
+                    <fvdr-vdr-v12-field #v12FieldRef [(value)]="composerValue"
+                      [placeholder]="aiState === 'clarify' ? (v12Hint || 'Or reply directly...') : 'Ask about this documents or describe a task'"
+                      (submitted)="onV12Submit($event)"></fvdr-vdr-v12-field>
+                  </div>
+                </fvdr-ai-overview>
+
                 <!-- ── AI Overview ── -->
                 <fvdr-ai-overview
-                  *ngIf="mode === 'results' && !overviewDismissed"
+                  *ngIf="mode === 'results' && solution !== 'v12' && !overviewDismissed"
                   [headerMode]="solution === 'v1' ? 'collapse' : 'dismiss'"
                   [(collapsed)]="overviewCollapsed"
                   [loading]="aiState === 'loading'"
@@ -206,7 +252,12 @@ type AiState = 'loading' | 'clarify' | 'answer';
               [answerTemplate]="answerTpl"
               [threads]="chatThreads"
               activeThreadId="current"
+              #chatRef
               [scopeLabel]="chatScopeDocs ? chatScopeDocs + ' files' : 'All files and folders'"
+              [backLabel]="chatFromSearch ? 'Back to search results' : ''"
+              [showTools]="solution === 'v12'"
+              [placeholder]="solution === 'v12' ? 'Ask about this project or describe a task' : 'Write a message...'"
+              (back)="backToResults()"
               (submitted)="askInChat($event)"
               (stop)="stopChat()"
               (newChat)="newChat()"
@@ -214,6 +265,15 @@ type AiState = 'loading' | 'clarify' | 'answer';
             ></fvdr-vdr-assistant-chat>
 
             <ng-template #answerTpl let-m>
+              <ng-container *ngIf="chatV12[m.id] as v; else v1Msg">
+                <fvdr-vdr-v12-answer [answer]="v" footer="sources" [selectedDocId]="selectedId"
+                  (docOpened)="openV12Doc($event, v)" (docHover)="onDocHover($event)" (reportOpened)="openReport()"></fvdr-vdr-v12-answer>
+                <button type="button" class="chat__suggest" *ngIf="m.done && v.next && m.id === lastAssistantId"
+                        (click)="chatRef.draft = v.next!">
+                  <fvdr-thinking-orbs label="Suggested" [size]="16" [showPill]="false" [showLabel]="false"></fvdr-thinking-orbs>{{ v.next }}
+                </button>
+              </ng-container>
+              <ng-template #v1Msg>
               <ng-container *ngIf="chatAnswers[m.id] as a; else plainMsg">
                 <fvdr-vdr-answer-body [answer]="a"
                   (docOpened)="openPreview($event)" (docHover)="onDocHover($event)"></fvdr-vdr-answer-body>
@@ -222,6 +282,7 @@ type AiState = 'loading' | 'clarify' | 'answer';
                   <fvdr-ai-suggestions [items]="a.followUps" (chosen)="askInChat($event)"></fvdr-ai-suggestions>
                 </div>
               </ng-container>
+              </ng-template>
               <ng-template #plainMsg><p class="chat__plain">{{ m.text }}</p></ng-template>
             </ng-template>
           </div>
@@ -232,7 +293,10 @@ type AiState = 'loading' | 'clarify' | 'answer';
           class="preview"
           [doc]="preview.doc"
           [page]="preview.page"
-          [keyword]="answer.keyword || ''"
+          [keyword]="solution === 'v12' ? '' : (answer.keyword || '')"
+          [highlight]="preview.source?.quote || ''"
+          [version]="preview.source?.version || ''"
+          [resultsCount]="preview.results || 0"
           (closed)="closePreview()"
         ></fvdr-vdr-doc-preview>
       </div>
@@ -300,6 +364,24 @@ type AiState = 'loading' | 'clarify' | 'answer';
     .clarify__q { margin: 0; font-size: var(--font-size-base, 14px); line-height: 20px; }
     .clarify__hint { margin: 0; font-size: var(--text-caption1-size, 12px); line-height: 16px; color: var(--color-text-secondary); }
 
+    /* V1.2 */
+    .v12 { display: flex; flex-direction: column; gap: var(--space-3); }
+    .clarify__q--v12 { font-weight: var(--font-weight-semi, 600); }
+    .opts { margin: 0; padding: var(--space-1) var(--space-2); list-style: none; display: flex; flex-direction: column;
+      border: 1px solid transparent; border-radius: var(--radius-sm);
+      background: linear-gradient(var(--color-stone-0), var(--color-stone-0)) padding-box, var(--ai-edge) border-box; }
+    .opts li + li { border-top: 1px solid var(--color-divider); }
+    .opt { display: flex; align-items: center; gap: var(--space-3); width: 100%; min-height: 44px; padding: 0 var(--space-2);
+      border: none; background: transparent; border-radius: var(--radius-sm); cursor: pointer; text-align: left;
+      font-family: var(--font-family); font-size: var(--font-size-base, 14px); color: var(--color-text-primary); }
+    .opt:hover, .opt:focus-visible { background: var(--color-stone-200); outline: none; }
+    .opt__n { flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px;
+      border-radius: var(--radius-sm); background: var(--color-stone-200); font-size: var(--text-caption1-size, 12px); color: var(--color-text-secondary); }
+    .opt:hover .opt__n { background: var(--color-stone-0); }
+    .opt__t { flex: 1; min-width: 0; }
+    .opt__go { color: var(--color-text-secondary); opacity: 0; }
+    .opt:hover .opt__go, .opt:focus-visible .opt__go { opacity: 1; }
+
     /* Table */
     .tbl { display: flex; flex-direction: column; min-width: 0; }
     .tr { display: grid; align-items: center; min-height: 40px; column-gap: var(--space-4); padding: 0 var(--space-4);
@@ -330,6 +412,10 @@ type AiState = 'loading' | 'clarify' | 'answer';
     /* ── Chat ── */
     .chat { flex: 1; min-height: 0; display: flex; flex-direction: column; padding-bottom: 40px; /* clears the prototype switcher */ }
     .chat__plain { margin: 0; }
+    .chat__suggest { align-self: flex-start; display: inline-flex; align-items: center; gap: var(--space-2); margin-top: var(--space-3);
+      padding: var(--space-1) var(--space-2); border: none; border-radius: var(--radius-sm); background: transparent; cursor: pointer;
+      font-family: var(--font-family); font-size: var(--font-size-base, 14px); color: var(--color-text-primary); }
+    .chat__suggest:hover { background: var(--color-stone-200); }
     .chat__next { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-3); }
     .chat__next-label { font-weight: var(--font-weight-semi, 600); }
 
@@ -342,7 +428,7 @@ export class DocsAiSearchComponent implements OnInit, OnDestroy {
   private tracker = inject(TrackerService);
 
   // ── Prototype options ──
-  solution: Solution = 'v1';
+  solution: Solution = 'v12';
   v1Layout: V1Layout = 'rail';
   v2View: V2View = 'list';
   /** Cached — rebuilt only when an option changes, so the switcher's buttons stay put under the pointer. */
@@ -350,12 +436,13 @@ export class DocsAiSearchComponent implements OnInit, OnDestroy {
   private syncSwitcher(): void {
     this.switcherGroups = [
       { id: 'solution', label: 'Solution', value: this.solution, options: [
+        { id: 'v12', label: 'V1.2 · Small input' },
         { id: 'v1', label: 'V1 · Overview + table' }, { id: 'v2', label: 'V2 · Overview with docs' } ] },
-      this.solution === 'v1'
+      ...(this.solution === 'v12' ? [] : [this.solution === 'v1'
         ? { id: 'v1Layout', label: 'Layout', value: this.v1Layout, options: [
             { id: 'rail', label: 'Tree rail' }, { id: 'full', label: 'Full width' }, { id: 'composer', label: 'Prompt field' } ] }
         : { id: 'v2View', label: 'Answer', value: this.v2View, options: [
-            { id: 'list', label: 'List' }, { id: 'table', label: 'Table' } ] },
+            { id: 'list', label: 'List' }, { id: 'table', label: 'Table' } ] }]),
     ];
   }
 
@@ -409,10 +496,17 @@ export class DocsAiSearchComponent implements OnInit, OnDestroy {
   overviewCollapsed = false;
   overviewDismissed = false;
   composerValue = '';
+  // V1.2
+  readonly v12Prompts = V12_PROMPTS;
+  readonly v12Clarify = V12_CLARIFY;
+  v12Answer: V12Answer = V12_CONSENT;
+  v12Hint = '';
+  chatV12: Record<string, V12Answer> = {};
+  chatFromSearch = false;
   private aiTimer?: ReturnType<typeof setTimeout>;
 
   // ── Preview + hover ──
-  preview: { doc: MockDoc; page?: number } | null = null;
+  preview: { doc: MockDoc; page?: number; source?: V12Source; results?: number } | null = null;
   selectedId: string | null = null;
   hover: { doc: MockDoc; x: number; y: number } | null = null;
   private hoverTimer?: ReturnType<typeof setTimeout>;
@@ -465,13 +559,14 @@ export class DocsAiSearchComponent implements OnInit, OnDestroy {
     const base = [{ id: 'docs', label: 'Documents' }, { id: 'all', label: 'All' }];
     if (this.mode === 'folder') return [...base, { id: 'folder', label: '5 Legal Agreements' }];
     // V2 keeps the answer as the page, so the crumb stays on the folder level until it is closed.
-    if (this.solution === 'v2' && !this.overviewDismissed) return base;
+    if (this.solution === 'v12' || (this.solution === 'v2' && !this.overviewDismissed)) return base;
     return [...base, { id: 'results', label: `Search results: ${this.resultRows.length}` }];
   }
 
   get keyword(): string | null { return this.mode === 'results' ? isKeywordQuery(this.activeQuery) : null; }
 
   get resultRows(): ResultRow[] {
+    if (this.solution === 'v12') return this.v12Answer.rows;
     return this.keyword ? KEYWORD_ROWS : docsOf(ANSWER_CONSENT);
   }
 
@@ -479,7 +574,7 @@ export class DocsAiSearchComponent implements OnInit, OnDestroy {
 
   get showTable(): boolean {
     if (this.mode === 'folder') return true;
-    return this.solution === 'v1' || this.overviewDismissed;
+    return this.solution !== 'v2' || this.overviewDismissed;
   }
 
   get showRail(): boolean {
@@ -513,10 +608,13 @@ export class DocsAiSearchComponent implements OnInit, OnDestroy {
     if (!d) return [];
     if (this.hoverFieldsFor === d) return this.hoverFieldsCache;
     this.hoverFieldsFor = d;
+    const v12 = this.solution === 'v12';
     return this.hoverFieldsCache = [
+      ...(v12 && d.location ? [{ label: 'Location:', value: d.location }] : []),
       { label: 'Added on:', value: d.addedOn ?? '—' },
       { label: 'Size:', value: d.size ?? '—' },
       { label: 'Pages:', value: d.pages != null ? String(d.pages) : '—' },
+      ...(v12 ? [{ label: 'Status:', value: 'Published' }] : []),
       { label: 'ID:', value: d.docId ?? '—' },
     ].filter(f => f.value !== '—' || d.type === 'pdf');
   }
@@ -546,6 +644,8 @@ export class DocsAiSearchComponent implements OnInit, OnDestroy {
     this.recents = [...RECENTS_SEED];
     this.chatMessages = [];
     this.chatAnswers = {};
+    this.chatV12 = {};
+    this.chatFromSearch = false;
     this.chatStreaming = false;
     this.qaCollapsed = false;
     this.sidebarCollapsed = false;
@@ -566,17 +666,70 @@ export class DocsAiSearchComponent implements OnInit, OnDestroy {
     this.overviewDismissed = false;
     this.composerValue = '';
     this.closePreview();
+    if (this.solution === 'v12') {
+      const r = v12For(text);
+      this.v12Answer = r.answer;
+      this.v12Hint = '';
+      this.think(r.clarify ? 'clarify' : 'answer');
+      return;
+    }
     this.answer = isKeywordQuery(text) ? ANSWER_KEYWORD : ANSWER_CONSENT;
     this.think(needsClarifying(text) ? 'clarify' : 'answer');
   }
 
   resolveClarify(_option: string): void {
     this.answer = ANSWER_CONSENT;
+    this.v12Answer = V12_CONSENT;
+    this.v12Hint = '';
+    this.composerValue = '';
     this.think('answer');
   }
 
-  private think(next: AiState): void {
+  // ── V1.2 ──
+  /** Chips pre-fill the small field; "Create report" runs in place. */
+  onV12FollowUp(prompt: string): void {
+    if (/create report/i.test(prompt)) {
+      this.closePreview();
+      this.v12Answer = V12_REPORT;
+      this.think('answer');
+      return;
+    }
+    this.composerValue = prompt;
+  }
+
+  /** In the clarifying state the field answers the question; after the answer it hands over to the assistant. */
+  onV12Submit(prompt: string): void {
+    if (this.aiState === 'clarify') { this.resolveClarify(prompt); return; }
+    this.openChat(prompt);
+  }
+
+  openV12Doc(e: V12DocOpen, from: V12Answer = this.v12Answer): void {
+    if (e.doc.type.startsWith('folder')) return;
+    const results = from.sources.length; // "3 results used in answer" — Figma 720:132036
+    this.preview = { doc: e.doc, page: e.page, source: e.source, results };
+    this.selectedId = e.doc.id;
+    this.hover = null;
+  }
+
+  openReport(): void {
+    this.preview = { doc: REPORT_DOC };
+    this.selectedId = 'report';
+    this.hover = null;
+  }
+
+  /** "Back to search results" — the results page is kept as it was. */
+  backToResults(): void {
+    this.chatTimers.forEach(clearTimeout);
+    this.chatStreaming = false;
+    this.closePreview();
+    this.view = 'docs';
+    this.setNav('documents');
+  }
+
+  think(next: AiState): void {
     clearTimeout(this.aiTimer);
+    clearTimeout(this.hoverTimer);
+    this.hover = null; // the hovered card is about to be replaced — its mouseleave never fires
     this.aiState = 'loading';
     this.aiTimer = setTimeout(() => (this.aiState = next), 1400);
   }
@@ -603,6 +756,11 @@ export class DocsAiSearchComponent implements OnInit, OnDestroy {
   // ── Preview + hover ──
   openPreview(doc: MockDoc): void {
     if (doc.type.startsWith('folder')) return;
+    if (this.solution === 'v12' && this.mode === 'results') {
+      const n = this.v12Answer.sources.find(s => s.doc.id === doc.id);
+      this.openV12Doc({ doc, page: n?.page, source: n });
+      return;
+    }
     const cited = this.answer.groups.flatMap(g => g.items).find(i => i.doc.id === doc.id);
     this.preview = { doc, page: cited?.page };
     this.selectedId = doc.id;
@@ -637,6 +795,8 @@ export class DocsAiSearchComponent implements OnInit, OnDestroy {
   /** Hands the overview thread to the full assistant, optionally with a follow-up already asked. */
   openChat(prompt?: string): void {
     this.chatTimers.forEach(clearTimeout);
+    if (this.solution === 'v12') { this.openV12Chat(prompt); return; }
+    this.chatFromSearch = false;
     const title = this.activeQuery.replace(/^find keywords?:\s*/i, '');
     this.chatTitle = title.charAt(0).toUpperCase() + title.slice(1);
     this.chatScopeDocs = docsOf(this.answer).length;
@@ -653,8 +813,33 @@ export class DocsAiSearchComponent implements OnInit, OnDestroy {
     if (prompt) this.askInChat(prompt);
   }
 
+  /** V1.2 — the overview answer becomes the first turn; the follow-up streams under it (720:134327 → 720:134574). */
+  private openV12Chat(prompt?: string): void {
+    const t = this.activeQuery;
+    this.chatTitle = t.length > 40 ? t.charAt(0).toUpperCase() + t.slice(1, 40) + '…' : t.charAt(0).toUpperCase() + t.slice(1);
+    this.chatScopeDocs = 0;
+    const u = this.msgId(), a = this.msgId();
+    this.chatAnswers = {};
+    this.chatV12 = { [a]: this.v12Answer };
+    this.chatMessages = [
+      { id: u, role: 'user', text: this.activeQuery, at: 'just now' },
+      { id: a, role: 'assistant', text: '', done: true, steps: this.v12Steps(this.v12Answer, true), took: this.v12Answer.took, at: 'just now' },
+    ];
+    this.chatFromSearch = true;
+    this.composerValue = '';
+    this.closePreview();
+    this.view = 'chat';
+    this.setNav('ai');
+    if (prompt) this.askInChat(prompt);
+  }
+
+  private v12Steps(a: V12Answer, done: boolean) {
+    return a.steps.map((label, i) => ({ id: `s${i}`, kind: 'result' as const, label, done }));
+  }
+
   askInChat(prompt: string): void {
     if (this.chatStreaming) return;
+    if (this.solution === 'v12') { this.askV12(prompt); return; }
     if (!this.chatMessages.length) this.chatTitle = prompt.length > 40 ? prompt.slice(0, 40) + '…' : prompt;
     const u = this.msgId(), a = this.msgId();
     const reply = answerFor(prompt);
@@ -681,6 +866,32 @@ export class DocsAiSearchComponent implements OnInit, OnDestroy {
 
   lastUserPrompt = '';
 
+  private askV12(prompt: string): void {
+    if (!this.chatMessages.length) this.chatTitle = prompt.length > 40 ? prompt.slice(0, 40) + '…' : prompt;
+    const u = this.msgId(), a = this.msgId();
+    const reply = v12ChatReply(prompt);
+    const msg: VdrChatTurn = { id: a, role: 'assistant', text: '', streaming: true, steps: [] };
+    this.lastUserPrompt = prompt;
+    this.chatMessages = [...this.chatMessages, { id: u, role: 'user', text: prompt, at: 'just now' }, msg];
+    this.chatV12 = { ...this.chatV12, [a]: reply };
+    this.chatStreaming = true;
+    const all = this.v12Steps(reply, true);
+    // "Thinking…" first, then the steps one by one.
+    all.forEach((_, i) => this.chatTimers.push(setTimeout(() => {
+      msg.steps = all.slice(0, i + 1).map((st, k) => ({ ...st, done: k < i }));
+      this.chatMessages = [...this.chatMessages];
+    }, 1100 + i * 700)));
+    this.chatTimers.push(setTimeout(() => {
+      msg.steps = all;
+      msg.streaming = false;
+      msg.done = true;
+      msg.took = reply.took;
+      msg.at = 'Now';
+      this.chatStreaming = false;
+      this.chatMessages = [...this.chatMessages];
+    }, 1100 + all.length * 700 + 400));
+  }
+
   /** Stop: keep what the steps found, drop the unfinished answer. */
   stopChat(): void {
     this.chatTimers.forEach(clearTimeout);
@@ -691,6 +902,7 @@ export class DocsAiSearchComponent implements OnInit, OnDestroy {
       last.text = 'Response stopped.';
       last.steps = (last.steps ?? []).filter(st => st.done);
       delete this.chatAnswers[last.id];
+      delete this.chatV12[last.id];
       this.chatMessages = [...this.chatMessages];
     }
     this.chatStreaming = false;
@@ -700,6 +912,8 @@ export class DocsAiSearchComponent implements OnInit, OnDestroy {
     this.chatTimers.forEach(clearTimeout);
     this.chatMessages = [];
     this.chatAnswers = {};
+    this.chatV12 = {};
+    this.chatFromSearch = false;
     this.chatStreaming = false;
     this.chatTitle = 'New chat';
     this.chatScopeDocs = 0;

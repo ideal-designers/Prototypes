@@ -21,9 +21,16 @@ interface MockPage { n: number; heading?: string; paras: string[] }
         </button>
         <fvdr-file-icon [type]="doc.type"></fvdr-file-icon>
         <span class="pv__name" [title]="doc.name">{{ doc.index }}&nbsp; {{ doc.name }}</span>
-        <button type="button" class="pv__icon" title="Notes" aria-label="Notes"><fvdr-icon name="comment"></fvdr-icon></button>
-        <button type="button" class="pv__icon" title="Print" aria-label="Print"><fvdr-icon name="print"></fvdr-icon></button>
-        <fvdr-btn label="Open" variant="secondary" size="m"></fvdr-btn>
+        <span class="pv__ver" *ngIf="version">{{ version }}</span>
+        <button type="button" class="pv__results" *ngIf="resultsCount" (click)="jumpTo(page ?? 1)">
+          {{ resultsCount }} {{ resultsCount === 1 ? 'result' : 'results' }} used in answer<fvdr-icon name="chevron-down"></fvdr-icon>
+        </button>
+        <ng-container *ngIf="!isReport">
+          <button type="button" class="pv__icon" title="Notes" aria-label="Notes"><fvdr-icon name="comment"></fvdr-icon></button>
+          <button type="button" class="pv__icon" title="Print" aria-label="Print"><fvdr-icon name="print"></fvdr-icon></button>
+          <fvdr-btn label="Open" variant="secondary" size="m"></fvdr-btn>
+        </ng-container>
+        <fvdr-btn *ngIf="isReport" label="Download" variant="primary" size="m" iconName="download"></fvdr-btn>
       </header>
 
       <div class="pv__body">
@@ -38,8 +45,26 @@ interface MockPage { n: number; heading?: string; paras: string[] }
 
         <div class="pv__scroll" #scroller (scroll)="onScroll()">
           <div class="pv__pages" [style.zoom]="scale / 75">
+            <!-- Generated report (Figma 720:133852) -->
+            <article class="pv__page rp" *ngIf="isReport" data-page="1">
+              <div class="rp__top"><span>PROJECT SWOOSH · NIKE</span><span>Confidential</span></div>
+              <h3 class="rp__title">DD checklist report</h3>
+              <p class="rp__sub">22–28 Sep 2026 · prepared by AI Assistant for Olena Zhyvodorova</p>
+              <h4 class="pv__h">Summary</h4>
+              <p class="pv__para">71 of 86 checklist items are covered. 9 items have no matching file and 6 have a file that looks outdated. Most gaps are in 5. HR and 6. IT; both folders were last updated more than three weeks ago.</p>
+              <div class="rp__kpis">
+                <div class="rp__kpi" *ngFor="let k of reportKpis"><span>{{ k.label }}</span><b>{{ k.value }}</b></div>
+              </div>
+              <h4 class="pv__h">Coverage by folder</h4>
+              <div class="rp__bar" *ngFor="let c of reportCoverage">
+                <span>{{ c.label }}</span><span class="rp__track"><span class="rp__fill" [class.rp__fill--warn]="c.pct < 80" [style.width.%]="c.pct"></span></span><span>{{ c.pct }}%</span>
+              </div>
+              <span class="pv__folio">1</span>
+            </article>
+
             <article class="pv__page" *ngFor="let p of pages" [attr.data-page]="p.n">
               <h4 *ngIf="p.heading" class="pv__h">{{ p.heading }}</h4>
+              <p class="pv__para pv__para--quote" *ngIf="highlight && p.n === (page ?? 1)"><mark class="pv__hl">{{ highlight }}</mark></p>
               <p *ngFor="let para of p.paras" class="pv__para">
                 <ng-container *ngFor="let part of marked(para)">
                   <mark *ngIf="part.hit; else plain">{{ part.text }}</mark>
@@ -82,6 +107,26 @@ interface MockPage { n: number; heading?: string; paras: string[] }
     .pv__h { margin: 0 0 var(--space-3); font-size: var(--font-size-base, 14px); font-weight: var(--font-weight-bold, 700); text-transform: uppercase; }
     .pv__para { margin: 0 0 var(--space-3); }
     .pv__para mark { background: var(--color-highlight-mark, #FFDA07); color: inherit; }
+    .pv__ver { flex: 0 0 auto; padding: 0 var(--space-2); height: 20px; line-height: 20px; border-radius: var(--radius-sm);
+      background: var(--color-stone-300); font-size: var(--text-caption1-size, 12px); }
+    .pv__results { flex: 0 0 auto; display: inline-flex; align-items: center; gap: var(--space-1); height: 28px; padding: 0 var(--space-2);
+      border: none; border-radius: var(--radius-sm); background: var(--chip-bg-green); cursor: pointer; font-family: var(--font-family);
+      font-size: var(--text-caption1-size, 12px); color: var(--color-text-primary); }
+    .pv__results:hover { background: var(--color-primary-50); }
+    .pv__hl { background: var(--color-primary-100) !important; box-shadow: 0 0 0 2px var(--color-primary-100); }
+    .rp__top { display: flex; justify-content: space-between; margin-bottom: var(--space-8); font-size: var(--font-size-3xs, 10px);
+      letter-spacing: 0.06em; color: var(--color-text-secondary); }
+    .rp__title { margin: 0; font-size: var(--font-size-xl, 20px); line-height: 28px; }
+    .rp__sub { margin: var(--space-1) 0 var(--space-6); color: var(--color-text-secondary); }
+    .rp__kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-2); margin-bottom: var(--space-6); }
+    .rp__kpi { display: flex; flex-direction: column; gap: var(--space-1); padding: var(--space-2) var(--space-3); border: 1px solid var(--color-divider);
+      border-radius: var(--radius-sm); }
+    .rp__kpi span { color: var(--color-text-secondary); }
+    .rp__kpi b { font-size: var(--font-size-lg, 16px); }
+    .rp__bar { display: grid; grid-template-columns: 96px 1fr 40px; align-items: center; gap: var(--space-3); margin-bottom: var(--space-2); }
+    .rp__track { height: 6px; border-radius: var(--radius-full); background: var(--color-stone-200); overflow: hidden; }
+    .rp__fill { display: block; height: 100%; background: var(--color-primary-500); }
+    .rp__fill--warn { background: var(--color-warning-500); }
     .pv__folio { position: absolute; bottom: var(--space-3); left: 50%; transform: translateX(-50%); color: var(--color-text-secondary); }
   `],
 })
@@ -90,6 +135,11 @@ export class VdrDocPreviewComponent implements OnChanges {
   /** Page to scroll to on open (from a "· p. 14" citation). */
   @Input() page?: number;
   @Input() keyword = '';
+  /** V1.2 — the cited quote, marked on `page`. */
+  @Input() highlight = '';
+  @Input() version = '';
+  /** V1.2 — "N results used in answer". */
+  @Input() resultsCount = 0;
   @Output() closed = new EventEmitter<void>();
 
   @ViewChild('scroller') scroller?: ElementRef<HTMLElement>;
@@ -99,6 +149,16 @@ export class VdrDocPreviewComponent implements OnChanges {
   pages: MockPage[] = [];
 
   get totalPages(): number { return this.doc.pages ?? this.pages.length; }
+  get isReport(): boolean { return this.doc.id === 'report'; }
+
+  readonly reportKpis = [
+    { label: 'Checklist items', value: '86' }, { label: 'Covered', value: '71' },
+    { label: 'Outdated', value: '6' }, { label: 'Missing', value: '9' },
+  ];
+  readonly reportCoverage = [
+    { label: '1. Corporate', pct: 100 }, { label: '2. Legal', pct: 94 }, { label: '3. Financials', pct: 91 },
+    { label: '4. Commercial', pct: 85 }, { label: '5. HR', pct: 62 }, { label: '6. IT', pct: 48 },
+  ];
 
   ngOnChanges(): void {
     this.pages = this.buildPages();
@@ -126,7 +186,7 @@ export class VdrDocPreviewComponent implements OnChanges {
       .map(t => ({ text: t, hit: t.toLowerCase() === q.toLowerCase() }));
   }
 
-  private jumpTo(n: number): void {
+  jumpTo(n: number): void {
     const el = this.scroller?.nativeElement;
     const target = el?.querySelector<HTMLElement>(`[data-page="${n}"]`);
     if (el && target) el.scrollTop = target.offsetTop - el.offsetTop;
@@ -141,7 +201,8 @@ export class VdrDocPreviewComponent implements OnChanges {
       'Earn-Out. The Earn-Out Payment shall be calculated in accordance with Schedule 4 and paid within thirty (30) Business Days of the Accounts being agreed.',
       'Conflict. In the event of a conflict between this Agreement and the Asset Purchase Agreement, the latter prevails.',
     ];
-    const count = Math.min(this.doc.pages ?? 8, 16);
+    if (this.isReport) return [];
+    const count = Math.min(Math.max(this.doc.pages ?? 8, this.page ?? 0), 48);
     return Array.from({ length: count }, (_, i) => ({
       n: i + 1,
       heading: i === 0 ? title : i % 4 === 1 ? `Clause ${i + 1}` : undefined,

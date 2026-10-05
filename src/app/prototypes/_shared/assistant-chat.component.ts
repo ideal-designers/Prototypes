@@ -72,6 +72,10 @@ export interface VdrChatCategory { id: string; label: string; icon: FvdrIconName
             <button type="button" class="bar__new" (click)="newChat.emit()"><fvdr-icon name="new-session"></fvdr-icon>New chat</button>
           </ng-container>
           <span class="bar__spacer"></span>
+          <button type="button" class="bar__back" *ngIf="backLabel" (click)="back.emit()">
+            <fvdr-icon name="chevron-left"></fvdr-icon>{{ backLabel }}
+          </button>
+          <span class="bar__spacer" *ngIf="backLabel"></span>
           <button type="button" class="ibtn" title="Sources" aria-label="Sources"><fvdr-icon name="note"></fvdr-icon></button>
           <button type="button" class="ibtn" title="Export" aria-label="Export"><fvdr-icon name="share"></fvdr-icon></button>
         </div>
@@ -167,11 +171,12 @@ export interface VdrChatCategory { id: string; label: string; icon: FvdrIconName
           <div class="prompt">
             <button type="button" class="scope"><fvdr-icon name="documents"></fvdr-icon>{{ scopeLabel }}<fvdr-icon name="chevron-down" class="scope__caret"></fvdr-icon></button>
             <div class="field" [class.field--focus]="focused">
-              <textarea #input class="field__input" rows="2" [placeholder]="preview || 'Write a message...'"
+              <textarea #input class="field__input" rows="2" [placeholder]="preview || placeholder"
                         [(ngModel)]="draft" (focus)="focused = true" (blur)="focused = false"
                         (keydown.enter)="onEnter($event)" aria-label="Message the AI Assistant"></textarea>
               <div class="field__bar">
                 <button type="button" class="ibtn ibtn--l" title="Add files" aria-label="Add files"><fvdr-icon name="plus"></fvdr-icon></button>
+                <button *ngIf="showTools" type="button" class="tools"><fvdr-icon name="settings-filter"></fvdr-icon>Tools</button>
                 <span class="bar__spacer"></span>
                 <button type="button" class="ibtn ibtn--l" title="Voice input" aria-label="Voice input"><fvdr-icon name="mic"></fvdr-icon></button>
                 <button *ngIf="busy" type="button" class="ibtn ibtn--l ibtn--stop" title="Stop" aria-label="Stop generating" (click)="stop.emit()"><fvdr-icon name="stop"></fvdr-icon></button>
@@ -206,6 +211,14 @@ export interface VdrChatCategory { id: string; label: string; icon: FvdrIconName
     .bar__new { display: inline-flex; align-items: center; gap: var(--space-2); height: 40px; padding: 0 var(--space-3); border: none;
       background: transparent; border-radius: var(--radius-sm); cursor: pointer; font-family: var(--font-family);
       font-size: var(--font-size-md, 15px); color: var(--color-text-primary); }
+    .bar__back { display: inline-flex; align-items: center; gap: var(--space-2); height: 32px; padding: 0 var(--space-3);
+      border: 1px solid var(--color-divider); border-radius: var(--radius-full); background: var(--color-stone-0); cursor: pointer;
+      font-family: var(--font-family); font-size: var(--font-size-base, 14px); color: var(--color-text-primary); box-shadow: var(--shadow-card); }
+    .bar__back:hover { background: var(--color-stone-200); }
+    .tools { display: inline-flex; align-items: center; gap: var(--space-2); height: 32px; padding: 0 var(--space-2); border: none;
+      border-radius: var(--radius-sm); background: transparent; cursor: pointer; font-family: var(--font-family);
+      font-size: var(--font-size-base, 14px); color: var(--color-text-secondary); }
+    .tools:hover { background: var(--color-hover-bg); color: var(--color-text-primary); }
     .bar__new:hover { background: var(--color-hover-bg); }
 
     .ibtn { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; padding: 0; border: none;
@@ -302,6 +315,11 @@ export class VdrAssistantChatComponent implements AfterViewChecked {
   @Input() subtitle = 'Get instant answers to your most complex work questions without having to dig through the project.';
   @Input() footnote = 'Every answer comes only from files you’re already allowed to see in this project';
   @Input() categories: VdrChatCategory[] = DEFAULT_CATEGORIES;
+  /** Pill centred in the top bar, e.g. "Back to search results" (V1.2). Empty hides it. */
+  @Input() backLabel = '';
+  @Input() showTools = false;
+  @Input() placeholder = 'Write a message...';
+  @Output() back = new EventEmitter<void>();
 
   @Output() submitted = new EventEmitter<string>();
   @Output() stop = new EventEmitter<void>();
