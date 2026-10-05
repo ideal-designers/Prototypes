@@ -385,7 +385,7 @@ type AiState = 'loading' | 'clarify' | 'answer';
     /* V1.2 */
     .v12 { display: flex; flex-direction: column; gap: var(--space-3); }
     .clarify__q--v12 { font-weight: var(--font-weight-semi, 600); }
-    .opts { margin: 0; padding: var(--space-1) var(--space-2); list-style: none; display: flex; flex-direction: column;
+    .opts { margin: 0; padding: var(--space-1); /* same inset on every side so the hover row sits evenly */ list-style: none; display: flex; flex-direction: column;
       border: 1px solid transparent; border-radius: var(--radius-sm);
       background: linear-gradient(var(--color-stone-0), var(--color-stone-0)) padding-box, var(--ai-edge) border-box; }
     .opt { display: flex; align-items: center; gap: var(--space-3); width: 100%; min-height: 44px; padding: 0 var(--space-2);
