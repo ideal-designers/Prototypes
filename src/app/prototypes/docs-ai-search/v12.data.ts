@@ -16,6 +16,8 @@ export interface V12Source {
   quote: string;
   where: string;        // "Section 1 · Page 22"
   page?: number;
+  /** Every passage of this file the answer used — the preview steps through them (Figma 720:132036). */
+  results?: { page: number; quote: string }[];
 }
 
 export type V12Block =
@@ -112,7 +114,12 @@ export const V12_SPA: V12Answer = {
     ] },
   ],
   sources: [
-    { n: 1, doc: SPA, version: 'v4', quote: 'The Escrow Amount shall be five per cent (5%) of the Purchase Price and shall be held for a period of nine months…', where: 'Section 1 · Page 22', page: 22 },
+    { n: 1, doc: SPA, version: 'v4', quote: 'The Escrow Amount shall be five per cent (5%) of the Purchase Price and shall be held for a period of nine months…', where: 'Section 1 · Page 22', page: 22,
+      results: [
+        { page: 6, quote: 'The Purchase Price is calculated on an enterprise value of $412,000,000 on a locked box basis by reference to the Locked Box Accounts dated 31 March 2026.' },
+        { page: 22, quote: 'The Escrow Amount shall be five per cent (5%) of the Purchase Price and shall be held for a period of nine months.' },
+        { page: 31, quote: 'The aggregate liability of the Seller for all Warranty Claims shall not exceed fifteen per cent (15%) of the Purchase Price, and no claim may be brought after eighteen (18) months from Completion.' },
+      ] },
     { n: 2, doc: COC, quote: 'Consent required on change of control: Northwind, Atlas Freight, Brightline Packaging, Corvo Logistics.', where: 'Sheet CoC · Rows 4–7' },
     { n: 3, doc: CONSENTS, quote: 'Written consent received from Northwind Supply Ltd on 19 September 2026.', where: 'Page 2', page: 2 },
   ],

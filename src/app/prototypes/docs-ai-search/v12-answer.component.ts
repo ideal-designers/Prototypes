@@ -169,10 +169,11 @@ export interface V12DocOpen { doc: MockDoc; page?: number; source?: V12Source }
     </ng-template>
 
     <ng-template #cite let-n let-key="key" let-page="page">
-      <button *ngIf="n > 0" type="button" class="cite" [class.cite--on]="pop?.key === key"
+      <button *ngIf="n > 0" type="button" class="cite" [class.cite--hover]="pop?.key === key"
+              [class.cite--active]="!!openDocId && activeKey === key"
               [attr.aria-label]="'Source ' + n"
               (mouseenter)="showPop(n, $event, key, page)" (mouseleave)="hidePop()" (focus)="showPop(n, $event, key, page)" (blur)="hidePop()"
-              (click)="openSource(sourceOf(n), page)">{{ n }}</button>
+              (click)="openSource(sourceOf(n), page, key)">{{ n }}</button>
     </ng-template>
 
     <!-- Citation popover -->
@@ -184,11 +185,11 @@ export interface V12DocOpen { doc: MockDoc; page?: number; source?: V12Source }
         <span class="tag tag--grey" *ngIf="pop.s.version">{{ pop.s.version }}</span>
         <button type="button" class="ib" title="More" aria-label="More"><fvdr-icon name="more"></fvdr-icon></button>
       </div>
-      <blockquote class="pop__quote" *ngIf="!pop.page || pop.page === pop.s.page">“{{ pop.s.quote }}”</blockquote>
-      <div class="pop__foot">
-        <span class="pop__where">{{ pop.page && pop.page !== pop.s.page ? 'Page ' + pop.page : pop.s.where }}</span>
-        <button type="button" class="pop__open" (click)="openSource(pop.s, pop.page)">Open preview<fvdr-icon name="chevron-right"></fvdr-icon></button>
+      <div class="pop__excerpt">
+        <p class="pop__quote" *ngIf="quoteFor(pop) as q">“{{ q }}”</p>
+        <span class="pop__where">{{ whereFor(pop) }}</span>
       </div>
+      <button type="button" class="pop__open" (click)="openSource(pop.s, pop.page, pop.key)">Open preview<fvdr-icon name="chevron-right"></fvdr-icon></button>
     </div>
   `,
   styles: [`
@@ -197,11 +198,14 @@ export interface V12DocOpen { doc: MockDoc; page?: number; source?: V12Source }
     .ans__lead { margin: 0; }
     strong { font-weight: var(--font-weight-semi, 600); }
 
-    .cite { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; margin: 0 var(--space-1);
-      padding: 0 var(--space-1); box-sizing: border-box; border: none; border-radius: var(--radius-sm); background: var(--chip-bg-indigo);
-      cursor: pointer; font-family: var(--font-family); font-size: var(--font-size-3xs, 10px); line-height: 18px; font-weight: var(--font-weight-semi, 600);
-      color: var(--color-text-primary); vertical-align: 1px; }
-    .cite:hover, .cite--on, .cite:focus-visible { background: var(--color-primary-500); color: var(--color-stone-0); outline: none; }
+    /* Figma 720:132036 — grey chip, darker on hover, amber while its passage is open in the preview */
+    .cite { display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; margin: 0 var(--space-1);
+      padding: 0 var(--space-1); box-sizing: border-box; border: none; border-radius: var(--radius-sm); background: var(--color-stone-300);
+      cursor: pointer; font-family: var(--font-family); font-size: var(--text-caption1-size, 12px); line-height: 16px;
+      color: var(--color-text-secondary); vertical-align: 1px; transition: background 0.12s ease, color 0.12s ease; }
+    .cite:hover, .cite--hover { background: var(--color-stone-400); color: var(--color-text-primary); }
+    .cite:focus-visible { outline: 2px solid var(--color-primary-500); outline-offset: 1px; }
+    .cite--active, .cite--active:hover { background: var(--ai-cite-active-bg); color: var(--ai-cite-active-text); }
 
     .blk { display: flex; flex-direction: column; gap: var(--space-2); }
     .blk__h { margin: 0; font-size: var(--font-size-base, 14px); line-height: 20px; font-weight: var(--font-weight-semi, 600); }
@@ -301,11 +305,12 @@ export interface V12DocOpen { doc: MockDoc; page?: number; source?: V12Source }
       box-shadow: var(--shadow-popup, 0 4px 16px rgba(0, 0, 0, 0.12)); }
     .pop__head { display: flex; align-items: center; gap: var(--space-2); }
     .pop__name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: var(--font-weight-semi, 600); }
-    .pop__quote { margin: 0; padding-left: var(--space-3); border-left: 2px solid var(--color-primary-500); line-height: 20px; }
-    .pop__foot { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); }
-    .pop__where { font-size: var(--text-caption1-size, 12px); color: var(--color-text-secondary); }
-    .pop__open { display: inline-flex; align-items: center; gap: var(--space-1); padding: 0; border: none; background: transparent; cursor: pointer;
-      font-family: var(--font-family); font-size: var(--font-size-base, 14px); color: var(--color-primary-600); font-weight: var(--font-weight-semi, 600); }
+    .pop__excerpt { display: flex; flex-direction: column; gap: var(--space-2); padding-left: var(--space-3); border-left: 1px solid var(--color-stone-400); }
+    .pop__quote { margin: 0; line-height: 20px; }
+    .pop__where { font-size: var(--text-caption1-size, 12px); line-height: 16px; color: var(--color-text-secondary); }
+    .pop__open { align-self: flex-start; display: inline-flex; align-items: center; gap: var(--space-1); padding: 0; border: none; background: transparent;
+      cursor: pointer; font-family: var(--font-family); font-size: var(--font-size-base, 14px); color: var(--color-primary-500); }
+    .pop__open:hover { color: var(--color-primary-600); }
     .pop__open:hover { text-decoration: underline; }
   `],
 })
@@ -322,6 +327,9 @@ export class VdrV12AnswerComponent implements OnDestroy {
   @Input() sourcesPanel = false;
   @Output() sourcesRequested = new EventEmitter<void>();
   @Output() folderOpened = new EventEmitter<MockDoc>();
+  /** Id of the file open in the preview — the chip that opened it turns amber until it closes. */
+  @Input() openDocId: string | null = null;
+  activeKey = '';
 
   rating: 'up' | 'down' | null = null;
   sourcesOpen = false;
@@ -369,15 +377,30 @@ export class VdrV12AnswerComponent implements OnDestroy {
     this.popTimer = setTimeout(() => (this.pop = null), 180);
   }
 
-  openSource(s?: V12Source, page?: number): void {
+  /** The passage behind a chip: its page's result if the file lists several, else the source quote. */
+  quoteFor(p: { s?: V12Source; page?: number }): string {
+    const r = p.s?.results?.find(x => x.page === (p.page ?? p.s?.page));
+    if (r) return r.quote;
+    return !p.page || p.page === p.s?.page ? p.s?.quote ?? '' : '';
+  }
+
+  whereFor(p: { s?: V12Source; page?: number }): string {
+    if (!p.page || p.page === p.s?.page) return p.s?.where ?? '';
+    const section = p.s?.where.split(' · ')[0];
+    return section && /^Section/.test(section) ? `${section} · Page ${p.page}` : `Page ${p.page}`;
+  }
+
+  openSource(s?: V12Source, page?: number, key = ''): void {
     if (!s) return;
     this.pop = null;
+    this.activeKey = key;
     // A table row may cite another page of the same source — the quote only belongs on its own page.
     const p = page ?? s.page;
-    this.docOpened.emit({ doc: s.doc, page: p, source: p === s.page ? s : { ...s, quote: '' } });
+    this.docOpened.emit({ doc: s.doc, page: p, source: s });
   }
 
   openDoc(doc: MockDoc, n: number): void {
+    this.activeKey = '';
     this.docOpened.emit({ doc, page: this.sourceOf(n)?.page, source: this.sourceOf(n) });
   }
 

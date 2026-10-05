@@ -154,7 +154,7 @@ type AiState = 'loading' | 'clarify' | 'answer';
                     </ng-container>
 
                     <ng-container *ngIf="aiState === 'answer'">
-                      <fvdr-vdr-v12-answer [answer]="v12Answer" [selectedDocId]="selectedId"
+                      <fvdr-vdr-v12-answer [answer]="v12Answer" [selectedDocId]="selectedId" [openDocId]="preview?.doc?.id || null"
                         (docOpened)="openV12Doc($event)" (docHover)="onDocHover($event)"
                         (reportOpened)="openReport()" (regenerated)="think('answer')"></fvdr-vdr-v12-answer>
                       <fvdr-ai-suggestions *ngIf="v12Answer.followUps.length" class="v12__next" [items]="v12Answer.followUps" [max]="3"
@@ -281,7 +281,7 @@ type AiState = 'loading' | 'clarify' | 'answer';
 
             <ng-template #answerTpl let-m>
               <ng-container *ngIf="chatV12[m.id] as v; else v1Msg">
-                <fvdr-vdr-v12-answer [answer]="v" footer="sources" [selectedDocId]="selectedId" [sourcesPanel]="true"
+                <fvdr-vdr-v12-answer [answer]="v" footer="sources" [selectedDocId]="selectedId" [openDocId]="preview?.doc?.id || null" [sourcesPanel]="true"
                   (docOpened)="chatRef.closePanel(); openV12Doc($event, v)" (docHover)="onDocHover($event)" (reportOpened)="openReport()"
                   (sourcesRequested)="chatSourcesFor = v; chatRef.openSources()"
                   (folderOpened)="chatSourcesFor = v; selectedId = $event.id; chatRef.showSource(sourceItem($event))"></fvdr-vdr-v12-answer>
@@ -311,9 +311,9 @@ type AiState = 'loading' | 'clarify' | 'answer';
           [doc]="preview.doc"
           [page]="preview.page"
           [keyword]="solution === 'v12' ? '' : (answer.keyword || '')"
-          [highlight]="preview.source?.quote || ''"
+          [highlight]="previewQuote"
+          [results]="preview.source?.results || []"
           [version]="preview.source?.version || ''"
-          [resultsCount]="preview.results || 0"
           (closed)="closePreview()"
         ></fvdr-vdr-doc-preview>
       </div>
@@ -753,6 +753,12 @@ export class DocsAiSearchComponent implements OnInit, OnDestroy {
     this.preview = { doc: e.doc, page: e.page, source: e.source, results };
     this.selectedId = e.doc.id;
     this.hover = null;
+  }
+
+  /** A single-passage source highlights its quote only on its own page. */
+  get previewQuote(): string {
+    const s = this.preview?.source;
+    return s && (this.preview!.page ?? s.page) === s.page ? s.quote : '';
   }
 
   openReport(): void {

@@ -22,9 +22,7 @@ interface MockPage { n: number; heading?: string; paras: string[] }
         <fvdr-file-icon [type]="doc.type"></fvdr-file-icon>
         <span class="pv__name" [title]="doc.name">{{ doc.index }}&nbsp; {{ doc.name }}</span>
         <span class="pv__ver" *ngIf="version">{{ version }}</span>
-        <button type="button" class="pv__results" *ngIf="resultsCount" (click)="jumpTo(page ?? 1)">
-          {{ resultsCount }} {{ resultsCount === 1 ? 'result' : 'results' }} used in answer<fvdr-icon name="chevron-down"></fvdr-icon>
-        </button>
+        <span class="pv__spacer"></span>
         <ng-container *ngIf="!isReport">
           <button type="button" class="pv__icon" title="Notes" aria-label="Notes"><fvdr-icon name="comment"></fvdr-icon></button>
           <button type="button" class="pv__icon" title="Print" aria-label="Print"><fvdr-icon name="print"></fvdr-icon></button>
@@ -32,6 +30,16 @@ interface MockPage { n: number; heading?: string; paras: string[] }
         </ng-container>
         <fvdr-btn *ngIf="isReport" label="Download" variant="primary" size="m" iconName="download"></fvdr-btn>
       </header>
+
+      <!-- Figma 720:132036 — step through the passages the answer used -->
+      <div class="pv__res" *ngIf="resultList.length">
+        <span class="pv__res-label">{{ resultList.length }} {{ resultList.length === 1 ? 'result' : 'results' }} used in answer</span>
+        <ng-container *ngIf="resultList.length > 1">
+          <button type="button" class="pv__icon pv__icon--s" title="Next result" aria-label="Next result" (click)="step(1)"><fvdr-icon name="chevron-down"></fvdr-icon></button>
+          <button type="button" class="pv__icon pv__icon--s" title="Previous result" aria-label="Previous result" (click)="step(-1)"><fvdr-icon name="chevron-up"></fvdr-icon></button>
+          <span class="pv__res-pos" aria-live="polite">{{ resultIdx + 1 }} / {{ resultList.length }}</span>
+        </ng-container>
+      </div>
 
       <div class="pv__body">
         <div class="pv__rail">
@@ -64,7 +72,7 @@ interface MockPage { n: number; heading?: string; paras: string[] }
 
             <article class="pv__page" *ngFor="let p of pages" [attr.data-page]="p.n">
               <h4 *ngIf="p.heading" class="pv__h">{{ p.heading }}</h4>
-              <p class="pv__para pv__para--quote" *ngIf="highlight && p.n === (page ?? 1)"><mark class="pv__hl">{{ highlight }}</mark></p>
+              <p class="pv__para pv__para--quote" *ngIf="activeQuote && p.n === activePage"><mark class="pv__hl">{{ activeQuote }}</mark></p>
               <p *ngFor="let para of p.paras" class="pv__para">
                 <ng-container *ngFor="let part of marked(para)">
                   <mark *ngIf="part.hit; else plain">{{ part.text }}</mark>
@@ -84,7 +92,8 @@ interface MockPage { n: number; heading?: string; paras: string[] }
       border-left: 1px solid var(--color-divider); }
     .pv__head { display: flex; align-items: center; gap: var(--space-3); height: 64px; flex: 0 0 64px;
       padding: 0 var(--space-4); box-sizing: border-box; border-bottom: 1px solid var(--color-divider); }
-    .pv__name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    .pv__spacer { flex: 1; }
+    .pv__name { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
       font-size: var(--font-size-md, 15px); font-weight: var(--font-weight-semi, 600); color: var(--color-text-primary); }
     .pv__icon { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px;
       padding: 0; border: none; background: transparent; border-radius: var(--radius-sm); cursor: pointer;
@@ -109,11 +118,12 @@ interface MockPage { n: number; heading?: string; paras: string[] }
     .pv__para mark { background: var(--color-highlight-mark, #FFDA07); color: inherit; }
     .pv__ver { flex: 0 0 auto; padding: 0 var(--space-2); height: 20px; line-height: 20px; border-radius: var(--radius-sm);
       background: var(--color-stone-300); font-size: var(--text-caption1-size, 12px); }
-    .pv__results { flex: 0 0 auto; display: inline-flex; align-items: center; gap: var(--space-1); height: 28px; padding: 0 var(--space-2);
-      border: none; border-radius: var(--radius-sm); background: var(--chip-bg-green); cursor: pointer; font-family: var(--font-family);
-      font-size: var(--text-caption1-size, 12px); color: var(--color-text-primary); }
-    .pv__results:hover { background: var(--color-primary-50); }
-    .pv__hl { background: var(--color-primary-100) !important; box-shadow: 0 0 0 2px var(--color-primary-100); }
+    .pv__res { flex: 0 0 auto; display: flex; align-items: center; gap: var(--space-1); height: 40px; padding: 0 var(--space-4);
+      box-sizing: border-box; background: var(--color-stone-0); border-bottom: 1px solid var(--color-divider); }
+    .pv__res-label { margin-right: var(--space-2); font-size: var(--font-size-base, 14px); color: var(--color-text-primary); }
+    .pv__res-pos { margin-left: var(--space-1); font-size: var(--text-caption1-size, 12px); color: var(--color-text-secondary); }
+    .pv__icon--s { width: 24px; height: 24px; }
+    .pv__hl { background: var(--ai-cite-highlight) !important; color: inherit; box-shadow: 0 0 0 2px var(--ai-cite-highlight); }
     .rp__top { display: flex; justify-content: space-between; margin-bottom: var(--space-8); font-size: var(--font-size-3xs, 10px);
       letter-spacing: 0.06em; color: var(--color-text-secondary); }
     .rp__title { margin: 0; font-size: var(--font-size-xl, 20px); line-height: 28px; }
@@ -138,8 +148,24 @@ export class VdrDocPreviewComponent implements OnChanges {
   /** V1.2 — the cited quote, marked on `page`. */
   @Input() highlight = '';
   @Input() version = '';
-  /** V1.2 — "N results used in answer". */
-  @Input() resultsCount = 0;
+  /** V1.2 — the passages to step through; when set they drive the page and the highlight. */
+  @Input() results: { page: number; quote: string }[] = [];
+  resultIdx = 0;
+
+  get resultList(): { page: number; quote: string }[] {
+    if (this.results.length) return this.results;
+    return this.highlight ? [{ page: this.page ?? 1, quote: this.highlight }] : [];
+  }
+  get activePage(): number { return this.resultList[this.resultIdx]?.page ?? this.page ?? 1; }
+  get activeQuote(): string { return this.resultList[this.resultIdx]?.quote ?? ''; }
+
+  step(d: number): void {
+    const n = this.resultList.length;
+    if (!n) return;
+    this.resultIdx = (this.resultIdx + d + n) % n;
+    this.currentPage = this.activePage;
+    setTimeout(() => this.jumpTo(this.activePage));
+  }
   @Output() closed = new EventEmitter<void>();
 
   @ViewChild('scroller') scroller?: ElementRef<HTMLElement>;
@@ -162,7 +188,9 @@ export class VdrDocPreviewComponent implements OnChanges {
 
   ngOnChanges(): void {
     this.pages = this.buildPages();
-    this.currentPage = this.page ?? 1;
+    const hit = this.resultList.findIndex(r => r.page === this.page);
+    this.resultIdx = hit >= 0 ? hit : 0;
+    this.currentPage = this.resultList.length ? this.activePage : this.page ?? 1;
     setTimeout(() => this.jumpTo(this.currentPage));
   }
 

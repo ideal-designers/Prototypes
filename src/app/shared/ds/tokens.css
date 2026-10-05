@@ -750,3 +750,15 @@
   --ai-ring-mid:   rgba(25, 175, 194, 0.9);
   --ai-ring-end:   rgba(90, 123, 240, 0);
 }
+
+/* ── AI citation in use (docs-ai-search V1.2, Figma 720:132036) ───────────────
+   The chip whose source is open in the preview, and the cited passage there. */
+:root {
+  --ai-cite-active-bg:   #E89B00;
+  --ai-cite-active-text: #FFFFFF;
+  --ai-cite-highlight:   #FFD88A;
+}
+.dark-theme {
+  --ai-cite-active-bg:   #C98500;
+  --ai-cite-highlight:   #6B5320;
+}
