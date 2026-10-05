@@ -743,3 +743,10 @@
   --ai-edge-end:   #4B4891;
   --ai-edge: linear-gradient(90deg, var(--ai-edge-start), var(--ai-edge-end));
 }
+
+/* ── AI orb thinking ring (fvdr-ai-orb, Figma 627:80204 angular gradient) ───── */
+:root {
+  --ai-ring-start: rgba(43, 182, 115, 0);
+  --ai-ring-mid:   rgba(25, 175, 194, 0.9);
+  --ai-ring-end:   rgba(90, 123, 240, 0);
+}

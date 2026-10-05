@@ -281,7 +281,7 @@ type AiState = 'loading' | 'clarify' | 'answer';
                   (folderOpened)="chatSourcesFor = v; selectedId = $event.id; chatRef.showSource(sourceItem($event))"></fvdr-vdr-v12-answer>
                 <button type="button" class="chat__suggest" *ngIf="m.done && v.next && m.id === lastAssistantId"
                         (click)="chatRef.draft = v.next!">
-                  <fvdr-thinking-orbs label="Suggested" [size]="16" [showPill]="false" [showLabel]="false"></fvdr-thinking-orbs>{{ v.next }}
+                  <fvdr-ai-orb [size]="16" [showLabel]="false"></fvdr-ai-orb>{{ v.next }}
                 </button>
               </ng-container>
               <ng-template #v1Msg>

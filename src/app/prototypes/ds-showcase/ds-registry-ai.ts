@@ -713,6 +713,46 @@ const aiEmptyState = ai({
     'Implement fvdr-ai-empty-state (FVDR DS, AI Assistant section). Inputs: greeting:string="How can I help you today?", subtitle:string, placeholder:string, suggestions:string[], compact:boolean, busy:boolean, disabled:boolean. Outputs: promptSubmitted:string, contextRequested, voiceRequested. Public focus() forwards to the composer. Centred column: an 80px bare fvdr-thinking-orbs (vortex, [showPill]=false [showLabel]=false), 24px semibold greeting, then an actions block (max-width 680px) holding fvdr-ai-composer and fvdr-ai-suggestions. Composer and suggestions travel together so compact shells can dock the pair; compact drops the orb to 56px, the greeting to 16px and stacks the chips.',
 });
 
+const aiOrb = ai({
+  id: 'ai-orb',
+  name: 'AI Orb',
+  selector: 'fvdr-ai-orb',
+  description:
+    'The assistant’s mark, taken from the designer’s renders (Figma AI-Assistant 622:9873 · Chat V2). `hero` is the glowing sphere with sparkles on the chat empty state; `inline` is the small gradient ball next to "Thinking…", a live step or a suggested next question. `thinking` spins a 2px angular-gradient ring around the inline ball.',
+  whenToUse: [
+    'Chat empty state, above the greeting (variant="hero")',
+    'The "Thinking…" row and the live step of a streaming answer ([thinking]="true")',
+    'In front of a suggested next question under an answer',
+  ],
+  whenNotToUse: [
+    'Long-running progress with a percentage (use Progress)',
+    'Loading a regular page or table (use the spinner icon)',
+    'Decoration outside AI surfaces',
+  ],
+  relatedComponents: ['thinking-orbs', 'ai-empty-state', 'ai-steps'],
+  anatomy: [
+    { index: 1, part: 'Hero', spec: '120×120 box, 236px render with the glow spilling out · gentle 6s float' },
+    { index: 2, part: 'Ball', spec: 'inline · size (default 20px) · render is 1.4× for its halo' },
+    { index: 3, part: 'Ring', spec: 'thinking only · 2px conic gradient --ai-ring-start/mid/end · 1.1s spin' },
+    { index: 4, part: 'Label', spec: 'optional · 14px --color-text-secondary · also the accessible name' },
+  ],
+  states: [
+    { name: 'Idle',     description: 'Ball only — next-question suggestions.' },
+    { name: 'Thinking', description: 'Ring spins and the ball breathes; role="status" when labelled.' },
+    { name: 'Reduced motion', description: 'All animation stops; the ring stays visible.' },
+  ],
+  tokens: [
+    { token: '--ai-ring-start', value: 'rgba(43,182,115,0)',   usage: 'Ring gradient start' },
+    { token: '--ai-ring-mid',   value: 'rgba(25,175,194,0.9)', usage: 'Ring gradient peak' },
+    { token: '--ai-ring-end',   value: 'rgba(90,123,240,0)',   usage: 'Ring gradient end' },
+  ],
+  codeSnippet: `<fvdr-ai-orb variant="hero"></fvdr-ai-orb>
+<fvdr-ai-orb [thinking]="true" label="Thinking..."></fvdr-ai-orb>
+<fvdr-ai-orb [showLabel]="false"></fvdr-ai-orb>`,
+  claudePrompt:
+    'Implement fvdr-ai-orb (FVDR DS, AI Assistant section; Figma AI-Assistant Vhy3jLaJ9nasbzTtqbu3qB 622:72586 hero, 627:80203 inline). Inputs: variant:"hero"|"inline"="inline" (export type AiOrbVariant), size=20 (inline ball px), thinking=false, label="", showLabel=true. Hero: 120px box with assets/ai/orb-hero.png drawn at 236px centred (glow overflows, pointer-events none, 6s float). Inline: assets/ai/orb-ball.png at 1.4×size; thinking grows the box to 1.4×size and adds a 2px ring — conic-gradient(--ai-ring-start, --ai-ring-mid, --ai-ring-end) masked to a ring, spinning 1.1s linear; the ball breathes 0.92↔1. role="status" + aria-label when labelled, aria-hidden otherwise; prefers-reduced-motion stops all animation.',
+});
+
 const aiSuggestions = ai({
   id: 'ai-suggestions',
   name: 'AI Suggestions',
@@ -1549,6 +1589,7 @@ export const DS_AI_PLANNED: ComponentDocEntry[] = [
   // Conversation core
   aiConversation,
   aiEmptyState,
+  aiOrb,
   aiSuggestions,
   aiMarkdown,
   aiToolCall,

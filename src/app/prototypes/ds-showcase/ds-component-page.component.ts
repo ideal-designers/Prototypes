@@ -2515,6 +2515,23 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
           </div>
         </ng-container>
 
+        <!-- ═══ AI ORB ═══ -->
+        <ng-container *ngSwitchCase="'ai-orb'">
+          <div class="example-block">
+            <p class="example-label">variant="hero" — chat empty state (Figma 622:72586)</p>
+            <div class="example-row" style="padding:56px 0; justify-content:center"><fvdr-ai-orb variant="hero"></fvdr-ai-orb></div>
+          </div>
+          <div class="example-block">
+            <p class="example-label">Inline — thinking, live step, suggestion</p>
+            <div class="example-row" style="flex-wrap:wrap; gap:24px">
+              <fvdr-ai-orb [thinking]="true" label="Thinking..."></fvdr-ai-orb>
+              <fvdr-ai-orb [thinking]="true" label="Selected folders..."></fvdr-ai-orb>
+              <fvdr-ai-orb label="Draft the request list for the seller?"></fvdr-ai-orb>
+              <fvdr-ai-orb [size]="16" [showLabel]="false"></fvdr-ai-orb>
+            </div>
+          </div>
+        </ng-container>
+
         <!-- ═══ THINKING ORBS ═══ -->
         <ng-container *ngSwitchCase="'thinking-orbs'">
 

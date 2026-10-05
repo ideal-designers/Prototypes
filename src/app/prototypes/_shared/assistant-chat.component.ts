@@ -94,7 +94,7 @@ export interface VdrChatSourceGroup { title: string; items: VdrChatSourceItem[] 
             <!-- ── Empty state ── -->
             <!-- ── Empty state · project brief (Chat V2) ── -->
             <div class="empty empty--brief" *ngIf="!turns.length && brief.length">
-              <fvdr-thinking-orbs label="AI Assistant" [size]="80" [showPill]="false" [showLabel]="false"></fvdr-thinking-orbs>
+              <fvdr-ai-orb variant="hero" class="empty__orb"></fvdr-ai-orb>
               <div class="empty__txt empty__txt--wide">
                 <h2 class="empty__title">{{ greeting }}</h2>
                 <p class="empty__sub">{{ subtitle }}</p>
@@ -117,7 +117,7 @@ export interface VdrChatSourceGroup { title: string; items: VdrChatSourceItem[] 
             </div>
 
             <div class="empty" *ngIf="!turns.length && !brief.length">
-              <fvdr-thinking-orbs label="AI Assistant" [size]="80" [showPill]="false" [showLabel]="false"></fvdr-thinking-orbs>
+              <fvdr-ai-orb variant="hero" class="empty__orb"></fvdr-ai-orb>
               <div class="empty__txt">
                 <h2 class="empty__title">{{ greeting }}</h2>
                 <p class="empty__sub">{{ subtitle }}</p>
@@ -154,12 +154,12 @@ export interface VdrChatSourceGroup { title: string; items: VdrChatSourceItem[] 
 
                 <div class="a" *ngIf="t.role === 'assistant'">
                   <!-- Thinking, no steps yet -->
-                  <fvdr-thinking-orbs *ngIf="t.streaming && !t.steps?.length" class="a__think" label="Thinking..." [size]="20" [showPill]="false"></fvdr-thinking-orbs>
+                  <fvdr-ai-orb *ngIf="t.streaming && !t.steps?.length" class="a__think" [thinking]="true" label="Thinking..."></fvdr-ai-orb>
 
                   <!-- Live steps -->
                   <ul class="steps" *ngIf="t.streaming && t.steps?.length">
                     <li class="step" *ngFor="let s of t.steps; let last = last" [class.step--live]="!s.done">
-                      <fvdr-thinking-orbs *ngIf="!s.done" [size]="16" [showPill]="false" [showLabel]="false" label="Working"></fvdr-thinking-orbs>
+                      <fvdr-ai-orb *ngIf="!s.done" [thinking]="true" [size]="14" [showLabel]="false" label="Working"></fvdr-ai-orb>
                       <fvdr-icon *ngIf="s.done" name="check" class="step__ok"></fvdr-icon>
                       <span class="step__label">{{ s.label }}</span>
                       <span class="step__meta" *ngIf="s.detail">{{ s.detail }}</span>
@@ -340,6 +340,8 @@ export interface VdrChatSourceGroup { title: string; items: VdrChatSourceItem[] 
 
     .a { display: flex; flex-direction: column; gap: var(--space-2); }
     .a__think { align-self: flex-start; }
+    .empty__orb { position: relative; z-index: 0; margin: var(--space-6) 0 var(--space-2); } /* the render's glow needs air */
+    .empty__txt, .brief, .cats, .examples { position: relative; z-index: 1; } /* text sits over the orb's glow */
     .steps { display: flex; flex-direction: column; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
     .steps--audit { padding-left: var(--space-1); margin-bottom: var(--space-2); }
     .step { display: flex; align-items: center; gap: var(--space-2); line-height: 20px; color: var(--color-text-secondary); }

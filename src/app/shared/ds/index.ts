@@ -55,6 +55,7 @@
  * AI Assistant section — components/ai/* (see also DS category "AI Assistant" on /ds):
  *   <fvdr-ask-ideon>           → Branded 'Ask Ideon' AI pill (glass + animated mesh gradient)
  *   <fvdr-thinking-orbs>       → Thinking/waiting indicator (3D dot sphere on canvas + label pill)
+ *   <fvdr-ai-orb>              → Assistant mark from the Chat V2 renders — hero sphere / inline ball + thinking ring
  *   <fvdr-ai-composer>         → Prompt input (auto-grow, add-context / voice / send)
  *   <fvdr-ai-steps>            → Streaming reasoning trace ("Thought for Ns", audit trail)
  *   <fvdr-ai-bubble>           → Conversation turn container (user bubble / assistant column)
@@ -142,6 +143,7 @@ import { FloatingPanelComponent } from './components/floating-panel/floating-pan
 import { FilterBtnComponent } from './components/filter-btn/filter-btn.component';
 import { AskIdeonComponent } from './components/ai/ask-ideon/ask-ideon.component';
 import { ThinkingOrbsComponent } from './components/ai/thinking-orbs/thinking-orbs.component';
+import { AiOrbComponent } from './components/ai/ai-orb/ai-orb.component';
 import { AiComposerComponent } from './components/ai/ai-composer/ai-composer.component';
 import { AiStepsComponent } from './components/ai/ai-steps/ai-steps.component';
 import { AiBubbleComponent } from './components/ai/ai-bubble/ai-bubble.component';
@@ -301,6 +303,8 @@ export type { FilterBtnSize, FilterBtnColor } from './components/filter-btn/filt
 export { AskIdeonComponent } from './components/ai/ask-ideon/ask-ideon.component';
 
 export { ThinkingOrbsComponent } from './components/ai/thinking-orbs/thinking-orbs.component';
+export { AiOrbComponent } from './components/ai/ai-orb/ai-orb.component';
+export type { AiOrbVariant } from './components/ai/ai-orb/ai-orb.component';
 export type { ThinkingOrbsVariant } from './components/ai/thinking-orbs/thinking-orbs.component';
 
 export { AiComposerComponent } from './components/ai/ai-composer/ai-composer.component';
@@ -450,6 +454,7 @@ export const DS_COMPONENTS = [
   // AI Assistant
   AskIdeonComponent,
   ThinkingOrbsComponent,
+  AiOrbComponent,
   AiComposerComponent,
   AiStepsComponent,
   AiBubbleComponent,
