@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { environment } from '../../environments/environment';
 import { PROTO_REGISTRY, ProtoMeta } from '../proto-registry';
+import { PROTO_META } from '../proto-meta.generated';
 
 /*
   Supabase table (run once in your Supabase SQL editor):
@@ -34,6 +35,23 @@ export interface PrototypeDef {
   created_at?: string;
   /** true when an Angular component exists in proto-registry.ts */
   hasComponent: boolean;
+  /** ISO date of the last change — git history (proto-meta.generated.ts), else created_at */
+  updated_at?: string;
+  /** Last human author from git history */
+  author?: string;
+  /** Thumbnail under assets/previews, when captured */
+  previewUrl?: string;
+}
+
+/** Adds git-derived freshness + preview info from proto-meta.generated.ts. */
+function withMeta(p: PrototypeDef): PrototypeDef {
+  const meta = PROTO_META[p.slug] ?? {};
+  return {
+    ...p,
+    updated_at: meta.updated ?? p.created_at,
+    author: meta.author,
+    previewUrl: meta.preview ? `assets/previews/${p.slug}.jpg` : undefined,
+  };
 }
 
 @Injectable({ providedIn: 'root' })
@@ -59,7 +77,7 @@ export class PrototypeService {
   /** Returns all non-archived prototypes, merging Supabase + local registry. */
   async list(): Promise<PrototypeDef[]> {
     if (!this.supabase) {
-      return PROTO_REGISTRY.map(p => ({ ...p, hasComponent: true })) as PrototypeDef[];
+      return (PROTO_REGISTRY.map(p => ({ ...p, hasComponent: true })) as PrototypeDef[]).map(withMeta);
     }
 
     const { data, error } = await this.supabase
@@ -70,7 +88,7 @@ export class PrototypeService {
 
     if (error) {
       console.warn('[PrototypeService] Supabase error, falling back to local registry:', error.message);
-      return PROTO_REGISTRY.map(p => ({ ...p, hasComponent: true })) as PrototypeDef[];
+      return (PROTO_REGISTRY.map(p => ({ ...p, hasComponent: true })) as PrototypeDef[]).map(withMeta);
     }
 
     const supabaseEntries: PrototypeDef[] = (data ?? []).map((row: any) => {
@@ -91,7 +109,7 @@ export class PrototypeService {
       .filter(p => !supabaseSlugs.has(p.slug) && p.status !== 'archived')
       .map(p => ({ ...p, hasComponent: true }));
 
-    return [...supabaseEntries, ...localOnly];
+    return [...supabaseEntries, ...localOnly].map(withMeta);
   }
 
   /** Creates a new prototype entry in Supabase (status = 'pending'). */
@@ -105,7 +123,7 @@ export class PrototypeService {
       .single();
 
     if (error) throw error;
-    return { ...data, hasComponent: false };
+    return withMeta({ ...data, hasComponent: false });
   }
 
   /** Updates the status of a prototype. UPSERTs into Supabase so that
@@ -121,7 +139,7 @@ export class PrototypeService {
         .select()
         .single();
       if (error) throw error;
-      return { ...proto, ...data, hasComponent: proto.hasComponent };
+      return withMeta({ ...proto, ...data, hasComponent: proto.hasComponent });
     }
 
     const { data, error } = await this.supabase
@@ -136,7 +154,7 @@ export class PrototypeService {
       .select()
       .single();
     if (error) throw error;
-    return { ...proto, ...data, hasComponent: proto.hasComponent };
+    return withMeta({ ...proto, ...data, hasComponent: proto.hasComponent });
   }
 
   /** Soft-deletes a prototype by setting status = 'archived'. */

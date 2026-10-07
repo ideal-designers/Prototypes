@@ -4,11 +4,14 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { PrototypeService, PrototypeDef } from '../../services/prototype.service';
 import { DS_COMPONENTS, ToastService } from '../../shared/ds';
-import type { DroplistItem, SegmentItem, StatusVariant } from '../../shared/ds';
+import type { DropdownOption, DroplistItem, SegmentItem, StatusVariant } from '../../shared/ds';
 
 type ViewMode = 'list' | 'cards';
 type StatusFilter = 'all' | 'live' | 'wip' | 'pending';
+type SortMode = 'updated' | 'name';
 const VIEW_MODE_STORAGE_KEY = 'fvdr-home-view-mode';
+const SORT_STORAGE_KEY = 'fvdr-home-sort';
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 const STATUS_VIEW: Record<string, { variant: StatusVariant; label: string }> = {
   live:     { variant: 'active',      label: 'Live' },
@@ -49,6 +52,9 @@ const STATUS_VIEW: Record<string, { variant: StatusVariant; label: string }> = {
                        placeholder="Search by title, description or slug" />
           <fvdr-segment variant="table" size="md" [items]="statusItems"
                         [activeId]="statusFilter" (activeIdChange)="statusFilter = $any($event)" />
+          <fvdr-dropdown class="toolbar__sort" size="m" iconLeft="sort"
+                         [options]="sortOptions" [value]="sortMode"
+                         (valueChange)="setSortMode($any(asString($event)))" />
           <fvdr-segment variant="table" size="md" [items]="viewItems"
                         [activeId]="viewMode" (activeIdChange)="setViewMode($any($event))" />
         </div>
@@ -60,6 +66,7 @@ const STATUS_VIEW: Record<string, { variant: StatusVariant; label: string }> = {
               <span class="skel skel--title"></span>
               <span class="skel skel--desc"></span>
             </div>
+            <span class="skel skel--meta"></span>
             <span class="skel skel--pill"></span>
           </div>
         </div>
@@ -67,7 +74,7 @@ const STATUS_VIEW: Record<string, { variant: StatusVariant; label: string }> = {
         <!-- ── List view ── -->
         <div *ngIf="!loading && viewMode === 'list' && filteredProtos.length" class="list" role="list">
           <div class="list__head" aria-hidden="true">
-            <span>Name</span><span>Route</span><span>Status</span><span></span>
+            <span>Name</span><span>Route</span><span>Last updated</span><span>Status</span><span></span>
           </div>
           <div *ngFor="let proto of filteredProtos; trackBy: bySlug"
                class="row" role="listitem"
@@ -80,6 +87,10 @@ const STATUS_VIEW: Record<string, { variant: StatusVariant; label: string }> = {
               <span *ngIf="proto.description" class="row__desc">{{ proto.description }}</span>
             </div>
             <span class="row__slug">/{{ proto.slug }}</span>
+            <span class="row__updated" [attr.title]="updatedTitle(proto)">
+              <span class="row__date">{{ relativeDate(proto.updated_at) }}</span>
+              <span *ngIf="proto.author" class="row__author">{{ proto.author }}</span>
+            </span>
             <span class="row__status">
               <fvdr-status [variant]="statusOf(proto).variant" [label]="statusOf(proto).label" />
             </span>
@@ -92,15 +103,30 @@ const STATUS_VIEW: Record<string, { variant: StatusVariant; label: string }> = {
           <div *ngFor="let proto of filteredProtos; trackBy: bySlug"
                class="card" [class.card--clickable]="proto.hasComponent"
                (click)="open(proto)">
-            <div class="card__top">
-              <fvdr-status [variant]="statusOf(proto).variant" [label]="statusOf(proto).label" />
-              <ng-container *ngTemplateOutlet="actions; context: { $implicit: proto }" />
+            <div class="card__thumb">
+              <img *ngIf="proto.previewUrl && !brokenPreviews.has(proto.slug); else thumbPlaceholder"
+                   class="card__img" [src]="proto.previewUrl" alt="" loading="lazy"
+                   (error)="brokenPreviews.add(proto.slug)" />
+              <ng-template #thumbPlaceholder>
+                <span class="card__placeholder"><fvdr-icon name="image" /></span>
+              </ng-template>
             </div>
-            <a *ngIf="proto.hasComponent; else plainCardTitle" class="card__title"
-               [routerLink]="['/', proto.slug]" (click)="$event.stopPropagation()">{{ proto.title }}</a>
-            <ng-template #plainCardTitle><span class="card__title">{{ proto.title }}</span></ng-template>
-            <p *ngIf="proto.description" class="card__desc">{{ proto.description }}</p>
-            <span class="card__slug">/{{ proto.slug }}</span>
+            <div class="card__body">
+              <div class="card__top">
+                <fvdr-status [variant]="statusOf(proto).variant" [label]="statusOf(proto).label" />
+                <ng-container *ngTemplateOutlet="actions; context: { $implicit: proto }" />
+              </div>
+              <a *ngIf="proto.hasComponent; else plainCardTitle" class="card__title"
+                 [routerLink]="['/', proto.slug]" (click)="$event.stopPropagation()">{{ proto.title }}</a>
+              <ng-template #plainCardTitle><span class="card__title">{{ proto.title }}</span></ng-template>
+              <p *ngIf="proto.description" class="card__desc">{{ proto.description }}</p>
+              <div class="card__foot">
+                <span class="card__slug">/{{ proto.slug }}</span>
+                <span *ngIf="proto.updated_at" class="card__updated" [attr.title]="updatedTitle(proto)">
+                  {{ relativeDate(proto.updated_at) }}<ng-container *ngIf="proto.author"> · {{ proto.author }}</ng-container>
+                </span>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -219,11 +245,12 @@ const STATUS_VIEW: Record<string, { variant: StatusVariant; label: string }> = {
       border-bottom: 1px solid var(--color-divider);
     }
     .toolbar__search { flex: 1 1 280px; min-width: 240px; }
+    .toolbar__sort { flex: 0 0 200px; }
 
     /* ── List ── */
     .list__head, .row {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(0, 220px) 104px 88px;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 200px) 152px 104px 88px;
       align-items: center;
       gap: var(--space-4);
       padding: 0 var(--space-3);
@@ -265,6 +292,14 @@ const STATUS_VIEW: Record<string, { variant: StatusVariant; label: string }> = {
       overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     }
 
+    .row__updated { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+    .row__date { font-size: var(--text-body2-size); color: var(--color-text-primary); }
+    .row__author {
+      font-size: var(--text-caption1-size);
+      color: var(--color-text-secondary);
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+
     /* ── Cards ── */
     .grid {
       display: grid;
@@ -273,8 +308,8 @@ const STATUS_VIEW: Record<string, { variant: StatusVariant; label: string }> = {
       padding-top: var(--space-6);
     }
     .card {
-      display: flex; flex-direction: column; gap: var(--space-2);
-      padding: var(--space-4) var(--space-5) var(--space-5);
+      display: flex; flex-direction: column;
+      overflow: hidden;
       border: 1px solid var(--color-divider);
       border-radius: var(--radius-md);
       background: var(--color-stone-0);
@@ -282,6 +317,27 @@ const STATUS_VIEW: Record<string, { variant: StatusVariant; label: string }> = {
     }
     .card--clickable { cursor: pointer; }
     .card--clickable:hover { border-color: var(--color-primary-500); box-shadow: var(--shadow-card-hover); }
+    .card__thumb {
+      aspect-ratio: 16 / 10;
+      background: var(--color-stone-100);
+      border-bottom: 1px solid var(--color-divider);
+      overflow: hidden;
+    }
+    .card__img {
+      display: block; width: 100%; height: 100%;
+      object-fit: cover; object-position: top left;
+    }
+    .card__placeholder {
+      display: flex; align-items: center; justify-content: center;
+      width: 100%; height: 100%;
+      font-size: var(--font-size-3xl);
+      color: var(--color-stone-500);
+    }
+    .card__body {
+      flex: 1;
+      display: flex; flex-direction: column; gap: var(--space-2);
+      padding: var(--space-3) var(--space-5) var(--space-5);
+    }
     .card__top { display: flex; align-items: center; justify-content: space-between; min-height: 32px; }
     .card__title {
       font-size: var(--text-sub1-size);
@@ -296,12 +352,18 @@ const STATUS_VIEW: Record<string, { variant: StatusVariant; label: string }> = {
       color: var(--color-text-secondary);
       display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
     }
-    .card__slug {
+    .card__foot {
       margin-top: auto; padding-top: var(--space-2);
-      font-family: var(--font-family-mono);
+      display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3);
       font-size: var(--text-caption1-size);
-      color: var(--color-text-placeholder);
+      min-width: 0;
     }
+    .card__slug {
+      font-family: var(--font-family-mono);
+      color: var(--color-text-placeholder);
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .card__updated { flex-shrink: 0; color: var(--color-text-secondary); }
 
     /* ── Actions ── */
     .actions { display: flex; align-items: center; justify-content: flex-end; gap: var(--space-1); }
@@ -319,7 +381,8 @@ const STATUS_VIEW: Record<string, { variant: StatusVariant; label: string }> = {
     }
     .skel--title { width: 40%; height: 14px; }
     .skel--desc  { width: 65%; height: 12px; margin-top: var(--space-2); }
-    .skel--pill  { grid-column: 3; width: 56px; height: 22px; border-radius: var(--radius-full); }
+    .skel--meta  { grid-column: 3; width: 72%; height: 12px; }
+    .skel--pill  { grid-column: 4; width: 56px; height: 22px; border-radius: var(--radius-full); }
     @keyframes shimmer { from { background-position: 100% 0; } to { background-position: -100% 0; } }
 
     /* ── Empty ── */
@@ -350,8 +413,9 @@ const STATUS_VIEW: Record<string, { variant: StatusVariant; label: string }> = {
       .home__inner { padding: var(--space-6) var(--space-4) var(--space-10); }
       .list__head { display: none; }
       .row { grid-template-columns: minmax(0, 1fr) auto auto; }
-      .row__slug { display: none; }
+      .row__slug, .row__updated, .skel--meta { display: none; }
       .skel--pill { grid-column: 2; }
+      .toolbar__sort { flex: 1 1 200px; }
     }
   `],
 })
@@ -365,7 +429,15 @@ export class HomeComponent implements OnInit {
 
   viewMode: ViewMode = 'list';
   statusFilter: StatusFilter = 'all';
+  sortMode: SortMode = 'updated';
   searchQuery = '';
+
+  readonly sortOptions: DropdownOption[] = [
+    { value: 'updated', label: 'Recently updated' },
+    { value: 'name',    label: 'Name A–Z' },
+  ];
+  /** Slugs whose thumbnail failed to load — show the placeholder instead */
+  readonly brokenPreviews = new Set<string>();
 
   readonly skeletonRows = Array.from({ length: 8 });
   readonly viewItems: SegmentItem[] = [
@@ -391,6 +463,7 @@ export class HomeComponent implements OnInit {
 
   async ngOnInit(): Promise<void> {
     this.viewMode = this.readViewMode();
+    this.sortMode = this.readSortMode();
     this.loading = true;
     this.protos = await this.svc.list();
     this.loading = false;
@@ -415,6 +488,21 @@ export class HomeComponent implements OnInit {
     }
   }
 
+  setSortMode(mode: SortMode): void {
+    this.sortMode = mode;
+    try { localStorage.setItem(SORT_STORAGE_KEY, mode); } catch {}
+  }
+
+  private readSortMode(): SortMode {
+    try {
+      return localStorage.getItem(SORT_STORAGE_KEY) === 'name' ? 'name' : 'updated';
+    } catch {
+      return 'updated';
+    }
+  }
+
+  asString(v: string | string[]): string { return Array.isArray(v) ? v[0] : v; }
+
   private effectiveStatus(p: PrototypeDef): PrototypeDef['status'] {
     return p.hasComponent ? p.status : 'pending';
   }
@@ -437,13 +525,49 @@ export class HomeComponent implements OnInit {
 
   get filteredProtos(): PrototypeDef[] {
     const q = this.searchQuery.trim().toLowerCase();
-    return this.protos.filter(p =>
+    const filtered = this.protos.filter(p =>
       (this.statusFilter === 'all' || this.effectiveStatus(p) === this.statusFilter) &&
       (!q ||
         p.title.toLowerCase().includes(q) ||
         (p.description ?? '').toLowerCase().includes(q) ||
         p.slug.toLowerCase().includes(q))
     );
+    const byName = (a: PrototypeDef, b: PrototypeDef) =>
+      a.title.localeCompare(b.title, undefined, { sensitivity: 'base' });
+    return this.sortMode === 'name'
+      ? filtered.sort(byName)
+      : filtered.sort((a, b) => (this.timeOf(b) - this.timeOf(a)) || byName(a, b));
+  }
+
+  private timeOf(p: PrototypeDef): number {
+    const t = p.updated_at ? Date.parse(p.updated_at) : NaN;
+    return Number.isNaN(t) ? 0 : t;
+  }
+
+  // ── Freshness ─────────────────────────────────────────────────────────────
+
+  /** "Today", "3 days ago", "2 weeks ago", then "12 Mar" / "12 Mar 2025" */
+  relativeDate(iso?: string): string {
+    if (!iso) return '—';
+    const date = new Date(iso);
+    if (Number.isNaN(date.getTime())) return '—';
+    const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+    const days = Math.round((startOfDay(new Date()) - startOfDay(date)) / DAY_MS);
+    if (days <= 0) return 'Today';
+    if (days === 1) return 'Yesterday';
+    if (days < 7) return `${days} days ago`;
+    if (days < 30) {
+      const weeks = Math.floor(days / 7);
+      return weeks === 1 ? '1 week ago' : `${weeks} weeks ago`;
+    }
+    const sameYear = date.getFullYear() === new Date().getFullYear();
+    return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', ...(sameYear ? {} : { year: 'numeric' }) });
+  }
+
+  updatedTitle(p: PrototypeDef): string | null {
+    if (!p.updated_at) return null;
+    const full = new Date(p.updated_at).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' });
+    return p.author ? `Updated ${full} by ${p.author}` : `Updated ${full}`;
   }
 
   resetFilters(): void {
