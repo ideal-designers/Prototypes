@@ -4,21 +4,13 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { PrototypeService, PrototypeDef } from '../../services/prototype.service';
 import { DS_COMPONENTS, ToastService } from '../../shared/ds';
-import type { DropdownOption, DroplistItem, SegmentItem, StatusVariant } from '../../shared/ds';
+import type { DropdownOption, DroplistItem, SegmentItem } from '../../shared/ds';
 
 type ViewMode = 'list' | 'cards';
-type StatusFilter = 'all' | 'live' | 'wip' | 'pending';
 type SortMode = 'updated' | 'name';
 const VIEW_MODE_STORAGE_KEY = 'fvdr-home-view-mode';
 const SORT_STORAGE_KEY = 'fvdr-home-sort';
 const DAY_MS = 24 * 60 * 60 * 1000;
-
-const STATUS_VIEW: Record<string, { variant: StatusVariant; label: string }> = {
-  live:     { variant: 'active',      label: 'Live' },
-  wip:      { variant: 'in-progress', label: 'WIP' },
-  pending:  { variant: 'draft',       label: 'Pending' },
-  archived: { variant: 'inactive',    label: 'Archived' },
-};
 
 @Component({
   selector: 'fvdr-home',
@@ -33,7 +25,7 @@ const STATUS_VIEW: Record<string, { variant: StatusVariant; label: string }> = {
           <div class="head__titles">
             <h1 class="head__title">Prototypes</h1>
             <p class="head__meta" *ngIf="!loading">
-              {{ protos.length }} prototypes · {{ countOf('live') }} live
+              {{ protos.length }} prototypes
             </p>
           </div>
           <div class="head__actions">
@@ -50,8 +42,6 @@ const STATUS_VIEW: Record<string, { variant: StatusVariant; label: string }> = {
         <div class="toolbar">
           <fvdr-search class="toolbar__search" [(ngModel)]="searchQuery"
                        placeholder="Search by title, description or slug" />
-          <fvdr-segment variant="table" size="md" [items]="statusItems"
-                        [activeId]="statusFilter" (activeIdChange)="statusFilter = $any($event)" />
           <fvdr-dropdown class="toolbar__sort" size="m" iconLeft="sort"
                          [options]="sortOptions" [value]="sortMode"
                          (valueChange)="setSortMode($any(asString($event)))" />
@@ -67,14 +57,13 @@ const STATUS_VIEW: Record<string, { variant: StatusVariant; label: string }> = {
               <span class="skel skel--desc"></span>
             </div>
             <span class="skel skel--meta"></span>
-            <span class="skel skel--pill"></span>
           </div>
         </div>
 
         <!-- ── List view ── -->
         <div *ngIf="!loading && viewMode === 'list' && filteredProtos.length" class="list" role="list">
           <div class="list__head" aria-hidden="true">
-            <span>Name</span><span>Route</span><span>Last updated</span><span>Status</span><span></span>
+            <span>Name</span><span>Route</span><span>Last updated</span><span></span>
           </div>
           <div *ngFor="let proto of filteredProtos; trackBy: bySlug"
                class="row" role="listitem"
@@ -90,9 +79,6 @@ const STATUS_VIEW: Record<string, { variant: StatusVariant; label: string }> = {
             <span class="row__updated" [attr.title]="updatedTitle(proto)">
               <span class="row__date">{{ relativeDate(proto.updated_at) }}</span>
               <span *ngIf="proto.author" class="row__author">{{ proto.author }}</span>
-            </span>
-            <span class="row__status">
-              <fvdr-status [variant]="statusOf(proto).variant" [label]="statusOf(proto).label" />
             </span>
             <ng-container *ngTemplateOutlet="actions; context: { $implicit: proto }" />
           </div>
@@ -113,12 +99,11 @@ const STATUS_VIEW: Record<string, { variant: StatusVariant; label: string }> = {
             </div>
             <div class="card__body">
               <div class="card__top">
-                <fvdr-status [variant]="statusOf(proto).variant" [label]="statusOf(proto).label" />
+                <a *ngIf="proto.hasComponent; else plainCardTitle" class="card__title"
+                   [routerLink]="['/', proto.slug]" (click)="$event.stopPropagation()">{{ proto.title }}</a>
+                <ng-template #plainCardTitle><span class="card__title">{{ proto.title }}</span></ng-template>
                 <ng-container *ngTemplateOutlet="actions; context: { $implicit: proto }" />
               </div>
-              <a *ngIf="proto.hasComponent; else plainCardTitle" class="card__title"
-                 [routerLink]="['/', proto.slug]" (click)="$event.stopPropagation()">{{ proto.title }}</a>
-              <ng-template #plainCardTitle><span class="card__title">{{ proto.title }}</span></ng-template>
               <p *ngIf="proto.description" class="card__desc">{{ proto.description }}</p>
               <div class="card__foot">
                 <span class="card__slug">/{{ proto.slug }}</span>
@@ -134,8 +119,8 @@ const STATUS_VIEW: Record<string, { variant: StatusVariant; label: string }> = {
         <div *ngIf="!loading && !filteredProtos.length" class="empty">
           <fvdr-icon name="search" class="empty__icon" />
           <ng-container *ngIf="protos.length; else noProtos">
-            <p class="empty__title">Nothing matches your filters</p>
-            <fvdr-btn label="Reset filters" variant="secondary" size="s" (clicked)="resetFilters()" />
+            <p class="empty__title">Nothing matches your search</p>
+            <fvdr-btn label="Clear search" variant="secondary" size="s" (clicked)="resetFilters()" />
           </ng-container>
           <ng-template #noProtos>
             <p class="empty__title">No prototypes yet</p>
@@ -250,7 +235,7 @@ const STATUS_VIEW: Record<string, { variant: StatusVariant; label: string }> = {
     /* ── List ── */
     .list__head, .row {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(0, 200px) 152px 104px 88px;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 220px) 160px 88px;
       align-items: center;
       gap: var(--space-4);
       padding: 0 var(--space-3);
@@ -338,7 +323,8 @@ const STATUS_VIEW: Record<string, { variant: StatusVariant; label: string }> = {
       display: flex; flex-direction: column; gap: var(--space-2);
       padding: var(--space-3) var(--space-5) var(--space-5);
     }
-    .card__top { display: flex; align-items: center; justify-content: space-between; min-height: 32px; }
+    .card__top { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-2); min-height: 32px; }
+    .card__top .card__title { padding-top: var(--space-1); }
     .card__title {
       font-size: var(--text-sub1-size);
       font-weight: var(--font-weight-semi);
@@ -382,7 +368,6 @@ const STATUS_VIEW: Record<string, { variant: StatusVariant; label: string }> = {
     .skel--title { width: 40%; height: 14px; }
     .skel--desc  { width: 65%; height: 12px; margin-top: var(--space-2); }
     .skel--meta  { grid-column: 3; width: 72%; height: 12px; }
-    .skel--pill  { grid-column: 4; width: 56px; height: 22px; border-radius: var(--radius-full); }
     @keyframes shimmer { from { background-position: 100% 0; } to { background-position: -100% 0; } }
 
     /* ── Empty ── */
@@ -412,9 +397,8 @@ const STATUS_VIEW: Record<string, { variant: StatusVariant; label: string }> = {
     @media (max-width: 767px) {
       .home__inner { padding: var(--space-6) var(--space-4) var(--space-10); }
       .list__head { display: none; }
-      .row { grid-template-columns: minmax(0, 1fr) auto auto; }
+      .row { grid-template-columns: minmax(0, 1fr) auto; }
       .row__slug, .row__updated, .skel--meta { display: none; }
-      .skel--pill { grid-column: 2; }
       .toolbar__sort { flex: 1 1 200px; }
     }
   `],
@@ -428,7 +412,6 @@ export class HomeComponent implements OnInit {
   loading = false;
 
   viewMode: ViewMode = 'list';
-  statusFilter: StatusFilter = 'all';
   sortMode: SortMode = 'updated';
   searchQuery = '';
 
@@ -444,7 +427,6 @@ export class HomeComponent implements OnInit {
     { id: 'list',  icon: 'list-view', label: 'List' },
     { id: 'cards', icon: 'grid-view', label: 'Cards' },
   ];
-  statusItems: SegmentItem[] = [];
 
   // Create modal
   createOpen = false;
@@ -467,7 +449,6 @@ export class HomeComponent implements OnInit {
     this.loading = true;
     this.protos = await this.svc.list();
     this.loading = false;
-    this.refreshStatusItems();
   }
 
   @HostListener('document:click') closeMenu(): void { this.menuFor = null; }
@@ -503,34 +484,13 @@ export class HomeComponent implements OnInit {
 
   asString(v: string | string[]): string { return Array.isArray(v) ? v[0] : v; }
 
-  private effectiveStatus(p: PrototypeDef): PrototypeDef['status'] {
-    return p.hasComponent ? p.status : 'pending';
-  }
-
-  countOf(status: StatusFilter): number {
-    return status === 'all'
-      ? this.protos.length
-      : this.protos.filter(p => this.effectiveStatus(p) === status).length;
-  }
-
-  private refreshStatusItems(): void {
-    const items: SegmentItem[] = [
-      { id: 'all',  label: 'All',  count: this.countOf('all') },
-      { id: 'live', label: 'Live', count: this.countOf('live') },
-      { id: 'wip',  label: 'WIP',  count: this.countOf('wip') },
-    ];
-    if (this.countOf('pending')) items.push({ id: 'pending', label: 'Pending', count: this.countOf('pending') });
-    this.statusItems = items;
-  }
-
   get filteredProtos(): PrototypeDef[] {
     const q = this.searchQuery.trim().toLowerCase();
     const filtered = this.protos.filter(p =>
-      (this.statusFilter === 'all' || this.effectiveStatus(p) === this.statusFilter) &&
-      (!q ||
+      !q ||
         p.title.toLowerCase().includes(q) ||
         (p.description ?? '').toLowerCase().includes(q) ||
-        p.slug.toLowerCase().includes(q))
+        p.slug.toLowerCase().includes(q)
     );
     const byName = (a: PrototypeDef, b: PrototypeDef) =>
       a.title.localeCompare(b.title, undefined, { sensitivity: 'base' });
@@ -572,10 +532,8 @@ export class HomeComponent implements OnInit {
 
   resetFilters(): void {
     this.searchQuery = '';
-    this.statusFilter = 'all';
   }
 
-  statusOf(p: PrototypeDef) { return STATUS_VIEW[this.effectiveStatus(p)]; }
   bySlug(_: number, p: PrototypeDef): string { return p.slug; }
 
   open(proto: PrototypeDef): void {
@@ -590,11 +548,6 @@ export class HomeComponent implements OnInit {
     const items: DroplistItem[] = [];
     if (proto.hasComponent) items.push({ id: 'copy', label: 'Copy link', icon: 'copy' });
     if (proto.figma) items.push({ id: 'figma', label: 'Open in Figma', icon: 'link' });
-    if (this.canToggleStatus(proto)) {
-      items.push(proto.status === 'wip'
-        ? { id: 'status', label: 'Mark as Live', icon: 'check' }
-        : { id: 'status', label: 'Move back to WIP', icon: 'undo' });
-    }
     if (!proto.hasComponent) items.push({ id: 'scaffold', label: 'Scaffold command', icon: 'copy' });
     if (items.length) items[items.length - 1] = { ...items[items.length - 1], dividerAfter: true };
     items.push({ id: 'archive', label: 'Archive', icon: 'trash', variant: 'danger' });
@@ -611,39 +564,12 @@ export class HomeComponent implements OnInit {
       case 'figma':
         window.open(proto.figma, '_blank', 'noopener');
         break;
-      case 'status':
-        this.toggleStatus(proto);
-        break;
       case 'scaffold':
         this.showScaffold(proto);
         break;
       case 'archive':
         this.archiveTarget = proto;
         break;
-    }
-  }
-
-  // ── Status (WIP ↔ Live) ───────────────────────────────────────────────────
-
-  canToggleStatus(proto: PrototypeDef): boolean {
-    return (
-      this.svc.hasSupabase &&
-      proto.hasComponent &&
-      (proto.status === 'wip' || proto.status === 'live')
-    );
-  }
-
-  async toggleStatus(proto: PrototypeDef): Promise<void> {
-    if (!this.canToggleStatus(proto)) return;
-    const next: PrototypeDef['status'] = proto.status === 'wip' ? 'live' : 'wip';
-    try {
-      const updated = await this.svc.setStatus(proto, next);
-      this.protos = this.protos.map(p => p.slug === proto.slug ? { ...p, ...updated } : p);
-      this.refreshStatusItems();
-      this.toast.show({ variant: 'success', message: `${proto.title} is now ${STATUS_VIEW[next].label}` });
-    } catch (err: any) {
-      console.error('[toggleStatus]', err);
-      this.toast.show({ variant: 'error', message: `Failed to update status: ${err?.message ?? err}` });
     }
   }
 
@@ -678,8 +604,7 @@ export class HomeComponent implements OnInit {
     try {
       const created = await this.svc.create(this.form);
       this.protos = [created, ...this.protos];
-      this.refreshStatusItems();
-      this.createOpen = false;
+        this.createOpen = false;
       this.copied = false;
       this.scaffoldCmd = this.buildCmd(created);
     } catch (err: any) {
@@ -705,8 +630,7 @@ export class HomeComponent implements OnInit {
     try {
       await this.svc.archive(target);
       this.protos = this.protos.filter(p => p.slug !== target.slug);
-      this.refreshStatusItems();
-      this.archiveTarget = null;
+        this.archiveTarget = null;
       this.toast.show({ variant: 'success', message: `${target.title} archived` });
     } catch (err: any) {
       console.error('[Archive]', err);
