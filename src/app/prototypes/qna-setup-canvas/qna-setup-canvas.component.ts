@@ -140,10 +140,10 @@ const TONES = [
               <fvdr-segment variant="table" size="sm" [items]="templateItems" [activeId]="templateId" (activeIdChange)="loadTemplate($any($event))"></fvdr-segment>
             </div>
           </div>
-          <button class="health" [class.health--error]="errorNodes.length" (click)="focusFirstError()">
-            <fvdr-icon [name]="errorNodes.length ? 'warning' : 'check'"></fvdr-icon>
-            <span *ngIf="!errorNodes.length">All roles have people</span>
-            <span *ngIf="errorNodes.length">{{ errorNodes.length }} {{ errorNodes.length === 1 ? 'role needs' : 'roles need' }} people</span>
+          <!-- shown only when something needs attention -->
+          <button class="health health--error" *ngIf="errorNodes.length" (click)="focusFirstError()">
+            <fvdr-icon name="warning"></fvdr-icon>
+            <span>{{ errorNodes.length }} {{ errorNodes.length === 1 ? 'role needs' : 'roles need' }} people</span>
           </button>
         </div>
 
