@@ -152,8 +152,8 @@ const TONES = [
           <!-- lanes: question team always on the left -->
           <ng-container *ngIf="lanes as L">
             <div class="lane-divider" [style.left.px]="L.x" [style.top.px]="L.top" [style.height.px]="L.height"></div>
-            <span class="lane-label lane-label--q" [style.left.px]="L.x - 16" [style.top.px]="L.top"><fvdr-icon name="group"></fvdr-icon>Question side</span>
-            <span class="lane-label lane-label--a" [style.left.px]="L.x + 16" [style.top.px]="L.top"><fvdr-icon name="comment"></fvdr-icon>Answer side</span>
+            <span class="lane-label lane-label--q" [style.left.px]="L.x - 16" [style.top.px]="L.top">Question side</span>
+            <span class="lane-label lane-label--a" [style.left.px]="L.x + 16" [style.top.px]="L.top">Answer side</span>
           </ng-container>
 
           <!-- edges -->
@@ -226,7 +226,7 @@ const TONES = [
                 <ng-container *ngIf="n.side === 'question'; else answerMembers">
                   <div class="team-chips">
                     <span class="team-chip" *ngFor="let t of teamsOf(n)">
-                      <fvdr-icon name="group"></fvdr-icon>{{ t.team }} <b>{{ t.count }}</b>
+                      {{ t.team }} <b>{{ t.count }}</b>
                     </span>
                   </div>
                 </ng-container>
@@ -242,11 +242,11 @@ const TONES = [
                   </div>
                 </ng-template>
                 <span class="node-note" *ngIf="dualCount(n) as d">
-                  <fvdr-icon name="info"></fvdr-icon>{{ d }} {{ d === 1 ? 'person also has' : 'people also have' }} another role
+                  {{ d }} {{ d === 1 ? 'person also has' : 'people also have' }} another role
                 </span>
               </ng-container>
               <ng-template #emptyDrop>
-                <div class="drop-empty"><fvdr-icon name="user-add"></fvdr-icon> Drop people here</div>
+                <div class="drop-empty">Drop people here</div>
               </ng-template>
             </div>
 
