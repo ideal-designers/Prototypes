@@ -67,6 +67,16 @@ interface FileRef {
               <div class="step__content">
                 <div class="step__title">{{ s.title }}</div>
                 <p class="step__desc">{{ s.desc }}</p>
+                <div class="download" *ngIf="s.num === 1">
+                  <fvdr-btn label="Завантажити sect-magic.mcpb" iconName="download"
+                            (clicked)="downloadSectMagic()" />
+                  <span class="download__meta">v{{ sectMagic.version }} · {{ sectMagic.size }} · macOS / Windows</span>
+                </div>
+                <p class="step__note" *ngIf="s.num === 1">
+                  Працюєш у Claude Code (термінал)? Попроси доступ до приватного репозиторію
+                  github.com/dmitriysiniehin-debug/sect-magic і дай Claude посилання:
+                  «https://github.com/dmitriysiniehin-debug/sect-magic — set this up for me».
+                </p>
                 <div class="code" *ngIf="s.code">
                   <pre class="code__text">{{ s.code }}</pre>
                   <fvdr-btn variant="ghost" size="s" [iconOnly]="true"
@@ -200,6 +210,13 @@ interface FileRef {
       margin: var(--space-6) 0 var(--space-3);
       font-size: var(--text-body1-size);
       font-weight: var(--font-weight-semi);
+    }
+    .download { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; }
+    .download__meta { font-size: var(--text-caption1-size); color: var(--color-text-secondary); }
+    .step__note {
+      margin: var(--space-3) 0 0;
+      font-size: var(--text-caption1-size);
+      color: var(--color-text-secondary);
     }
     .prompts { display: flex; flex-direction: column; gap: var(--space-2); }
     .tips {
@@ -368,23 +385,20 @@ export class DocsComponent {
     },
   ];
 
+  /** Claude Desktop extension served from src/assets/downloads — replace the file on new releases */
+  readonly sectMagic = { url: 'assets/downloads/sect-magic.mcpb', version: '2.2.0', size: '3.7 MB' };
+
   figmaSetup: Step[] = [
     {
       num: 1,
-      title: 'Отримай доступ до Sect Magic',
-      desc: 'Репозиторій приватний — попроси власника (GitHub: dmitriysiniehin-debug) додати тебе до github.com/dmitriysiniehin-debug/sect-magic.',
+      title: 'Встанови Sect Magic у Claude Desktop',
+      desc: 'Завантаж файл і двічі клікни по ньому — Claude Desktop відкриється й запропонує встановити Sect-Magic. Натисни Install.',
       code: '',
     },
     {
       num: 2,
-      title: 'Встанови Sect Magic',
-      desc: 'Claude Desktop: завантаж sect-magic.mcpb з останнього релізу (Releases → latest), двічі клікни й натисни Install. Claude Code: дай Claude посилання на репозиторій — він сам склонує, налаштує й запустить міст.',
-      code: 'https://github.com/dmitriysiniehin-debug/sect-magic — set this up for me',
-    },
-    {
-      num: 3,
       title: 'Імпортуй плагін Soul Connector у Figma',
-      desc: 'Тільки Figma Desktop (не браузер). Відкрий будь-який файл → Plugins → Development → Import plugin from manifest… і вибери manifest.json. Не знаєш, де він? Спитай Claude — шлях покаже Sect Magic.',
+      desc: 'Тільки Figma Desktop (не браузер). Відкрий будь-який файл → Plugins → Development → Import plugin from manifest… і вибери ~/SoulConnector/manifest.json — Sect Magic кладе його туди сам. Не знаходиш? Спитай Claude:',
       code: 'Як налаштувати Soul Connector?',
     },
   ];
@@ -401,6 +415,13 @@ export class DocsComponent {
     'Відкрито кілька файлів — назви потрібний: «у файлі Documents…». Без цього Claude не вгадуватиме.',
     'Імпорт стилів або змінних FVDR зависає, якщо бібліотека FVDR не увімкнена у файлі. Увімкни її в Assets → Libraries. Після зависання закрий і знову відкрий Soul Connector.',
   ];
+
+  downloadSectMagic(): void {
+    const a = document.createElement('a');
+    a.href = this.sectMagic.url;
+    a.download = 'sect-magic.mcpb';
+    a.click();
+  }
 
   knowledgeRows = [
     { topic: 'DS Токени',         detail: 'Кольори, spacing, тіні, radius, типографіка',        source: 'SKILL.md' },
