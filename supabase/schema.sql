@@ -69,7 +69,8 @@ create table if not exists prototypes (
   figma       text        default '',
   status      text        default 'pending'
                           check (status in ('pending','wip','live','archived')),
-  created_at  timestamptz default now()
+  created_at  timestamptz default now(),
+  module      text        -- dashboard group; NULL → module from proto-registry.ts
 );
 
 alter table prototypes enable row level security;
