@@ -1339,7 +1339,9 @@ export class QnaSetupCanvasComponent {
   }
 
   rejectTargets(n: FlowNode): DropdownOption[] {
-    return this.nodes.filter(x => x.side === 'answer' && x.id !== n.id).map(x => ({ value: x.id, label: x.name }));
+    const list = this.nodes.filter(x => x.side === 'answer' && x.id !== n.id);
+    return this.stable('reject:' + n.id, list.map(x => x.id + ':' + x.name).join('|'),
+      () => list.map(x => ({ value: x.id, label: x.name })));
   }
   rejectTargetOf(n: FlowNode): string { return this.edges.find(e => e.from === n.id && e.kind === 'reject')?.to ?? ''; }
   setRejectTarget(n: FlowNode, target: string) {
@@ -1454,8 +1456,20 @@ export class QnaSetupCanvasComponent {
   }
 
   // ── custom role ───────────────────────────────────────────────────────────
+  /** Returns the same array while the inputs are unchanged, so DS dropdowns keep their option elements between mousedown and click. */
+  private stable<T>(key: string, sig: string, build: () => T[]): T[] {
+    const hit = this.stableCache.get(key);
+    if (hit && hit.sig === sig) return hit.value as T[];
+    const value = build();
+    this.stableCache.set(key, { sig, value });
+    return value;
+  }
+  private stableCache = new Map<string, { sig: string; value: unknown[] }>();
+
   baseRoleOptions(): DropdownOption[] {
-    return this.allRoles.filter(r => r.side === this.draft.side).map(r => ({ value: r.key, label: r.name }));
+    const roles = this.allRoles.filter(r => r.side === this.draft.side);
+    return this.stable('base', roles.map(r => r.key + ':' + r.name).join('|'),
+      () => roles.map(r => ({ value: r.key, label: r.name })));
   }
   openCreateRole() {
     this.draft = { name: '', side: 'answer', base: 'coordinator', perms: { ...this.roleDef('coordinator')!.perms } };
