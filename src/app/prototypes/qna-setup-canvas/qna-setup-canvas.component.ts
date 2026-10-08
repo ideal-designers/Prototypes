@@ -2,7 +2,7 @@ import { Component, ElementRef, HostListener, ViewChild, inject } from '@angular
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DS_COMPONENTS, ToastService } from '../../shared/ds';
-import type { SidebarNavItem, HeaderAction, TabItem, SegmentItem, DropdownOption, RadioOption } from '../../shared/ds';
+import type { SidebarNavItem, HeaderAction, TabItem, SegmentItem, DropdownOption, RadioOption, MultiselectOption } from '../../shared/ds';
 import type { FvdrIconName } from '../../shared/ds/icons/icons';
 
 /* ──────────────────────────────────────────────────────────────────────────
@@ -86,7 +86,6 @@ const PEOPLE: Person[] = [
   { id: 'p12', name: 'Ava Laurent',      initials: 'AL', email: 'ava@betapartners.com',   group: 'Bidder B',          tone: 5 },
 ];
 
-const CATEGORIES = ['Finance', 'Legal', 'Tax', 'HR'];
 
 const TONES = [
   { bg: 'var(--color-stone-300)',   fg: 'var(--color-text-primary)' },
@@ -138,7 +137,7 @@ const TONES = [
           <div class="tpl">
             <span class="tpl-label">Start from</span>
             <div class="tpl-segment">
-              <fvdr-segment [items]="templateItems" [activeId]="templateId" (activeIdChange)="loadTemplate($any($event))"></fvdr-segment>
+              <fvdr-segment variant="table" size="sm" [items]="templateItems" [activeId]="templateId" (activeIdChange)="loadTemplate($any($event))"></fvdr-segment>
             </div>
           </div>
           <button class="health" [class.health--error]="errorNodes.length" (click)="focusFirstError()">
@@ -319,11 +318,34 @@ const TONES = [
               <ng-container *ngIf="n.side === 'answer'">
                 <div class="assign-mode" *ngIf="n.roleKey === 'expert'">
                   <span class="field-label">Assignment</span>
-                  <fvdr-segment [items]="assignItems" [activeId]="n.assignMode" (activeIdChange)="setAssignMode(n, $any($event))"></fvdr-segment>
+                  <fvdr-segment variant="table" size="sm" [items]="assignItems" [activeId]="n.assignMode" (activeIdChange)="setAssignMode(n, $any($event))"></fvdr-segment>
                 </div>
                 <ng-container *ngFor="let m of n.members">
                   <ng-container *ngTemplateOutlet="memberRow; context: { n: n, m: m }"></ng-container>
                 </ng-container>
+
+                <!-- Auto-assign: categories → experts (full-width DS multiselect with checkboxes) -->
+                <div class="cat-section" *ngIf="n.roleKey === 'expert' && n.assignMode === 'auto' && n.members.length">
+                  <div class="cat-section-head">
+                    <span class="field-label">Categories</span>
+                    <span class="hint">New questions go to every expert of their category</span>
+                  </div>
+                  <div class="cat-block" *ngFor="let c of categories">
+                    <div class="cat-head">
+                      <fvdr-icon name="label" class="cat-ic" [ngClass]="'cat-ic--' + c.color"></fvdr-icon>
+                      <span class="cat-name">{{ c.name }}</span>
+                      <span class="cat-count">{{ expertsFor(n, c.name).length || 'No' }} {{ expertsFor(n, c.name).length === 1 ? 'expert' : 'experts' }}</span>
+                    </div>
+                    <fvdr-multiselect
+                      [options]="expertOptions(n)"
+                      [values]="expertsFor(n, c.name)"
+                      [maxChips]="2"
+                      placeholder="Choose experts"
+                      searchPlaceholder="Search experts"
+                      [helperText]="expertsFor(n, c.name).length ? '' : 'Questions in ' + c.name + ' will wait for the coordinator to assign them'"
+                      (valuesChange)="setCategoryExperts(n, c.name, $event)"></fvdr-multiselect>
+                  </div>
+                </div>
               </ng-container>
             </ng-container>
 
@@ -473,13 +495,15 @@ const TONES = [
     </span>
     <span class="person-text">
       <span class="person-name">{{ person(m.personId).name }}</span>
-      <span class="person-roles" *ngIf="otherRoles(m.personId, n) as other">Also {{ other }}</span>
-      <span class="person-roles" *ngIf="!otherRoles(m.personId, n)">{{ person(m.personId).group }}</span>
+      <ng-container *ngIf="n.roleKey === 'expert' && n.assignMode === 'auto'; else plainCaption">
+        <span class="person-roles" *ngIf="m.categories.length">{{ m.categories.join(' · ') }}</span>
+        <span class="person-roles person-roles--warn" *ngIf="!m.categories.length">No category — gets questions only manually</span>
+      </ng-container>
+      <ng-template #plainCaption>
+        <span class="person-roles" *ngIf="otherRoles(m.personId, n) as other">Also {{ other }}</span>
+        <span class="person-roles" *ngIf="!otherRoles(m.personId, n)">{{ person(m.personId).group }}</span>
+      </ng-template>
     </span>
-    <div class="member-cats" *ngIf="n.roleKey === 'expert' && n.assignMode === 'auto'">
-      <fvdr-dropdown size="s" [multi]="true" [options]="categoryOptions" [value]="m.categories"
-                     placeholder="Categories" (valueChange)="m.categories = $any($event)"></fvdr-dropdown>
-    </div>
     <button class="icon-btn icon-btn--sm" title="Remove" (click)="removeMember(n, m)"><fvdr-icon name="close"></fvdr-icon></button>
   </div>
 </ng-template>
@@ -634,7 +658,7 @@ const TONES = [
     /* canvas chrome */
     .canvas-top { position: absolute; left: var(--space-4); right: var(--space-4); top: var(--space-4); display: flex; justify-content: space-between; align-items: center; z-index: 10; pointer-events: none; }
     .canvas-top > * { pointer-events: auto; }
-    .tpl { display: flex; white-space: nowrap; align-items: center; gap: var(--space-2); background: var(--color-stone-0); border: 1px solid var(--color-stone-400); border-radius: var(--radius-md); padding: var(--space-1) var(--space-1) var(--space-1) var(--space-3); box-shadow: var(--shadow-card); }
+    .tpl { display: flex; white-space: nowrap; align-items: center; gap: var(--space-2); background: var(--color-stone-0); border-radius: var(--radius-md); padding: var(--space-2) var(--space-2) var(--space-2) var(--space-3); box-shadow: var(--shadow-card); }
     .tpl-label { font-size: var(--text-caption1-size); color: var(--color-text-secondary); }
     .health { display: inline-flex; white-space: nowrap; flex-shrink: 0; align-items: center; gap: var(--space-2); border: 1px solid var(--color-success-border); background: var(--color-success-bg); color: var(--color-success-text); border-radius: var(--radius-full); padding: var(--space-1) var(--space-3); font-size: var(--text-caption1-size); cursor: pointer; }
     .health--error { border-color: var(--color-error-border); background: var(--color-error-bg); color: var(--color-error-text); }
@@ -678,8 +702,19 @@ const TONES = [
     .person-text { flex: 1; min-width: 0; display: flex; flex-direction: column; }
     .person-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .person-roles { font-size: var(--text-caption1-size); color: var(--color-text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .member-cats { width: 130px; flex-shrink: 0; }
-    .assign-mode { display: flex; flex-direction: column; gap: var(--space-1); margin: var(--space-2) 0; }
+    .person-roles--warn { color: var(--color-warning-700); }
+    .cat-section { display: flex; flex-direction: column; gap: var(--space-4); margin-top: var(--space-4); padding-top: var(--space-4); border-top: 1px solid var(--color-divider); }
+    .cat-section-head { display: flex; flex-direction: column; gap: 2px; }
+    .cat-block { display: flex; flex-direction: column; gap: var(--space-2); }
+    .cat-head { display: flex; align-items: center; gap: var(--space-2); }
+    .cat-name { font-weight: var(--font-weight-semi); }
+    .cat-count { margin-left: auto; font-size: var(--text-caption1-size); color: var(--color-text-secondary); }
+    .cat-ic { font-size: 16px; }
+    .cat-ic--teal { color: var(--color-primary-400); }
+    .cat-ic--green { color: var(--color-primary-600); }
+    .cat-ic--blue { color: var(--color-info-500); }
+    .cat-ic--orange { color: var(--color-warning-600); }
+    .assign-mode { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); margin: var(--space-2) 0; }
     .group { display: flex; flex-direction: column; gap: 2px; margin-bottom: var(--space-2); }
     .lib-search { margin-bottom: var(--space-2); }
 
@@ -768,7 +803,12 @@ export class QnaSetupCanvasComponent {
   nodeTab = 'people';
   roleQuery = '';
   peopleQuery = '';
-  categoryOptions: DropdownOption[] = CATEGORIES.map(c => ({ value: c, label: c }));
+  categories = [
+    { name: 'Finance', color: 'teal' },
+    { name: 'Legal', color: 'green' },
+    { name: 'Tax', color: 'blue' },
+    { name: 'HR', color: 'orange' },
+  ];
   sideOptions: RadioOption[] = [{ value: 'question', label: 'Question side' }, { value: 'answer', label: 'Answer side' }];
 
   customRoles: RoleDef[] = [];
@@ -1146,7 +1186,43 @@ export class QnaSetupCanvasComponent {
     if (e) e.label = mode === 'auto' ? 'Auto-assigns by category' : 'Assigns';
   }
 
+  // Stable arrays per node/category so fvdr-multiselect doesn't re-render on every change detection.
+  private optCache = new Map<string, { key: string; value: MultiselectOption[] }>();
+  private valCache = new Map<string, { key: string; value: string[] }>();
+  expertOptions(n: FlowNode): MultiselectOption[] {
+    const key = n.members.map(m => m.personId).join(',');
+    const hit = this.optCache.get(n.id);
+    if (hit && hit.key === key) return hit.value;
+    const value = n.members.map(m => ({ value: m.personId, label: this.person(m.personId).name }));
+    this.optCache.set(n.id, { key, value });
+    return value;
+  }
+  expertsFor(n: FlowNode, cat: string): string[] {
+    const ids = n.members.filter(m => m.categories.includes(cat)).map(m => m.personId);
+    const ck = n.id + '|' + cat, key = ids.join(',');
+    const hit = this.valCache.get(ck);
+    if (hit && hit.key === key) return hit.value;
+    this.valCache.set(ck, { key, value: ids });
+    return ids;
+  }
+  setCategoryExperts(n: FlowNode, cat: string, ids: string[]) {
+    n.members.forEach(m => {
+      const has = m.categories.includes(cat);
+      if (ids.includes(m.personId) && !has) m.categories = [...m.categories, cat];
+      if (!ids.includes(m.personId) && has) m.categories = m.categories.filter(c => c !== cat);
+    });
+  }
+
+  private addCache = new Map<string, { key: string; value: DropdownOption[] }>();
   addPeopleOptions(n: FlowNode): DropdownOption[] {
+    const key = n.members.map(m => m.personId).join(',');
+    const hit = this.addCache.get(n.id);
+    if (hit && hit.key === key) return hit.value;
+    const value = this.buildAddPeopleOptions(n);
+    this.addCache.set(n.id, { key, value });
+    return value;
+  }
+  private buildAddPeopleOptions(n: FlowNode): DropdownOption[] {
     const groups = [...new Set(PEOPLE.map(p => p.group))];
     const groupOpts = groups.map(g => ({ value: 'group:' + g, label: `All of ${g}`, group: 'Groups' }));
     const people = PEOPLE.filter(p => !n.members.some(m => m.personId === p.id))
