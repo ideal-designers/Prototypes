@@ -856,9 +856,7 @@ import type { ComponentDocEntry } from './ds-registry';
     .icon-item:hover { background: var(--color-hover-bg); }
 
     /* ── Component Catalog Grid ── */
-    .catalog {
-      margin-bottom: 48px;
-    }
+    .catalog { margin: 0; }
     .catalog__intro {
       margin-bottom: 24px;
     }
@@ -924,11 +922,11 @@ import type { ComponentDocEntry } from './ds-registry';
 
     .showcase__divider {
       text-align: center;
-      border-top: 1px solid var(--color-border);
-      margin: 0 0 40px;
-      padding-top: 16px;
-      font-size: var(--font-size-xs, 12px);
-      color: var(--color-text-muted);
+      border-top: 1px solid var(--color-divider);
+      margin: 0;
+      padding-top: var(--space-6);
+      font-size: var(--text-caption1-size);
+      color: var(--color-text-secondary);
       letter-spacing: 0.5px;
     }
 

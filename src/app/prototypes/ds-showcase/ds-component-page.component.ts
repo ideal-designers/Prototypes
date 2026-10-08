@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { Component, ElementRef, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -10,6 +10,8 @@ import {
   SmartSearchResult, DocInfoField, AiStat, AiBarItem, AiPersonRow,
 } from '../../shared/ds';
 import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, ComponentCategory } from './ds-registry';
+
+interface SidebarGroup { category: (typeof DS_CATEGORIES)[number]; items: ComponentDocEntry[]; }
 
 @Component({
   selector: 'app-ds-component-page',
@@ -25,10 +27,10 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
       <fvdr-search [(ngModel)]="searchQuery" placeholder="Search components" />
     </div>
     <nav class="sidebar-nav">
-      <div class="sidebar-group" *ngFor="let group of groupedRegistry">
+      <div class="sidebar-group" *ngFor="let group of groupedRegistry; trackBy: byCategory">
         <div class="sidebar-group__label">{{ group.category.label }}</div>
         <button
-          *ngFor="let item of group.items"
+          *ngFor="let item of group.items; trackBy: byEntry"
           class="sidebar-item"
           [class.sidebar-item--active]="item.id === componentId"
           [class.sidebar-item--planned]="item.status === 'planned'"
@@ -95,17 +97,15 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
             <div class="anatomy-wrap anatomy-wrap--button">
               <fvdr-btn label="Button" iconName="check" size="m" variant="primary"></fvdr-btn>
               <!-- Part labels -->
-              <div class="anatomy-label anatomy-label--top" style="top:-42px;left:6px">icon</div>
-              <div class="anatomy-label anatomy-label--top" style="top:-42px;right:6px">label</div>
+              <div class="anatomy-label anatomy-label--top" style="top:-42px;left:-14px">icon</div>
+              <div class="anatomy-label anatomy-label--top" style="top:-42px;right:-14px">label</div>
               <div class="anatomy-label anatomy-label--left" style="left:-72px;top:50%;transform:translateY(-50%)">root</div>
               <!-- Dimensions -->
               <div class="dim-v" style="right:-48px;top:0;height:36px">36px</div>
-              <div class="dim-v" style="left:-22px;top:0;height:8px">8</div>
-              <div class="dim-v" style="left:-22px;bottom:0;height:8px">8</div>
+              <div class="dim-v dim-v--left" style="left:-22px;top:0;height:8px">8</div>
+              <div class="dim-v dim-v--left" style="left:-22px;bottom:0;height:8px">8</div>
               <div class="dim-h" style="bottom:-28px;left:0;width:16px">16</div>
               <div class="dim-h" style="bottom:-28px;right:0;width:16px">16</div>
-              <div class="dim-label" style="top:50%;transform:translateY(-50%);left:12px">16px</div>
-              <div class="dim-label" style="top:50%;transform:translateY(-50%);right:12px">14px</div>
             </div>
           </ng-container>
 
@@ -119,7 +119,6 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
               <div class="dim-v" style="right:-44px;top:0;height:20px">20px</div>
               <div class="dim-h" style="bottom:-28px;left:0;width:8px">8</div>
               <div class="dim-h" style="bottom:-28px;right:0;width:8px">8</div>
-              <div class="dim-label" style="top:50%;transform:translateY(-50%);right:6px">12px</div>
             </div>
           </ng-container>
 
@@ -132,7 +131,6 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
               <!-- Dimensions: avatar lg = 48×48 -->
               <div class="dim-v" style="right:-44px;top:0;height:48px">48px</div>
               <div class="dim-h" style="bottom:-28px;left:0;width:48px">48px</div>
-              <div class="dim-label" style="top:50%;transform:translateY(-50%);left:50%;transform:translate(-50%,-50%)">18px</div>
             </div>
           </ng-container>
 
@@ -143,16 +141,15 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
               <div class="anatomy-label anatomy-label--left" style="left:-68px;top:4px">label</div>
               <div class="anatomy-label anatomy-label--left" style="left:-68px;top:42px">root</div>
               <div class="anatomy-label anatomy-label--top" style="top:-42px;left:18px">icon</div>
-              <div class="anatomy-label anatomy-label--right" style="right:-68px;top:38px">input</div>
+              <div class="anatomy-label anatomy-label--top" style="top:-42px;right:24px">input</div>
               <div class="anatomy-label anatomy-label--left" style="left:-68px;bottom:2px">helper</div>
               <!-- Dimensions: field = 40px, label 20px, helper 18px, pad 8/12 -->
               <div class="dim-v" style="right:-48px;top:20px;height:40px">40px</div>
               <div class="dim-v" style="right:-48px;top:0;height:20px">20</div>
               <div class="dim-h" style="bottom:-28px;left:0;width:12px">12</div>
               <div class="dim-h" style="bottom:-28px;right:0;width:12px">12</div>
-              <div class="dim-v" style="left:-22px;top:20px;height:8px">8</div>
-              <div class="dim-v" style="left:-22px;bottom:18px;height:8px">8</div>
-              <div class="dim-label" style="top:46px;left:38px">14px</div>
+              <div class="dim-v dim-v--left" style="left:-22px;top:20px;height:8px">8</div>
+              <div class="dim-v dim-v--left" style="left:-22px;bottom:18px;height:8px">8</div>
             </div>
           </ng-container>
 
@@ -172,8 +169,8 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
               <div class="anatomy-label anatomy-label--right" style="right:-76px;top:50%;transform:translateY(-50%)">body</div>
               <div class="anatomy-label anatomy-label--right" style="right:-76px;bottom:16px">actions</div>
               <!-- Dimensions: pad 24px, header ~48px, footer ~52px, radius 8px -->
-              <div class="dim-v" style="left:-44px;top:0;height:48px">48px</div>
-              <div class="dim-v" style="left:-44px;bottom:0;height:52px">52px</div>
+              <div class="dim-v dim-v--left" style="left:-44px;top:0;height:48px">48px</div>
+              <div class="dim-v dim-v--left" style="left:-44px;bottom:0;height:52px">52px</div>
               <div class="dim-h" style="bottom:-28px;left:0;width:24px">24</div>
               <div class="dim-h" style="bottom:-28px;right:0;width:24px">24</div>
             </div>
@@ -204,13 +201,13 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
                 </div>
               </div>
               <!-- Part labels -->
-              <div class="anatomy-label anatomy-label--right" style="right:-100px;top:20px">account switcher</div>
-              <div class="anatomy-label anatomy-label--right" style="right:-88px;top:68px">nav item (active)</div>
+              <div class="anatomy-label anatomy-label--right" style="right:-136px;top:20px">account switcher</div>
+              <div class="anatomy-label anatomy-label--right" style="right:-144px;top:68px">nav item (active)</div>
               <div class="anatomy-label anatomy-label--right" style="right:-76px;top:108px">nav item</div>
               <div class="anatomy-label anatomy-label--right" style="right:-76px;bottom:16px">bottom bar</div>
               <!-- Dimensions -->
-              <div class="dim-v" style="left:-40px;top:0;height:64px">64px</div>
-              <div class="dim-v" style="left:-40px;top:64px;height:40px">40px</div>
+              <div class="dim-v dim-v--left" style="left:-40px;top:0;height:64px">64px</div>
+              <div class="dim-v dim-v--left" style="left:-40px;top:64px;height:40px">40px</div>
               <div class="dim-h" style="bottom:-28px;left:0;width:280px">280px</div>
             </div>
           </ng-container>
@@ -242,11 +239,11 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
               </div>
               <!-- Part labels -->
               <div class="anatomy-label anatomy-label--right" style="right:-72px;top:14px">header</div>
-              <div class="anatomy-label anatomy-label--right" style="right:-64px;top:60px">item (active)</div>
+              <div class="anatomy-label anatomy-label--right" style="right:-116px;top:60px">item (active)</div>
               <div class="anatomy-label anatomy-label--right" style="right:-56px;top:100px">item</div>
               <!-- Dimensions -->
-              <div class="dim-v" style="left:-40px;top:0;height:48px">48px</div>
-              <div class="dim-v" style="left:-40px;top:48px;height:40px">40px</div>
+              <div class="dim-v dim-v--left" style="left:-40px;top:0;height:48px">48px</div>
+              <div class="dim-v dim-v--left" style="left:-40px;top:48px;height:40px">40px</div>
               <div class="dim-h" style="bottom:-28px;left:0;width:340px">340px</div>
             </div>
           </ng-container>
@@ -271,13 +268,13 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
                 </div>
               </div>
               <!-- Labels -->
-              <div class="anatomy-label anatomy-label--left"  style="left:-72px;top:10px">trigger</div>
+              <div class="anatomy-label anatomy-label--left"  style="left:-136px;top:10px">trigger</div>
               <div class="anatomy-label anatomy-label--right" style="right:-64px;top:10px">chevron</div>
               <div class="anatomy-label anatomy-label--right" style="right:-56px;top:70px">panel</div>
               <div class="anatomy-label anatomy-label--right" style="right:-72px;top:104px">selected</div>
               <!-- Dimensions -->
-              <div class="dim-v" style="left:-22px;top:0;height:40px">40px</div>
-              <div class="dim-v" style="left:-22px;top:52px;height:36px">36px</div>
+              <div class="dim-v dim-v--left" style="left:-22px;top:0;height:40px">40px</div>
+              <div class="dim-v dim-v--left" style="left:-22px;top:52px;height:36px">36px</div>
               <div class="dim-h" style="bottom:-28px;left:0;width:12px">12</div>
               <div class="dim-h" style="bottom:-28px;right:0;width:12px">12</div>
             </div>
@@ -303,13 +300,12 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
                 </div>
               </div>
               <!-- Labels -->
-              <div class="anatomy-label anatomy-label--top"  style="top:-42px;left:8px">track</div>
-              <div class="anatomy-label anatomy-label--top"  style="top:-42px;left:4px;margin-left:24px">thumb</div>
+              <div class="anatomy-label anatomy-label--top"  style="top:-42px;left:-24px">track</div>
+              <div class="anatomy-label anatomy-label--top"  style="top:-42px;left:22px">thumb</div>
               <div class="anatomy-label anatomy-label--right" style="right:-56px;top:50%;transform:translateY(-50%)">label</div>
               <!-- Dimensions -->
               <div class="dim-h" style="bottom:-28px;left:0;width:36px">36px</div>
-              <div class="dim-v" style="right:-36px;top:8px;height:20px">20px</div>
-              <div class="dim-label" style="top:10px;left:12px">16px</div>
+              <div class="dim-v dim-v--left" style="left:-40px;top:8px;height:20px">20px</div>
             </div>
           </ng-container>
 
@@ -338,7 +334,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
               <div class="anatomy-label anatomy-label--left"  style="left:-48px;top:50%;transform:translateY(-50%)">box</div>
               <div class="anatomy-label anatomy-label--right" style="right:-56px;top:50%;transform:translateY(-50%)">label</div>
               <!-- Dimensions -->
-              <div class="dim-v" style="left:-18px;top:8px;height:18px">18px</div>
+              <div class="dim-v dim-v--left" style="left:-18px;top:8px;height:18px">18px</div>
               <div class="dim-h" style="bottom:-28px;left:0;width:18px">18px</div>
               <div class="dim-h" style="bottom:-28px;left:26px;width:8px">8</div>
             </div>
@@ -364,8 +360,8 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
               <div class="anatomy-label anatomy-label--left"  style="left:-80px;top:36px">indicator</div>
               <div class="anatomy-label anatomy-label--bottom" style="bottom:-42px;left:50%;transform:translateX(-50%)">content</div>
               <!-- Dimensions -->
-              <div class="dim-v" style="left:-18px;top:0;height:40px">40px</div>
-              <div class="dim-v" style="right:-36px;top:40px;height:80px">content</div>
+              <div class="dim-v dim-v--left" style="left:-18px;top:0;height:40px">40px</div>
+              <div class="dim-v" style="right:-64px;top:40px;height:80px">content</div>
               <div class="dim-h" style="bottom:-28px;left:88px;width:72px">active tab</div>
             </div>
           </ng-container>
@@ -401,7 +397,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
               <!-- Dimensions -->
               <div class="dim-h" style="bottom:-28px;left:0;width:8px">8</div>
               <div class="dim-h" style="bottom:-28px;right:0;width:8px">8</div>
-              <div class="dim-v" style="left:-18px;top:10px;height:24px">24px</div>
+              <div class="dim-v dim-v--left" style="left:-18px;top:10px;height:24px">24px</div>
             </div>
           </ng-container>
 
@@ -457,14 +453,14 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
                 </div>
               </div>
               <!-- Labels -->
-              <div class="anatomy-label anatomy-label--left"  style="left:-72px;top:10px">trigger</div>
+              <div class="anatomy-label anatomy-label--left"  style="left:-136px;top:10px">trigger</div>
               <div class="anatomy-label anatomy-label--right" style="right:-64px;top:10px">chevron</div>
               <div class="anatomy-label anatomy-label--left"  style="left:-72px;top:64px">search</div>
-              <div class="anatomy-label anatomy-label--left"  style="left:-96px;top:104px">auto-detect row</div>
+              <div class="anatomy-label anatomy-label--left"  style="left:-112px;top:104px">auto-detect row</div>
               <div class="anatomy-label anatomy-label--right" style="right:-64px;top:138px">group</div>
               <div class="anatomy-label anatomy-label--right" style="right:-72px;top:204px">selected</div>
               <!-- Dimensions -->
-              <div class="dim-v" style="left:-22px;top:0;height:40px">40px</div>
+              <div class="dim-v dim-v--left" style="left:-22px;top:0;height:40px">40px</div>
             </div>
           </ng-container>
 
@@ -476,7 +472,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
               <div class="anatomy-label anatomy-label--top"    style="top:-42px;left:50%;transform:translateX(-50%)">rounded square</div>
               <div class="anatomy-label anatomy-label--bottom" style="bottom:-42px;left:50%;transform:translateX(-50%)">glyph</div>
               <!-- Dimensions -->
-              <div class="dim-v" style="left:-30px;top:0;height:40px">40px</div>
+              <div class="dim-v dim-v--left" style="left:-30px;top:0;height:40px">40px</div>
               <div class="dim-h" style="bottom:-22px;left:0;width:40px">40px</div>
             </div>
           </ng-container>
@@ -512,7 +508,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
               <div class="anatomy-label anatomy-label--top"    style="top:-52px;left:0">ai-search icon</div>
               <div class="anatomy-label anatomy-label--top"    style="top:-52px;right:0">filter</div>
               <div class="anatomy-label anatomy-label--bottom" style="bottom:-42px;left:50%;transform:translateX(-50%)">field · 40px · menu opens on focus</div>
-              <div class="dim-v" style="left:-24px;top:0;height:40px">40px</div>
+              <div class="dim-v dim-v--left" style="left:-24px;top:0;height:40px">40px</div>
             </div>
           </ng-container>
 
@@ -534,7 +530,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
               <div class="anatomy-label anatomy-label--left"  style="left:-96px;top:9px">circle</div>
               <div class="anatomy-label anatomy-label--right" style="right:-56px;top:9px">label</div>
               <div class="anatomy-label anatomy-label--top"   style="top:-42px;left:-4px">dot</div>
-              <div class="dim-v" style="left:-22px;top:0;height:18px">18</div>
+              <div class="dim-v dim-v--left" style="left:-22px;top:0;height:18px">18</div>
             </div>
           </ng-container>
 
@@ -763,7 +759,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
               <div class="anatomy-label anatomy-label--left"  style="left:-102px;top:12px">trigger</div>
               <div class="anatomy-label anatomy-label--right" style="right:-52px;top:12px">icon</div>
               <div class="anatomy-label anatomy-label--right" style="right:-52px;top:96px">panel</div>
-              <div class="dim-v" style="left:-22px;top:0;height:40px">40px</div>
+              <div class="dim-v dim-v--left" style="left:-22px;top:0;height:40px">40px</div>
             </div>
           </ng-container>
 
@@ -787,7 +783,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
               <div class="anatomy-label anatomy-label--right" style="right:-52px;top:12px">clock</div>
               <div class="anatomy-label anatomy-label--right" style="right:-64px;top:74px">options</div>
               <div class="anatomy-label anatomy-label--right" style="right:-72px;top:118px">selected</div>
-              <div class="dim-v" style="left:-22px;top:0;height:40px">40px</div>
+              <div class="dim-v dim-v--left" style="left:-22px;top:0;height:40px">40px</div>
             </div>
           </ng-container>
 
@@ -826,7 +822,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
               <div class="anatomy-label anatomy-label--right"  style="right:-64px;top:50%;transform:translateY(-50%)">shortcut</div>
               <div class="anatomy-label anatomy-label--bottom" style="bottom:-42px;left:40px">container</div>
               <div class="anatomy-label anatomy-label--bottom" style="bottom:-42px;right:44px">arrow</div>
-              <div class="dim-v" style="left:-24px;top:0;height:40px">40px</div>
+              <div class="dim-v dim-v--left" style="left:-24px;top:0;height:40px">40px</div>
             </div>
           </ng-container>
 
@@ -849,7 +845,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
               <div class="anatomy-label anatomy-label--top"    style="top:-42px;right:40px">counter</div>
               <div class="anatomy-label anatomy-label--right"  style="right:-52px;top:50%;transform:translateY(-50%)">arrow</div>
               <div class="anatomy-label anatomy-label--bottom" style="bottom:-42px;left:50%;transform:translateX(-50%)">container · status dot</div>
-              <div class="dim-v" style="left:-24px;top:0;height:40px">40px</div>
+              <div class="dim-v dim-v--left" style="left:-24px;top:0;height:40px">40px</div>
             </div>
           </ng-container>
 
@@ -860,7 +856,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
               <div class="anatomy-label anatomy-label--top"    style="top:-52px;left:-46px">sparkle icon</div>
               <div class="anatomy-label anatomy-label--top"    style="top:-52px;right:-20px">label</div>
               <div class="anatomy-label anatomy-label--bottom" style="bottom:-42px;left:50%;transform:translateX(-50%)">capsule · mesh gradient · glass layer</div>
-              <div class="dim-v" style="left:-24px;top:0;height:36px">36px</div>
+              <div class="dim-v dim-v--left" style="left:-24px;top:0;height:36px">36px</div>
             </div>
           </ng-container>
 
@@ -869,9 +865,9 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
             <div class="anatomy-wrap anatomy-wrap--thinking-orbs">
               <fvdr-thinking-orbs label="Thinking…"></fvdr-thinking-orbs>
               <div class="anatomy-label anatomy-label--top"    style="top:-52px;left:-10px">orb canvas · dot field</div>
-              <div class="anatomy-label anatomy-label--top"    style="top:-52px;right:-16px">label</div>
+              <div class="anatomy-label anatomy-label--right"  style="right:-64px;top:50%;transform:translateY(-50%)">label</div>
               <div class="anatomy-label anatomy-label--bottom" style="bottom:-42px;left:50%;transform:translateX(-50%)">pill · radius 9999px</div>
-              <div class="dim-v" style="left:-24px;top:0;height:62px">62px</div>
+              <div class="dim-v dim-v--left" style="left:-24px;top:0;height:62px">62px</div>
             </div>
           </ng-container>
 
@@ -982,7 +978,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
               <div class="anatomy-label anatomy-label--top"    style="top:-76px;left:50%;transform:translateX(-50%)">regenerate · copy</div>
               <div class="anatomy-label anatomy-label--top"    style="top:-46px;left:50%;transform:translateX(-50%)">rating (toggle)</div>
               <div class="anatomy-label anatomy-label--bottom" style="bottom:-42px;left:50%;transform:translateX(-50%)">28×28 ghost buttons · gap 4px</div>
-              <div class="dim-v" style="left:-24px;top:0;height:28px">28px</div>
+              <div class="dim-v dim-v--left" style="left:-24px;top:0;height:28px">28px</div>
             </div>
           </ng-container>
 
@@ -3688,7 +3684,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
       flex: 1;
       min-width: 0;
       overflow-y: auto;
-      padding: 40px 48px;
+      padding: var(--space-10) var(--space-8) var(--space-16);
     }
 
     /* ── Hero ── */
@@ -3851,9 +3847,12 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
     }
 
     /* ── Anatomy ── */
+    /* Light canvas (was dark): components with transparent backgrounds — zebra rows,
+       footers, ghost buttons — rendered unreadable on the dark fill. */
     .anatomy-preview {
-      background: var(--color-stone-900, #1e2125);
-      border-radius: 8px;
+      background: var(--color-stone-100);
+      border: 1px solid var(--color-divider);
+      border-radius: var(--radius-md);
       padding: 72px 140px;
       display: flex;
       justify-content: center;
@@ -3863,7 +3862,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
 
     .anatomy-preview-empty {
       font-size: var(--font-size-sm, 13px);
-      color: rgba(255,255,255,0.35);
+      color: var(--color-text-placeholder);
       font-style: italic;
       text-align: center;
     }
@@ -3881,7 +3880,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
       position: absolute;
       font-size: var(--font-size-2xs, 11px);
       font-family: monospace;
-      color: var(--color-stone-600, #8a9baa);
+      color: var(--color-text-secondary);
       white-space: nowrap;
       letter-spacing: 0.3px;
     }
@@ -3892,7 +3891,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
       display: block;
       width: 1px;
       height: 18px;
-      background: rgba(255,255,255,0.18);
+      background: var(--color-stone-500);
       margin: 4px auto 0;
     }
 
@@ -3902,7 +3901,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
       display: block;
       width: 1px;
       height: 18px;
-      background: rgba(255,255,255,0.18);
+      background: var(--color-stone-500);
       margin: 0 auto 4px;
     }
 
@@ -3911,7 +3910,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
       content: '';
       width: 18px;
       height: 1px;
-      background: rgba(255,255,255,0.18);
+      background: var(--color-stone-500);
       margin-left: 6px;
       flex-shrink: 0;
     }
@@ -3921,7 +3920,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
       content: '';
       width: 18px;
       height: 1px;
-      background: rgba(255,255,255,0.18);
+      background: var(--color-stone-500);
       margin-right: 6px;
       flex-shrink: 0;
     }
@@ -3934,8 +3933,8 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
       justify-content: center;
       font-size: var(--font-size-3xs, 10px);
       font-family: monospace;
-      color: var(--color-warning-500, #e8933a);
-      border-left: 1px solid var(--color-warning-500a, rgba(232,147,58,0.5));
+      color: var(--color-error-600);
+      border-left: 1px solid var(--color-error-300);
       padding-left: 5px;
       min-width: 32px;
       box-sizing: border-box;
@@ -3946,10 +3945,21 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
       left: -3px;
       width: 5px;
       height: 1px;
-      background: var(--color-warning-500a, rgba(232,147,58,0.5));
+      background: var(--color-error-300);
     }
     .dim-v::before { top: 0; }
     .dim-v::after  { bottom: 0; }
+    /* Ruler on the left of the component: keep the line where it is, put the value
+       on its outer side so it never runs into the component. */
+    .dim-v--left {
+      transform: translateX(calc(-100% + 1px));
+      justify-content: flex-end;
+      border-left: 0;
+      border-right: 1px solid var(--color-error-300);
+      padding-left: 0;
+      padding-right: 5px;
+    }
+    .dim-v--left::before, .dim-v--left::after { left: auto; right: -3px; }
 
     .dim-h {
       position: absolute;
@@ -3958,8 +3968,8 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
       justify-content: center;
       font-size: var(--font-size-3xs, 10px);
       font-family: monospace;
-      color: var(--color-warning-500, #e8933a);
-      border-top: 1px solid var(--color-warning-500a, rgba(232,147,58,0.5));
+      color: var(--color-error-600);
+      border-top: 1px solid var(--color-error-300);
       padding-top: 4px;
       min-height: 20px;
       box-sizing: border-box;
@@ -3970,7 +3980,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
       top: -3px;
       width: 1px;
       height: 5px;
-      background: var(--color-warning-500a, rgba(232,147,58,0.5));
+      background: var(--color-error-300);
     }
     .dim-h::before { left: 0; }
     .dim-h::after  { right: 0; }
@@ -3979,7 +3989,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
       position: absolute;
       font-size: var(--font-size-3xs, 10px);
       font-family: monospace;
-      color: var(--color-warning-500, #e8933a);
+      color: var(--color-error-600);
       white-space: nowrap;
     }
 
@@ -4323,8 +4333,8 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
       color: var(--color-text-secondary);
       display: flex;
       flex-direction: column;
-      gap: 1px;
-      line-height: 1;
+      gap: 2px;
+      line-height: 1.25;
     }
     .chip-matrix__px {
       font-size: var(--font-size-3xs, 10px);
@@ -4774,7 +4784,7 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
     /* ── Code panels ── */
     .code-panels {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
       gap: 16px;
     }
 
@@ -5346,6 +5356,8 @@ export class DsComponentPageComponent implements OnInit, OnDestroy {
   // ── Datepicker binding ──
   demoDate: Date | undefined;
 
+  private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
+
   get componentId(): string { return this.entry?.id ?? ''; }
 
   get filteredRegistry(): ComponentDocEntry[] {
@@ -5358,19 +5370,34 @@ export class DsComponentPageComponent implements OnInit, OnDestroy {
     );
   }
 
-  get groupedRegistry(): { category: (typeof DS_CATEGORIES)[number]; items: ComponentDocEntry[] }[] {
-    return DS_CATEGORIES.map(cat => ({
-      category: cat,
-      items: this.filteredRegistry.filter(e => e.category === cat.id)
-    })).filter(g => g.items.length > 0);
+  /** Cached per search query: a fresh array on every change detection made *ngFor
+   *  rebuild the whole sidebar on each mouse event, so clicks landed on removed buttons. */
+  private groupedCache: { query: string; groups: SidebarGroup[] } | null = null;
+
+  get groupedRegistry(): SidebarGroup[] {
+    if (this.groupedCache?.query !== this.searchQuery) {
+      const registry = this.filteredRegistry;
+      this.groupedCache = {
+        query: this.searchQuery,
+        groups: DS_CATEGORIES
+          .map(cat => ({ category: cat, items: registry.filter(e => e.category === cat.id) }))
+          .filter(g => g.items.length > 0),
+      };
+    }
+    return this.groupedCache.groups;
   }
+
+  byCategory(_: number, g: SidebarGroup): string { return g.category.id; }
+  byEntry(_: number, e: ComponentDocEntry): string { return e.id; }
 
   ngOnInit(): void {
     this.initFloatingPanelItems();
     this.sub = this.route.paramMap.subscribe(params => {
       const id = params.get('id') ?? '';
       this.entry = DS_REGISTRY.find(e => e.id === id);
-      if (!this.entry) this.router.navigate(['/ds']);
+      if (!this.entry) { this.router.navigate(['/ds']); return; }
+      // The page reuses this component between /ds/:id routes — start each one at the top
+      this.host.nativeElement.querySelector('.doc-main')?.scrollTo(0, 0);
     });
   }
 
