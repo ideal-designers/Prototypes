@@ -446,14 +446,19 @@ const TONES = [
             <ng-container *ngIf="libTab === 'roles' || pendingInsert">
               <div class="lib-search"><fvdr-search placeholder="Search roles" size="s" [(ngModel)]="roleQuery"></fvdr-search></div>
 
-              <span class="field-label">Question side</span>
-              <ng-container *ngFor="let r of filteredRoles('question')">
-                <ng-container *ngTemplateOutlet="roleRow; context: { r: r }"></ng-container>
+              <!-- when inserting, only roles of the lane the insertion point is in -->
+              <ng-container *ngIf="insertSide !== 'answer'">
+                <span class="field-label">Question side</span>
+                <ng-container *ngFor="let r of filteredRoles('question')">
+                  <ng-container *ngTemplateOutlet="roleRow; context: { r: r }"></ng-container>
+                </ng-container>
               </ng-container>
 
-              <span class="field-label field-label--gap">Answer side</span>
-              <ng-container *ngFor="let r of filteredRoles('answer')">
-                <ng-container *ngTemplateOutlet="roleRow; context: { r: r }"></ng-container>
+              <ng-container *ngIf="insertSide !== 'question'">
+                <span class="field-label" [class.field-label--gap]="insertSide !== 'answer'">Answer side</span>
+                <ng-container *ngFor="let r of filteredRoles('answer')">
+                  <ng-container *ngTemplateOutlet="roleRow; context: { r: r }"></ng-container>
+                </ng-container>
               </ng-container>
 
               <button class="create-role" (click)="openCreateRole()">
@@ -561,7 +566,7 @@ const TONES = [
             (confirmed)="createRole()" (cancelled)="createOpen = false" (closed)="createOpen = false">
   <div class="cr">
     <fvdr-input label="Role name" placeholder="e.g. Final sign-off, Legal reviewer" [(ngModel)]="draft.name"></fvdr-input>
-    <div class="cr-row">
+    <div class="cr-row" *ngIf="!draftSideLocked">
       <span class="field-label">Side</span>
       <fvdr-radio [options]="sideOptions" [value]="draft.side" layout="horizontal" (valueChange)="setDraftSide($any($event))"></fvdr-radio>
     </div>
@@ -1568,14 +1573,40 @@ export class QnaSetupCanvasComponent {
       .map(group => ({ group, people: PEOPLE.filter(p => p.group === group && (!q || p.name.toLowerCase().includes(q) || group.toLowerCase().includes(q))) }))
       .filter(g => g.people.length);
   }
+  /**
+   * Which side a pending insertion belongs to, decided by the lane the new role lands in:
+   * the middle of the connection, or the spot next to the card for "+".
+   * null = no restriction (nothing pending, or no lanes and the step crosses sides).
+   */
+  private get sideSuffix(): string { const s = this.insertSide; return s ? ` · ${s === 'question' ? 'Question side' : 'Answer side'}` : ''; }
+  get insertSide(): Side | null {
+    const p = this.pendingInsert;
+    if (!p) return null;
+    const lanes = this.lanes;
+    if ('edgeId' in p) {
+      const e = this.edges.find(x => x.id === p.edgeId);
+      if (!e) return null;
+      const a = this.nodeById(e.from), b = this.nodeById(e.to);
+      if (!a || !b) return null;
+      // a step between the two teams (e.g. Submitter → Coordinator) can take a role from either side
+      if (a.side !== b.side) return null;
+      if (lanes) return this.edgeMid(e).x < lanes.x ? 'question' : 'answer';
+      return a.side;
+    }
+    const src = this.nodeById(p.afterNodeId);
+    if (!src) return null;
+    const d = this.dir(p.side);
+    if (lanes) return src.x + NODE_W / 2 + d.x * COL_W < lanes.x ? 'question' : 'answer';
+    return d.x === 0 ? src.side : null;
+  }
   get pendingInsertCaption(): string {
     const p = this.pendingInsert;
     if (!p) return '';
     if ('edgeId' in p) {
       const e = this.edges.find(x => x.id === p.edgeId);
-      return e ? `Between ${this.nodeById(e.from)?.name} and ${this.nodeById(e.to)?.name}` : '';
+      return e ? `Between ${this.nodeById(e.from)?.name} and ${this.nodeById(e.to)?.name}${this.sideSuffix}` : '';
     }
-    return `${p.side === 'r' ? 'After' : p.side === 'l' ? 'Before' : p.side === 't' ? 'Above' : 'Below'} ${this.nodeById(p.afterNodeId)?.name}`;
+    return `${p.side === 'r' ? 'After' : p.side === 'l' ? 'Before' : p.side === 't' ? 'Above' : 'Below'} ${this.nodeById(p.afterNodeId)?.name}${this.sideSuffix}`;
   }
   startInsertOnEdge(e: FlowEdge) { this.selectedId = null; this.pendingInsert = { edgeId: e.id }; this.libTab = 'roles'; }
   startInsertAfter(n: FlowNode, side: Port = 'r') { this.selectedId = null; this.pendingInsert = { afterNodeId: n.id, side }; this.libTab = 'roles'; }
@@ -1676,8 +1707,13 @@ export class QnaSetupCanvasComponent {
     return this.stable('base', roles.map(r => r.key + ':' + r.name).join('|'),
       () => roles.map(r => ({ value: r.key, label: r.name })));
   }
+  /** true while creating a role for a specific insertion point — its side is decided by the lane */
+  draftSideLocked = false;
   openCreateRole() {
     this.draft = { name: '', side: 'answer', base: 'coordinator', perms: { ...this.roleDef('coordinator')!.perms } };
+    const side = this.insertSide;
+    this.draftSideLocked = !!side;
+    if (side) this.setDraftSide(side);
     this.createOpen = true;
   }
   setDraftSide(side: Side) {
