@@ -174,6 +174,9 @@ const TONES = [
               <marker id="qsc-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse">
                 <path d="M0,0 L10,5 L0,10 z" class="arrow-main"></path>
               </marker>
+              <marker id="qsc-arrow-active" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+                <path d="M0,0 L10,5 L0,10 z" class="arrow-active"></path>
+              </marker>
               <marker id="qsc-arrow-reject" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse">
                 <path d="M0,0 L10,5 L0,10 z" class="arrow-reject"></path>
               </marker>
@@ -186,10 +189,10 @@ const TONES = [
                     [class.edge--return]="e.kind === 'return'"
                     [class.edge--hover]="hoverEdgeId === e.id"
                     [class.edge--related]="isEdgeRelated(e)"
-                    [attr.marker-end]="e.kind === 'reject' ? 'url(#qsc-arrow-reject)' : 'url(#qsc-arrow)'"></path>
+                    [attr.marker-end]="e.kind === 'reject' ? 'url(#qsc-arrow-reject)' : (isEdgeActive(e) ? 'url(#qsc-arrow-active)' : 'url(#qsc-arrow)')"></path>
               <!-- dot = where the message leaves the role -->
               <circle *ngIf="edgeStart(e) as p" [attr.cx]="p.x" [attr.cy]="p.y" r="4.5" class="edge-start"
-                      [class.edge-start--reject]="e.kind === 'reject'"></circle>
+                      [class.edge-start--reject]="e.kind === 'reject'" [class.edge-start--active]="e.kind !== 'reject' && isEdgeActive(e)"></circle>
             </g>
           </svg>
 
@@ -610,12 +613,16 @@ const TONES = [
     .edge--return { stroke: var(--color-stone-600); }
     .edge--reject { stroke: var(--color-error-500); stroke-dasharray: 5 4; }
     .edge--related { stroke: var(--color-primary-500); stroke-width: 2; }
-    .edge--hover { stroke: var(--color-primary-600); stroke-width: 2.5; }
+    .edge--hover { stroke: var(--color-primary-500); stroke-width: 2.5; }
     .edge-hit { fill: none; stroke: transparent; stroke-width: 16; pointer-events: stroke; cursor: pointer; }
     .arrow-main { fill: var(--color-stone-600); }
     .edge-start { fill: var(--color-stone-600); stroke: var(--color-stone-0); stroke-width: 2; }
     .edge-start--reject { fill: var(--color-error-500); }
     .arrow-reject { fill: var(--color-error-500); }
+    .arrow-active { fill: var(--color-primary-500); }
+    .edge-start--active { fill: var(--color-primary-500); }
+    /* rejected path keeps its red meaning when active, just gets thicker */
+    .edge--reject.edge--related, .edge--reject.edge--hover { stroke: var(--color-error-500); stroke-width: 2; }
 
     .edge-label {
       position: absolute; transform: translate(-50%, -50%);
@@ -978,6 +985,7 @@ export class QnaSetupCanvasComponent {
   dualCount(n: FlowNode): number { return n.members.filter(m => this.rolesOf(m.personId).length > 1).length; }
   incoming(n: FlowNode) { return this.edges.filter(e => e.to === n.id); }
   outgoing(n: FlowNode) { return this.edges.filter(e => e.from === n.id); }
+  isEdgeActive(e: FlowEdge) { return this.hoverEdgeId === e.id || this.isEdgeRelated(e); }
   isEdgeRelated(e: FlowEdge) { return !!this.selectedId && (e.from === this.selectedId || e.to === this.selectedId); }
 
   isCustomized(n: FlowNode): boolean {
