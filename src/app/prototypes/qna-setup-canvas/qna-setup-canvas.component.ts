@@ -251,7 +251,7 @@ const TONES = [
             <span class="port" *ngFor="let s of outPorts(n); trackBy: trackSelf" [ngClass]="'port--' + s"></span>
             <button class="node-add" *ngFor="let s of freeSides(n); trackBy: trackSelf" [ngClass]="'node-add--' + s"
                     title="Add next role" (mousedown)="$event.stopPropagation()" (click)="startInsertAfter(n, s)">
-              <fvdr-icon name="plus"></fvdr-icon>
+              <span class="node-add-dot"><fvdr-icon name="plus"></fvdr-icon></span>
             </button>
           </div>
         </div>
@@ -659,17 +659,21 @@ const TONES = [
     .lane-label { position: absolute; display: inline-flex; align-items: center; gap: var(--space-1); white-space: nowrap; transform: translateY(-50%); font-size: var(--text-caption1-size); font-weight: var(--font-weight-semi); color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.04em; pointer-events: none; }
     .lane-label--q { transform: translate(-100%, -50%); color: var(--color-info-500); }
     .lane-label--a { color: var(--color-primary-600); }
+    /* hit area starts at the card edge so the cursor never leaves hover on the way to "+" */
     .node-add {
-      position: absolute; width: 24px; height: 24px;
-      border-radius: var(--radius-sm); border: 1px solid var(--color-stone-500); background: var(--color-stone-0);
-      color: var(--color-text-secondary); display: none; align-items: center; justify-content: center; cursor: pointer; font-size: 14px;
+      position: absolute; display: none; padding: 0; border: 0; background: transparent; cursor: pointer;
     }
-    .node-add--r { right: -36px; top: 50%; margin-top: -12px; }
-    .node-add--l { left: -36px; top: 50%; margin-top: -12px; }
-    .node-add--t { top: -36px; left: 50%; margin-left: -12px; }
-    .node-add--b { bottom: -36px; left: 50%; margin-left: -12px; }
+    .node-add-dot {
+      width: 24px; height: 24px; border-radius: var(--radius-sm); border: 1px solid var(--color-stone-500);
+      background: var(--color-stone-0); color: var(--color-text-secondary);
+      display: inline-flex; align-items: center; justify-content: center; font-size: 14px;
+    }
+    .node-add:hover .node-add-dot { border-color: var(--color-primary-500); color: var(--color-primary-600); background: var(--color-primary-50); }
+    .node-add--r { right: -40px; top: 50%; width: 40px; height: 32px; margin-top: -16px; justify-content: flex-end; align-items: center; }
+    .node-add--l { left: -40px; top: 50%; width: 40px; height: 32px; margin-top: -16px; justify-content: flex-start; align-items: center; }
+    .node-add--t { top: -40px; left: 50%; width: 32px; height: 40px; margin-left: -16px; justify-content: center; align-items: flex-start; }
+    .node-add--b { bottom: -40px; left: 50%; width: 32px; height: 40px; margin-left: -16px; justify-content: center; align-items: flex-end; }
     .node:hover .node-add, .node--selected .node-add { display: inline-flex; }
-    .node-add:hover { border-color: var(--color-primary-500); color: var(--color-primary-600); }
 
     /* canvas chrome */
     .canvas-top { position: absolute; left: var(--space-4); right: var(--space-4); top: var(--space-4); display: flex; justify-content: space-between; align-items: center; z-index: 10; pointer-events: none; }
