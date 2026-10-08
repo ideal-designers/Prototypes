@@ -11,6 +11,7 @@ type ViewMode = 'list' | 'cards';
 type SortMode = 'updated' | 'name';
 const VIEW_MODE_STORAGE_KEY = 'fvdr-home-view-mode';
 const SORT_STORAGE_KEY = 'fvdr-home-sort';
+const COLLAPSED_STORAGE_KEY = 'fvdr-home-collapsed-modules';
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 interface ModuleGroup { module: ProtoModule; protos: PrototypeDef[]; }
@@ -75,8 +76,8 @@ interface ModuleGroup { module: ProtoModule; protos: PrototypeDef[]; }
                    (dragover)="onDragOver($event, group.module)"
                    (dragleave)="onDragLeave($event, group.module)"
                    (drop)="onDrop($event, group.module)">
-            <ng-container *ngTemplateOutlet="groupHead; context: { $implicit: group }" />
-            <div role="list">
+            <ng-container *ngTemplateOutlet="groupHead; context: { $implicit: group, view: viewMode }" />
+            <div *ngIf="!isCollapsed(group.module)" role="list" [id]="groupBodyId(group.module, 'list')">
               <div *ngFor="let proto of group.protos; trackBy: bySlug"
                    class="row" role="listitem"
                    [class.row--clickable]="proto.hasComponent"
@@ -101,7 +102,7 @@ interface ModuleGroup { module: ProtoModule; protos: PrototypeDef[]; }
                 <ng-container *ngTemplateOutlet="actions; context: { $implicit: proto }" />
               </div>
             </div>
-            <p *ngIf="!group.protos.length" class="group__hint">Drop here to move to {{ group.module }}</p>
+            <p *ngIf="!group.protos.length && !isCollapsed(group.module)" class="group__hint">Drop here to move to {{ group.module }}</p>
           </section>
         </div>
 
@@ -113,8 +114,8 @@ interface ModuleGroup { module: ProtoModule; protos: PrototypeDef[]; }
                    (dragover)="onDragOver($event, group.module)"
                    (dragleave)="onDragLeave($event, group.module)"
                    (drop)="onDrop($event, group.module)">
-            <ng-container *ngTemplateOutlet="groupHead; context: { $implicit: group }" />
-            <div class="grid">
+            <ng-container *ngTemplateOutlet="groupHead; context: { $implicit: group, view: viewMode }" />
+            <div *ngIf="!isCollapsed(group.module)" class="grid" [id]="groupBodyId(group.module, 'cards')">
               <div *ngFor="let proto of group.protos; trackBy: bySlug"
                    class="card" [class.card--clickable]="proto.hasComponent"
                    [class.is-dragging]="dragging?.slug === proto.slug"
@@ -146,7 +147,7 @@ interface ModuleGroup { module: ProtoModule; protos: PrototypeDef[]; }
                 </div>
               </div>
             </div>
-            <p *ngIf="!group.protos.length" class="group__hint">Drop here to move to {{ group.module }}</p>
+            <p *ngIf="!group.protos.length && !isCollapsed(group.module)" class="group__hint">Drop here to move to {{ group.module }}</p>
           </section>
         </div>
 
@@ -180,10 +181,16 @@ interface ModuleGroup { module: ProtoModule; protos: PrototypeDef[]; }
       </ng-template>
 
       <!-- ── Module group header (shared by list + cards) ── -->
-      <ng-template #groupHead let-group>
+      <ng-template #groupHead let-group let-view="view">
         <h2 class="group__head">
-          <span class="group__title">{{ group.module }}</span>
-          <span class="group__count">{{ group.protos.length }}</span>
+          <button type="button" class="group__toggle"
+                  [attr.aria-expanded]="!isCollapsed(group.module)"
+                  [attr.aria-controls]="groupBodyId(group.module, view)"
+                  (click)="toggleGroup(group.module)">
+            <fvdr-icon [name]="isCollapsed(group.module) ? 'chevron-right' : 'chevron-down'" class="group__chevron" />
+            <span class="group__title">{{ group.module }}</span>
+            <span class="group__count">{{ group.protos.length }}</span>
+          </button>
         </h2>
       </ng-template>
 
@@ -298,13 +305,24 @@ interface ModuleGroup { module: ProtoModule; protos: PrototypeDef[]; }
       box-shadow: inset 0 0 0 1px var(--color-primary-500);
     }
     .group__head {
-      display: flex; align-items: center; gap: var(--space-2);
+      display: flex; align-items: center;
       margin: 0;
-      padding: var(--space-6) var(--space-3) var(--space-2);
+      padding: var(--space-6) var(--space-3) var(--space-2) var(--space-1);
       font-size: var(--text-sub1-size);
       font-weight: var(--font-weight-semi);
       color: var(--color-text-primary);
     }
+    .group__toggle {
+      display: inline-flex; align-items: center; gap: var(--space-2);
+      padding: var(--space-1) var(--space-2) var(--space-1) 0;
+      border: 0; border-radius: var(--radius-sm);
+      background: none;
+      font: inherit; color: inherit;
+      cursor: pointer;
+    }
+    .group__toggle:hover .group__title { color: var(--color-primary-500); }
+    .group__toggle:focus-visible { outline: 2px solid var(--color-primary-500); outline-offset: 2px; }
+    .group__chevron { font-size: var(--font-size-base); color: var(--color-stone-600); width: 16px; }
     .group__count {
       font-size: var(--text-caption1-size);
       font-weight: var(--font-weight-regular);
@@ -511,6 +529,9 @@ export class HomeComponent implements OnInit {
   ];
   readonly moduleOptions: DropdownOption[] = PROTO_MODULES.map(m => ({ value: m, label: m }));
 
+  /** Modules the user collapsed — remembered in localStorage */
+  collapsed = new Set<ProtoModule>();
+
   // Drag & drop between module groups
   dragging: PrototypeDef | null = null;
   dropTarget: ProtoModule | null = null;
@@ -545,6 +566,7 @@ export class HomeComponent implements OnInit {
   async ngOnInit(): Promise<void> {
     this.viewMode = this.readViewMode();
     this.sortMode = this.readSortMode();
+    this.collapsed = this.readCollapsed();
     this.loading = true;
     this.protos = await this.svc.list();
     this.loading = false;
@@ -609,6 +631,31 @@ export class HomeComponent implements OnInit {
   }
 
   byModule(_: number, g: ModuleGroup): string { return g.module; }
+
+  /** Search results are never hidden inside a collapsed group */
+  isCollapsed(module: ProtoModule): boolean {
+    return this.collapsed.has(module) && !this.searchQuery.trim();
+  }
+
+  toggleGroup(module: ProtoModule): void {
+    const next = new Set(this.collapsed);
+    next.has(module) ? next.delete(module) : next.add(module);
+    this.collapsed = next;
+    try { localStorage.setItem(COLLAPSED_STORAGE_KEY, JSON.stringify([...next])); } catch {}
+  }
+
+  private readCollapsed(): Set<ProtoModule> {
+    try {
+      const saved = JSON.parse(localStorage.getItem(COLLAPSED_STORAGE_KEY) ?? '[]');
+      return new Set((Array.isArray(saved) ? saved : []).filter(m => PROTO_MODULES.includes(m)));
+    } catch {
+      return new Set();
+    }
+  }
+
+  groupBodyId(module: ProtoModule, view: ViewMode): string {
+    return `group-${view}-${module.toLowerCase().replace(/[^a-z]+/g, '-')}`;
+  }
 
   private timeOf(p: PrototypeDef): number {
     const t = p.updated_at ? Date.parse(p.updated_at) : NaN;
