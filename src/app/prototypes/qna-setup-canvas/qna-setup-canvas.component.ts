@@ -27,9 +27,9 @@ interface FlowNode {
   x: number; y: number; members: Membership[]; perms: Record<string, boolean>;
   custom: boolean; assignMode: 'manual' | 'auto';
 }
-interface FlowEdge { id: string; from: string; to: string; fs: Port; ts: Port; label: string; kind: EdgeKind; }
+interface FlowEdge { id: string; from: string; to: string; fs: Port; ts: Port; label: string; kind: EdgeKind; /** ports follow geometry (edges added by the user) */ auto?: boolean; }
 interface PermDef { key: string; label: string; hint: string; }
-type PendingInsert = { edgeId: string } | { afterNodeId: string } | null;
+type PendingInsert = { edgeId: string } | { afterNodeId: string; side: Port } | null;
 
 const NODE_W = 272;
 const NODE_H = 136;
@@ -149,13 +149,20 @@ const TONES = [
 
         <div class="world" [style.transform]="'translate(' + panX + 'px,' + panY + 'px) scale(' + zoom + ')'">
 
+          <!-- lanes: question team always on the left -->
+          <ng-container *ngIf="lanes as L">
+            <div class="lane-divider" [style.left.px]="L.x" [style.top.px]="L.top" [style.height.px]="L.height"></div>
+            <span class="lane-label lane-label--q" [style.left.px]="L.x - 16" [style.top.px]="L.top"><fvdr-icon name="group"></fvdr-icon>Question side</span>
+            <span class="lane-label lane-label--a" [style.left.px]="L.x + 16" [style.top.px]="L.top"><fvdr-icon name="comment"></fvdr-icon>Answer side</span>
+          </ng-container>
+
           <!-- edges -->
           <svg class="edges" width="4000" height="3000">
             <defs>
-              <marker id="qsc-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <marker id="qsc-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse">
                 <path d="M0,0 L10,5 L0,10 z" class="arrow-main"></path>
               </marker>
-              <marker id="qsc-arrow-reject" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <marker id="qsc-arrow-reject" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse">
                 <path d="M0,0 L10,5 L0,10 z" class="arrow-reject"></path>
               </marker>
             </defs>
@@ -240,10 +247,10 @@ const TONES = [
               </ng-template>
             </div>
 
-            <span class="port port--l"></span>
-            <span class="port port--r"></span>
-            <button class="node-add" title="Add next role"
-                    (mousedown)="$event.stopPropagation()" (click)="startInsertAfter(n)">
+            <!-- dot = where a message leaves the role; the arrowhead marks where it arrives -->
+            <span class="port" *ngFor="let s of outPorts(n); trackBy: trackSelf" [ngClass]="'port--' + s"></span>
+            <button class="node-add" *ngFor="let s of freeSides(n); trackBy: trackSelf" [ngClass]="'node-add--' + s"
+                    title="Add next role" (mousedown)="$event.stopPropagation()" (click)="startInsertAfter(n, s)">
               <fvdr-icon name="plus"></fvdr-icon>
             </button>
           </div>
@@ -645,13 +652,22 @@ const TONES = [
     .team-chip { display: inline-flex; align-items: center; gap: var(--space-1); padding: 2px var(--space-2); border-radius: var(--radius-sm); background: var(--color-info-50); color: var(--color-info-800); font-size: var(--text-caption1-size); }
     .team-chip b { font-weight: var(--font-weight-semi); }
 
-    .port { position: absolute; top: 50%; width: 10px; height: 10px; margin-top: -5px; border-radius: var(--radius-full); background: var(--color-stone-0); border: 2px solid var(--color-stone-500); }
-    .port--l { left: -6px; } .port--r { right: -6px; }
+    .port { position: absolute; width: 10px; height: 10px; border-radius: var(--radius-full); background: var(--color-stone-600); border: 2px solid var(--color-stone-0); }
+    .port--l { left: -6px; top: 50%; margin-top: -5px; } .port--r { right: -6px; top: 50%; margin-top: -5px; }
+    .port--t { top: -6px; left: 50%; margin-left: -5px; } .port--b { bottom: -6px; left: 50%; margin-left: -5px; }
+    .lane-divider { position: absolute; width: 0; border-left: 1px dashed var(--color-stone-500); pointer-events: none; }
+    .lane-label { position: absolute; display: inline-flex; align-items: center; gap: var(--space-1); white-space: nowrap; transform: translateY(-50%); font-size: var(--text-caption1-size); font-weight: var(--font-weight-semi); color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.04em; pointer-events: none; }
+    .lane-label--q { transform: translate(-100%, -50%); color: var(--color-info-500); }
+    .lane-label--a { color: var(--color-primary-600); }
     .node-add {
-      position: absolute; right: -36px; top: 50%; margin-top: -12px; width: 24px; height: 24px;
+      position: absolute; width: 24px; height: 24px;
       border-radius: var(--radius-sm); border: 1px solid var(--color-stone-500); background: var(--color-stone-0);
       color: var(--color-text-secondary); display: none; align-items: center; justify-content: center; cursor: pointer; font-size: 14px;
     }
+    .node-add--r { right: -36px; top: 50%; margin-top: -12px; }
+    .node-add--l { left: -36px; top: 50%; margin-top: -12px; }
+    .node-add--t { top: -36px; left: 50%; margin-left: -12px; }
+    .node-add--b { bottom: -36px; left: 50%; margin-left: -12px; }
     .node:hover .node-add, .node--selected .node-add { display: inline-flex; }
     .node-add:hover { border-color: var(--color-primary-500); color: var(--color-primary-600); }
 
@@ -848,6 +864,52 @@ export class QnaSetupCanvasComponent {
 
   // ── lookups ───────────────────────────────────────────────────────────────
   trackById = (_: number, x: { id: string }) => x.id;
+  trackSelf = (_: number, x: string) => x;
+
+  private readonly sideCache = new Map<string, { key: string; out: Port[]; free: Port[] }>();
+  private portsOf(n: FlowNode) {
+    const out = [...new Set(this.edges.filter(e => e.from === n.id).map(e => e.fs))] as Port[];
+    const used = new Set<Port>([...out, ...this.edges.filter(e => e.to === n.id).map(e => e.ts)]);
+    const free = (['t', 'r', 'b', 'l'] as Port[]).filter(p => !used.has(p));
+    const key = out.join('') + '|' + free.join('');
+    const hit = this.sideCache.get(n.id);
+    if (hit && hit.key === key) return hit;
+    const v = { key, out, free };
+    this.sideCache.set(n.id, v);
+    return v;
+  }
+  /** Sides where a message leaves this role. */
+  outPorts(n: FlowNode): Port[] { return this.portsOf(n).out; }
+  /** Sides with no connection — the "+" appears there on hover. */
+  freeSides(n: FlowNode): Port[] { return this.portsOf(n).free; }
+
+  /** Divider between question side (left) and answer side (right). */
+  get lanes(): { x: number; top: number; height: number } | null {
+    const q = this.nodes.filter(n => n.side === 'question'), a = this.nodes.filter(n => n.side === 'answer');
+    if (!q.length || !a.length) return null;
+    const qRight = Math.max(...q.map(n => n.x + NODE_W)), aLeft = Math.min(...a.map(n => n.x));
+    if (qRight >= aLeft) return null;
+    const top = Math.min(...this.nodes.map(n => n.y)) - 56;
+    const bottom = Math.max(...this.nodes.map(n => n.y + NODE_H)) + 120;
+    return { x: Math.round((qRight + aLeft) / 2), top, height: bottom - top };
+  }
+  /** Re-pick ports of user-made edges from geometry so the arrow points the way the message travels. */
+  private autoPorts() {
+    this.edges.forEach(e => {
+      if (!e.auto) return;
+      const a = this.nodeById(e.from), b = this.nodeById(e.to);
+      if (!a || !b) return;
+      const dx = (b.x + NODE_W / 2) - (a.x + NODE_W / 2), dy = (b.y + NODE_H / 2) - (a.y + NODE_H / 2);
+      if (Math.abs(dx) * (NODE_H / NODE_W) >= Math.abs(dy)) { e.fs = dx >= 0 ? 'r' : 'l'; e.ts = dx >= 0 ? 'l' : 'r'; }
+      else { e.fs = dy >= 0 ? 'b' : 't'; e.ts = dy >= 0 ? 't' : 'b'; }
+    });
+  }
+  /** Question-side roles must sit left of every answer-side role; re-layout if not. */
+  private enforceLanes() {
+    const q = this.nodes.filter(n => n.side === 'question'), a = this.nodes.filter(n => n.side === 'answer');
+    if (q.length && a.length && Math.max(...q.map(n => n.x + NODE_W)) + 40 > Math.min(...a.map(n => n.x))) this.tidy();
+    else this.autoPorts();
+  }
   person(id: string): Person { return PEOPLE.find(p => p.id === id)!; }
   tone(id: string) { return TONES[this.person(id).tone % TONES.length]; }
   nodeById(id: string) { return this.nodes.find(n => n.id === id); }
@@ -1033,7 +1095,7 @@ export class QnaSetupCanvasComponent {
     const dist = Math.hypot(p3.x - p0.x, p3.y - p0.y);
     const k = e.fs === e.ts ? 90 : Math.max(50, Math.min(140, dist / 2.5));
     const d0 = this.dir(e.fs), d3 = this.dir(e.ts);
-    const end = { x: p3.x + d3.x * 6, y: p3.y + d3.y * 6 };
+    const end = { x: p3.x + d3.x * 3, y: p3.y + d3.y * 3 };
     const c1 = { x: p0.x + d0.x * k, y: p0.y + d0.y * k };
     const c2 = { x: end.x + d3.x * k, y: end.y + d3.y * k };
     return { p0, c1, c2, p3: end };
@@ -1073,7 +1135,21 @@ export class QnaSetupCanvasComponent {
       const dy = (ev.clientY - this.dragStart.y) / this.zoom;
       if (Math.abs(dx) + Math.abs(dy) > 3) this.dragMoved = true;
       const n = this.nodeById(this.dragNodeId);
-      if (n && this.dragMoved) { n.x = Math.round((this.dragStart.nx + dx) / 10) * 10; n.y = Math.round((this.dragStart.ny + dy) / 10) * 10; }
+      if (n && this.dragMoved) {
+        let x = Math.round((this.dragStart.nx + dx) / 10) * 10;
+        // keep each role in its lane: question side left, answer side right
+        const others = this.nodes.filter(o => o.id !== n.id);
+        if (n.side === 'question') {
+          const aLeft = Math.min(Infinity, ...others.filter(o => o.side === 'answer').map(o => o.x));
+          x = Math.min(x, aLeft - NODE_W - 60);
+        } else {
+          const qRight = Math.max(-Infinity, ...others.filter(o => o.side === 'question').map(o => o.x + NODE_W));
+          x = Math.max(x, qRight + 60);
+        }
+        n.x = x;
+        n.y = Math.round((this.dragStart.ny + dy) / 10) * 10;
+        this.autoPorts();
+      }
     } else if (this.panning) {
       this.panX = this.panStart.px + ev.clientX - this.panStart.x;
       this.panY = this.panStart.py + ev.clientY - this.panStart.y;
@@ -1139,8 +1215,14 @@ export class QnaSetupCanvasComponent {
     }
     let maxD = Math.max(0, ...depth.values());
     this.nodes.forEach(n => { if (!depth.has(n.id)) depth.set(n.id, ++maxD); });
+    // question side gets the left columns, answer side the columns after it
+    const qDepths = [...new Set(this.nodes.filter(n => n.side === 'question').map(n => depth.get(n.id)!))].sort((a, b) => a - b);
+    const aDepths = [...new Set(this.nodes.filter(n => n.side === 'answer').map(n => depth.get(n.id)!))].sort((a, b) => a - b);
+    const colOf = (n: FlowNode) => n.side === 'question'
+      ? qDepths.indexOf(depth.get(n.id)!)
+      : qDepths.length + aDepths.indexOf(depth.get(n.id)!);
     const cols = new Map<number, FlowNode[]>();
-    this.nodes.forEach(n => { const d = depth.get(n.id)!; cols.set(d, [...(cols.get(d) || []), n]); });
+    this.nodes.forEach(n => { const d = colOf(n); cols.set(d, [...(cols.get(d) || []), n]); });
     cols.forEach((list, d) => {
       // centre each column around row 1; two roles in a column sit on rows 0 and 2
       const spread = list.length === 2 ? 2 : 1;
@@ -1149,6 +1231,7 @@ export class QnaSetupCanvasComponent {
         n.y = Math.round(90 + ROW_H * (1 + (i - (list.length - 1) / 2) * spread));
       });
     });
+    this.autoPorts();
     setTimeout(() => this.fit(), 0);
   }
 
@@ -1281,10 +1364,10 @@ export class QnaSetupCanvasComponent {
       const e = this.edges.find(x => x.id === p.edgeId);
       return e ? `Between ${this.nodeById(e.from)?.name} and ${this.nodeById(e.to)?.name}` : '';
     }
-    return `After ${this.nodeById(p.afterNodeId)?.name}`;
+    return `${p.side === 'r' ? 'After' : p.side === 'l' ? 'Before' : p.side === 't' ? 'Above' : 'Below'} ${this.nodeById(p.afterNodeId)?.name}`;
   }
   startInsertOnEdge(e: FlowEdge) { this.selectedId = null; this.pendingInsert = { edgeId: e.id }; this.libTab = 'roles'; }
-  startInsertAfter(n: FlowNode) { this.selectedId = null; this.pendingInsert = { afterNodeId: n.id }; this.libTab = 'roles'; }
+  startInsertAfter(n: FlowNode, side: Port = 'r') { this.selectedId = null; this.pendingInsert = { afterNodeId: n.id, side }; this.libTab = 'roles'; }
 
   private newNode(r: RoleDef, x: number, y: number): FlowNode {
     return {
@@ -1301,27 +1384,40 @@ export class QnaSetupCanvasComponent {
       node = this.newNode(r, Math.round(mid.x - NODE_W / 2), Math.round(mid.y - NODE_H / 2));
       this.edges = [
         ...this.edges.filter(x => x.id !== e.id),
-        { id: 'e' + this.seq++, from: e.from, to: node.id, fs: e.fs, ts: 'l', label: e.label, kind: e.kind },
-        { id: 'e' + this.seq++, from: node.id, to: e.to, fs: 'r', ts: e.ts, label: r.perms['approve'] ? 'Approved' : 'Passes on', kind: e.kind },
+        { id: 'e' + this.seq++, from: e.from, to: node.id, fs: e.fs, ts: 'l', label: e.label, kind: e.kind, auto: true },
+        { id: 'e' + this.seq++, from: node.id, to: e.to, fs: 'r', ts: e.ts, label: r.perms['approve'] ? 'Approved' : 'Passes on', kind: e.kind, auto: true },
       ];
       this.nodes = [...this.nodes, node];
       this.tidy();
     } else if (p && 'afterNodeId' in p) {
       const src = this.nodeById(p.afterNodeId)!;
-      node = this.newNode(r, src.x + COL_W, src.y);
-      while (this.nodes.some(n => Math.abs(n.x - node.x) < NODE_W && Math.abs(n.y - node.y) < NODE_H)) node.y += ROW_H;
+      const d = this.dir(p.side);
+      node = this.newNode(r, src.x + d.x * COL_W, src.y + d.y * ROW_H);
+      // step further in the same direction until the spot is free
+      while (this.nodes.some(n => Math.abs(n.x - node.x) < NODE_W && Math.abs(n.y - node.y) < NODE_H)) {
+        if (d.x) node.y += ROW_H; else node.y += d.y * ROW_H;
+      }
       this.nodes = [...this.nodes, node];
-      this.edges = [...this.edges, { id: 'e' + this.seq++, from: src.id, to: node.id, fs: 'r', ts: 'l', label: 'Passes on', kind: 'main' }];
+      const opp: Record<Port, Port> = { l: 'r', r: 'l', t: 'b', b: 't' };
+      this.edges = [...this.edges, { id: 'e' + this.seq++, from: src.id, to: node.id, fs: p.side, ts: opp[p.side], label: 'Passes on', kind: 'main', auto: true }];
+      this.enforceLanes();
     } else {
-      const pos = at ?? this.freeSpot();
+      const pos = at ?? this.freeSpot(r.side);
       node = this.newNode(r, pos.x, pos.y);
       this.nodes = [...this.nodes, node];
+      this.enforceLanes();
     }
     this.pendingInsert = null;
     this.selectNode(node.id);
     if (!at) setTimeout(() => this.fit(), 0);
   }
-  private freeSpot() {
+  private freeSpot(side: Side) {
+    const maxY = Math.max(90, ...this.nodes.map(n => n.y));
+    if (side === 'question') {
+      // below the question lane, so it stays on the left
+      const q = this.nodes.filter(n => n.side === 'question');
+      return { x: q.length ? Math.min(...q.map(n => n.x)) : 60, y: maxY + ROW_H };
+    }
     const maxX = Math.max(60, ...this.nodes.map(n => n.x));
     return { x: maxX + COL_W, y: 90 + ROW_H };
   }
