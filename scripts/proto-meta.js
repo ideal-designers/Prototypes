@@ -7,9 +7,9 @@
  * by "Claude" are skipped for the author but still count for the date).
  * `preview` is true when src/assets/previews/{slug}.jpg exists (see scripts/proto-previews.js).
  *
- * Runs in `npm run build:proto`. Shallow clones (Vercel git deploys) are unshallowed first.
- * Without git at all (`vercel --prod` CLI uploads) it keeps the committed file, so commit
- * the regenerated file too:   node scripts/proto-meta.js
+ * Runs in `npm run build:proto`; shallow clones (e.g. CI) are unshallowed first.
+ * Vercel builds have no .git at all, so they keep the committed file — after adding or
+ * changing a prototype, regenerate and commit it:   node scripts/proto-meta.js
  */
 const fs = require('fs');
 const path = require('path');
@@ -27,7 +27,7 @@ const git = (cmd) => execSync(`git ${cmd}`, { cwd: ROOT, encoding: 'utf8', stdio
 let usable = false;
 try {
   if (git('rev-parse --is-shallow-repository') === 'true') {
-    // Vercel git deploys clone shallowly — fetch full history so dates are current
+    // Shallow CI clones: fetch full history so dates are current
     execSync('git fetch --unshallow --quiet', { cwd: ROOT, stdio: 'ignore', timeout: 60000 });
   }
   usable = git('rev-parse --is-shallow-repository') === 'false';
