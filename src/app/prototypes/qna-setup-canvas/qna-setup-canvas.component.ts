@@ -26,9 +26,21 @@ interface FlowNode {
   id: string; roleKey: string; name: string; side: Side; icon: FvdrIconName;
   x: number; y: number; members: Membership[]; perms: Record<string, boolean>;
   custom: boolean; assignMode: 'manual' | 'auto';
+  /** avatar colour; falls back to the side/custom default */
+  color?: AvatarColor;
 }
 interface FlowEdge { id: string; from: string; to: string; fs: Port; ts: Port; label: string; kind: EdgeKind; /** ports follow geometry (edges added by the user) */ auto?: boolean; }
 interface PermDef { key: string; label: string; hint: string; }
+type AvatarColor = 'green' | 'teal' | 'blue' | 'orange' | 'red' | 'grey' | 'dark';
+const AVATAR_COLORS: { id: AvatarColor; label: string; bg: string; fg: string }[] = [
+  { id: 'green',  label: 'Green',  bg: 'var(--color-primary-50)',    fg: 'var(--color-primary-600)' },
+  { id: 'teal',   label: 'Teal',   bg: 'var(--color-malachite-100)', fg: 'var(--color-primary-800)' },
+  { id: 'blue',   label: 'Blue',   bg: 'var(--color-info-50)',       fg: 'var(--color-info-500)' },
+  { id: 'orange', label: 'Orange', bg: 'var(--color-warning-50)',    fg: 'var(--color-warning-700)' },
+  { id: 'red',    label: 'Red',    bg: 'var(--color-error-50)',      fg: 'var(--color-error-600)' },
+  { id: 'grey',   label: 'Grey',   bg: 'var(--color-stone-200)',     fg: 'var(--color-stone-700)' },
+  { id: 'dark',   label: 'Dark',   bg: 'var(--color-stone-900)',     fg: 'var(--color-text-inverse)' },
+];
 type PendingInsert = { edgeId: string } | { afterNodeId: string; side: Port } | null;
 
 const NODE_W = 272;
@@ -210,7 +222,7 @@ const TONES = [
                (drop)="onNodeDrop($event, n)">
 
             <div class="node-head">
-              <span class="node-icon" [class.node-icon--q]="n.side === 'question'" [class.node-icon--custom]="n.custom">
+              <span class="node-icon" [style.background]="avatar(n).bg" [style.color]="avatar(n).fg">
                 <fvdr-icon [name]="n.icon"></fvdr-icon>
               </span>
               <div class="node-titles">
@@ -279,9 +291,21 @@ const TONES = [
         <!-- Node panel -->
         <ng-container *ngIf="selectedNode as n; else libraryTpl">
           <div class="panel-head">
-            <span class="node-icon node-icon--lg" [class.node-icon--q]="n.side === 'question'" [class.node-icon--custom]="n.custom">
-              <fvdr-icon [name]="n.icon"></fvdr-icon>
-            </span>
+            <div class="avatar-pick">
+              <button class="node-icon node-icon--lg node-icon--btn" fvdrTooltip="Change color" tooltipPosition="bottom"
+                      [style.background]="avatar(n).bg" [style.color]="avatar(n).fg"
+                      [attr.aria-expanded]="colorOpen" (click)="colorOpen = !colorOpen">
+                <fvdr-icon [name]="n.icon"></fvdr-icon>
+              </button>
+              <div class="color-pop" *ngIf="colorOpen" role="listbox" aria-label="Avatar color">
+                <button class="swatch" *ngFor="let c of avatarColors" role="option"
+                        [attr.aria-selected]="avatar(n).id === c.id" [class.swatch--on]="avatar(n).id === c.id"
+                        [fvdrTooltip]="c.label" [style.background]="c.bg" [style.color]="c.fg"
+                        (click)="setColor(n, c.id)">
+                  <fvdr-icon [name]="avatar(n).id === c.id ? 'check' : n.icon"></fvdr-icon>
+                </button>
+              </div>
+            </div>
             <div class="panel-titles">
               <input class="name-input" [(ngModel)]="n.name" aria-label="Role name" />
               <span class="panel-sub">
@@ -626,6 +650,17 @@ const TONES = [
     .node-icon--q { background: var(--color-info-50); color: var(--color-info-500); }
     .node-icon--custom { background: var(--color-warning-50); color: var(--color-warning-700); }
     .node-icon--lg { width: 40px; height: 40px; font-size: 20px; }
+    .avatar-pick { position: relative; flex-shrink: 0; }
+    .node-icon--btn { border: 0; padding: 0; cursor: pointer; transition: box-shadow 0.15s; }
+    .node-icon--btn:hover, .node-icon--btn[aria-expanded="true"] { box-shadow: 0 0 0 2px var(--color-stone-0), 0 0 0 4px var(--color-stone-400); }
+    .color-pop {
+      position: absolute; top: calc(100% + var(--space-2)); left: 0; z-index: 20;
+      display: grid; grid-template-columns: repeat(7, 28px); gap: var(--space-2);
+      padding: var(--space-3); background: var(--color-stone-0); border-radius: var(--radius-md); box-shadow: var(--shadow-popover);
+    }
+    .swatch { width: 28px; height: 28px; border: 0; border-radius: var(--radius-sm); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: 14px; }
+    .swatch:hover { box-shadow: 0 0 0 2px var(--color-stone-400); }
+    .swatch--on { box-shadow: 0 0 0 2px var(--color-primary-500); }
     .node-titles { display: flex; flex-direction: column; min-width: 0; flex: 1; }
     .node-name { font-weight: var(--font-weight-semi); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .node-sub { font-size: var(--text-caption1-size); color: var(--color-text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -792,6 +827,15 @@ export class QnaSetupCanvasComponent {
 
   readonly qPerms = Q_PERMS;
   readonly aPerms = A_PERMS;
+
+  readonly avatarColors = AVATAR_COLORS;
+  colorOpen = false;
+  /** Avatar colour of a role: chosen one, else blue for question side, orange for custom, green for answer side. */
+  avatar(n: FlowNode) {
+    const id: AvatarColor = n.color ?? (n.side === 'question' ? 'blue' : n.custom ? 'orange' : 'green');
+    return AVATAR_COLORS.find(c => c.id === id)!;
+  }
+  setColor(n: FlowNode, c: AvatarColor) { n.color = c; this.colorOpen = false; }
 
   sidebarCollapsed = true;
   navItems: SidebarNavItem[] = [
@@ -1295,10 +1339,15 @@ export class QnaSetupCanvasComponent {
     this.dragNodeId = null;
     this.panning = false;
   }
+  @HostListener('document:mousedown', ['$event'])
+  onDocDown(ev: MouseEvent) {
+    if (this.colorOpen && !(ev.target as HTMLElement).closest?.('.avatar-pick')) this.colorOpen = false;
+  }
   @HostListener('document:keydown', ['$event'])
   onKey(ev: KeyboardEvent) {
     const t = ev.target as HTMLElement;
     if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) return;
+    if (ev.key === 'Escape' && this.colorOpen) { this.colorOpen = false; return; }
     if (ev.key === 'Escape') { this.selectedId = null; this.pendingInsert = null; }
     if ((ev.key === 'Delete' || ev.key === 'Backspace') && this.selectedNode) this.deleteNode(this.selectedNode);
   }
@@ -1371,7 +1420,7 @@ export class QnaSetupCanvasComponent {
 
   // ── selection / editing ───────────────────────────────────────────────────
   selectNode(id: string) {
-    if (this.selectedId !== id) this.nodeTab = 'people';
+    if (this.selectedId !== id) { this.nodeTab = 'people'; this.colorOpen = false; }
     this.selectedId = id;
     this.pendingInsert = null;
   }
