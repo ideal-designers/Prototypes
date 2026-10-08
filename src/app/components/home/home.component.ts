@@ -33,10 +33,6 @@ interface ModuleGroup { module: ProtoModule; protos: PrototypeDef[]; }
             </p>
           </div>
           <div class="head__actions">
-            <fvdr-btn label="Component library" variant="secondary" iconName="grid-view"
-                      (clicked)="router.navigate(['/ds'])" />
-            <fvdr-btn label="Session guide" variant="secondary" iconName="documents"
-                      (clicked)="router.navigate(['/docs'])" />
             <fvdr-btn *ngIf="svc.hasSupabase" label="New prototype" iconName="plus"
                       (clicked)="openCreate()" />
           </div>
@@ -255,7 +251,7 @@ interface ModuleGroup { module: ProtoModule; protos: PrototypeDef[]; }
   styles: [`
     :host { display: block; }
     .home {
-      min-height: 100vh;
+      min-height: calc(100vh - var(--portal-header-h, 0px));
       background: var(--color-stone-0);
       color: var(--color-text-primary);
       font-family: var(--font-family);

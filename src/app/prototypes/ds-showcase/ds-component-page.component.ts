@@ -20,9 +20,9 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
 
   <!-- ── Sidebar ──────────────────────── -->
   <aside class="doc-sidebar">
-    <a class="sidebar-back" routerLink="/ds">← DS Overview</a>
+    <a class="sidebar-item" routerLink="/ds">Overview</a>
     <div class="sidebar-search">
-      <input type="text" [(ngModel)]="searchQuery" placeholder="Search components…" class="sidebar-input" />
+      <fvdr-search [(ngModel)]="searchQuery" placeholder="Search components" />
     </div>
     <nav class="sidebar-nav">
       <div class="sidebar-group" *ngFor="let group of groupedRegistry">
@@ -3614,119 +3614,73 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
   styles: [`
     .doc-page {
       display: flex;
-      height: 100vh;
+      height: calc(100vh - var(--portal-header-h, 0px));
       overflow: hidden;
       font-family: var(--font-family);
-      background: var(--color-bg-page, #fff);
+      background: var(--color-stone-0);
     }
 
-    /* ── Sidebar ── */
+    /* ── Sidebar (same spec as /ds overview) ── */
     .doc-sidebar {
-      width: 220px;
-      min-width: 220px;
-      border-right: 1px solid var(--color-border, #dee0eb);
+      width: 240px;
+      min-width: 240px;
+      border-right: 1px solid var(--color-divider);
       display: flex;
       flex-direction: column;
       overflow-y: auto;
-      background: var(--color-bg-subtle, #fbfbfb);
+      padding: var(--space-4) 0 var(--space-6);
+      background: var(--color-stone-100);
     }
-
-    .sidebar-back {
-      display: block;
-      padding: 16px 16px 12px;
-      font-size: var(--font-size-sm, 13px);
-      font-weight: 500;
-      color: var(--color-interactive-primary, #2c9c74);
-      text-decoration: none;
-      border-bottom: 1px solid var(--color-border, #dee0eb);
-    }
-    .sidebar-back:hover { text-decoration: underline; }
-
-    .sidebar-search {
-      padding: 12px 16px;
-    }
-    .sidebar-input {
-      width: 100%;
-      box-sizing: border-box;
-      border: 1px solid var(--color-border, #dee0eb);
-      border-radius: 4px;
-      padding: 6px 8px;
-      font-size: var(--font-size-sm, 13px);
-      font-family: inherit;
-      background: var(--color-bg-page, #fff);
-      color: var(--color-text-primary, #1f2129);
-      outline: none;
-    }
-    .sidebar-input:focus {
-      border-color: var(--color-interactive-primary, #2c9c74);
-    }
-
-    .sidebar-nav {
-      flex: 1;
-      padding: 8px 0 16px;
-      overflow-y: auto;
-    }
-
-    .sidebar-group {
-      margin-bottom: 4px;
-    }
+    .sidebar-search { padding: var(--space-3) var(--space-4) var(--space-1); }
+    .sidebar-nav { flex: 1; }
 
     .sidebar-group__label {
-      padding: 8px 16px 4px;
-      font-size: var(--font-size-2xs, 11px);
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.6px;
-      color: var(--color-text-secondary, #73757f);
+      padding: var(--space-4) var(--space-6) var(--space-1);
+      font-size: var(--text-caption1-size);
+      font-weight: var(--font-weight-semi);
+      color: var(--color-text-placeholder);
     }
 
     .sidebar-item {
-      display: block;
+      display: flex; align-items: center;
       width: 100%;
-      text-align: left;
-      background: none;
+      min-height: 32px;
+      padding: 0 var(--space-6);
       border: none;
-      border-left: 2px solid transparent;
-      padding: 0 16px;
-      height: 36px;
-      line-height: 36px;
-      font-size: var(--font-size-sm, 13px);
+      background: none;
+      text-align: left;
+      text-decoration: none;
       font-family: inherit;
-      color: var(--color-text-primary, #1f2129);
+      font-size: var(--text-body2-size);
+      color: var(--color-text-secondary);
       cursor: pointer;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      transition: background 0.12s, color 0.12s;
+      transition: color var(--duration-fast) var(--ease);
     }
-    .sidebar-item:hover {
-      background: var(--color-hover-bg, #f0f2f5);
-    }
-    .sidebar-item--active {
-      border-left-color: var(--color-interactive-primary, #2c9c74);
-      color: var(--color-interactive-primary, #2c9c74);
-      font-weight: 600;
-      background: var(--color-selected-row, #edf7f3);
-    }
+    .sidebar-item:hover { color: var(--color-text-primary); }
+    .sidebar-item--active { color: var(--color-text-primary); font-weight: var(--font-weight-semi); }
 
     /* Planned = spec only, no implementation behind it yet. */
     .sidebar-item--planned {
-      display: flex;
-      align-items: center;
       justify-content: space-between;
-      gap: 8px;
-      color: var(--color-text-placeholder, #9c9ea8);
+      gap: var(--space-2);
+      color: var(--color-text-placeholder);
     }
     .sidebar-item__flag {
       flex: 0 0 auto;
-      padding: 1px 5px;
-      border: 1px dashed var(--color-divider, #dee0eb);
-      border-radius: var(--radius-sm, 4px);
-      font-size: 9px;
-      line-height: 14px;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-      color: var(--color-text-secondary, #5f616a);
+      padding: 0 var(--space-1);
+      border: 1px dashed var(--color-divider);
+      border-radius: var(--radius-sm);
+      font-size: var(--text-caption1-size);
+      font-weight: var(--font-weight-regular);
+      color: var(--color-text-secondary);
+    }
+
+    @media (max-width: 767px) {
+      .doc-sidebar { display: none; }
+      .doc-page .doc-main { padding: var(--space-6) var(--space-4); }
     }
 
     /* ── Main ── */
@@ -3745,11 +3699,11 @@ import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, Compone
     }
 
     .doc-hero__title {
-      font-size: var(--font-size-5xl, 28px);
-      font-weight: 700;
-      color: var(--color-text-primary, #1f2129);
-      margin: 0 0 10px;
-      line-height: 1.2;
+      font-size: var(--text-h1-size);
+      font-weight: var(--font-weight-bold);
+      line-height: var(--line-height-lg);
+      color: var(--color-text-primary);
+      margin: 0 0 var(--space-2);
     }
 
     .doc-hero__meta {

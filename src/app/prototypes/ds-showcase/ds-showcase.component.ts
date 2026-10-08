@@ -27,9 +27,9 @@ import type { ComponentDocEntry } from './ds-registry';
     <div class="showcase">
       <!-- Sidebar nav -->
       <nav class="showcase__nav">
-        <div class="showcase__nav-logo">DS Components</div>
+        <a class="showcase__nav-link showcase__nav-link--active" routerLink="/ds">Overview</a>
         <div class="showcase__nav-category">Foundations</div>
-        <a class="showcase__nav-link" style="cursor: pointer;" (click)="scrollTo('breakpoints')">Breakpoints</a>
+        <a class="showcase__nav-link" href="#breakpoints" (click)="$event.preventDefault(); scrollTo('breakpoints')">Breakpoints</a>
         <ng-container *ngFor="let cat of catalogGroups">
           <div class="showcase__nav-category">{{ cat.label }}</div>
           <a
@@ -711,76 +711,70 @@ import type { ComponentDocEntry } from './ds-registry';
 
     .showcase {
       display: flex;
-      min-height: 100vh;
-      background: var(--color-stone-100);
+      min-height: calc(100vh - var(--portal-header-h, 0px));
+      background: var(--color-stone-0);
     }
 
-    /* ── Sidebar ── */
+    /* ── Sidebar (same spec as /ds/:id) ── */
     .showcase__nav {
       position: sticky;
-      top: 0;
-      width: 200px;
-      min-width: 200px;
-      height: 100vh;
+      top: var(--portal-header-h, 0px);
+      width: 240px;
+      min-width: 240px;
+      height: calc(100vh - var(--portal-header-h, 0px));
       overflow-y: auto;
-      background: var(--color-stone-0);
+      background: var(--color-stone-100);
       border-right: 1px solid var(--color-divider);
-      padding: var(--space-4) 0;
+      padding: var(--space-4) 0 var(--space-6);
       display: flex;
       flex-direction: column;
-      gap: 2px;
-    }
-    .showcase__nav-logo {
-      padding: var(--space-2) var(--space-4) var(--space-3);
-      font-size: var(--text-label-s-size);
-      font-weight: var(--text-label-s-weight);
-      color: var(--color-primary-500);
-      border-bottom: 1px solid var(--color-divider);
-      margin-bottom: var(--space-2);
     }
     .showcase__nav-link {
-      display: block;
-      padding: 6px var(--space-4);
-      font-size: var(--font-size-sm, 13px);
+      display: flex; align-items: center;
+      min-height: 32px;
+      padding: 0 var(--space-6);
+      font-size: var(--text-body2-size);
       color: var(--color-text-secondary);
       text-decoration: none;
-      border-radius: 0;
-      transition: background 0.1s, color 0.1s;
+      cursor: pointer;
+      transition: color var(--duration-fast) var(--ease);
     }
-    .showcase__nav-link:hover { background: var(--color-hover-bg); color: var(--color-text-primary); }
+    .showcase__nav-link:hover { color: var(--color-text-primary); }
+    .showcase__nav-link--active { color: var(--color-text-primary); font-weight: var(--font-weight-semi); }
 
     /* Planned = spec only. Keep it reachable but visibly not shipped. */
     .showcase__nav-link--planned {
-      display: flex; align-items: center; justify-content: space-between; gap: var(--space-2);
+      justify-content: space-between; gap: var(--space-2);
       color: var(--color-text-placeholder);
     }
     .showcase__nav-flag {
       flex: 0 0 auto;
-      padding: 1px 5px;
+      padding: 0 var(--space-1);
       border: 1px dashed var(--color-divider);
       border-radius: var(--radius-sm);
-      font-size: 9px;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
+      font-size: var(--text-caption1-size);
       color: var(--color-text-secondary);
     }
     .showcase__stat--planned { color: var(--color-text-secondary); }
     .showcase__nav-category {
-      padding: var(--space-3) var(--space-4) var(--space-1);
-      font-size: var(--font-size-2xs, 11px);
-      font-weight: 600;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
+      padding: var(--space-4) var(--space-6) var(--space-1);
+      font-size: var(--text-caption1-size);
+      font-weight: var(--font-weight-semi);
       color: var(--color-text-placeholder);
-      margin-top: var(--space-2);
     }
-    .showcase__nav-category:first-of-type { margin-top: 0; }
+
+    @media (max-width: 767px) {
+      .showcase__nav { display: none; }
+      .section { overflow-x: auto; }
+      .showcase__main { padding: var(--space-6) var(--space-4) var(--space-10); }
+    }
 
     /* ── Main ── */
     .showcase__main {
       flex: 1;
-      padding: var(--space-6) var(--space-8);
-      max-width: 900px;
+      min-width: 0;
+      padding: var(--space-10) var(--space-8) var(--space-16);
+      max-width: 1080px;
       display: flex;
       flex-direction: column;
       gap: var(--space-6);
@@ -788,16 +782,15 @@ import type { ComponentDocEntry } from './ds-registry';
 
     /* ── Hero ── */
     .showcase__hero {
-      padding: var(--space-8);
-      background: var(--color-stone-0);
-      border-radius: var(--radius-lg);
-      border: 1px solid var(--color-divider);
+      padding-bottom: var(--space-6);
+      border-bottom: 1px solid var(--color-divider);
     }
     .showcase__h1 {
-      font-size: var(--text-h2-size);
-      font-weight: var(--text-h2-weight);
+      font-size: var(--text-h1-size);
+      font-weight: var(--font-weight-bold);
+      line-height: var(--line-height-lg);
       color: var(--color-text-primary);
-      margin: 0 0 var(--space-2);
+      margin: 0 0 var(--space-1);
     }
     .showcase__subtitle {
       font-size: var(--text-body3-size);
@@ -811,10 +804,9 @@ import type { ComponentDocEntry } from './ds-registry';
 
     /* ── Section ── */
     .section {
-      background: var(--color-stone-0);
-      border: 1px solid var(--color-divider);
-      border-radius: var(--radius-md);
-      padding: var(--space-6);
+      padding: 0 0 var(--space-6);
+      scroll-margin-top: calc(var(--portal-header-h, 0px) + var(--space-4));
+      border-bottom: 1px solid var(--color-divider);
       display: flex;
       flex-direction: column;
       gap: var(--space-4);
@@ -879,12 +871,10 @@ import type { ComponentDocEntry } from './ds-registry';
       margin-bottom: 28px;
     }
     .catalog__group-label {
-      font-size: var(--font-size-2xs, 11px);
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-      color: var(--color-text-muted);
-      margin: 0 0 12px;
+      font-size: var(--text-sub1-size);
+      font-weight: var(--font-weight-semi);
+      color: var(--color-text-primary);
+      margin: 0 0 var(--space-3);
     }
     .catalog__grid {
       display: grid;

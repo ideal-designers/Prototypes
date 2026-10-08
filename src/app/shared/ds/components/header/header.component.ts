@@ -69,6 +69,9 @@ export interface BreadcrumbItem {
             *ngFor="let item of navItems"
             class="header__nav-item"
             [class.header__nav-item--active]="activeNavId === item.id"
+            [class.header__nav-item--has-icon]="!!item.icon"
+            [attr.aria-current]="activeNavId === item.id ? 'page' : null"
+            [attr.title]="item.label"
             (click)="onNavClick(item)"
           >
             <fvdr-icon
@@ -76,7 +79,7 @@ export interface BreadcrumbItem {
               [name]="activeNavId === item.id && item.activeIcon ? item.activeIcon : (item.icon || 'overview')"
               class="header__nav-icon"
             />
-            <span>{{ item.label }}</span>
+            <span class="header__nav-label">{{ item.label }}</span>
             <span *ngIf="item.badge" class="header__nav-badge">{{ item.badge }}</span>
           </button>
         </nav>
@@ -155,6 +158,17 @@ export interface BreadcrumbItem {
       font-weight: var(--text-base-s-sb-weight);
     }
     .header__nav-icon { font-size: var(--font-size-lg, 16px); }
+
+    /* Mobile: icon-only nav items (label stays as title) so the header never overflows */
+    @media (max-width: 767px) {
+      .header { padding: 0 var(--space-4); gap: var(--space-3); }
+      .header__nav { gap: 0; }
+      .header__nav-item--has-icon { padding: 0 var(--space-2); }
+      .header__nav-item--has-icon .header__nav-label {
+        position: absolute; width: 1px; height: 1px; overflow: hidden;
+        clip: rect(0 0 0 0); white-space: nowrap;
+      }
+    }
     .header__nav-badge {
       display: inline-flex;
       align-items: center;

@@ -1,6 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { DS_COMPONENTS, ToastService } from '../../shared/ds';
 
 interface Step {
   num: number;
@@ -18,74 +18,55 @@ interface FileRef {
 @Component({
   selector: 'fvdr-docs',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, ...DS_COMPONENTS],
   template: `
     <div class="docs">
+      <div class="docs__inner">
 
-      <!-- Header -->
-      <header class="docs__header">
-        <a routerLink="/" class="docs__back">
-          <span class="docs__back-arrow">←</span> Dashboard
-        </a>
-        <div class="docs__header-center">
-          <h1>Session Guide</h1>
-          <p class="docs__subtitle">Як починати нову сесію з повним контекстом проекту</p>
-        </div>
-        <a href="/session-guide.pdf" target="_blank" class="docs__pdf-btn" download>
-          ↓ PDF
-        </a>
-      </header>
+        <header class="head">
+          <h1 class="head__title">Session guide</h1>
+          <p class="head__meta">Як починати нову сесію з повним контекстом проекту</p>
+        </header>
 
-      <div class="docs__body">
-
-        <!-- Banner -->
-        <div class="banner">
-          <span class="banner__icon">⚡</span>
-          <div>
-            <strong>Автоматично:</strong> Claude Code читає <code>CLAUDE.md</code> при кожному старті.
-            Але для надійності дублюй запит у першій репліці.
-          </div>
-        </div>
+        <fvdr-inline-message variant="info"
+          message="Claude Code читає CLAUDE.md автоматично при кожному старті. Для надійності дублюй запит у першій репліці." />
 
         <!-- Steps -->
         <section class="section">
           <h2 class="section__title">Кроки запуску</h2>
-          <div class="steps">
-            <div class="step" *ngFor="let s of steps">
-              <div class="step__num">{{ s.num }}</div>
+          <ol class="steps">
+            <li class="step" *ngFor="let s of steps">
+              <span class="step__num">{{ s.num }}</span>
               <div class="step__content">
                 <div class="step__title">{{ s.title }}</div>
-                <div class="step__desc">{{ s.desc }}</div>
-                <pre class="code-block">{{ s.code }}</pre>
+                <p class="step__desc">{{ s.desc }}</p>
+                <div class="code">
+                  <pre class="code__text">{{ s.code }}</pre>
+                  <fvdr-btn variant="ghost" size="s" [iconOnly]="true"
+                            [iconName]="copiedStep === s.num ? 'check' : 'copy'"
+                            ariaLabel="Copy" (clicked)="copy(s)" />
+                </div>
               </div>
-            </div>
-          </div>
+            </li>
+          </ol>
         </section>
-
-        <div class="divider"></div>
 
         <!-- What Claude knows -->
         <section class="section">
           <h2 class="section__title">Що Claude знає після SKILL.md</h2>
-          <table class="table">
-            <thead>
-              <tr>
-                <th>Тема</th>
-                <th>Деталі</th>
-                <th>Джерело</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let row of knowledgeRows">
-                <td class="td--name">{{ row.topic }}</td>
-                <td class="td--desc">{{ row.detail }}</td>
-                <td><span class="tag">{{ row.source }}</span></td>
-              </tr>
-            </tbody>
-          </table>
+          <div class="table" role="table">
+            <div class="table__head" role="row">
+              <span role="columnheader">Тема</span>
+              <span role="columnheader">Деталі</span>
+              <span role="columnheader">Джерело</span>
+            </div>
+            <div class="table__row" role="row" *ngFor="let row of knowledgeRows">
+              <span class="table__name" role="cell">{{ row.topic }}</span>
+              <span class="table__desc" role="cell">{{ row.detail }}</span>
+              <span role="cell"><code class="tag">{{ row.source }}</code></span>
+            </div>
+          </div>
         </section>
-
-        <div class="divider"></div>
 
         <!-- Key files -->
         <section class="section">
@@ -98,225 +79,187 @@ interface FileRef {
           </div>
         </section>
 
-        <div class="divider"></div>
-
         <!-- Quick rules -->
         <section class="section">
           <h2 class="section__title">Швидкі правила</h2>
           <div class="rules">
-            <div class="rules__col rules__col--good">
-              <div class="rules__header">✅ Правильно</div>
-              <div class="rule" *ngFor="let r of goodRules"><code>{{ r }}</code></div>
+            <div class="rules__col">
+              <div class="rules__header rules__header--good"><fvdr-icon name="check" /> Правильно</div>
+              <code class="rule" *ngFor="let r of goodRules">{{ r }}</code>
             </div>
-            <div class="rules__col rules__col--bad">
-              <div class="rules__header">❌ Неправильно</div>
-              <div class="rule" *ngFor="let r of badRules"><code>{{ r }}</code></div>
+            <div class="rules__col">
+              <div class="rules__header rules__header--bad"><fvdr-icon name="close" /> Неправильно</div>
+              <code class="rule" *ngFor="let r of badRules">{{ r }}</code>
             </div>
           </div>
         </section>
 
       </div>
+      <fvdr-toast-host />
     </div>
   `,
   styles: [`
+    :host { display: block; }
     .docs {
-      min-height: 100vh;
-      background: #0B1410;
-      color: #e8f5f0;
+      min-height: calc(100vh - var(--portal-header-h, 0px));
+      background: var(--color-stone-0);
+      color: var(--color-text-primary);
       font-family: var(--font-family);
     }
-
-    /* ── Header ── */
-    .docs__header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 20px 40px;
-      border-bottom: 1px solid #1e2e28;
-      position: sticky;
-      top: 0;
-      background: rgba(11, 20, 16, 0.92);
-      backdrop-filter: blur(8px);
-      z-index: 10;
-      gap: 16px;
-    }
-    .docs__back {
-      display: flex; align-items: center; gap: 6px;
-      color: #9bbfb0; text-decoration: none;
-      font-size: 0.875rem;
-      transition: color 0.15s;
-      white-space: nowrap;
-    }
-    .docs__back:hover { color: var(--color-interactive-primary); }
-    .docs__back-arrow { font-size: 1rem; }
-    .docs__header-center { text-align: center; }
-    h1 { font-size: 1.5rem; font-weight: 700; color: var(--color-interactive-primary); margin: 0 0 2px; }
-    .docs__subtitle { font-size: 0.8rem; color: #9bbfb0; margin: 0; }
-    .docs__pdf-btn {
-      display: inline-flex; align-items: center; gap: 6px;
-      height: 34px; padding: 0 14px;
-      background: transparent; border: 1px solid #1e2e28;
-      border-radius: 6px; color: #9bbfb0;
-      font-size: 0.8rem; text-decoration: none;
-      transition: border-color 0.15s, color 0.15s;
-      white-space: nowrap;
-    }
-    .docs__pdf-btn:hover { border-color: var(--color-interactive-primary); color: var(--color-interactive-primary); }
-
-    /* ── Body ── */
-    .docs__body {
-      max-width: 800px;
+    /* Same container as the dashboard so page titles line up across tabs */
+    .docs__inner {
+      max-width: 1200px;
       margin: 0 auto;
-      padding: 40px 24px 80px;
+      padding: var(--space-10) var(--space-6) var(--space-16);
+      display: flex; flex-direction: column; gap: var(--space-6);
+    }
+    .docs__inner > * { max-width: 880px; }
+
+    /* ── Header (same as dashboard) ── */
+    .head__title {
+      margin: 0;
+      font-size: var(--text-h1-size);
+      font-weight: var(--font-weight-bold);
+      line-height: var(--line-height-lg);
+    }
+    .head__meta {
+      margin: var(--space-1) 0 0;
+      font-size: var(--text-body2-size);
+      color: var(--color-text-secondary);
     }
 
-    /* ── Banner ── */
-    .banner {
-      display: flex; align-items: flex-start; gap: 12px;
-      background: rgba(44, 156, 116, 0.08);
-      border: 1px solid rgba(44, 156, 116, 0.25);
-      border-radius: 10px;
-      padding: 14px 18px;
-      margin-bottom: 36px;
-      font-size: 0.875rem;
-      color: #9bbfb0;
-      line-height: 1.6;
+    /* ── Sections: borderless, divided ── */
+    .section {
+      padding-top: var(--space-6);
+      border-top: 1px solid var(--color-divider);
     }
-    .banner__icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
-    .banner strong { color: #e8f5f0; }
-    .banner code {
-      font-family: monospace; font-size: 0.82rem;
-      background: rgba(44, 156, 116, 0.12);
-      color: var(--color-interactive-primary); padding: 1px 6px; border-radius: 4px;
-    }
-
-    /* ── Sections ── */
-    .section { margin-bottom: 8px; }
     .section__title {
-      font-size: 1rem; font-weight: 700;
-      color: #e8f5f0;
-      margin: 0 0 20px;
-      display: flex; align-items: center; gap: 10px;
+      margin: 0 0 var(--space-4);
+      font-size: var(--text-sub1-size);
+      font-weight: var(--font-weight-semi);
     }
-    .section__title::before {
-      content: '';
-      display: inline-block;
-      width: 3px; height: 18px;
-      background: var(--color-interactive-primary);
-      border-radius: 2px;
-    }
-    .divider { border: none; border-top: 1px solid #1e2e28; margin: 32px 0; }
 
     /* ── Steps ── */
-    .steps { display: flex; flex-direction: column; gap: 16px; }
-    .step {
-      display: flex; gap: 16px; align-items: flex-start;
-      background: #101A16;
-      border: 1px solid #1e2e28;
-      border-radius: 10px;
-      padding: 18px 20px;
-    }
+    .steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-6); }
+    .step { display: flex; gap: var(--space-4); }
     .step__num {
       flex-shrink: 0;
-      width: 28px; height: 28px;
-      background: var(--color-interactive-primary); color: #fff;
-      border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
-      font-size: 0.85rem; font-weight: 700;
+      width: 28px; height: 28px;
+      border-radius: var(--radius-full);
+      background: var(--color-primary-50);
+      color: var(--color-primary-600);
+      font-size: var(--text-body2-size);
+      font-weight: var(--font-weight-semi);
     }
-    .step__title { font-size: 0.95rem; font-weight: 600; color: #e8f5f0; margin-bottom: 4px; }
-    .step__desc { font-size: 0.82rem; color: #9bbfb0; margin-bottom: 10px; }
-    .code-block {
-      background: #0B1410;
-      border: 1px solid #1e2e28;
-      border-radius: 6px;
-      padding: 10px 14px;
-      font-family: monospace;
-      font-size: 0.82rem;
-      color: #3FB67D;
-      white-space: pre-wrap;
-      word-break: break-all;
-      margin: 0;
+    .step__content { flex: 1; min-width: 0; padding-top: var(--space-1); }
+    .step__title { font-size: var(--text-body1-size); font-weight: var(--font-weight-semi); }
+    .step__desc {
+      margin: var(--space-1) 0 var(--space-3);
+      font-size: var(--text-body2-size);
+      color: var(--color-text-secondary);
+    }
+    .code {
+      display: flex; align-items: flex-start; gap: var(--space-2);
+      padding: var(--space-3) var(--space-2) var(--space-3) var(--space-4);
+      background: var(--color-stone-200);
+      border-radius: var(--radius-sm);
+    }
+    .code__text {
+      flex: 1; min-width: 0; margin: 0;
+      padding-top: var(--space-1);
+      font-family: var(--font-family-mono);
+      font-size: var(--text-caption1-size);
+      color: var(--color-text-primary);
+      white-space: pre-wrap; word-break: break-word;
     }
 
     /* ── Table ── */
-    .table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.85rem;
+    .table__head, .table__row {
+      display: grid;
+      grid-template-columns: 180px minmax(0, 1fr) 112px;
+      gap: var(--space-4);
+      align-items: center;
+      padding: 0 var(--space-3);
+      border-bottom: 1px solid var(--color-divider);
     }
-    th {
-      text-align: left; padding: 10px 14px;
-      background: #101A16;
-      color: #9bbfb0; font-weight: 600;
-      border-bottom: 1px solid #1e2e28;
+    .table__head {
+      height: 40px;
+      font-size: var(--text-caption1-size);
+      font-weight: var(--font-weight-semi);
+      color: var(--color-text-secondary);
     }
-    td { padding: 10px 14px; border-bottom: 1px solid #0f1f19; vertical-align: top; }
-    tr:last-child td { border-bottom: none; }
-    .td--name { color: #e8f5f0; font-weight: 500; white-space: nowrap; }
-    .td--desc { color: #9bbfb0; }
+    .table__row { min-height: 48px; padding-top: var(--space-2); padding-bottom: var(--space-2); }
+    .table__name { font-size: var(--text-body2-size); font-weight: var(--font-weight-semi); }
+    .table__desc { font-size: var(--text-body2-size); color: var(--color-text-secondary); }
     .tag {
       display: inline-block;
-      font-size: 0.72rem; font-weight: 600;
-      background: rgba(44, 156, 116, 0.12);
-      color: var(--color-interactive-primary);
-      border: 1px solid rgba(44, 156, 116, 0.2);
-      padding: 2px 8px; border-radius: 20px;
-      white-space: nowrap;
+      padding: 0 var(--space-2);
+      border-radius: var(--radius-sm);
+      background: var(--color-stone-200);
+      font-family: var(--font-family-mono);
+      font-size: var(--text-caption1-size);
+      color: var(--color-text-secondary);
     }
 
-    /* ── Key files ── */
-    .files { display: flex; flex-direction: column; gap: 8px; }
+    /* ── Files ── */
     .file {
-      display: flex; align-items: baseline; gap: 12px;
-      background: #101A16; border: 1px solid #1e2e28;
-      border-radius: 8px; padding: 12px 16px;
+      display: flex; gap: var(--space-4); align-items: baseline;
+      padding: var(--space-3);
+      border-bottom: 1px solid var(--color-divider);
     }
     .file__path {
-      font-family: monospace; font-size: 0.8rem;
-      color: var(--color-interactive-primary); flex-shrink: 0;
-      min-width: 220px;
+      flex: 0 0 240px;
+      font-family: var(--font-family-mono);
+      font-size: var(--text-caption1-size);
+      color: var(--color-primary-600);
     }
-    .file__desc { font-size: 0.82rem; color: #9bbfb0; }
+    .file__desc { font-size: var(--text-body2-size); color: var(--color-text-secondary); }
 
-    /* ── Quick rules ── */
-    .rules {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
-    }
-    .rules__col {
-      background: #101A16; border: 1px solid #1e2e28;
-      border-radius: 10px; overflow: hidden;
-    }
+    /* ── Rules ── */
+    .rules { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-6); }
+    .rules__col { display: flex; flex-direction: column; }
     .rules__header {
-      padding: 10px 16px;
-      font-size: 0.8rem; font-weight: 600;
-      border-bottom: 1px solid #1e2e28;
+      display: flex; align-items: center; gap: var(--space-2);
+      padding: 0 var(--space-3) var(--space-2);
+      border-bottom: 1px solid var(--color-divider);
+      font-size: var(--text-body2-size);
+      font-weight: var(--font-weight-semi);
     }
-    .rules__col--good .rules__header { color: var(--color-interactive-primary); }
-    .rules__col--bad  .rules__header { color: var(--color-danger); }
+    .rules__header--good fvdr-icon { color: var(--color-primary-500); }
+    .rules__header--bad fvdr-icon { color: var(--color-error-600); }
     .rule {
-      padding: 8px 16px;
-      border-bottom: 1px solid #0f1f19;
-      font-size: 0.78rem;
+      padding: var(--space-2) var(--space-3);
+      border-bottom: 1px solid var(--color-divider);
+      font-family: var(--font-family-mono);
+      font-size: var(--text-caption1-size);
+      color: var(--color-text-primary);
     }
-    .rule:last-child { border-bottom: none; }
-    .rule code {
-      font-family: monospace;
-      color: #9bbfb0;
-    }
-    .rules__col--good .rule code { color: #3FB67D; }
-    .rules__col--bad  .rule code { color: var(--color-danger); opacity: 0.75; }
 
-    @media (max-width: 600px) {
-      .docs__header { padding: 16px; }
-      .docs__body { padding: 24px 16px 60px; }
+    @media (max-width: 767px) {
+      .docs__inner { padding: var(--space-6) var(--space-4) var(--space-10); }
+      .table__head { display: none; }
+      .table__row { grid-template-columns: 1fr; gap: var(--space-1); }
+      .file { flex-direction: column; gap: var(--space-1); }
+      .file__path { flex-basis: auto; }
       .rules { grid-template-columns: 1fr; }
-      .file { flex-direction: column; gap: 4px; }
-      .file__path { min-width: unset; }
     }
   `],
 })
 export class DocsComponent {
+  private readonly toast = inject(ToastService);
+  copiedStep: number | null = null;
+
+  async copy(step: Step): Promise<void> {
+    try {
+      await navigator.clipboard.writeText(step.code);
+      this.copiedStep = step.num;
+      setTimeout(() => { if (this.copiedStep === step.num) this.copiedStep = null; }, 2000);
+    } catch {
+      this.toast.show({ variant: 'error', message: 'Could not access the clipboard' });
+    }
+  }
+
   steps: Step[] = [
     {
       num: 1,
@@ -340,7 +283,7 @@ export class DocsComponent {
       num: 4,
       title: 'Дебаг через Chrome DevTools MCP',
       desc: 'MCP підключений — можна дивитися консоль, помилки мережі, робити скріни прямо з сесії.',
-      code: 'Відкрий https://prototype-dashboard-sigma.vercel.app/my-slug\nі покажи console errors',
+      code: 'Відкрий https://prototypes-psi-ochre.vercel.app/my-slug\nі покажи console errors',
     },
   ];
 
@@ -351,7 +294,7 @@ export class DocsComponent {
     { topic: 'Іконки',            detail: '65 іконок FvdrIconName, правила використання',        source: 'CLAUDE.md' },
     { topic: 'Angular патерн',    detail: 'DS_COMPONENTS, TrackerService, FormsModule',          source: 'SKILL.md' },
     { topic: 'Analytics',         detail: 'PostHog EU + Supabase — автоматично через Tracker',   source: 'SKILL.md' },
-    { topic: 'Git правила',       detail: 'Push тільки в claude/*, для main — remote gitlab',    source: 'CLAUDE.md' },
+    { topic: 'Git правила',       detail: 'GitHub origin: гілки claude/*, у main — через PR або ff-merge',    source: 'CLAUDE.md' },
   ];
 
   files: FileRef[] = [

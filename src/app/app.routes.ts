@@ -7,12 +7,36 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./components/login/login.component').then(m => m.LoginComponent),
   },
+  // Platform pages (dashboard, design system, session guide) share one header + nav.
+  // Prefix match on '' — unmatched URLs fall through to the prototype routes below.
   {
     path: '',
-    pathMatch: 'full',
     canActivate: [authGuard],
     loadComponent: () =>
-      import('./components/home/home.component').then(m => m.HomeComponent),
+      import('./components/portal-shell/portal-shell.component').then(m => m.PortalShellComponent),
+    children: [
+      {
+        path: '',
+        pathMatch: 'full',
+        loadComponent: () =>
+          import('./components/home/home.component').then(m => m.HomeComponent),
+      },
+      {
+        path: 'ds',
+        loadComponent: () =>
+          import('./prototypes/ds-showcase/ds-showcase.component').then(m => m.DsShowcaseComponent),
+      },
+      {
+        path: 'ds/:id',
+        loadComponent: () =>
+          import('./prototypes/ds-showcase/ds-component-page.component').then(m => m.DsComponentPageComponent),
+      },
+      {
+        path: 'docs',
+        loadComponent: () =>
+          import('./components/docs/docs.component').then(m => m.DocsComponent),
+      },
+    ],
   },
   // Prototype routes are registered here dynamically via new-proto.js
   {
@@ -26,24 +50,6 @@ export const routes: Routes = [
     canActivate: [authGuard],
     loadComponent: () =>
       import('./prototypes/ca-settings-integrations/ca-settings-integrations.component').then(m => m.CaSettingsIntegrationsComponent),
-  },
-  {
-    path: 'ds',
-    canActivate: [authGuard],
-    loadComponent: () =>
-      import('./prototypes/ds-showcase/ds-showcase.component').then(m => m.DsShowcaseComponent),
-  },
-  {
-    path: 'ds/:id',
-    canActivate: [authGuard],
-    loadComponent: () =>
-      import('./prototypes/ds-showcase/ds-component-page.component').then(m => m.DsComponentPageComponent),
-  },
-  {
-    path: 'docs',
-    canActivate: [authGuard],
-    loadComponent: () =>
-      import('./components/docs/docs.component').then(m => m.DocsComponent),
   },
   {
     path: 'project-archive-creation-flow-testing',
