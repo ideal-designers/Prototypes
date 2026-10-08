@@ -304,7 +304,7 @@ const TONES = [
                 [options]="addPeopleOptions(n)" [value]="''" placeholder="Add people or a whole group"
                 [searchable]="true" searchPlaceholder="Search participants"
                 (valueChange)="addFromDropdown(n, $event)"></fvdr-dropdown>
-              <p class="hint">or drag people from the <b>People</b> library onto any role on the canvas</p>
+              <p class="hint">or drag people from the <b>People</b> tab onto any role on the canvas</p>
 
               <div class="empty-panel" *ngIf="!n.members.length">
                 <fvdr-icon name="user-add"></fvdr-icon>
@@ -404,9 +404,9 @@ const TONES = [
         <ng-template #libraryTpl>
           <div class="panel-head panel-head--lib">
             <div class="panel-titles">
-              <span class="lib-title">{{ pendingInsert ? 'Add a role' : 'Library' }}</span>
+              <span class="lib-title">{{ pendingInsert ? 'Add a role' : 'Add to workflow' }}</span>
               <span class="panel-sub" *ngIf="pendingInsert">{{ pendingInsertCaption }}</span>
-              <span class="panel-sub" *ngIf="!pendingInsert">Click or drag roles and people onto the canvas</span>
+              <span class="panel-sub" *ngIf="!pendingInsert">Click a role to add it, or drag roles and people onto the canvas</span>
             </div>
             <button class="icon-btn" *ngIf="pendingInsert" title="Cancel" (click)="pendingInsert = null"><fvdr-icon name="close"></fvdr-icon></button>
           </div>
