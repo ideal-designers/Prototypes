@@ -631,11 +631,18 @@ const TONES = [
       background: var(--color-stone-0); border: 1px solid var(--color-stone-400);
       font-size: var(--text-caption2-size); color: var(--color-text-secondary); white-space: nowrap; cursor: default;
       z-index: 1;
+      transition: border-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
     }
     .edge-label--reject { color: var(--color-error-600); border-color: var(--color-error-200); }
     .edge-label--hover { border-color: var(--color-primary-500); color: var(--color-text-primary); z-index: 3; }
-    .edge-actions { display: none; gap: 2px; }
-    .edge-label--hover .edge-actions { display: inline-flex; }
+    /* actions slide open inside the label instead of popping in */
+    .edge-actions {
+      display: inline-flex; gap: 2px; overflow: hidden;
+      max-width: 0; opacity: 0; margin-left: calc(var(--space-1) * -1);
+      transition: max-width 0.22s ease, opacity 0.16s ease, margin-left 0.22s ease;
+    }
+    .edge-label--hover { box-shadow: var(--shadow-card); }
+    .edge-label--hover .edge-actions { max-width: 48px; opacity: 1; margin-left: 0; transition-delay: 0s, 0.06s, 0s; }
     .mini-btn { width: 20px; height: 20px; border-radius: var(--radius-full); border: 0; background: var(--color-stone-200); color: var(--color-text-secondary); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; font-size: var(--text-caption1-size); }
     .mini-btn:hover { background: var(--color-primary-50); color: var(--color-primary-600); }
 
@@ -706,19 +713,30 @@ const TONES = [
     .lane-label--a { color: var(--color-primary-600); }
     /* hit area starts at the card edge so the cursor never leaves hover on the way to "+" */
     .node-add {
-      position: absolute; display: none; padding: 0; border: 0; background: transparent; cursor: pointer;
+      position: absolute; display: inline-flex; padding: 0; border: 0; background: transparent; cursor: pointer;
+      opacity: 0; visibility: hidden; pointer-events: none;
+      /* fade out a touch later so a quick move toward "+" still catches it */
+      transition: opacity 0.18s ease 0.08s, visibility 0s linear 0.26s;
     }
     .node-add-dot {
       width: 24px; height: 24px; border-radius: var(--radius-sm); border: 1px solid var(--color-stone-500);
       background: var(--color-stone-0); color: var(--color-text-secondary);
       display: inline-flex; align-items: center; justify-content: center; font-size: 14px;
+      transform: scale(0.7); transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), background 0.15s, border-color 0.15s, color 0.15s;
     }
     .node-add:hover .node-add-dot { border-color: var(--color-primary-500); color: var(--color-primary-600); background: var(--color-primary-50); }
     .node-add--r { right: -40px; top: 50%; width: 40px; height: 32px; margin-top: -16px; justify-content: flex-end; align-items: center; }
     .node-add--l { left: -40px; top: 50%; width: 40px; height: 32px; margin-top: -16px; justify-content: flex-start; align-items: center; }
     .node-add--t { top: -40px; left: 50%; width: 32px; height: 40px; margin-left: -16px; justify-content: center; align-items: flex-start; }
     .node-add--b { bottom: -40px; left: 50%; width: 32px; height: 40px; margin-left: -16px; justify-content: center; align-items: flex-end; }
-    .node:hover .node-add, .node--selected .node-add { display: inline-flex; }
+    .node:hover .node-add, .node--selected .node-add {
+      opacity: 1; visibility: visible; pointer-events: auto;
+      transition: opacity 0.18s ease, visibility 0s;
+    }
+    .node:hover .node-add-dot, .node--selected .node-add-dot { transform: scale(1); }
+    @media (prefers-reduced-motion: reduce) {
+      .node-add, .node-add-dot, .edge-actions, .edge-label { transition: none !important; }
+    }
 
     /* canvas chrome */
     .canvas-top { position: absolute; left: var(--space-4); right: var(--space-4); top: var(--space-4); display: flex; justify-content: space-between; align-items: center; z-index: 10; pointer-events: none; }
