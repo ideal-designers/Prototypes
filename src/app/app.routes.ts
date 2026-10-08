@@ -213,6 +213,11 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./prototypes/qna-column-resize/qna-column-resize.component').then(m => m.QnaColumnResizeComponent),
   },
+  {
+    path: 'qna-setup-canvas',
+    loadComponent: () =>
+      import('./prototypes/qna-setup-canvas/qna-setup-canvas.component').then(m => m.QnaSetupCanvasComponent),
+  },
   // PROTO_ROUTES_PLACEHOLDER
   {
     path: '**',

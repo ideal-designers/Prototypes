@@ -273,5 +273,12 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
     status: 'wip',
     description: 'Q&A threads page with the same resize behavior as the Documents Quick access panel: resizable Quick access panel, resizable table columns (drag or arrow keys), and when a thread is open the right thread panel is resizable from its left edge. Double-clicking any resize line resets it to the default width; an onboarding badge on the line teaches this after the first resize',
   },
+  {
+    slug: 'qna-setup-canvas',
+    title: 'Q&A — Setup canvas (Advanced flow)',
+    module: 'Q&A',
+    status: 'wip',
+    description: 'One-screen Q&A setup built as an n8n-style node canvas: start from a template (Basic, Advanced, Advisory, Multi-level approval), insert standard or custom roles on any connection, drop people and question teams straight onto roles, edit permissions and reject routing per role, and see validation on the canvas instead of a separate Users step',
+  },
   // REGISTRY_PLACEHOLDER
 ];
