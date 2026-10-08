@@ -7,9 +7,9 @@
  * by "Claude" are skipped for the author but still count for the date).
  * `preview` is true when src/assets/previews/{slug}.jpg exists (see scripts/proto-previews.js).
  *
- * Runs in `npm run build:proto`. When git history is unavailable or shallow (Vercel CLI
- * uploads / shallow clones) it keeps the committed file untouched, so always commit
- * the regenerated file:   node scripts/proto-meta.js
+ * Runs in `npm run build:proto`. Shallow clones (Vercel git deploys) are unshallowed first.
+ * Without git at all (`vercel --prod` CLI uploads) it keeps the committed file, so commit
+ * the regenerated file too:   node scripts/proto-meta.js
  */
 const fs = require('fs');
 const path = require('path');
@@ -25,7 +25,13 @@ const BOT_AUTHORS = new Set(['Claude']);
 const git = (cmd) => execSync(`git ${cmd}`, { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
 
 let usable = false;
-try { usable = git('rev-parse --is-shallow-repository') === 'false'; } catch {}
+try {
+  if (git('rev-parse --is-shallow-repository') === 'true') {
+    // Vercel git deploys clone shallowly — fetch full history so dates are current
+    execSync('git fetch --unshallow --quiet', { cwd: ROOT, stdio: 'ignore', timeout: 60000 });
+  }
+  usable = git('rev-parse --is-shallow-repository') === 'false';
+} catch {}
 if (!usable) {
   console.log('proto-meta: no full git history — keeping committed proto-meta.generated.ts');
   process.exit(0);
