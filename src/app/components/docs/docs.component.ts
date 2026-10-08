@@ -43,12 +43,64 @@ interface FileRef {
                 <div class="code">
                   <pre class="code__text">{{ s.code }}</pre>
                   <fvdr-btn variant="ghost" size="s" [iconOnly]="true"
-                            [iconName]="copiedStep === s.num ? 'check' : 'copy'"
-                            ariaLabel="Copy" (clicked)="copy(s)" />
+                            [iconName]="copied === 'step-' + s.num ? 'check' : 'copy'"
+                            ariaLabel="Copy" (clicked)="copy('step-' + s.num, s.code)" />
                 </div>
               </div>
             </li>
           </ol>
+        </section>
+
+        <!-- Figma: Sect Magic + Soul Connector -->
+        <section class="section" id="figma">
+          <h2 class="section__title">Figma: Sect Magic + Soul Connector</h2>
+          <p class="section__lead">
+            Figma MCP тільки <b>читає</b> макети (дизайн → код). Щоб Claude <b>працював прямо у відкритому
+            Figma-файлі</b> — створював фрейми й варіанти, міняв тексти, підтягував компоненти FVDR DS —
+            використовуй <b>Sect Magic</b> (MCP-сервер) разом із плагіном <b>Soul Connector</b> у Figma Desktop.
+          </p>
+
+          <h3 class="section__subtitle">Встановлення — один раз</h3>
+          <ol class="steps">
+            <li class="step" *ngFor="let s of figmaSetup">
+              <span class="step__num">{{ s.num }}</span>
+              <div class="step__content">
+                <div class="step__title">{{ s.title }}</div>
+                <p class="step__desc">{{ s.desc }}</p>
+                <div class="code" *ngIf="s.code">
+                  <pre class="code__text">{{ s.code }}</pre>
+                  <fvdr-btn variant="ghost" size="s" [iconOnly]="true"
+                            [iconName]="copied === 'figma-' + s.num ? 'check' : 'copy'"
+                            ariaLabel="Copy" (clicked)="copy('figma-' + s.num, s.code)" />
+                </div>
+              </div>
+            </li>
+          </ol>
+
+          <h3 class="section__subtitle">У кожному файлі</h3>
+          <p class="step__desc">
+            Figma Desktop → <b>Plugins → Development → Soul Connector</b>. У вікні плагіна з'явиться позначка
+            і напис <b>Connected</b> — Claude бачить файл. Вікно не закривай (можна згорнути).
+            Перейшов в інший файл — запусти плагін і там.
+          </p>
+
+          <h3 class="section__subtitle">Що просити</h3>
+          <div class="prompts">
+            <div class="code" *ngFor="let p of figmaPrompts; let i = index">
+              <pre class="code__text">{{ p }}</pre>
+              <fvdr-btn variant="ghost" size="s" [iconOnly]="true"
+                        [iconName]="copied === 'prompt-' + i ? 'check' : 'copy'"
+                        ariaLabel="Copy" (clicked)="copy('prompt-' + i, p)" />
+            </div>
+          </div>
+
+          <h3 class="section__subtitle">Якщо щось не так</h3>
+          <ul class="tips">
+            <li class="tip" *ngFor="let t of figmaTips">
+              <fvdr-icon name="warning" class="tip__icon" />
+              <span>{{ t }}</span>
+            </li>
+          </ul>
         </section>
 
         <!-- What Claude knows -->
@@ -138,6 +190,31 @@ interface FileRef {
       font-size: var(--text-sub1-size);
       font-weight: var(--font-weight-semi);
     }
+    .section__lead {
+      margin: 0 0 var(--space-2);
+      font-size: var(--text-body2-size);
+      color: var(--color-text-secondary);
+    }
+    .section__lead b, .step__desc b { color: var(--color-text-primary); font-weight: var(--font-weight-semi); }
+    .section__subtitle {
+      margin: var(--space-6) 0 var(--space-3);
+      font-size: var(--text-body1-size);
+      font-weight: var(--font-weight-semi);
+    }
+    .prompts { display: flex; flex-direction: column; gap: var(--space-2); }
+    .tips {
+      list-style: none; margin: 0; padding: var(--space-1) var(--space-4);
+      background: var(--color-warning-bg);
+      border-radius: var(--radius-sm);
+    }
+    .tip {
+      display: flex; align-items: flex-start; gap: var(--space-2);
+      padding: var(--space-2) 0;
+      font-size: var(--text-body2-size);
+      color: var(--color-warning-text);
+    }
+    .tip + .tip { border-top: 1px solid var(--color-warning-border); }
+    .tip__icon { flex-shrink: 0; margin-top: 2px; font-size: var(--font-size-base); color: var(--color-warning-icon); }
 
     /* ── Steps ── */
     .steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-6); }
@@ -156,6 +233,9 @@ interface FileRef {
     .step__title { font-size: var(--text-body1-size); font-weight: var(--font-weight-semi); }
     .step__desc {
       margin: var(--space-1) 0 var(--space-3);
+    }
+    .step__desc:last-child { margin-bottom: 0; }
+    .step__desc {
       font-size: var(--text-body2-size);
       color: var(--color-text-secondary);
     }
@@ -248,13 +328,14 @@ interface FileRef {
 })
 export class DocsComponent {
   private readonly toast = inject(ToastService);
-  copiedStep: number | null = null;
+  /** Key of the snippet whose copy button shows a check */
+  copied: string | null = null;
 
-  async copy(step: Step): Promise<void> {
+  async copy(key: string, text: string): Promise<void> {
     try {
-      await navigator.clipboard.writeText(step.code);
-      this.copiedStep = step.num;
-      setTimeout(() => { if (this.copiedStep === step.num) this.copiedStep = null; }, 2000);
+      await navigator.clipboard.writeText(text);
+      this.copied = key;
+      setTimeout(() => { if (this.copied === key) this.copied = null; }, 2000);
     } catch {
       this.toast.show({ variant: 'error', message: 'Could not access the clipboard' });
     }
@@ -287,6 +368,40 @@ export class DocsComponent {
     },
   ];
 
+  figmaSetup: Step[] = [
+    {
+      num: 1,
+      title: 'Отримай доступ до Sect Magic',
+      desc: 'Репозиторій приватний — попроси власника (GitHub: dmitriysiniehin-debug) додати тебе до github.com/dmitriysiniehin-debug/sect-magic.',
+      code: '',
+    },
+    {
+      num: 2,
+      title: 'Встанови Sect Magic',
+      desc: 'Claude Desktop: завантаж sect-magic.mcpb з останнього релізу (Releases → latest), двічі клікни й натисни Install. Claude Code: дай Claude посилання на репозиторій — він сам склонує, налаштує й запустить міст.',
+      code: 'https://github.com/dmitriysiniehin-debug/sect-magic — set this up for me',
+    },
+    {
+      num: 3,
+      title: 'Імпортуй плагін Soul Connector у Figma',
+      desc: 'Тільки Figma Desktop (не браузер). Відкрий будь-який файл → Plugins → Development → Import plugin from manifest… і вибери manifest.json. Не знаєш, де він? Спитай Claude — шлях покаже Sect Magic.',
+      code: 'Як налаштувати Soul Connector?',
+    },
+  ];
+
+  figmaPrompts: string[] = [
+    'Що зараз виділено у Figma?',
+    'Зроби 3 варіанти цієї картки поруч з оригіналом',
+    'Знайди всі кнопки, у яких fill не прив\'язаний до змінної',
+    'Збери цей екран у Figma з компонентів FVDR DS',
+  ];
+
+  figmaTips: string[] = [
+    'Claude не бачить файл — перевір, що Soul Connector запущений саме в цьому файлі й показує Connected.',
+    'Відкрито кілька файлів — назви потрібний: «у файлі Documents…». Без цього Claude не вгадуватиме.',
+    'Імпорт стилів або змінних FVDR зависає, якщо бібліотека FVDR не увімкнена у файлі. Увімкни її в Assets → Libraries. Після зависання закрий і знову відкрий Soul Connector.',
+  ];
+
   knowledgeRows = [
     { topic: 'DS Токени',         detail: 'Кольори, spacing, тіні, radius, типографіка',        source: 'SKILL.md' },
     { topic: '30+ DS компонентів', detail: 'fvdr-btn, fvdr-modal, fvdr-table, fvdr-tabs…',       source: 'SKILL.md' },
@@ -294,6 +409,7 @@ export class DocsComponent {
     { topic: 'Іконки',            detail: '65 іконок FvdrIconName, правила використання',        source: 'CLAUDE.md' },
     { topic: 'Angular патерн',    detail: 'DS_COMPONENTS, TrackerService, FormsModule',          source: 'SKILL.md' },
     { topic: 'Analytics',         detail: 'PostHog EU + Supabase — автоматично через Tracker',   source: 'SKILL.md' },
+    { topic: 'Figma (запис)',     detail: 'Sect Magic + Soul Connector — правки прямо у відкритому файлі', source: 'Session guide' },
     { topic: 'Git правила',       detail: 'GitHub origin: гілки claude/*, у main — через PR або ff-merge',    source: 'CLAUDE.md' },
   ];
 
