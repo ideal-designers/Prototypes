@@ -261,8 +261,8 @@ const TONES = [
         <div class="canvas-controls" (mousedown)="$event.stopPropagation()">
           <button class="ctl" title="Zoom in" (click)="zoomBy(0.1)"><fvdr-icon name="plus"></fvdr-icon></button>
           <button class="ctl" title="Zoom out" (click)="zoomBy(-0.1)"><fvdr-icon name="minus"></fvdr-icon></button>
-          <button class="ctl" title="Fit to screen" (click)="fit()"><fvdr-icon name="expand"></fvdr-icon></button>
-          <button class="ctl" title="Tidy up" (click)="tidy()"><fvdr-icon name="sparkle"></fvdr-icon></button>
+          <button class="ctl ctl--text" title="Zoom to show the whole flow" (click)="fit()">Fit to screen</button>
+          <button class="ctl ctl--text" title="Rearrange roles into columns: question side left, answer side right" (click)="tidy()">Auto-arrange</button>
           <span class="zoom-val">{{ (zoom * 100) | number:'1.0-0' }}%</span>
         </div>
 
@@ -687,6 +687,7 @@ const TONES = [
     .health--error { border-color: var(--color-error-border); background: var(--color-error-bg); color: var(--color-error-text); }
     .canvas-controls { position: absolute; left: var(--space-4); bottom: var(--space-4); display: flex; align-items: center; gap: var(--space-1); z-index: 10; }
     .ctl { width: 32px; height: 32px; border-radius: var(--radius-md); border: 1px solid var(--color-stone-400); background: var(--color-stone-0); color: var(--color-text-secondary); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; font-size: 16px; }
+    .ctl--text { width: auto; padding: 0 var(--space-3); font-family: inherit; font-size: var(--text-caption1-size); white-space: nowrap; }
     .ctl:hover { color: var(--color-text-primary); border-color: var(--color-stone-600); }
     .zoom-val { margin-left: var(--space-2); font-size: var(--text-caption1-size); color: var(--color-text-secondary); }
     .legend { position: absolute; right: var(--space-4); bottom: var(--space-4); display: flex; gap: var(--space-4); background: var(--color-stone-0); border: 1px solid var(--color-stone-400); border-radius: var(--radius-md); padding: var(--space-1) var(--space-3); font-size: var(--text-caption1-size); color: var(--color-text-secondary); z-index: 10; }
