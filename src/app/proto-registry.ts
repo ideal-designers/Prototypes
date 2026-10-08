@@ -1,6 +1,26 @@
+/** Product modules the dashboard groups prototypes by — in display order. */
+export const PROTO_MODULES = [
+  'Documents',
+  'Permissions',
+  'Viewer/Redaction',
+  'Q&A',
+  'Corporate Account',
+  'Participants',
+  'Dashboard',
+  'Audit Logs/Reports',
+  'Project Archiving',
+  'Recycle Bin',
+  'Settings',
+  'General Exploration',
+] as const;
+export type ProtoModule = typeof PROTO_MODULES[number];
+/** Fallback for prototypes without a module (e.g. Supabase-only entries) */
+export const DEFAULT_PROTO_MODULE: ProtoModule = 'General Exploration';
+
 export interface ProtoMeta {
   slug: string;
   title: string;
+  module?: ProtoModule;
   figma?: string;
   status: 'wip' | 'live' | 'archived';
   description?: string;
@@ -12,18 +32,21 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
   {
     slug: 'deal-room',
     title: 'Deal Room',
+    module: 'General Exploration',
     status: 'wip',
     description: 'Deal room workspace prototype',
   },
   {
     slug: 'project-archive-creation-flow-testing',
     title: 'Project Archive Creation Flow',
+    module: 'Project Archiving',
     status: 'wip',
     description: 'Project archive creation and flow testing',
   },
   {
     slug: 'ca-settings-integrations',
     title: 'CA Settings — Integrations',
+    module: 'Corporate Account',
     figma: 'https://www.figma.com/design/PITzEfwRA26GWSG2MvzmDy/CA?node-id=42295-69802',
     status: 'wip',
     description: 'Corporate account settings integrations management',
@@ -31,6 +54,7 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
   {
     slug: 'my-prototype-delete-account',
     title: 'Delete Account',
+    module: 'Settings',
     figma: 'https://www.figma.com/design/AqRFFFTOA4hCIvyhr4Ri54/User-account?node-id=28336-4315',
     status: 'wip',
     description: 'Self-service account deletion flow to reduce support load',
@@ -38,6 +62,7 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
   {
     slug: 'insights-activity-log',
     title: 'Activity Log',
+    module: 'Audit Logs/Reports',
     figma: 'https://www.figma.com/design/fChBFcd7WAfqxq73sduKrn/%E2%9C%A8-Insights?node-id=33310-85229',
     status: 'wip',
     description: 'Activity report prototype — browsing user events with filters, file tree, and detail panel',
@@ -45,6 +70,7 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
   {
     slug: 'ca-create-api-key',
     title: 'CA — Create API Key',
+    module: 'Corporate Account',
     figma: 'https://www.figma.com/design/PITzEfwRA26GWSG2MvzmDy/CA?node-id=33212-45471',
     status: 'wip',
     description: 'Multi-step flow for creating a new API key in Corporate Account',
@@ -52,6 +78,7 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
   {
     slug: 'quick-access-panel',
     title: 'Quick access panel',
+    module: 'Documents',
     figma: 'https://www.figma.com/design/h9MR3O7N3kLV2xl2MGQDxs/Documents?node-id=22560-22984',
     status: 'live',
     description: 'Resizable quick access panel with folder tree and document table',
@@ -59,6 +86,7 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
   {
     slug: 'permission-search',
     title: 'Permission Search',
+    module: 'Permissions',
     figma: 'https://www.figma.com/design/E2LJ0seWC3c1bJrgenukSS/Permissions-%F0%9F%94%90?node-id=1479-27778',
     status: 'wip',
     description: 'Search filters the folder/document tree in real time with match highlighting',
@@ -66,6 +94,7 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
   {
     slug: 'terms-of-use-create',
     title: 'Terms of Use — Create/Edit',
+    module: 'Settings',
     figma: 'https://www.figma.com/design/h9MR3O7N3kLV2xl2MGQDxs/Documents?node-id=22587-34046',
     status: 'wip',
     description: 'Create and edit Terms of Use with file-level targeting, group warnings, and content upload/paste modes',
@@ -73,6 +102,7 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
   {
     slug: 'view-as-mode',
     title: 'View as mode',
+    module: 'Permissions',
     figma: 'https://www.figma.com/design/h9MR3O7N3kLV2xl2MGQDxs/Documents',
     status: 'wip',
     description: 'Preview the Documents page as a specific bidder — green banner, highlighted rows, and an auto-dismissing Download popover with a pie timer',
@@ -80,12 +110,14 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
   {
     slug: 'timezone-picker',
     title: 'Timezone Picker',
+    module: 'Settings',
     status: 'live',
     description: 'Timezone selector built on fvdr-dropdown — auto-detect, live clock, alias search, UTC offsets',
   },
   {
     slug: 'q-a-drag-and-drop',
     title: 'Q&A drag and drop ',
+    module: 'Q&A',
     figma: 'https://www.figma.com/design/Ozvxv10oZM9KwGlCcjmOFO/Q-A-set-up?node-id=3821-143160&t=ue7S1bnRG1WwE5Ti-11',
     status: 'wip',
     description: 'Coach Marks',
@@ -93,6 +125,7 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
   {
     slug: 'search-results-pagination',
     title: 'Pagination in the search results',
+    module: 'Documents',
     figma: 'https://www.figma.com/design/h9MR3O7N3kLV2xl2MGQDxs/Documents?node-id=24530-287050',
     status: 'live',
     description: 'Search results with lazy loading, bulk selection, and large result set scenarios',
@@ -100,6 +133,7 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
   {
     slug: 'ifs-ai',
     title: 'IFS AI — Create folder structure',
+    module: 'Documents',
     figma: 'https://www.figma.com/design/jCqXtPsLgRI4g7hqBGfxS6/Staging-Hub---FVDR?node-id=35570-21970',
     status: 'wip',
     description: 'AI-assisted folder structure creation flow',
@@ -107,6 +141,7 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
   {
     slug: 'redaction-viewer',
     title: 'Redaction Viewer',
+    module: 'Viewer/Redaction',
     figma: 'https://www.figma.com/design/02e4Sm7wmZioAEV6imoNR7/FVDR---Viewers--Project-statuses--Upgrade-?node-id=11398-175866',
     status: 'live',
     description: 'PDF viewer with redaction mode — Search & Redact, PII detection, manual marks, apply',
@@ -114,6 +149,7 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
     {
     slug: 'branding-page',
     title: 'Branding page',
+    module: 'Settings',
     figma: '',
     status: 'wip',
     description: 'Project branding settings with UX-audit improvements: full-tile upload, save-state toast, undo on delete, login preview',
@@ -121,6 +157,7 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
     {
     slug: 'global-ai',
     title: 'Global AI in VDR',
+    module: 'General Exploration',
     figma: '',
     status: 'wip',
     description: 'Global AI assistant scoped to the data room, permission-aware',
@@ -128,6 +165,7 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
     {
     slug: 'qna-answer-editor',
     title: 'QnA Answer Editor',
+    module: 'Q&A',
     figma: '',
     status: 'wip',
     description: 'Modified rich-text answer editor from QnA threads (Answer / Internal note)',
@@ -135,6 +173,7 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
     {
     slug: 'ai-assistant',
     title: 'AI Assistant',
+    module: 'General Exploration',
     figma: '4692-38886',
     status: 'wip',
     description: 'Global AI Assistant — full-screen chat with streaming steps, document search answers and citations',
@@ -142,6 +181,7 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
     {
     slug: 'permissions-legend',
     title: 'Permissions matrix — Legend & Coach mark',
+    module: 'Permissions',
     figma: 'https://www.figma.com/design/E2LJ0seWC3c1bJrgenukSS/Permissions-%F0%9F%94%90?node-id=10-219397',
     status: 'wip',
     description: 'VDSN-32: persistent legend, hover tooltips for permission columns and bar segments, and a first-use coach mark for novice admins',
@@ -149,6 +189,7 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
     {
     slug: 'permissions-legend-v2',
     title: 'Permission Matrix Version2',
+    module: 'Permissions',
     figma: 'https://www.figma.com/design/E2LJ0seWC3c1bJrgenukSS/Permissions-%F0%9F%94%90?node-id=10-219397',
     status: 'wip',
     description: 'Duplicate of the Permissions matrix prototype for further iteration',
@@ -156,6 +197,7 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
     {
     slug: 'permissions-legend-v3',
     title: 'Permission Matrix Version3',
+    module: 'Permissions',
     figma: 'https://www.figma.com/proto/E2LJ0seWC3c1bJrgenukSS/Permissions-%F0%9F%94%90?node-id=1718-75081',
     status: 'wip',
     description: 'Same interactions as Version2, with a Figma-matched Publishing treatment: a tinted icon background plus a check/cross glyph',
@@ -163,6 +205,7 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
     {
     slug: 'added-column-hover',
     title: 'Documents — Added column hover',
+    module: 'Documents',
     figma: 'https://www.figma.com/design/h9MR3O7N3kLV2xl2MGQDxs/Documents?node-id=27217-95905',
     status: 'wip',
     description: 'Documents table: hovering the Added column reveals the uploader\'s name + email with copy actions, and an icon to open their user card',
@@ -170,6 +213,7 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
     {
     slug: 'permission-icon-animation',
     title: 'Permission icon animation',
+    module: 'Permissions',
     figma: 'https://www.figma.com/design/E2LJ0seWC3c1bJrgenukSS/Permissions-%F0%9F%94%90?node-id=1718-75081',
     status: 'wip',
     description: 'Publish-state chip on permission rows: compact 47px pill that expands on hover to reveal its label (Published / Unpublished / Unpublished documents inside), with push-vs-overlay and timing comparison',
@@ -177,6 +221,7 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
     {
     slug: 'editor-color-contrast',
     title: 'Editor colours — theme contrast audit',
+    module: 'Q&A',
     figma: '',
     status: 'wip',
     description: 'TinyMCE forecolor palette audited against light (#FFFFFF) and dark (#1F2129) editor surfaces: live side-by-side preview, WCAG contrast table, and a dual-theme-safe palette proposal',
@@ -184,6 +229,7 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
     {
     slug: 'column-admin-hint',
     title: 'Documents — Column manager admin hint',
+    module: 'Documents',
     figma: 'https://www.figma.com/design/h9MR3O7N3kLV2xl2MGQDxs/Documents?node-id=29961-166557',
     status: 'wip',
     description: '2 options for telling an admin, inside the column manager, that a column can be enabled for all users in Settings: inline hint on row hover linking to Settings, or an Enable/Disable for all users badge that toggles the room setting right from the column manager (with confirm)',
@@ -191,6 +237,7 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
   {
     slug: 'docs-ai-search',
     title: 'Documents — AI search (AI Overview)',
+    module: 'Documents',
     figma: 'https://www.figma.com/design/Vhy3jLaJ9nasbzTtqbu3qB/AI-Assistant?node-id=1-5',
     status: 'wip',
     description: 'Smart search on the Documents page answers questions with an AI Overview. Switch between 2 solutions: V1 puts the overview above the result table (tree rail / full width / with prompt field), V2 makes the overview the result itself (list / table), closable to the plain list. Covers suggestions, clarifying question, keyword search, file hover card, preview and hand-off to the full AI Assistant.',
@@ -198,6 +245,7 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
   {
     slug: 'dashboard-ai-search',
     title: 'Dashboard — AI search (AI Overview)',
+    module: 'Dashboard',
     figma: 'https://www.figma.com/design/Vhy3jLaJ9nasbzTtqbu3qB/AI-Assistant?node-id=7-2',
     status: 'wip',
     description: 'Smart search on the Dashboard answers activity questions with an AI Overview built from a data block — stat list, ranked bars or people table. Switch V1 (overview above the dashboard; continue link or prompt field) vs V2 (overview replaces the dashboard) and the answer shape (block / text + block / text + block + text). Hands off to the full AI Assistant.',
@@ -205,6 +253,7 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
   {
     slug: 'reports-ai-search',
     title: 'Reports — Activity log AI search (AI Overview)',
+    module: 'Audit Logs/Reports',
     figma: 'https://www.figma.com/design/Vhy3jLaJ9nasbzTtqbu3qB/AI-Assistant?node-id=7-3',
     status: 'wip',
     description: 'Smart search on the Activity log: V1 puts the AI Overview above the log and applies the matching filters (period, action) to the report; V2 shows the overview only. Same answer-shape switch and hand-off to the full AI Assistant as the Dashboard prototype.',
@@ -212,6 +261,7 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
   {
     slug: 'mobile-doc-filters',
     title: 'Documents — Mobile filters',
+    module: 'Documents',
     figma: 'https://www.figma.com/design/h9MR3O7N3kLV2xl2MGQDxs/Documents?node-id=30138-310856',
     status: 'wip',
     description: 'All Documents filters in a mobile full-screen sheet. Files is a tri-state parent of every format (selecting it selects all), Folders is a leaf with no children, sections collapse with summaries, file-only filters disable for folders — with a toggle to compare against the Figma original',
@@ -219,6 +269,7 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
   {
     slug: 'qna-column-resize',
     title: 'Q&A — Column resize',
+    module: 'Q&A',
     status: 'wip',
     description: 'Q&A threads page with the same resize behavior as the Documents Quick access panel: resizable Quick access panel, resizable table columns (drag or arrow keys), and when a thread is open the right thread panel is resizable from its left edge. Double-clicking any resize line resets it to the default width; an onboarding badge on the line teaches this after the first resize',
   },

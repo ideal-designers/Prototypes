@@ -26,9 +26,10 @@ const title  = get('--title');
 const figma  = get('--figma')  ?? '';
 const status = get('--status') ?? 'wip';
 const desc   = get('--description') ?? '';
+const protoModule = get('--module') ?? 'General Exploration';
 
 if (!slug || !title) {
-  console.error('Usage: node scripts/new-proto.js --slug <slug> --title "<title>" [--figma <url>] [--status wip|live|archived] [--description "<text>"]');
+  console.error('Usage: node scripts/new-proto.js --slug <slug> --title "<title>" [--figma <url>] [--status wip|live|archived] [--description "<text>"] [--module "<Documents|Permissions|Q&A|…>"]');
   process.exit(1);
 }
 
@@ -149,6 +150,7 @@ const registryContent = fs.readFileSync(REGISTRY_FILE, 'utf8');
 const entry = `  {
     slug: '${slug}',
     title: '${title.replace(/'/g, "\\'")}',
+    module: '${protoModule}',
     figma: '${figma}',
     status: '${status}',
     description: '${desc.replace(/'/g, "\\'")}',

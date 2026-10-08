@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { PrototypeService, PrototypeDef } from '../../services/prototype.service';
+import { PROTO_MODULES, ProtoModule } from '../../proto-registry';
 import { DS_COMPONENTS, ToastService } from '../../shared/ds';
 import type { DropdownOption, DroplistItem, SegmentItem } from '../../shared/ds';
 
@@ -11,6 +12,8 @@ type SortMode = 'updated' | 'name';
 const VIEW_MODE_STORAGE_KEY = 'fvdr-home-view-mode';
 const SORT_STORAGE_KEY = 'fvdr-home-sort';
 const DAY_MS = 24 * 60 * 60 * 1000;
+
+interface ModuleGroup { module: ProtoModule; protos: PrototypeDef[]; }
 
 @Component({
   selector: 'fvdr-home',
@@ -52,6 +55,7 @@ const DAY_MS = 24 * 60 * 60 * 1000;
         <!-- ── Loading skeleton ── -->
         <div *ngIf="loading" class="list" aria-busy="true">
           <div *ngFor="let _ of skeletonRows" class="row row--skeleton">
+            <span></span>
             <div class="row__main">
               <span class="skel skel--title"></span>
               <span class="skel skel--desc"></span>
@@ -60,59 +64,90 @@ const DAY_MS = 24 * 60 * 60 * 1000;
           </div>
         </div>
 
-        <!-- ── List view ── -->
-        <div *ngIf="!loading && viewMode === 'list' && filteredProtos.length" class="list" role="list">
+        <!-- ── List view (grouped by module) ── -->
+        <div *ngIf="!loading && viewMode === 'list' && filteredProtos.length" class="list">
           <div class="list__head" aria-hidden="true">
-            <span>Name</span><span>Route</span><span>Last updated</span><span></span>
+            <span></span><span>Name</span><span>Route</span><span>Last updated</span><span></span>
           </div>
-          <div *ngFor="let proto of filteredProtos; trackBy: bySlug"
-               class="row" role="listitem"
-               [class.row--clickable]="proto.hasComponent"
-               (click)="open(proto)">
-            <div class="row__main">
-              <a *ngIf="proto.hasComponent; else plainTitle" class="row__title"
-                 [routerLink]="['/', proto.slug]" (click)="$event.stopPropagation()">{{ proto.title }}</a>
-              <ng-template #plainTitle><span class="row__title">{{ proto.title }}</span></ng-template>
-              <span *ngIf="proto.description" class="row__desc">{{ proto.description }}</span>
-            </div>
-            <span class="row__slug">/{{ proto.slug }}</span>
-            <span class="row__updated" [attr.title]="updatedTitle(proto)">
-              <span class="row__date">{{ relativeDate(proto.updated_at) }}</span>
-              <span *ngIf="proto.author" class="row__author">{{ proto.author }}</span>
-            </span>
-            <ng-container *ngTemplateOutlet="actions; context: { $implicit: proto }" />
-          </div>
-        </div>
-
-        <!-- ── Cards view ── -->
-        <div *ngIf="!loading && viewMode === 'cards' && filteredProtos.length" class="grid">
-          <div *ngFor="let proto of filteredProtos; trackBy: bySlug"
-               class="card" [class.card--clickable]="proto.hasComponent"
-               (click)="open(proto)">
-            <div class="card__thumb">
-              <img *ngIf="proto.previewUrl && !brokenPreviews.has(proto.slug); else thumbPlaceholder"
-                   class="card__img" [src]="proto.previewUrl" alt="" loading="lazy"
-                   (error)="brokenPreviews.add(proto.slug)" />
-              <ng-template #thumbPlaceholder>
-                <span class="card__placeholder"><fvdr-icon name="image" /></span>
-              </ng-template>
-            </div>
-            <div class="card__body">
-              <div class="card__top">
-                <a *ngIf="proto.hasComponent; else plainCardTitle" class="card__title"
-                   [routerLink]="['/', proto.slug]" (click)="$event.stopPropagation()">{{ proto.title }}</a>
-                <ng-template #plainCardTitle><span class="card__title">{{ proto.title }}</span></ng-template>
+          <section *ngFor="let group of groups; trackBy: byModule" class="group"
+                   [class.group--drop]="dropTarget === group.module"
+                   [class.group--empty]="!group.protos.length"
+                   (dragover)="onDragOver($event, group.module)"
+                   (dragleave)="onDragLeave($event, group.module)"
+                   (drop)="onDrop($event, group.module)">
+            <ng-container *ngTemplateOutlet="groupHead; context: { $implicit: group }" />
+            <div role="list">
+              <div *ngFor="let proto of group.protos; trackBy: bySlug"
+                   class="row" role="listitem"
+                   [class.row--clickable]="proto.hasComponent"
+                   [class.is-dragging]="dragging?.slug === proto.slug"
+                   [attr.draggable]="canMove"
+                   (dragstart)="onDragStart($event, proto)" (dragend)="onDragEnd()"
+                   (click)="open(proto)">
+                <span class="row__handle" aria-hidden="true">
+                  <fvdr-icon *ngIf="canMove" name="drag" />
+                </span>
+                <div class="row__main">
+                  <a *ngIf="proto.hasComponent; else plainTitle" class="row__title" draggable="false"
+                     [routerLink]="['/', proto.slug]" (click)="$event.stopPropagation()">{{ proto.title }}</a>
+                  <ng-template #plainTitle><span class="row__title">{{ proto.title }}</span></ng-template>
+                  <span *ngIf="proto.description" class="row__desc">{{ proto.description }}</span>
+                </div>
+                <span class="row__slug">/{{ proto.slug }}</span>
+                <span class="row__updated" [attr.title]="updatedTitle(proto)">
+                  <span class="row__date">{{ relativeDate(proto.updated_at) }}</span>
+                  <span *ngIf="proto.author" class="row__author">{{ proto.author }}</span>
+                </span>
                 <ng-container *ngTemplateOutlet="actions; context: { $implicit: proto }" />
               </div>
-              <p *ngIf="proto.description" class="card__desc">{{ proto.description }}</p>
-              <div class="card__foot">
-                <span class="card__slug">/{{ proto.slug }}</span>
-                <span *ngIf="proto.updated_at" class="card__updated" [attr.title]="updatedTitle(proto)">
-                  {{ relativeDate(proto.updated_at) }}<ng-container *ngIf="proto.author"> · {{ proto.author }}</ng-container>
-                </span>
+            </div>
+            <p *ngIf="!group.protos.length" class="group__hint">Drop here to move to {{ group.module }}</p>
+          </section>
+        </div>
+
+        <!-- ── Cards view (grouped by module) ── -->
+        <div *ngIf="!loading && viewMode === 'cards' && filteredProtos.length" class="groups">
+          <section *ngFor="let group of groups; trackBy: byModule" class="group"
+                   [class.group--drop]="dropTarget === group.module"
+                   [class.group--empty]="!group.protos.length"
+                   (dragover)="onDragOver($event, group.module)"
+                   (dragleave)="onDragLeave($event, group.module)"
+                   (drop)="onDrop($event, group.module)">
+            <ng-container *ngTemplateOutlet="groupHead; context: { $implicit: group }" />
+            <div class="grid">
+              <div *ngFor="let proto of group.protos; trackBy: bySlug"
+                   class="card" [class.card--clickable]="proto.hasComponent"
+                   [class.is-dragging]="dragging?.slug === proto.slug"
+                   [attr.draggable]="canMove"
+                   (dragstart)="onDragStart($event, proto)" (dragend)="onDragEnd()"
+                   (click)="open(proto)">
+                <div class="card__thumb">
+                  <img *ngIf="proto.previewUrl && !brokenPreviews.has(proto.slug); else thumbPlaceholder"
+                       class="card__img" [src]="proto.previewUrl" alt="" loading="lazy" draggable="false"
+                       (error)="brokenPreviews.add(proto.slug)" />
+                  <ng-template #thumbPlaceholder>
+                    <span class="card__placeholder"><fvdr-icon name="image" /></span>
+                  </ng-template>
+                </div>
+                <div class="card__body">
+                  <div class="card__top">
+                    <a *ngIf="proto.hasComponent; else plainCardTitle" class="card__title" draggable="false"
+                       [routerLink]="['/', proto.slug]" (click)="$event.stopPropagation()">{{ proto.title }}</a>
+                    <ng-template #plainCardTitle><span class="card__title">{{ proto.title }}</span></ng-template>
+                    <ng-container *ngTemplateOutlet="actions; context: { $implicit: proto }" />
+                  </div>
+                  <p *ngIf="proto.description" class="card__desc">{{ proto.description }}</p>
+                  <div class="card__foot">
+                    <span class="card__slug">/{{ proto.slug }}</span>
+                    <span *ngIf="proto.updated_at" class="card__updated" [attr.title]="updatedTitle(proto)">
+                      {{ relativeDate(proto.updated_at) }}<ng-container *ngIf="proto.author"> · {{ proto.author }}</ng-container>
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
+            <p *ngIf="!group.protos.length" class="group__hint">Drop here to move to {{ group.module }}</p>
+          </section>
         </div>
 
         <!-- ── Empty states ── -->
@@ -143,6 +178,26 @@ const DAY_MS = 24 * 60 * 60 * 1000;
           </span>
         </span>
       </ng-template>
+
+      <!-- ── Module group header (shared by list + cards) ── -->
+      <ng-template #groupHead let-group>
+        <h2 class="group__head">
+          <span class="group__title">{{ group.module }}</span>
+          <span class="group__count">{{ group.protos.length }}</span>
+        </h2>
+      </ng-template>
+
+      <!-- ── Move to module (keyboard alternative to drag & drop) ── -->
+      <fvdr-modal [visible]="!!moveTarget" title="Move to module" size="s"
+                  confirmLabel="Move" cancelLabel="Cancel"
+                  [confirmDisabled]="saving || moveModule === moveTarget?.module"
+                  (confirmed)="doMoveFromModal()" (cancelled)="moveTarget = null" (closed)="moveTarget = null">
+        <div class="form">
+          <p class="modal-text"><strong>{{ moveTarget?.title }}</strong> will be listed under the selected module.</p>
+          <fvdr-dropdown label="Module" [options]="moduleOptions" [value]="moveModule"
+                         (valueChange)="moveModule = $any(asString($event))" />
+        </div>
+      </fvdr-modal>
 
       <!-- ── Archive confirm ── -->
       <fvdr-modal [visible]="!!archiveTarget" title="Archive prototype?" size="s"
@@ -232,13 +287,44 @@ const DAY_MS = 24 * 60 * 60 * 1000;
     .toolbar__search { flex: 1 1 280px; min-width: 240px; }
     .toolbar__sort { flex: 0 0 200px; }
 
+    /* ── Module groups ── */
+    .group {
+      padding-bottom: var(--space-2);
+      border-radius: var(--radius-md);
+      transition: background var(--duration-fast) var(--ease), box-shadow var(--duration-fast) var(--ease);
+    }
+    .group--drop {
+      background: var(--color-primary-50);
+      box-shadow: inset 0 0 0 1px var(--color-primary-500);
+    }
+    .group__head {
+      display: flex; align-items: center; gap: var(--space-2);
+      margin: 0;
+      padding: var(--space-6) var(--space-3) var(--space-2);
+      font-size: var(--text-sub1-size);
+      font-weight: var(--font-weight-semi);
+      color: var(--color-text-primary);
+    }
+    .group__count {
+      font-size: var(--text-caption1-size);
+      font-weight: var(--font-weight-regular);
+      color: var(--color-text-secondary);
+    }
+    .group__hint {
+      margin: 0;
+      padding: var(--space-3);
+      font-size: var(--text-body2-size);
+      color: var(--color-text-secondary);
+    }
+    .is-dragging { opacity: 0.4; }
+
     /* ── List ── */
     .list__head, .row {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(0, 220px) 160px 88px;
+      grid-template-columns: 16px minmax(0, 1fr) minmax(0, 220px) 160px 88px;
       align-items: center;
-      gap: var(--space-4);
-      padding: 0 var(--space-3);
+      gap: var(--space-3);
+      padding: 0 var(--space-3) 0 var(--space-1);
     }
     .list__head {
       height: 40px;
@@ -255,6 +341,9 @@ const DAY_MS = 24 * 60 * 60 * 1000;
       transition: background var(--duration-fast) var(--ease);
     }
     .row--clickable { cursor: pointer; }
+    .row[draggable="true"] { cursor: grab; }
+    .row__handle { display: flex; color: var(--color-stone-500); font-size: var(--font-size-base); opacity: 0; }
+    .row:hover .row__handle { opacity: 1; }
     .row--clickable:hover { background: var(--color-hover-bg); }
     .row__main { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
     .row__title {
@@ -290,8 +379,8 @@ const DAY_MS = 24 * 60 * 60 * 1000;
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
       gap: var(--space-4);
-      padding-top: var(--space-6);
     }
+    .groups .grid { padding: 0 var(--space-3) var(--space-2); }
     .card {
       display: flex; flex-direction: column;
       overflow: hidden;
@@ -301,6 +390,7 @@ const DAY_MS = 24 * 60 * 60 * 1000;
       transition: border-color var(--duration-fast) var(--ease), box-shadow var(--duration-fast) var(--ease);
     }
     .card--clickable { cursor: pointer; }
+    .card[draggable="true"] { cursor: grab; }
     .card--clickable:hover { border-color: var(--color-primary-500); box-shadow: var(--shadow-card-hover); }
     .card__thumb {
       aspect-ratio: 16 / 10;
@@ -367,7 +457,7 @@ const DAY_MS = 24 * 60 * 60 * 1000;
     }
     .skel--title { width: 40%; height: 14px; }
     .skel--desc  { width: 65%; height: 12px; margin-top: var(--space-2); }
-    .skel--meta  { grid-column: 3; width: 72%; height: 12px; }
+    .skel--meta  { grid-column: 4; width: 72%; height: 12px; }
     @keyframes shimmer { from { background-position: 100% 0; } to { background-position: -100% 0; } }
 
     /* ── Empty ── */
@@ -397,7 +487,7 @@ const DAY_MS = 24 * 60 * 60 * 1000;
     @media (max-width: 767px) {
       .home__inner { padding: var(--space-6) var(--space-4) var(--space-10); }
       .list__head { display: none; }
-      .row { grid-template-columns: minmax(0, 1fr) auto; }
+      .row { grid-template-columns: 16px minmax(0, 1fr) auto; }
       .row__slug, .row__updated, .skel--meta { display: none; }
       .toolbar__sort { flex: 1 1 200px; }
     }
@@ -419,6 +509,15 @@ export class HomeComponent implements OnInit {
     { value: 'updated', label: 'Recently updated' },
     { value: 'name',    label: 'Name A–Z' },
   ];
+  readonly moduleOptions: DropdownOption[] = PROTO_MODULES.map(m => ({ value: m, label: m }));
+
+  // Drag & drop between module groups
+  dragging: PrototypeDef | null = null;
+  dropTarget: ProtoModule | null = null;
+  // "Move to module" modal
+  moveTarget: PrototypeDef | null = null;
+  moveModule: ProtoModule = PROTO_MODULES[0];
+
   /** Slugs whose thumbnail failed to load — show the placeholder instead */
   readonly brokenPreviews = new Set<string>();
 
@@ -499,6 +598,18 @@ export class HomeComponent implements OnInit {
       : filtered.sort((a, b) => (this.timeOf(b) - this.timeOf(a)) || byName(a, b));
   }
 
+  /** Filtered protos bucketed by module in PROTO_MODULES order. Empty modules are
+   *  hidden, except while dragging (so every module is a drop target) when not searching. */
+  get groups(): ModuleGroup[] {
+    const protos = this.filteredProtos;
+    const showEmpty = !!this.dragging && !this.searchQuery.trim();
+    return PROTO_MODULES
+      .map(module => ({ module, protos: protos.filter(p => p.module === module) }))
+      .filter(g => g.protos.length || showEmpty);
+  }
+
+  byModule(_: number, g: ModuleGroup): string { return g.module; }
+
   private timeOf(p: PrototypeDef): number {
     const t = p.updated_at ? Date.parse(p.updated_at) : NaN;
     return Number.isNaN(t) ? 0 : t;
@@ -540,6 +651,80 @@ export class HomeComponent implements OnInit {
     if (proto.hasComponent) this.router.navigate(['/', proto.slug]);
   }
 
+  // ── Move between modules ──────────────────────────────────────────────────
+
+  /** Moving needs Supabase — the module override lives in the `module` column */
+  get canMove(): boolean { return this.svc.hasSupabase; }
+
+  onDragStart(event: DragEvent, proto: PrototypeDef): void {
+    if (!this.canMove) return;
+    this.menuFor = null;
+    event.dataTransfer?.setData('text/plain', proto.slug);
+    if (event.dataTransfer) event.dataTransfer.effectAllowed = 'move';
+    // Defer so the browser snapshots the drag image before empty groups render
+    setTimeout(() => (this.dragging = proto));
+  }
+
+  onDragOver(event: DragEvent, module: ProtoModule): void {
+    if (!this.dragging || this.dragging.module === module) return;
+    event.preventDefault();
+    if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
+    this.dropTarget = module;
+  }
+
+  onDragLeave(event: DragEvent, module: ProtoModule): void {
+    const section = event.currentTarget as HTMLElement;
+    if (this.dropTarget === module && !section.contains(event.relatedTarget as Node | null)) {
+      this.dropTarget = null;
+    }
+  }
+
+  onDrop(event: DragEvent, module: ProtoModule): void {
+    event.preventDefault();
+    const proto = this.dragging;
+    this.onDragEnd();
+    if (proto) this.moveTo(proto, module);
+  }
+
+  onDragEnd(): void {
+    this.dragging = null;
+    this.dropTarget = null;
+  }
+
+  openMove(proto: PrototypeDef): void {
+    this.moveTarget = proto;
+    this.moveModule = proto.module;
+  }
+
+  async doMoveFromModal(): Promise<void> {
+    const proto = this.moveTarget;
+    if (!proto) return;
+    this.saving = true;
+    await this.moveTo(proto, this.moveModule);
+    this.saving = false;
+    this.moveTarget = null;
+  }
+
+  /** Optimistic move; reverts with an error toast if Supabase rejects it. */
+  async moveTo(proto: PrototypeDef, module: ProtoModule): Promise<void> {
+    const from = proto.module;
+    if (from === module) return;
+    this.replace(proto.slug, { module });
+    try {
+      const updated = await this.svc.setModule(proto, module);
+      this.replace(proto.slug, updated);
+      this.toast.show({ variant: 'success', message: `${proto.title} moved to ${module}` });
+    } catch (err: any) {
+      console.error('[moveTo]', err);
+      this.replace(proto.slug, { module: from });
+      this.toast.show({ variant: 'error', message: `Failed to move: ${err?.message ?? err}` });
+    }
+  }
+
+  private replace(slug: string, patch: Partial<PrototypeDef>): void {
+    this.protos = this.protos.map(p => p.slug === slug ? { ...p, ...patch } : p);
+  }
+
   // ── More menu ─────────────────────────────────────────────────────────────
 
   toggleMenu(event: MouseEvent, proto: PrototypeDef): void {
@@ -548,6 +733,7 @@ export class HomeComponent implements OnInit {
     const items: DroplistItem[] = [];
     if (proto.hasComponent) items.push({ id: 'copy', label: 'Copy link', icon: 'copy' });
     if (proto.figma) items.push({ id: 'figma', label: 'Open in Figma', icon: 'link' });
+    if (this.canMove) items.push({ id: 'move', label: 'Move to module…', icon: 'move' });
     if (!proto.hasComponent) items.push({ id: 'scaffold', label: 'Scaffold command', icon: 'copy' });
     if (items.length) items[items.length - 1] = { ...items[items.length - 1], dividerAfter: true };
     items.push({ id: 'archive', label: 'Archive', icon: 'trash', variant: 'danger' });
@@ -563,6 +749,9 @@ export class HomeComponent implements OnInit {
         break;
       case 'figma':
         window.open(proto.figma, '_blank', 'noopener');
+        break;
+      case 'move':
+        this.openMove(proto);
         break;
       case 'scaffold':
         this.showScaffold(proto);

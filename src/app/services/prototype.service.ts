@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { environment } from '../../environments/environment';
-import { PROTO_REGISTRY, ProtoMeta } from '../proto-registry';
+import { PROTO_REGISTRY, PROTO_MODULES, DEFAULT_PROTO_MODULE, ProtoMeta, ProtoModule } from '../proto-registry';
 import { PROTO_META } from '../proto-meta.generated';
 
 /*
@@ -15,8 +15,12 @@ import { PROTO_META } from '../proto-meta.generated';
     figma       TEXT        DEFAULT '',
     status      TEXT        DEFAULT 'pending'
                             CHECK (status IN ('pending','wip','live','archived')),
-    created_at  TIMESTAMPTZ DEFAULT now()
+    created_at  TIMESTAMPTZ DEFAULT now(),
+    module      TEXT        -- dashboard group; NULL → module from proto-registry.ts
   );
+
+  -- Existing databases:
+  ALTER TABLE prototypes ADD COLUMN IF NOT EXISTS module TEXT;
 
   -- Allow anonymous read + insert + update (adjust RLS to your needs):
   ALTER TABLE prototypes ENABLE ROW LEVEL SECURITY;
@@ -35,6 +39,8 @@ export interface PrototypeDef {
   created_at?: string;
   /** true when an Angular component exists in proto-registry.ts */
   hasComponent: boolean;
+  /** Product module the dashboard groups by — Supabase value wins over proto-registry.ts */
+  module: ProtoModule;
   /** ISO date of the last change — git history (proto-meta.generated.ts), else created_at */
   updated_at?: string;
   /** Last human author from git history */
@@ -43,11 +49,17 @@ export interface PrototypeDef {
   previewUrl?: string;
 }
 
+function asModule(v: string | null | undefined): ProtoModule | undefined {
+  return (PROTO_MODULES as readonly string[]).includes(v ?? '') ? v as ProtoModule : undefined;
+}
+
 /** Adds git-derived freshness + preview info from proto-meta.generated.ts. */
-function withMeta(p: PrototypeDef): PrototypeDef {
+function withMeta(p: Omit<PrototypeDef, 'module'> & { module?: string | null }): PrototypeDef {
   const meta = PROTO_META[p.slug] ?? {};
+  const local = PROTO_REGISTRY.find(r => r.slug === p.slug);
   return {
     ...p,
+    module: asModule(p.module) ?? local?.module ?? DEFAULT_PROTO_MODULE,
     updated_at: meta.updated ?? p.created_at,
     author: meta.author,
     previewUrl: meta.preview ? `assets/previews/${p.slug}.jpg` : undefined,
@@ -77,7 +89,7 @@ export class PrototypeService {
   /** Returns all non-archived prototypes, merging Supabase + local registry. */
   async list(): Promise<PrototypeDef[]> {
     if (!this.supabase) {
-      return (PROTO_REGISTRY.map(p => ({ ...p, hasComponent: true })) as PrototypeDef[]).map(withMeta);
+      return PROTO_REGISTRY.map(p => withMeta({ ...p, hasComponent: true }));
     }
 
     const { data, error } = await this.supabase
@@ -88,10 +100,10 @@ export class PrototypeService {
 
     if (error) {
       console.warn('[PrototypeService] Supabase error, falling back to local registry:', error.message);
-      return (PROTO_REGISTRY.map(p => ({ ...p, hasComponent: true })) as PrototypeDef[]).map(withMeta);
+      return PROTO_REGISTRY.map(p => withMeta({ ...p, hasComponent: true }));
     }
 
-    const supabaseEntries: PrototypeDef[] = (data ?? []).map((row: any) => {
+    const supabaseEntries = (data ?? []).map((row: any) => {
       const local = PROTO_REGISTRY.find(p => p.slug === row.slug);
       return {
         ...row,
@@ -105,7 +117,7 @@ export class PrototypeService {
 
     // Append local-only entries not yet in Supabase
     const supabaseSlugs = new Set(supabaseEntries.map(p => p.slug));
-    const localOnly: PrototypeDef[] = PROTO_REGISTRY
+    const localOnly = PROTO_REGISTRY
       .filter(p => !supabaseSlugs.has(p.slug) && p.status !== 'archived')
       .map(p => ({ ...p, hasComponent: true }));
 
@@ -126,15 +138,25 @@ export class PrototypeService {
     return withMeta({ ...data, hasComponent: false });
   }
 
+  /** Moves a prototype to another dashboard module (needs the `module` column — see top). */
+  async setModule(proto: PrototypeDef, module: ProtoModule): Promise<PrototypeDef> {
+    return this.save(proto, { module });
+  }
+
   /** Updates the status of a prototype. UPSERTs into Supabase so that
    *  local-registry-only prototypes (no row yet) get a row on first toggle. */
   async setStatus(proto: PrototypeDef, status: PrototypeDef['status']): Promise<PrototypeDef> {
+    return this.save(proto, { status });
+  }
+
+  /** Patches a prototype row, inserting it first for local-registry-only prototypes. */
+  private async save(proto: PrototypeDef, patch: Partial<Pick<PrototypeDef, 'status' | 'module'>>): Promise<PrototypeDef> {
     if (!this.supabase) throw new Error('Supabase is not configured.');
 
     if (proto.id) {
       const { data, error } = await this.supabase
         .from('prototypes')
-        .update({ status })
+        .update(patch)
         .eq('id', proto.id)
         .select()
         .single();
@@ -149,7 +171,8 @@ export class PrototypeService {
         title: proto.title,
         description: proto.description ?? '',
         figma: proto.figma ?? '',
-        status,
+        status: proto.status,
+        ...patch,
       })
       .select()
       .single();
