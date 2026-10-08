@@ -2,7 +2,7 @@ import { Component, ElementRef, HostListener, ViewChild, inject } from '@angular
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DS_COMPONENTS, ToastService } from '../../shared/ds';
-import type { SidebarNavItem, HeaderAction, TabItem, SegmentItem, DropdownOption, RadioOption, MultiselectOption } from '../../shared/ds';
+import type { SidebarNavItem, HeaderAction, TabItem, SegmentItem, DropdownOption, RadioOption } from '../../shared/ds';
 import type { FvdrIconName } from '../../shared/ds/icons/icons';
 
 /* ──────────────────────────────────────────────────────────────────────────
@@ -16,8 +16,9 @@ type Port = 'l' | 'r' | 't' | 'b';
 type EdgeKind = 'main' | 'return' | 'reject';
 type TemplateId = 'basic' | 'advanced' | 'advisory' | 'multilevel';
 
-interface Person { id: string; name: string; initials: string; email: string; group: string; tone: number; }
-interface Membership { personId: string; categories: string[]; }
+interface Person { id: string; name: string; initials: string; email: string; group: string; tone: number; /** invited by email, not a project participant yet */ external?: boolean; }
+interface Membership { personId: string; categories: string[]; /** question side: which question team this person acts for */ teamId?: string; }
+interface QuestionTeam { id: string; name: string; }
 interface RoleDef {
   key: string; name: string; side: Side; icon: FvdrIconName; description: string;
   perms: Record<string, boolean>; custom?: boolean;
@@ -241,7 +242,7 @@ const TONES = [
                 <ng-container *ngIf="n.side === 'question'; else answerMembers">
                   <div class="team-chips">
                     <span class="team-chip" *ngFor="let t of teamsOf(n)">
-                      {{ t.team }} <b>{{ t.count }}</b>
+                      {{ t.team.name }} <b>{{ t.members.length }}</b>
                     </span>
                   </div>
                 </ng-container>
@@ -327,10 +328,13 @@ const TONES = [
 
             <!-- People -->
             <ng-container *ngIf="nodeTab === 'people'">
-              <fvdr-dropdown
-                [options]="addPeopleOptions(n)" [value]="''" placeholder="Add people or a whole group"
-                [searchable]="true" searchPlaceholder="Search participants"
-                (valueChange)="addFromDropdown(n, $event)"></fvdr-dropdown>
+              <ng-container *ngIf="n.side === 'answer'">
+                <fvdr-dropdown
+                  [options]="addPeopleOptions(n)" [value]="''" placeholder="Add participants or a whole group"
+                  [searchable]="true" searchPlaceholder="Search participants"
+                  (valueChange)="addFromDropdown(n, $event)"></fvdr-dropdown>
+              </ng-container>
+              <ng-container *ngTemplateOutlet="inviteTpl; context: { n: n }"></ng-container>
               <p class="hint">or drag people from the <b>People</b> tab onto any role on the canvas</p>
 
               <div class="empty-panel" *ngIf="!n.members.length">
@@ -339,15 +343,22 @@ const TONES = [
               </div>
 
               <ng-container *ngIf="n.side === 'question'">
-                <div class="team-block" *ngFor="let t of teamsOf(n)">
-                  <div class="team-title"><fvdr-icon name="group"></fvdr-icon>{{ t.team }}<span class="team-count">{{ t.count }}</span></div>
-                  <ng-container *ngFor="let m of n.members">
-                    <ng-container *ngIf="person(m.personId).group === t.team">
-                      <ng-container *ngTemplateOutlet="memberRow; context: { n: n, m: m }"></ng-container>
-                    </ng-container>
+                <!-- one block per question team: rename, delete, add people straight into the team -->
+                <div class="team-block" *ngFor="let t of teams; trackBy: trackById">
+                  <div class="team-head">
+                    <input class="team-name" [(ngModel)]="t.name" aria-label="Question team name" />
+                    <span class="team-count">{{ teamMembers(n, t).length }}</span>
+                    <button class="icon-btn icon-btn--sm" fvdrTooltip="Delete team" tooltipPosition="left" (click)="askDeleteTeam(t)"><fvdr-icon name="trash"></fvdr-icon></button>
+                  </div>
+                  <ng-container *ngFor="let m of teamMembers(n, t)">
+                    <ng-container *ngTemplateOutlet="memberRow; context: { n: n, m: m }"></ng-container>
                   </ng-container>
+                  <fvdr-dropdown size="s" [options]="addToTeamOptions(n, t)" [value]="''" [placeholder]="'Add to ' + t.name"
+                                 [searchable]="true" searchPlaceholder="Search participants"
+                                 (valueChange)="addFromDropdown(n, $event, t.id)"></fvdr-dropdown>
                 </div>
-                <p class="hint" *ngIf="n.members.length">Each question team sees only its own questions unless <b>See other teams' questions</b> is on.</p>
+                <button class="link-btn link-btn--add" (click)="newTeam()"><fvdr-icon name="plus"></fvdr-icon>New question team</button>
+                <p class="hint">Each question team sees only its own questions unless <b>See other teams' questions</b> is on. One person can be in several teams.</p>
               </ng-container>
 
               <ng-container *ngIf="n.side === 'answer'">
@@ -359,26 +370,41 @@ const TONES = [
                   <ng-container *ngTemplateOutlet="memberRow; context: { n: n, m: m }"></ng-container>
                 </ng-container>
 
-                <!-- Auto-assign: categories → experts (full-width DS multiselect with checkboxes) -->
+                <!-- Auto-assign: categories × experts grid — who answers what, gaps at a glance -->
                 <div class="cat-section" *ngIf="n.roleKey === 'expert' && n.assignMode === 'auto' && n.members.length">
                   <div class="cat-section-head">
                     <span class="field-label">Categories</span>
-                    <span class="hint">New questions go to every expert of their category</span>
+                    <span class="hint">Tick who answers each category. New questions go to every ticked expert.</span>
                   </div>
-                  <div class="cat-block" *ngFor="let c of categories">
-                    <div class="cat-head">
-                      <fvdr-icon name="label" class="cat-ic" [ngClass]="'cat-ic--' + c.color"></fvdr-icon>
-                      <span class="cat-name">{{ c.name }}</span>
-                      <span class="cat-count">{{ expertsFor(n, c.name).length || 'No' }} {{ expertsFor(n, c.name).length === 1 ? 'expert' : 'experts' }}</span>
+                  <div class="matrix">
+                    <div class="mx-row mx-row--head" [style.grid-template-columns]="matrixCols(n)">
+                      <span class="mx-cat mx-cat--head">Category</span>
+                      <span class="mx-cell" *ngFor="let m of n.members">
+                        <span class="av av--xs" [fvdrTooltip]="person(m.personId).name"
+                              [style.background]="tone(m.personId).bg" [style.color]="tone(m.personId).fg">{{ person(m.personId).initials }}</span>
+                      </span>
+                      <span></span>
                     </div>
-                    <fvdr-multiselect
-                      [options]="expertOptions(n)"
-                      [values]="expertsFor(n, c.name)"
-                      [maxChips]="2"
-                      placeholder="Choose experts"
-                      searchPlaceholder="Search experts"
-                      [helperText]="expertsFor(n, c.name).length ? '' : 'Questions in ' + c.name + ' will wait for the coordinator to assign them'"
-                      (valuesChange)="setCategoryExperts(n, c.name, $event)"></fvdr-multiselect>
+                    <div class="mx-group" *ngFor="let c of categories">
+                      <div class="mx-row" [style.grid-template-columns]="matrixCols(n)">
+                        <span class="mx-cat">
+                          <fvdr-icon name="label" class="cat-ic" [ngClass]="'cat-ic--' + c.color"></fvdr-icon>
+                          <input class="cat-input" [value]="c.name" aria-label="Category name"
+                                 (change)="renameCategory(c, $any($event.target).value, $any($event.target))"
+                                 (keydown.enter)="$any($event.target).blur()" />
+                        </span>
+                        <span class="mx-cell" *ngFor="let m of n.members">
+                          <fvdr-checkbox [checked]="m.categories.includes(c.name)" (checkedChange)="toggleCategory(m, c.name, $event)"></fvdr-checkbox>
+                        </span>
+                        <button class="icon-btn icon-btn--sm mx-del" fvdrTooltip="Delete category" tooltipPosition="left" (click)="deleteCategory(c)"><fvdr-icon name="trash"></fvdr-icon></button>
+                      </div>
+                      <span class="mx-warn" *ngIf="!expertsFor(n, c.name).length">No expert — {{ c.name }} questions wait for the coordinator</span>
+                    </div>
+                    <div class="mx-add">
+                      <fvdr-icon name="label" class="cat-ic cat-ic--grey"></fvdr-icon>
+                      <input class="cat-input" placeholder="New category" [(ngModel)]="newCategory" (keydown.enter)="addCategory()" aria-label="New category name" />
+                      <button class="icon-btn icon-btn--sm" fvdrTooltip="Add category" tooltipPosition="left" [disabled]="!newCategory.trim()" (click)="addCategory()"><fvdr-icon name="plus"></fvdr-icon></button>
+                    </div>
                   </div>
                 </div>
               </ng-container>
@@ -470,6 +496,29 @@ const TONES = [
               </button>
             </ng-container>
 
+            <!-- Teams -->
+            <ng-container *ngIf="libTab === 'teams' && !pendingInsert">
+              <p class="hint">Question teams group drafters and submitters of one bidder. Each team sees only its own questions.</p>
+              <div class="team-card" *ngFor="let t of teams; trackBy: trackById">
+                <div class="team-head">
+                  <input class="team-name" [(ngModel)]="t.name" aria-label="Question team name" />
+                  <button class="icon-btn icon-btn--sm" fvdrTooltip="Delete team" tooltipPosition="left" (click)="askDeleteTeam(t)"><fvdr-icon name="trash"></fvdr-icon></button>
+                </div>
+                <span class="person-roles">{{ teamSummary(t) }}</span>
+                <div class="avatars" *ngIf="teamPeople(t).length">
+                  <span class="av" *ngFor="let pid of teamPeople(t)" [fvdrTooltip]="person(pid).name"
+                        [style.background]="tone(pid).bg" [style.color]="tone(pid).fg">{{ person(pid).initials }}</span>
+                </div>
+              </div>
+              <button class="create-role" (click)="newTeam()">
+                <span class="create-icon"><fvdr-icon name="plus"></fvdr-icon></span>
+                <span class="role-text">
+                  <span class="role-name">New question team</span>
+                  <span class="role-desc">Then add drafters and submitters to it from their roles</span>
+                </span>
+              </button>
+            </ng-container>
+
             <!-- People -->
             <ng-container *ngIf="libTab === 'people' && !pendingInsert">
               <div class="lib-search"><fvdr-search placeholder="Search participants" size="s" [(ngModel)]="peopleQuery"></fvdr-search></div>
@@ -479,7 +528,7 @@ const TONES = [
                   <fvdr-icon name="drag" class="drag-ic"></fvdr-icon>
                   <span class="av av--sm" [style.background]="tone(p.id).bg" [style.color]="tone(p.id).fg">{{ p.initials }}</span>
                   <span class="person-text">
-                    <span class="person-name">{{ p.name }}</span>
+                    <span class="person-name">{{ p.name }}<span class="invited-tag" *ngIf="p.external">Invited</span></span>
                     <span class="person-roles">{{ rolesOf(p.id).length ? rolesLabel(p.id) : 'No Q&A role' }}</span>
                   </span>
                 </div>
@@ -534,14 +583,14 @@ const TONES = [
       {{ person(m.personId).initials }}<i class="av-dual" *ngIf="rolesOf(m.personId).length > 1"></i>
     </span>
     <span class="person-text">
-      <span class="person-name">{{ person(m.personId).name }}</span>
+      <span class="person-name">{{ person(m.personId).name }}<span class="invited-tag" *ngIf="person(m.personId).external">Invited</span></span>
       <ng-container *ngIf="n.roleKey === 'expert' && n.assignMode === 'auto'; else plainCaption">
         <span class="person-roles" *ngIf="m.categories.length">{{ m.categories.join(' · ') }}</span>
         <span class="person-roles person-roles--warn" *ngIf="!m.categories.length">No category — gets questions only manually</span>
       </ng-container>
       <ng-template #plainCaption>
         <span class="person-roles" *ngIf="otherRoles(m.personId, n) as other">Also {{ other }}</span>
-        <span class="person-roles" *ngIf="!otherRoles(m.personId, n)">{{ person(m.personId).group }}</span>
+        <span class="person-roles" *ngIf="!otherRoles(m.personId, n)">{{ person(m.personId).external ? person(m.personId).email : person(m.personId).group }}</span>
       </ng-template>
     </span>
     <button class="icon-btn icon-btn--sm" fvdrTooltip="Remove from role" tooltipPosition="left" (click)="removeMember(n, m)"><fvdr-icon name="close"></fvdr-icon></button>
@@ -561,6 +610,30 @@ const TONES = [
 </ng-template>
 
 <!-- Create custom role -->
+<!-- invite external user by email -->
+<ng-template #inviteTpl let-n="n">
+  <div class="invite">
+    <button class="link-btn link-btn--add" *ngIf="inviteFor !== n.id" (click)="openInvite(n)"><fvdr-icon name="envelope"></fvdr-icon>Invite external user by email</button>
+    <div class="invite-form" *ngIf="inviteFor === n.id">
+      <fvdr-input label="Invite by email" placeholder="name@company.com" type="email" [(ngModel)]="inviteEmail"
+                  [state]="inviteError ? 'error' : 'default'" [errorText]="inviteError"
+                  helperText="They get an email invite and appear here as Invited"></fvdr-input>
+      <fvdr-dropdown *ngIf="n.side === 'question'" size="s" label="Question team" [options]="teamOptions()" [value]="inviteTeam"
+                     (valueChange)="inviteTeam = $any($event)"></fvdr-dropdown>
+      <div class="invite-actions">
+        <fvdr-btn label="Send invite" size="s" (clicked)="invite(n)"></fvdr-btn>
+        <fvdr-btn label="Cancel" size="s" variant="ghost" (clicked)="inviteFor = null"></fvdr-btn>
+      </div>
+    </div>
+  </div>
+</ng-template>
+
+<fvdr-modal [visible]="!!teamToDelete" [title]="'Delete ' + (teamToDelete?.name || 'team') + '?'" size="s"
+            confirmLabel="Delete team" confirmVariant="danger" cancelLabel="Cancel"
+            (confirmed)="deleteTeam()" (cancelled)="teamToDelete = null" (closed)="teamToDelete = null">
+  <p class="modal-text">{{ teamToDelete ? teamPeople(teamToDelete).length : 0 }} {{ teamToDelete && teamPeople(teamToDelete).length === 1 ? 'person' : 'people' }} will lose their role in this team. Their questions stay in Q&amp;A.</p>
+</fvdr-modal>
+
 <fvdr-modal [visible]="createOpen" title="Create custom role" size="m"
             confirmLabel="Create role" cancelLabel="Cancel" [confirmDisabled]="!draft.name.trim()"
             (confirmed)="createRole()" (cancelled)="createOpen = false" (closed)="createOpen = false">
@@ -780,7 +853,33 @@ const TONES = [
     .field-label { font-size: var(--text-caption1-size); font-weight: var(--font-weight-semi); color: var(--color-text-secondary); }
     .field-label--gap { margin-top: var(--space-3); }
     .empty-panel { display: flex; gap: var(--space-2); align-items: flex-start; padding: var(--space-3); border-radius: var(--radius-md); background: var(--color-error-50); color: var(--color-error-700); font-size: var(--text-caption1-size); }
-    .team-block { display: flex; flex-direction: column; gap: var(--space-1); margin-top: var(--space-2); }
+    .team-block { display: flex; flex-direction: column; gap: var(--space-1); margin-top: var(--space-2); padding-bottom: var(--space-3); border-bottom: 1px solid var(--color-divider); }
+    .team-head { display: flex; align-items: center; gap: var(--space-2); }
+    .team-name { flex: 1; min-width: 0; border: 1px solid transparent; border-radius: var(--radius-sm); padding: 2px var(--space-1); margin-left: calc(var(--space-1) * -1); font: inherit; font-weight: var(--font-weight-semi); color: var(--color-text-primary); background: none; }
+    .team-name:hover { border-color: var(--color-stone-400); }
+    .team-name:focus { outline: none; border-color: var(--color-primary-500); }
+    .team-card { display: flex; flex-direction: column; gap: var(--space-1); padding: var(--space-3) 0; border-bottom: 1px solid var(--color-divider); }
+    .link-btn--add { display: inline-flex; align-items: center; gap: var(--space-1); }
+    .invited-tag { margin-left: var(--space-2); padding: 0 var(--space-1); border-radius: var(--radius-sm); background: var(--color-info-50); color: var(--color-info-800); font-size: var(--text-caption2-size); font-weight: var(--font-weight-regular); }
+    .invite { display: flex; flex-direction: column; }
+    .invite-form { display: flex; flex-direction: column; gap: var(--space-3); padding: var(--space-3); border-radius: var(--radius-md); background: var(--color-stone-100); }
+    .invite-actions { display: flex; gap: var(--space-2); }
+    .modal-text { margin: 0; color: var(--color-text-secondary); }
+    .matrix { display: flex; flex-direction: column; overflow-x: auto; }
+    .mx-row { display: grid; align-items: center; gap: var(--space-1); min-height: 36px; }
+    .mx-row--head { min-height: 32px; border-bottom: 1px solid var(--color-divider); }
+    .mx-group { border-bottom: 1px solid var(--color-divider); padding-bottom: var(--space-1); }
+    .mx-cat { display: flex; align-items: center; gap: var(--space-1); min-width: 0; }
+    .mx-cat--head { font-size: var(--text-caption1-size); color: var(--color-text-secondary); }
+    .mx-cell { display: flex; justify-content: center; }
+    .mx-del { opacity: 0; transition: opacity 0.15s; }
+    .mx-group:hover .mx-del, .mx-del:focus-visible { opacity: 1; }
+    .mx-warn { display: block; font-size: var(--text-caption2-size); color: var(--color-error-600); padding-left: var(--space-5); }
+    .mx-add { display: flex; align-items: center; gap: var(--space-1); padding-top: var(--space-2); }
+    .cat-input { flex: 1; min-width: 0; border: 1px solid transparent; border-radius: var(--radius-sm); padding: 2px var(--space-1); font: inherit; color: var(--color-text-primary); background: none; }
+    .cat-input:hover { border-color: var(--color-stone-400); }
+    .cat-input:focus { outline: none; border-color: var(--color-primary-500); background: var(--color-stone-0); }
+    .av--xs { width: 24px; height: 24px; margin-left: 0; border: 0; font-size: var(--text-caption2-size); }
     .team-title, .group-title { display: flex; align-items: center; gap: var(--space-2); font-weight: var(--font-weight-semi); font-size: var(--text-caption1-size); color: var(--color-text-secondary); padding: var(--space-1) 0; }
     .team-count { margin-left: auto; font-weight: var(--font-weight-regular); }
     .member, .person { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-1) var(--space-1); border-radius: var(--radius-md); }
@@ -802,6 +901,8 @@ const TONES = [
     .cat-ic--green { color: var(--color-primary-600); }
     .cat-ic--blue { color: var(--color-info-500); }
     .cat-ic--orange { color: var(--color-warning-600); }
+    .cat-ic--red { color: var(--color-error-500); }
+    .cat-ic--grey { color: var(--color-stone-500); }
     .assign-mode { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); margin: var(--space-2) 0; }
     .group { display: flex; flex-direction: column; gap: 2px; margin-bottom: var(--space-2); }
     .lib-search { margin-bottom: var(--space-2); }
@@ -895,11 +996,20 @@ export class QnaSetupCanvasComponent {
     { id: 'manual', label: 'Manual', icon: 'edit' },
     { id: 'auto', label: 'Auto by category', icon: 'sparkle' },
   ];
-  libTabs: TabItem[] = [{ id: 'roles', label: 'Roles' }, { id: 'people', label: 'People' }];
+  libTabs: TabItem[] = [{ id: 'roles', label: 'Roles' }, { id: 'teams', label: 'Teams' }, { id: 'people', label: 'People' }];
   libTab = 'roles';
   nodeTab = 'people';
   roleQuery = '';
   peopleQuery = '';
+  /** project participants + people invited by email in this session */
+  people: Person[] = [...PEOPLE];
+  teams: QuestionTeam[] = [];
+  teamToDelete: QuestionTeam | null = null;
+  inviteFor: string | null = null;
+  inviteEmail = '';
+  inviteError = '';
+  inviteTeam = '';
+  newCategory = '';
   categories = [
     { name: 'Finance', color: 'teal' },
     { name: 'Legal', color: 'green' },
@@ -991,7 +1101,7 @@ export class QnaSetupCanvasComponent {
     if (q.length && a.length && Math.max(...q.map(n => n.x + NODE_W)) + 40 > Math.min(...a.map(n => n.x))) this.tidy();
     else this.autoPorts();
   }
-  person(id: string): Person { return PEOPLE.find(p => p.id === id)!; }
+  person(id: string): Person { return this.people.find(p => p.id === id)!; }
   tone(id: string) { return TONES[this.person(id).tone % TONES.length]; }
   nodeById(id: string) { return this.nodes.find(n => n.id === id); }
   get selectedNode(): FlowNode | undefined { return this.selectedId ? this.nodeById(this.selectedId) : undefined; }
@@ -1018,11 +1128,115 @@ export class QnaSetupCanvasComponent {
   }
   resetPerms(n: FlowNode) { const def = this.roleDef(n.roleKey); if (def) n.perms = { ...def.perms }; }
 
-  teamsOf(n: FlowNode): { team: string; count: number }[] {
-    const map = new Map<string, number>();
-    n.members.forEach(m => { const g = this.person(m.personId).group; map.set(g, (map.get(g) || 0) + 1); });
-    return [...map.entries()].map(([team, count]) => ({ team, count }));
+  teamsOf(n: FlowNode): { team: QuestionTeam; members: Membership[] }[] {
+    return this.teams.map(team => ({ team, members: n.members.filter(m => m.teamId === team.id) })).filter(t => t.members.length);
   }
+  teamMembers(n: FlowNode, t: QuestionTeam): Membership[] { return n.members.filter(m => m.teamId === t.id); }
+  /** unique people of a team across all question-side roles */
+  teamPeople(t: QuestionTeam): string[] {
+    const ids = [...new Set(this.nodes.filter(n => n.side === 'question').flatMap(n => n.members.filter(m => m.teamId === t.id).map(m => m.personId)))];
+    return this.stable('teamPeople:' + t.id, ids.join(','), () => ids);
+  }
+  teamSummary(t: QuestionTeam): string {
+    const parts = this.nodes.filter(n => n.side === 'question')
+      .map(n => ({ n, c: n.members.filter(m => m.teamId === t.id).length }))
+      .filter(x => x.c)
+      .map(x => `${x.c} ${x.n.name.toLowerCase().replace('question ', '')}${x.c === 1 ? '' : 's'}`);
+    return parts.length ? parts.join(' · ') : 'No people yet';
+  }
+  teamOptions(): DropdownOption[] {
+    return this.stable('teamOpts', this.teams.map(t => t.id + ':' + t.name).join('|'), () => this.teams.map(t => ({ value: t.id, label: t.name })));
+  }
+  private teamSeq = 1;
+  /** team named after a participant group (templates seed teams from bidder groups) */
+  private teamFor(name: string): QuestionTeam {
+    let t = this.teams.find(x => x.name === name);
+    if (!t) { t = { id: 'qt' + this.teamSeq++, name }; this.teams = [...this.teams, t]; }
+    return t;
+  }
+  newTeam() {
+    let i = this.teams.length + 1;
+    while (this.teams.some(t => t.name === `Team ${i}`)) i++;
+    const t = this.teamFor(`Team ${i}`);
+    this.toast.show({ variant: 'success', message: `${t.name} created — rename it and add drafters or submitters` });
+  }
+  askDeleteTeam(t: QuestionTeam) {
+    if (this.teamPeople(t).length) this.teamToDelete = t;
+    else this.teams = this.teams.filter(x => x.id !== t.id);
+  }
+  deleteTeam() {
+    const t = this.teamToDelete;
+    if (!t) return;
+    this.nodes.forEach(n => n.members = n.members.filter(m => m.teamId !== t.id));
+    this.teams = this.teams.filter(x => x.id !== t.id);
+    this.teamToDelete = null;
+    this.toast.show({ variant: 'info', message: `${t.name} deleted` });
+  }
+  addToTeamOptions(n: FlowNode, t: QuestionTeam): DropdownOption[] {
+    const taken = new Set(n.members.filter(m => m.teamId === t.id).map(m => m.personId));
+    const sig = [...taken].join(',') + '|' + this.people.length;
+    return this.stable('addTeam:' + n.id + ':' + t.id, sig, () => [
+      ...[...new Set(this.people.map(p => p.group))].map(g => ({ value: 'group:' + g, label: `All of ${g}`, group: 'Groups' })),
+      ...this.people.filter(p => !taken.has(p.id)).map(p => ({ value: p.id, label: p.name, sublabel: p.external ? 'Invited' : p.group, group: 'People' })),
+    ]);
+  }
+
+  // ── external invites ──
+  openInvite(n: FlowNode) {
+    this.inviteFor = n.id;
+    this.inviteEmail = '';
+    this.inviteError = '';
+    this.inviteTeam = this.teams[0]?.id ?? '';
+  }
+  invite(n: FlowNode) {
+    const email = this.inviteEmail.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { this.inviteError = 'Enter a valid email address'; return; }
+    let p = this.people.find(x => x.email.toLowerCase() === email);
+    if (!p) {
+      const local = email.split('@')[0].split(/[._-]+/).filter(Boolean);
+      const name = local.map(w => w[0].toUpperCase() + w.slice(1)).join(' ') || email;
+      const initials = (local[0]?.[0] ?? '?').toUpperCase() + (local[1]?.[0] ?? '').toUpperCase();
+      p = { id: 'x' + this.seq++, name, initials, email, group: 'Invited', tone: 0, external: true };
+      this.people = [...this.people, p];
+    }
+    if (n.side === 'question' && !this.teams.length) this.inviteTeam = this.teamFor('Team 1').id;
+    this.addMember(n, p.id, false, n.side === 'question' ? (this.inviteTeam || this.teams[0]?.id) : undefined);
+    this.inviteFor = null;
+    this.toast.show({ variant: 'success', message: `Invitation sent to ${email} — added to ${n.name}` });
+  }
+
+  // ── categories ──
+  matrixCols(n: FlowNode): string { return `minmax(96px, 1fr) repeat(${n.members.length}, 32px) 28px`; }
+  toggleCategory(m: Membership, cat: string, on: boolean) {
+    m.categories = on ? [...new Set([...m.categories, cat])] : m.categories.filter(c => c !== cat);
+  }
+  private readonly catColors = ['teal', 'green', 'blue', 'orange', 'red', 'grey'];
+  addCategory() {
+    const name = this.newCategory.trim();
+    if (!name) return;
+    if (this.categories.some(c => c.name.toLowerCase() === name.toLowerCase())) {
+      this.toast.show({ variant: 'warning', message: `${name} already exists` });
+      return;
+    }
+    this.categories = [...this.categories, { name, color: this.catColors[this.categories.length % this.catColors.length] }];
+    this.newCategory = '';
+  }
+  renameCategory(c: { name: string; color: string }, value: string, input?: HTMLInputElement) {
+    const name = value.trim();
+    if (!name || this.categories.some(x => x !== c && x.name.toLowerCase() === name.toLowerCase())) {
+      if (input) input.value = c.name;
+      return;
+    }
+    const old = c.name;
+    c.name = name;
+    this.nodes.forEach(n => n.members.forEach(m => m.categories = m.categories.map(x => x === old ? name : x)));
+  }
+  deleteCategory(c: { name: string; color: string }) {
+    this.categories = this.categories.filter(x => x !== c);
+    this.nodes.forEach(n => n.members.forEach(m => m.categories = m.categories.filter(x => x !== c.name)));
+    this.toast.show({ variant: 'info', message: `Category ${c.name} deleted` });
+  }
+
 
   nodeSubtitle(n: FlowNode): string {
     if (n.roleKey === 'expert') return n.assignMode === 'auto' ? 'Auto-assign by category' : 'Assigned manually';
@@ -1075,12 +1289,13 @@ export class QnaSetupCanvasComponent {
     this.templateId = id;
     this.selectedId = null;
     this.pendingInsert = null;
+    this.teams = [];
     const mk = (roleKey: string, col: number, row: number, people: string[], extra: Partial<FlowNode> = {}): FlowNode => {
       const def = this.roleDef(roleKey) ?? STANDARD_ROLES[0];
       return {
         id: 'n' + this.seq++, roleKey, name: def.name, side: def.side, icon: def.icon,
         x: 60 + col * COL_W, y: 90 + row * ROW_H,
-        members: people.map(p => ({ personId: p, categories: [] })),
+        members: people.map(p => ({ personId: p, categories: [], teamId: def.side === 'question' ? this.teamFor(this.person(p).group).id : undefined })),
         perms: { ...def.perms }, custom: !!def.custom, assignMode: 'manual', ...extra,
       };
     };
@@ -1483,36 +1698,14 @@ export class QnaSetupCanvasComponent {
     if (e) e.label = mode === 'auto' ? 'Auto-assigns by category' : 'Assigns';
   }
 
-  // Stable arrays per node/category so fvdr-multiselect doesn't re-render on every change detection.
-  private optCache = new Map<string, { key: string; value: MultiselectOption[] }>();
-  private valCache = new Map<string, { key: string; value: string[] }>();
-  expertOptions(n: FlowNode): MultiselectOption[] {
-    const key = n.members.map(m => m.personId).join(',');
-    const hit = this.optCache.get(n.id);
-    if (hit && hit.key === key) return hit.value;
-    const value = n.members.map(m => ({ value: m.personId, label: this.person(m.personId).name }));
-    this.optCache.set(n.id, { key, value });
-    return value;
-  }
   expertsFor(n: FlowNode, cat: string): string[] {
-    const ids = n.members.filter(m => m.categories.includes(cat)).map(m => m.personId);
-    const ck = n.id + '|' + cat, key = ids.join(',');
-    const hit = this.valCache.get(ck);
-    if (hit && hit.key === key) return hit.value;
-    this.valCache.set(ck, { key, value: ids });
-    return ids;
+    return n.members.filter(m => m.categories.includes(cat)).map(m => m.personId);
   }
-  setCategoryExperts(n: FlowNode, cat: string, ids: string[]) {
-    n.members.forEach(m => {
-      const has = m.categories.includes(cat);
-      if (ids.includes(m.personId) && !has) m.categories = [...m.categories, cat];
-      if (!ids.includes(m.personId) && has) m.categories = m.categories.filter(c => c !== cat);
-    });
-  }
+
 
   private addCache = new Map<string, { key: string; value: DropdownOption[] }>();
   addPeopleOptions(n: FlowNode): DropdownOption[] {
-    const key = n.members.map(m => m.personId).join(',');
+    const key = n.members.map(m => m.personId).join(',') + '|' + this.people.length;
     const hit = this.addCache.get(n.id);
     if (hit && hit.key === key) return hit.value;
     const value = this.buildAddPeopleOptions(n);
@@ -1520,26 +1713,30 @@ export class QnaSetupCanvasComponent {
     return value;
   }
   private buildAddPeopleOptions(n: FlowNode): DropdownOption[] {
-    const groups = [...new Set(PEOPLE.map(p => p.group))];
+    const groups = [...new Set(this.people.map(p => p.group))];
     const groupOpts = groups.map(g => ({ value: 'group:' + g, label: `All of ${g}`, group: 'Groups' }));
-    const people = PEOPLE.filter(p => !n.members.some(m => m.personId === p.id))
-      .map(p => ({ value: p.id, label: p.name, sublabel: p.group, group: 'People' }));
+    const people = this.people.filter(p => !n.members.some(m => m.personId === p.id))
+      .map(p => ({ value: p.id, label: p.name, sublabel: p.external ? 'Invited' : p.group, group: 'People' }));
     return [...groupOpts, ...people];
   }
-  addFromDropdown(n: FlowNode, v: string | string[]) {
+  addFromDropdown(n: FlowNode, v: string | string[], teamId?: string) {
     const val = Array.isArray(v) ? v[0] : v;
     if (!val) return;
     if (val.startsWith('group:')) {
       const g = val.slice(6);
-      PEOPLE.filter(p => p.group === g).forEach(p => this.addMember(n, p.id, false));
+      this.people.filter(p => p.group === g).forEach(p => this.addMember(n, p.id, false, teamId));
       this.toast.show({ variant: 'success', message: `${g} added to ${n.name}` });
     } else {
-      this.addMember(n, val);
+      this.addMember(n, val, true, teamId);
     }
   }
-  private addMember(n: FlowNode, personId: string, notify = true) {
-    if (n.members.some(m => m.personId === personId)) return;
-    n.members = [...n.members, { personId, categories: [] }];
+  private addMember(n: FlowNode, personId: string, notify = true, teamId?: string) {
+    if (n.side === 'question') {
+      // question side: a person acts for a team; default to the team named after their group, else the first team
+      teamId = teamId ?? this.teams.find(t => t.name === this.person(personId).group)?.id ?? this.teams[0]?.id ?? this.teamFor('Team 1').id;
+      if (n.members.some(m => m.personId === personId && m.teamId === teamId)) return;
+    } else if (n.members.some(m => m.personId === personId)) return;
+    n.members = [...n.members, { personId, categories: [], teamId: n.side === 'question' ? teamId : undefined }];
     const other = this.otherRoles(personId, n);
     if (notify) {
       this.toast.show(other
@@ -1568,9 +1765,9 @@ export class QnaSetupCanvasComponent {
   }
   filteredGroups(): { group: string; people: Person[] }[] {
     const q = this.peopleQuery.trim().toLowerCase();
-    const groups = [...new Set(PEOPLE.map(p => p.group))];
+    const groups = [...new Set(this.people.map(p => p.group))];
     return groups
-      .map(group => ({ group, people: PEOPLE.filter(p => p.group === group && (!q || p.name.toLowerCase().includes(q) || group.toLowerCase().includes(q))) }))
+      .map(group => ({ group, people: this.people.filter(p => p.group === group && (!q || p.name.toLowerCase().includes(q) || group.toLowerCase().includes(q))) }))
       .filter(g => g.people.length);
   }
   /**
