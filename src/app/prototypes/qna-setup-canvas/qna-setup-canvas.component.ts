@@ -175,6 +175,9 @@ const TONES = [
                     [class.edge--hover]="hoverEdgeId === e.id"
                     [class.edge--related]="isEdgeRelated(e)"
                     [attr.marker-end]="e.kind === 'reject' ? 'url(#qsc-arrow-reject)' : 'url(#qsc-arrow)'"></path>
+              <!-- dot = where the message leaves the role -->
+              <circle *ngIf="edgeStart(e) as p" [attr.cx]="p.x" [attr.cy]="p.y" r="4.5" class="edge-start"
+                      [class.edge-start--reject]="e.kind === 'reject'"></circle>
             </g>
           </svg>
 
@@ -247,8 +250,6 @@ const TONES = [
               </ng-template>
             </div>
 
-            <!-- dot = where a message leaves the role; the arrowhead marks where it arrives -->
-            <span class="port" *ngFor="let s of outPorts(n); trackBy: trackSelf" [ngClass]="'port--' + s"></span>
             <button class="node-add" *ngFor="let s of freeSides(n); trackBy: trackSelf" [ngClass]="'node-add--' + s"
                     title="Add next role" (mousedown)="$event.stopPropagation()" (click)="startInsertAfter(n, s)">
               <span class="node-add-dot"><fvdr-icon name="plus"></fvdr-icon></span>
@@ -588,6 +589,8 @@ const TONES = [
     .edge--hover { stroke: var(--color-primary-600); stroke-width: 2.5; }
     .edge-hit { fill: none; stroke: transparent; stroke-width: 16; pointer-events: stroke; cursor: pointer; }
     .arrow-main { fill: var(--color-stone-600); }
+    .edge-start { fill: var(--color-stone-600); stroke: var(--color-stone-0); stroke-width: 2; }
+    .edge-start--reject { fill: var(--color-error-500); }
     .arrow-reject { fill: var(--color-error-500); }
 
     .edge-label {
@@ -1105,17 +1108,144 @@ export class QnaSetupCanvasComponent {
     return { p0, c1, c2, p3: end };
   }
   edgePath(e: FlowEdge): string {
+    const r = this.routeOf(e);
+    if (r) return r.d;
     const c = this.curve(e);
     if (!c) return '';
     return `M${c.p0.x},${c.p0.y} C${c.c1.x},${c.c1.y} ${c.c2.x},${c.c2.y} ${c.p3.x},${c.p3.y}`;
   }
+  edgeStart(e: FlowEdge) { return this.routeOf(e)?.start ?? null; }
   edgeMid(e: FlowEdge) {
+    const r = this.routeOf(e);
+    if (r) return r.mid;
     const c = this.curve(e);
     if (!c) return { x: 0, y: 0 };
     return {
       x: (c.p0.x + 3 * c.c1.x + 3 * c.c2.x + c.p3.x) / 8,
       y: (c.p0.y + 3 * c.c1.y + 3 * c.c2.y + c.p3.y) / 8,
     };
+  }
+
+  // ── orthogonal routing around roles ───────────────────────────────────────
+  // Connections leave a port perpendicular to the card, then run along a sparse
+  // grid built from card edges (+ clearance) and never cross another card.
+  private routeSig = '';
+  private routes = new Map<string, { d: string; mid: { x: number; y: number }; start: { x: number; y: number } }>();
+  private routeOf(e: FlowEdge) {
+    const sig = this.nodes.map(n => `${n.id}:${n.x},${n.y}`).join(';') + '|' +
+      this.edges.map(x => `${x.id}:${x.from}>${x.to}:${x.fs}${x.ts}`).join(';');
+    if (sig !== this.routeSig) {
+      this.routeSig = sig;
+      this.routes.clear();
+      this.edges.forEach(x => { const r = this.route(x); if (r) this.routes.set(x.id, r); });
+    }
+    return this.routes.get(e.id);
+  }
+
+  /** Port point, spread out when several connections share one side of a card. */
+  private slotPoint(n: FlowNode, side: Port, edgeId: string) {
+    const list = this.edges.filter(x => (x.from === n.id && x.fs === side) || (x.to === n.id && x.ts === side));
+    const idx = Math.max(0, list.findIndex(x => x.id === edgeId));
+    const off = (idx - (list.length - 1) / 2) * 24;
+    const p = this.portPoint(n, side);
+    return side === 'l' || side === 'r' ? { x: p.x, y: p.y + off } : { x: p.x + off, y: p.y };
+  }
+
+  private route(e: FlowEdge): { d: string; mid: { x: number; y: number }; start: { x: number; y: number } } | null {
+    const a = this.nodeById(e.from), b = this.nodeById(e.to);
+    if (!a || !b) return null;
+    const M = 24;                         // clearance around cards
+    const rects = this.nodes.map(n => ({ x1: n.x - M, y1: n.y - M, x2: n.x + NODE_W + M, y2: n.y + NODE_H + M }));
+    const p0 = this.slotPoint(a, e.fs, e.id), p3 = this.slotPoint(b, e.ts, e.id);
+    const d0 = this.dir(e.fs), d3 = this.dir(e.ts);
+    const s = { x: p0.x + d0.x * M, y: p0.y + d0.y * M };
+    const t = { x: p3.x + d3.x * M, y: p3.y + d3.y * M };
+
+    const uniq = (v: number[]) => [...new Set(v.map(n => Math.round(n)))].sort((x, y) => x - y);
+    const xs = uniq([s.x, t.x, (s.x + t.x) / 2, ...rects.flatMap(r => [r.x1, r.x2])]);
+    const ys = uniq([s.y, t.y, (s.y + t.y) / 2, ...rects.flatMap(r => [r.y1, r.y2])]);
+    const inside = (x: number, y: number) => rects.some(r => x > r.x1 && x < r.x2 && y > r.y1 && y < r.y2);
+    const hBlocked = (y: number, xa: number, xb: number) => rects.some(r => y > r.y1 && y < r.y2 && Math.max(xa, xb) > r.x1 && Math.min(xa, xb) < r.x2);
+    const vBlocked = (x: number, ya: number, yb: number) => rects.some(r => x > r.x1 && x < r.x2 && Math.max(ya, yb) > r.y1 && Math.min(ya, yb) < r.y2);
+
+    const si = xs.indexOf(Math.round(s.x)), sj = ys.indexOf(Math.round(s.y));
+    const ti = xs.indexOf(Math.round(t.x)), tj = ys.indexOf(Math.round(t.y));
+    const W = xs.length, H = ys.length;
+    // state = (i, j, axis) ; axis 0 = horizontal, 1 = vertical
+    const key = (i: number, j: number, ax: number) => (j * W + i) * 2 + ax;
+    const dist = new Map<number, number>(), prev = new Map<number, number>();
+    const BEND = 60;
+    const startAx = d0.x !== 0 ? 0 : 1, endAx = d3.x !== 0 ? 0 : 1;
+    const open: [number, number][] = [[0, key(si, sj, startAx)]];
+    dist.set(key(si, sj, startAx), 0);
+    let best = -1;
+    while (open.length) {
+      open.sort((x, y) => x[0] - y[0]);
+      const [cost, k] = open.shift()!;
+      if (cost > (dist.get(k) ?? Infinity)) continue;
+      const ax = k % 2, cell = (k - ax) / 2, i = cell % W, j = (cell - i) / W;
+      if (i === ti && j === tj) {
+        const total = cost + (ax === endAx ? 0 : BEND);
+        if (best < 0 || total < (dist.get(-1) ?? Infinity)) { dist.set(-1, total); best = k; }
+        continue;
+      }
+      const step = (ni: number, nj: number, nax: number) => {
+        if (ni < 0 || nj < 0 || ni >= W || nj >= H) return;
+        const x0 = xs[i], y0 = ys[j], x1 = xs[ni], y1 = ys[nj];
+        if (inside(x1, y1)) return;
+        if (nax === 0 ? hBlocked(y0, x0, x1) : vBlocked(x0, y0, y1)) return;
+        const nk = key(ni, nj, nax);
+        const nc = cost + Math.abs(x1 - x0) + Math.abs(y1 - y0) + (nax === ax ? 0 : BEND);
+        if (nc < (dist.get(nk) ?? Infinity)) { dist.set(nk, nc); prev.set(nk, k); open.push([nc, nk]); }
+      };
+      step(i + 1, j, 0); step(i - 1, j, 0); step(i, j + 1, 1); step(i, j - 1, 1);
+    }
+    if (best < 0) return null;
+
+    const pts: { x: number; y: number }[] = [];
+    for (let k: number | undefined = best; k !== undefined; k = prev.get(k)) {
+      const ax = k % 2, cell = (k - ax) / 2, i = cell % W, j = (cell - i) / W;
+      pts.unshift({ x: xs[i], y: ys[j] });
+    }
+    const end = { x: p3.x + d3.x * 3, y: p3.y + d3.y * 3 };
+    const raw = [p0, ...pts, end];
+    // drop duplicates and collinear points
+    const poly: { x: number; y: number }[] = [];
+    raw.forEach(pt => {
+      const last = poly[poly.length - 1];
+      if (last && last.x === pt.x && last.y === pt.y) return;
+      if (poly.length >= 2) {
+        const a2 = poly[poly.length - 2];
+        if ((a2.x === last.x && last.x === pt.x) || (a2.y === last.y && last.y === pt.y)) poly.pop();
+      }
+      poly.push(pt);
+    });
+
+    // rounded corners
+    let d = `M${poly[0].x},${poly[0].y}`;
+    for (let k = 1; k < poly.length - 1; k++) {
+      const pA = poly[k - 1], c = poly[k], pB = poly[k + 1];
+      const lenA = Math.hypot(c.x - pA.x, c.y - pA.y), lenB = Math.hypot(pB.x - c.x, pB.y - c.y);
+      const r = Math.min(12, lenA / 2, lenB / 2);
+      const ia = { x: c.x - Math.sign(c.x - pA.x) * r, y: c.y - Math.sign(c.y - pA.y) * r };
+      const ob = { x: c.x + Math.sign(pB.x - c.x) * r, y: c.y + Math.sign(pB.y - c.y) * r };
+      d += ` L${ia.x},${ia.y} Q${c.x},${c.y} ${ob.x},${ob.y}`;
+    }
+    d += ` L${poly[poly.length - 1].x},${poly[poly.length - 1].y}`;
+
+    // label sits halfway along the route
+    const segs = poly.slice(1).map((pt, k) => ({ a: poly[k], b: pt, len: Math.abs(pt.x - poly[k].x) + Math.abs(pt.y - poly[k].y) }));
+    let half = segs.reduce((sum, sg) => sum + sg.len, 0) / 2;
+    let mid = poly[0];
+    for (const sg of segs) {
+      if (half <= sg.len) {
+        const f = sg.len ? half / sg.len : 0;
+        mid = { x: sg.a.x + (sg.b.x - sg.a.x) * f, y: sg.a.y + (sg.b.y - sg.a.y) * f };
+        break;
+      }
+      half -= sg.len;
+    }
+    return { d, mid, start: p0 };
   }
 
   // ── pan / zoom / drag ─────────────────────────────────────────────────────
