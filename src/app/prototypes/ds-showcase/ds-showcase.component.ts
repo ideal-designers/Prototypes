@@ -1019,6 +1019,7 @@ export class DsShowcaseComponent implements OnInit, OnDestroy {
     { id: 'special-controls', label: 'Special controls' },
     { id: 'avatar', label: 'Avatar' },
     { id: 'tabs', label: 'Tabs' },
+    { id: 'tooltip', label: 'Tooltip' },
     { id: 'cards', label: 'Cards' },
     { id: 'header', label: 'Headers' },
     { id: 'sidebar-nav', label: 'Sidebar Nav' },

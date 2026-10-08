@@ -2232,6 +2232,62 @@ const thinkingOrbs: ComponentDocEntry = {
 // REGISTRY EXPORT
 // ─────────────────────────────────────────────────────────────────────────────
 
+// ─────────────────────────────────────────────────────────────────────────────
+
+const tooltip: ComponentDocEntry = {
+  id: 'tooltip',
+  name: 'Tooltip',
+  selector: '[fvdrTooltip]',
+  category: 'feedback',
+  status: 'stable',
+  description:
+    'Short dark label that explains an icon-only control. Applied as a directive on any element; appears on hover (300ms) and immediately on keyboard focus, flips when there is no room, and is appended to <body> so it is never clipped. Rule: every icon-only button must have a tooltip — icon-only fvdr-btn shows its ariaLabel automatically.',
+  whenToUse: [
+    'Every icon-only button (zoom, close, delete, add, more…)',
+    'Truncated text where the full value is useful on hover',
+    'A short hint for a control whose meaning is not obvious from its icon',
+  ],
+  whenNotToUse: [
+    'Essential information the user must read — put it on the page',
+    'Long explanations or rich content — use an info banner or popover',
+    'Buttons that already have a visible text label',
+  ],
+  anatomy: [
+    { index: 1, part: 'Container', spec: 'padding 4px 8px · radius --radius-sm · bg --color-stone-1000 · max-width 240px' },
+    { index: 2, part: 'Label',     spec: '12px / 16px · --color-text-inverse' },
+    { index: 3, part: 'Arrow',     spec: '5px triangle pointing at the target · 8px gap from the target' },
+  ],
+  tokens: [
+    { token: '--color-stone-1000',     value: '#1f2129', usage: 'Tooltip background and arrow' },
+    { token: '--color-text-inverse',   value: '#ffffff', usage: 'Tooltip text' },
+    { token: '--text-caption1-size',   value: '12px',    usage: 'Tooltip text size' },
+    { token: '--radius-sm',            value: '4px',     usage: 'Corner radius' },
+    { token: '--shadow-popover',       value: '—',       usage: 'Elevation' },
+  ],
+  states: [
+    { name: 'Hidden',  description: 'Default — nothing rendered.' },
+    { name: 'Visible', description: 'After 300ms hover or on focus; hides on mouse leave, blur, click or Esc.' },
+    { name: 'Flipped', description: 'Switches to the opposite side when the preferred side is off-screen.' },
+  ],
+  relatedComponents: ['button', 'ghost-btn'],
+  usedIn: ['Q&A setup canvas (zoom, fit, auto-arrange, add role, delete connection)', 'Icon-only fvdr-btn everywhere'],
+  codeSnippet: `<!-- Directive on any element -->
+<button class="icon-btn" fvdrTooltip="Zoom in" (click)="zoomIn()">
+  <fvdr-icon name="plus"></fvdr-icon>
+</button>
+
+<!-- Position: top (default) | bottom | left | right -->
+<button fvdrTooltip="Close" tooltipPosition="bottom">…</button>
+
+<!-- Icon-only DS button: ariaLabel becomes the tooltip automatically -->
+<fvdr-btn iconName="trash" [iconOnly]="true" ariaLabel="Delete" variant="ghost"></fvdr-btn>`,
+  claudePrompt:
+    'Every icon-only button must have a tooltip. Use the fvdrTooltip directive (from DS_COMPONENTS) with a short verb phrase ' +
+    '("Zoom in", "Delete connection", "Add a role here"); never use the native title attribute for this. ' +
+    'For fvdr-btn with [iconOnly]="true", set ariaLabel — it is shown as the tooltip automatically. ' +
+    'Use tooltipPosition="bottom" for controls at the top edge, "left" for controls at the right edge.',
+};
+
 export const DS_REGISTRY: ComponentDocEntry[] = [
   // Fully documented
   button,
@@ -2243,6 +2299,7 @@ export const DS_REGISTRY: ComponentDocEntry[] = [
   toggle,
   checkbox,
   tabs,
+  tooltip,
   status,
   modal,
   // Stubs

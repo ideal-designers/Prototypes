@@ -1,3 +1,4 @@
+import { TooltipDirective } from './components/tooltip/tooltip.directive';
 /**
  * FVDR Design System — Shared Components
  *
@@ -398,6 +399,7 @@ export type {
 export const DS_COMPONENTS = [
   // Original
   ButtonComponent,
+  TooltipDirective,
   TabsComponent,
   CardComponent,
   CheckboxComponent,
@@ -485,3 +487,5 @@ export const DS_COMPONENTS = [
   AiConsentBannerComponent,
   AiUsageMeterComponent,
 ];
+export { TooltipDirective } from './components/tooltip/tooltip.directive';
+export type { TooltipPosition } from './components/tooltip/tooltip.directive';

@@ -120,6 +120,7 @@ node scripts/token-audit.js
 - Список: `src/app/shared/ds/icons/icons.ts` (тип `FvdrIconName`)
 - Figma: file `liyNDiFf1piO8SQmHNKoeU`, node `15846-7469`
 - Колір через CSS `color`, розмір через `font-size` (іконка = `1em`)
+- **Кожна кнопка-іконка (без тексту) завжди має тултіп** — директива `fvdrTooltip="Дія"` з DS (не нативний `title`). Для `<fvdr-btn [iconOnly]="true">` достатньо `ariaLabel` — він показується як тултіп автоматично. Позиція: `tooltipPosition="top|bottom|left|right"`.
 
 ```
 Standard: angle-double-left, angle-double-right, api, attention, bell, billing, cancel, check,
@@ -174,6 +175,7 @@ Nav (з active-варіантом): nav-api, nav-api-active, nav-billing, nav-bi
 <fvdr-tree>            [nodes]="TreeNode[]"
 <fvdr-drop-area>       (filesDropped)
 <fvdr-icon>            [name]="FvdrIconName"
+[fvdrTooltip]          директива: текст тултіпа, tooltipPosition (top/bottom/left/right) — обов'язкова на icon-only кнопках
 <fvdr-tabs>            [tabs]="TabItem[]", [activeId], (tabChange)
 <fvdr-header>          appName, [navItems], activeNavId, [actions], userName
 ToastService           inject(ToastService).show({ variant: 'success'|'error'|'warning'|'info', message, title?, duration? })

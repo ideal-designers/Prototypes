@@ -1,5 +1,6 @@
 import { Component, Input, Output, EventEmitter, HostBinding } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { TooltipDirective } from '../tooltip/tooltip.directive';
 import { FvdrIconComponent } from '../../icons/icon.component';
 import type { FvdrIconName } from '../../icons/icons';
 
@@ -32,7 +33,7 @@ export type ButtonSize = 's' | 'm' | 'l';
 @Component({
   selector: 'fvdr-btn',
   standalone: true,
-  imports: [CommonModule, FvdrIconComponent],
+  imports: [CommonModule, FvdrIconComponent, TooltipDirective],
   template: `
     <button
       class="btn btn--{{ variant }} btn--{{ size }}"
@@ -40,6 +41,7 @@ export type ButtonSize = 's' | 'm' | 'l';
       [disabled]="disabled || loading"
       [attr.data-track]="dataTrack"
       [attr.aria-label]="iconOnly && !label ? ariaLabel : null"
+      [fvdrTooltip]="iconOnly && !label ? ariaLabel : ''"
       (click)="!disabled && !loading && clicked.emit($event)"
     >
       <span *ngIf="loading" class="btn__spinner"></span>

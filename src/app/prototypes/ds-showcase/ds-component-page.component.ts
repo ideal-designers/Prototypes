@@ -1256,6 +1256,31 @@ interface SidebarGroup { category: (typeof DS_CATEGORIES)[number]; items: Compon
             <h3 class="examples-group__title">With counters</h3>
             <fvdr-tabs [tabs]="demoTabsWithCounters" [(activeId)]="activeTabCounter"></fvdr-tabs>
           </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">40px — drawers and side panels (size="s")</h3>
+            <fvdr-tabs size="s" [tabs]="demoTabs" [(activeId)]="activeTab"></fvdr-tabs>
+          </div>
+        </ng-container>
+
+        <!-- TOOLTIP -->
+        <ng-container *ngSwitchCase="'tooltip'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">Icon buttons — hover or focus</h3>
+            <div class="examples-row">
+              <fvdr-btn iconName="plus" [iconOnly]="true" ariaLabel="Zoom in" variant="secondary"></fvdr-btn>
+              <fvdr-btn iconName="minus" [iconOnly]="true" ariaLabel="Zoom out" variant="secondary"></fvdr-btn>
+              <fvdr-btn iconName="trash" [iconOnly]="true" ariaLabel="Delete" variant="ghost"></fvdr-btn>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Positions</h3>
+            <div class="examples-row">
+              <fvdr-btn label="Top" variant="secondary" fvdrTooltip="Tooltip on top"></fvdr-btn>
+              <fvdr-btn label="Bottom" variant="secondary" fvdrTooltip="Tooltip below" tooltipPosition="bottom"></fvdr-btn>
+              <fvdr-btn label="Left" variant="secondary" fvdrTooltip="Tooltip on the left" tooltipPosition="left"></fvdr-btn>
+              <fvdr-btn label="Right" variant="secondary" fvdrTooltip="Tooltip on the right" tooltipPosition="right"></fvdr-btn>
+            </div>
+          </div>
         </ng-container>
 
         <!-- STATUS -->
