@@ -292,7 +292,7 @@ const TONES = [
           </div>
 
           <div class="panel-tabs">
-            <fvdr-tabs [tabs]="nodeTabs(n)" [activeId]="nodeTab" (tabChange)="nodeTab = $event"></fvdr-tabs>
+            <fvdr-tabs size="s" [tabs]="nodeTabs(n)" [activeId]="nodeTab" (tabChange)="nodeTab = $event"></fvdr-tabs>
           </div>
 
           <div class="panel-body">
@@ -410,7 +410,7 @@ const TONES = [
             <button class="icon-btn" *ngIf="pendingInsert" title="Cancel" (click)="pendingInsert = null"><fvdr-icon name="close"></fvdr-icon></button>
           </div>
           <div class="panel-tabs" *ngIf="!pendingInsert">
-            <fvdr-tabs [tabs]="libTabs" [activeId]="libTab" (tabChange)="libTab = $event"></fvdr-tabs>
+            <fvdr-tabs size="s" [tabs]="libTabs" [activeId]="libTab" (tabChange)="libTab = $event"></fvdr-tabs>
           </div>
 
           <div class="panel-body">

@@ -19,6 +19,10 @@ export interface TabItem {
  *   unselected → border-bottom 2px #DEE0EB, text #5F616A
  *   text: UI/Base Component L → 16px w400 lh=24px
  *
+ * Sizes (Figma node 981:7093):
+ *   size="m" (default) — h 48px, padding 24px, 16px text — page-level tabs
+ *   size="s"           — h 40px, padding 16px, 14px text — tabs inside drawers / side panels
+ *
  * Usage:
  *   <fvdr-tabs [tabs]="tabs" [(activeId)]="activeTab" (tabChange)="onTabChange($event)" />
  *
@@ -33,7 +37,7 @@ export interface TabItem {
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="tabs-bar" role="tablist">
+    <div class="tabs-bar" [class.tabs-bar--s]="size === 's'" role="tablist">
       <button
         *ngFor="let tab of tabs"
         class="tab-item"
@@ -76,6 +80,13 @@ export interface TabItem {
       transition: color 0.15s, background 0.15s, border-color 0.15s;
       white-space: nowrap;
     }
+    /* DS: Tabs - 40px (drawers / side panels) */
+    .tabs-bar--s .tab-item {
+      height: 40px;
+      padding: 0 var(--space-4);
+      font-size: var(--text-base-s-size);
+      line-height: var(--text-base-s-lh, 20px);
+    }
     .tab-item:disabled {
       opacity: 0.4;
       cursor: not-allowed;
@@ -114,6 +125,8 @@ export interface TabItem {
 export class TabsComponent {
   @Input() tabs: TabItem[] = [];
   @Input() activeId = '';
+  /** 'm' = 48px page tabs (default), 's' = 40px tabs for drawers and side panels */
+  @Input() size: 'm' | 's' = 'm';
   @Output() activeIdChange = new EventEmitter<string>();
   @Output() tabChange = new EventEmitter<string>();
 
