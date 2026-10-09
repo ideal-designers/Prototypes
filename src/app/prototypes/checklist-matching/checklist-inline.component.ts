@@ -92,11 +92,7 @@ const PILL: Record<string, { label: string; variant: ChipVariant }> = {
               </ng-container>
               <ng-container *ngIf="phase === 'results'">
                 <span class="aibar__cov"><b>{{ pct }}%</b> covered</span>
-                <div class="aibar__chips" role="group" aria-label="Highlight rows">
-                  <button class="fchip" *ngFor="let f of filters" [class.fchip--on]="filter === f.id" [attr.aria-pressed]="filter === f.id" (click)="setFilter(f.id)">
-                    <span class="dot" [ngClass]="'dot--' + f.id"></span>{{ f.count }} {{ f.label }}
-                  </button>
-                </div>
+                <fvdr-segment variant="table" size="mobile" [items]="filterItems" [activeId]="filter" (activeIdChange)="setFilter($any($event))" />
                 <span class="muted" *ngIf="delta">since {{ sc.returning.since }}: {{ deltaText }}</span>
                 <button class="lnk" (click)="openRead()">What AI read</button>
               </ng-container>
@@ -457,7 +453,9 @@ const PILL: Record<string, { label: string; variant: ChipVariant }> = {
     .meta { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-6); font-size: var(--font-size-sm); }
     .meta li { display: flex; flex-direction: column; gap: 2px; }
     .meta__k { font-size: var(--font-size-xs); color: var(--color-text-secondary); }
-    .doc { display: flex; align-items: center; gap: var(--space-3); }
+    .doc { display: flex; align-items: flex-start; gap: var(--space-3); }
+    .doc > fvdr-file-icon { flex: none; display: flex; align-items: center; height: var(--line-height-base); }
+    .doc > fvdr-btn { flex: none; }
     .doc__b { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
     .doc__name { all: unset; cursor: pointer; font-weight: var(--font-weight-semi); overflow-wrap: anywhere; }
     .doc__name:hover { color: var(--color-primary-600); text-decoration: underline; }
@@ -545,6 +543,7 @@ export class ChecklistInlineComponent implements OnDestroy {
   scopeOptions: DropdownOption[] = [];
   headerRowOptions: DropdownOption[] = [];
   filters: { id: Filter; label: string; count: number }[] = [];
+  filterItems: SegmentItem[] = [];
   reviewIds: string[] = [];
   pct = 0; docCount = 0; otherCount = 0;
   d: any = null;
@@ -683,7 +682,7 @@ export class ChecklistInlineComponent implements OnDestroy {
   }
   stopMatching() { clearInterval(this.timer); this.go('structure'); this.toast('Matching stopped. Nothing was saved.'); }
   changeHeaderRow(v: string) { this.headerRow = +v; this.toast(`Read again from row ${v}.`); }
-  setFilter(f: Filter) { this.filter = this.filter === f ? 'all' : f; this.recompute(); }
+  setFilter(f: Filter) { this.filter = f; this.recompute(); }
   doExport(k: 'file' | 'gap') { this.exportOpen = false; this.toast(k === 'gap' ? 'Gap report downloaded' : `${this.sc.tabLabel} with results downloaded. The file in the room is unchanged.`); }
   openDoc(n: string) { this.toast(`Opening ${n} in the document viewer, in a new tab`); }
 
@@ -786,6 +785,12 @@ export class ChecklistInlineComponent implements OnDestroy {
       { id: 'gap', label: 'gaps', count: c(s => s === 'gap') },
     ];
     this.reviewIds = docs.filter(r => st[r.id]?.s === 'review').map(r => r.id);
+    this.filterItems = [
+      { id: 'all', label: 'All', count: docs.length },
+      { id: 'covered', label: 'Covered', count: this.filters[0].count },
+      { id: 'review', label: 'To review', count: this.filters[1].count },
+      { id: 'gap', label: 'Gaps', count: this.filters[2].count },
+    ];
     const chg: Record<ChangeKind, number> = { closed: 0, suggested: 0, reopened: 0 };
     reqs.forEach(r => { const k = st[r.id]?.change?.kind; if (k) chg[k]++; });
     this.deltaText = [chg.closed && `${chg.closed} gap closed`, chg.suggested && `${chg.suggested} new suggestion`, chg.reopened && `${chg.reopened} reopened`].filter(Boolean).join(', ');
