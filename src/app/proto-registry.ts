@@ -292,7 +292,7 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
     slug: 'checklist-matching-inline',
     title: 'Due diligence checklist — AI matching, inline (v3)',
     module: 'General Exploration',
-    figma: 'https://www.figma.com/design/jCqXtPsLgRI4g7hqBGfxS6/Staging-Hub---FVDR---NT?node-id=38482-44570',
+    figma: 'https://www.figma.com/design/jCqXtPsLgRI4g7hqBGfxS6/Staging-Hub---FVDR---NT?node-id=38483-183197',
     status: 'wip',
     description: 'Simpler take on the AI checklist: no separate Requests view. AI marks every request in the source spreadsheet, writes results into the file\'s own columns, and a click on a row opens a drawer with the finding and Accept / Reject / Ask in Q&A',
   },
