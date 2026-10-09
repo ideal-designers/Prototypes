@@ -74,7 +74,7 @@ const PILL: Record<string, { label: string; variant: ChipVariant }> = {
           <!-- ── AI bar: message group on the left, controls on the right ── -->
           <div class="aibar" [class.aibar--busy]="phase === 'reading' || phase === 'matching'">
             <div class="aibar__l">
-              <span class="aibar__mark"><fvdr-icon name="sparkle" /></span>
+              <span class="aibar__mark" *ngIf="phase !== 'results'"><fvdr-icon name="sparkle" /></span>
               <ng-container *ngIf="phase === 'none'">
                 <span class="aibar__text"><b>Find documents for this checklist.</b> AI marks every request in the file, then matches it to documents in {{ sc.room }}. The file isn't changed.</span>
               </ng-container>
@@ -92,13 +92,17 @@ const PILL: Record<string, { label: string; variant: ChipVariant }> = {
               </ng-container>
               <ng-container *ngIf="phase === 'results'">
                 <fvdr-segment variant="table" size="md" [items]="filterItems" [activeId]="filter" (activeIdChange)="setFilter($any($event))" />
-                <span class="cov" [attr.aria-label]="pct + '% of document requests covered'">
-                  <span class="cov__ring" [style.--p]="pct" aria-hidden="true"></span>
-                  <span><b>{{ pct }}%</b> covered</span>
-                </span>
                 <span class="muted" *ngIf="delta">since {{ sc.returning.since }}: {{ deltaText }}</span>
-                <button class="lnk" (click)="openRead()">What AI read</button>
               </ng-container>
+            </div>
+
+            <!-- Results: coverage pill sits between the filters and the actions -->
+            <div class="cov" *ngIf="phase === 'results'">
+              <span class="cov__val" [attr.aria-label]="pct + '% of document requests covered'">
+                <span class="cov__ring" [style.--p]="pct" aria-hidden="true"></span>
+                <span><b>{{ pct }}%</b> covered</span>
+              </span>
+              <button class="lnk" (click)="openRead()">What AI read</button>
             </div>
 
             <div class="aibar__r">
@@ -373,17 +377,17 @@ const PILL: Record<string, { label: string; variant: ChipVariant }> = {
     .owner { display: inline-flex; align-items: center; gap: var(--space-2); font-size: var(--font-size-sm); color: var(--color-text-secondary); margin-right: var(--space-2); }
 
     /* AI bar */
-    .aibar { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); min-height: 60px; box-sizing: border-box; padding: 10px var(--space-4); border-radius: var(--radius-md);
-      background: var(--color-stone-200); flex-wrap: wrap; }
+    .aibar { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); min-height: var(--space-10); flex-wrap: wrap; }
     .aibar__l { display: flex; align-items: center; gap: var(--space-4); min-width: 0; flex-wrap: wrap; }
-    .aibar__r { display: flex; align-items: center; gap: var(--space-3); }
+    .aibar__r { display: flex; align-items: center; gap: var(--space-4); }
     .aibar__mark { color: var(--color-primary-500); display: inline-flex; font-size: var(--font-size-lg); }
     .aibar--busy .aibar__mark { animation: pulse 1.4s ease-in-out infinite; }
     .aibar__text { font-size: var(--font-size-sm); }
     .aibar__text b, .aibar__cov b { font-weight: var(--font-weight-semi); }
     .aibar__cov { font-size: var(--font-size-sm); }
-    .cov { display: inline-flex; align-items: center; gap: var(--space-2); height: var(--space-10); padding: 0 var(--space-3); box-sizing: border-box;
-      background: var(--color-stone-0); border-radius: var(--radius-sm); font-size: var(--font-size-base); }
+    .cov { display: inline-flex; align-items: center; gap: var(--space-6); height: var(--space-10); padding: 0 var(--space-4) 0 var(--space-3); box-sizing: border-box;
+      background: var(--color-stone-0); border: 1px solid var(--color-divider); border-radius: var(--radius-full); font-size: var(--font-size-base); }
+    .cov__val { display: inline-flex; align-items: center; gap: var(--space-2); }
     .cov b { font-weight: var(--font-weight-semi); }
     /* Donut: conic fill for the share, inner circle cut out with a radial mask */
     .cov__ring { width: 20px; height: 20px; border-radius: var(--radius-full); flex: none;
