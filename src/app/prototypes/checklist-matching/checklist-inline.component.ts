@@ -91,8 +91,11 @@ const PILL: Record<string, { label: string; variant: ChipVariant }> = {
                 <div class="bar bar--inline"><div class="bar__fill" [style.width.%]="progress * 100"></div></div>
               </ng-container>
               <ng-container *ngIf="phase === 'results'">
-                <span class="aibar__cov"><b>{{ pct }}%</b> covered</span>
                 <fvdr-segment variant="table" size="md" [items]="filterItems" [activeId]="filter" (activeIdChange)="setFilter($any($event))" />
+                <span class="cov" [attr.aria-label]="pct + '% of document requests covered'">
+                  <span class="cov__ring" [style.--p]="pct" aria-hidden="true"></span>
+                  <span><b>{{ pct }}%</b> covered</span>
+                </span>
                 <span class="muted" *ngIf="delta">since {{ sc.returning.since }}: {{ deltaText }}</span>
                 <button class="lnk" (click)="openRead()">What AI read</button>
               </ng-container>
@@ -379,6 +382,13 @@ const PILL: Record<string, { label: string; variant: ChipVariant }> = {
     .aibar__text { font-size: var(--font-size-sm); }
     .aibar__text b, .aibar__cov b { font-weight: var(--font-weight-semi); }
     .aibar__cov { font-size: var(--font-size-sm); }
+    .cov { display: inline-flex; align-items: center; gap: var(--space-2); height: var(--space-10); padding: 0 var(--space-3); box-sizing: border-box;
+      background: var(--color-stone-0); border-radius: var(--radius-sm); font-size: var(--font-size-base); }
+    .cov b { font-weight: var(--font-weight-semi); }
+    /* Donut: conic fill for the share, inner circle cut out with a radial mask */
+    .cov__ring { width: 20px; height: 20px; border-radius: var(--radius-full); flex: none;
+      background: conic-gradient(var(--color-primary-500) calc(var(--p, 0) * 1%), var(--color-stone-300) 0);
+      -webkit-mask: radial-gradient(circle, transparent 5.5px, var(--color-text-primary) 6px); mask: radial-gradient(circle, transparent 5.5px, var(--color-text-primary) 6px); }
     .aibar__chips { display: flex; gap: var(--space-1); }
     .fchip { all: unset; cursor: pointer; display: inline-flex; align-items: center; gap: var(--space-1); padding: 2px var(--space-2); border-radius: var(--radius-full); font-size: var(--font-size-sm); border: 1px solid transparent; }
     .fchip:hover { background: var(--color-stone-0); }
