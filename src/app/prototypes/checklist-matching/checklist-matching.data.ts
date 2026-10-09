@@ -4,14 +4,61 @@
 export type ReqCls = 'document_request' | 'question' | 'instruction' | 'note';
 export type MatchState = 'pending' | 'searching' | 'found' | 'covered' | 'partial' | 'review' | 'gap' | 'na';
 
-export interface Candidate { name: string; why: string; verdict: string; missing: string; }
+export interface Candidate {
+  name: string; why: string; verdict: string; missing: string;
+  /** Requested vs found period — set when the document is for the wrong date or range. */
+  period?: { requested: string; found: string };
+  /** The suggestion includes a draft / unexecuted document. */
+  draft?: boolean;
+  /** Where in the document the match was found. */
+  evidence?: { quote: string; page: string };
+}
 export interface Req {
   id: string; label?: string; sec: string; row: number; text: string; ftype?: string; cls: ReqCls;
   status?: string; final?: 'covered' | 'review' | 'gap'; foundAt?: number; docs?: string[]; why?: string;
-  cand?: Candidate; note?: string; near?: { name: string; why: string }; flag?: boolean; readAs?: string;
+  cand?: Candidate; note?: string; near?: { name: string; why: string; evidence?: { quote: string; page: string } }; flag?: boolean; readAs?: string;
+  priority?: 'High' | 'Medium' | 'Low'; asAt?: string;
 }
 export interface DocInfo { path: string; summary: string; folder?: boolean; label?: string; files?: string[]; count?: number; }
 export interface FolderNode { id: string; name: string; depth: number; parent?: string; files: string[]; count?: number; link?: string; }
+
+export type ChangeKind = 'reopened' | 'closed' | 'suggested';
+export interface Rec {
+  s: MatchState | ReqCls;
+  docs?: string[]; why?: string; missing?: string;
+  change?: { kind: ChangeKind; reason: string };
+  reopened?: boolean; rejected?: boolean; requested?: boolean; isNew?: boolean;
+  prev?: Rec; reading?: string;
+  /** Human decisions on this request — the audit trail shown in the panel. */
+  history?: { what: string; who: string; at: string }[];
+}
+
+/** One row of the source spreadsheet as the viewer renders it (cells are columns A..H). */
+export interface SrcRow { n: number; kind: 'title' | 'meta' | 'header' | 'section' | 'item' | 'blank' | 'legend'; cells: string[]; reqId?: string; }
+
+export interface Scenario {
+  id: 'diamond' | 'lighthouse';
+  room: string; totalDocs: number; matchedAt: string; extractedOn: string; lastVisit: string;
+  fileName: string; tabLabel: string; fileMeta: string;
+  sheets: { name: string; rows: number }[];
+  side: 'sell' | 'buy';
+  hasPriority: boolean;
+  sections: { id: string; name: string; src: string; row: number }[];
+  reqs: Req[]; docs: Record<string, DocInfo>; folderTree: FolderNode[];
+  defaultFolderReq: string; gapsFocus: string;
+  /** What AI read around the requests: document details, header row, result columns already in the file. */
+  details?: { headerRow: number; metaRows: string; fields: { label: string; value: string }[]; columnsUsed: string[]; resultCols?: string[] };
+  /** The file's own Status values, used when results are written back into the file. */
+  statusMap?: Record<'covered' | 'partial' | 'review' | 'gap' | 'na', string>;
+  source: { cols: string[]; widths: (number | 'fill')[]; selectCols: number[]; resultCols: number[]; build: (reqs: Req[]) => SrcRow[] };
+  /** Source file edits made after extraction (Diamond only). */
+  edits?: { apply: (list: Req[]) => Req[]; editedBy: string; added: { row: number; text: string }; changed: { row: number; id: string; from: string; to: string } };
+  returning: {
+    since: string; cands: Record<string, Candidate>; laterFiles: string[]; deleted: string[];
+    reopened: { id: string; file: string; by: string; on: string };
+    apply: (m: Record<string, Rec>) => void;
+  };
+}
 
 const D = 'File Upload', L = 'Itemized List', T = 'Short Text', W = 'Workshop';
 const R: ReqCls = 'document_request', Q: ReqCls = 'question', I: ReqCls = 'instruction', N: ReqCls = 'note';
@@ -128,3 +175,80 @@ export const FOLDER_TREE: FolderNode[] = [
       { id: 'f07i', name: 'Insurance', depth: 1, parent: 'f07', files: ['Insurance schedule 2026.pdf', 'Property and liability policy 2026.pdf', 'D&O policy 2026.pdf', 'Cyber insurance policy 2026.pdf', 'Employers liability policy 2026.pdf'] },
       { id: 'f08', name: '08 IT', depth: 0, files: ['IT security policy.pdf', 'Systems overview 2026.pdf'] }
 ];
+
+// ── Diamond — sell-side master checklist (the original design reference) ──
+const D_SECS = [
+  { id: 'A', name: 'General information', src: 'General Information:', row: 3 },
+  { id: 'B', name: 'Financial and accounting', src: 'Financial and Accounting:', row: 8 },
+  { id: 'C', name: 'Legal', src: 'Legal:', row: 21 },
+  { id: 'D', name: 'Human resources', src: 'Human Resources:', row: 27 },
+  { id: 'E', name: 'Tax', src: 'Tax:', row: 32 },
+  { id: 'F', name: 'Operations', src: 'Operations:', row: 36 },
+];
+const D_COLS = ['', 'Item #', 'Due Diligence Checklist', 'File Type', 'Date Requested', 'Status', 'Notes to Seller', 'Delivered'];
+
+function diamondSource(reqs: Req[]): SrcRow[] {
+  const rows: SrcRow[] = [{ n: 1, kind: 'header', cells: D_COLS }];
+  D_SECS.forEach(sec => {
+    rows.push({ n: sec.row, kind: 'section', cells: [sec.src] });
+    let i = 0;
+    reqs.filter(q => q.sec === sec.id).forEach(q => { i += 1; rows.push({ n: q.row, kind: 'item', reqId: q.id, cells: ['', String(i), q.text, q.ftype || '', '', q.status || 'Open', '', q.sec === 'A' ? 'FALSE' : ''] }); });
+  });
+  reqs.filter(q => q.sec === 'X').forEach(q => rows.push({ n: q.row, kind: 'meta', cells: [q.text] }));
+  if (!reqs.find(q => q.row === 41)) rows.push({ n: 41, kind: 'blank', cells: [] });
+  return rows.sort((a, b) => a.n - b.n);
+}
+
+export const DIAMOND: Scenario = {
+  id: 'diamond',
+  room: 'Diamond', totalDocs: 1482, matchedAt: 'Oct 5, 22:41', extractedOn: 'Oct 5', lastVisit: 'Oct 2',
+  fileName: 'Diamond – Due diligence checklist.xlsx', tabLabel: 'Diamond_DD_checklist', fileMeta: '84 KB · 2 sheets',
+  sheets: [{ name: 'Master Checklist', rows: 43 }, { name: 'Working copy of the Master Checklist', rows: 43 }],
+  side: 'sell', hasPriority: false,
+  sections: D_SECS, reqs: REQS, docs: DOCS, folderTree: FOLDER_TREE,
+  defaultFolderReq: 'D.4', gapsFocus: 'F.2',
+  details: {
+    headerRow: 1, metaRows: '',
+    fields: [{ label: 'Checklist', value: 'Master Checklist (2 sheets, the second is a working copy)' }],
+    columnsUsed: ['Item #', 'Due Diligence Checklist', 'File Type'],
+  },
+  source: { cols: D_COLS, widths: [40, 72, 'fill', 128, 120, 128, 160, 100], selectCols: [3, 5], resultCols: [], build: diamondSource },
+  edits: {
+    editedBy: 'Olena K. on Oct 5, 21:10',
+    added: { row: 41, text: 'Customer churn analysis for the last 24 months' },
+    changed: { row: 13, id: 'B.5', from: '…bank statements for all material bank accounts for the last 24 months', to: '…bank statements for all material bank accounts for the last 36 months' },
+    apply: (src) => {
+      const list = src.map(r => r.id !== 'B.5' ? r : {
+        ...r,
+        text: "An Excel upload of the company's bank statements for all material bank accounts for the last 36 months",
+        cand: { ...r.cand!, why: 'Covers one account for 21 of 36 months. Other material accounts not found.', missing: 'Other material accounts; Oct 2023 – Dec 2024' },
+      });
+      const idx = list.findIndex(r => r.id === 'F.4');
+      list.splice(idx + 1, 0, { id: 'F.5', sec: 'F', row: 41, text: 'Customer churn analysis for the last 24 months', ftype: 'Itemized List', cls: 'document_request', final: 'gap', note: 'No churn analysis found in 1,482 documents.' });
+      return list;
+    },
+  },
+  returning: {
+    since: 'Oct 2',
+    cands: {
+      'B.3': { name: 'Sales by product line YTD 2026.xlsx', why: 'Breaks year-to-date sales down by product line, not by SKU.', verdict: 'Partial', missing: 'SKU-level breakdown' },
+      'F.2': { name: 'Supplier spend FY2025.xlsx', why: 'Ranks suppliers by FY2025 spend, so the top 10 can be read directly.', verdict: 'Likely match', missing: '' },
+    },
+    laterFiles: ['Supplier spend FY2025.xlsx', 'Sales by product line YTD 2026.xlsx', 'Equipment lease schedule 2026.xlsx', 'AP aging report Oct 2026.xlsx', 'Business licenses and permits 2026.pdf'],
+    deleted: ['Org chart Sep 2026.pdf'],
+    reopened: { id: 'D.1', file: 'Org chart Sep 2026.pdf', by: 'Olena K.', on: 'Oct 6' },
+    apply: (m) => {
+      m['B.8'] = { s: 'covered', docs: ['AP aging report Oct 2026.xlsx'], why: 'Uploaded on Oct 4. Lists payables by supplier with amounts and terms.', change: { kind: 'closed', reason: 'Gap closed by a new upload: AP aging report Oct 2026.xlsx, uploaded by the seller team on Oct 4' } };
+      m['C.5'] = { s: 'covered', docs: ['Business licenses and permits 2026.pdf'], why: 'Uploaded on Oct 3. Current business licenses and operating permits.', change: { kind: 'closed', reason: 'Gap closed by a new upload: Business licenses and permits 2026.pdf, Oct 3' } };
+      m['B.9'] = { s: 'covered', docs: ['Equipment lease schedule 2026.xlsx'], why: 'Uploaded on Oct 5. Lists every leased asset with lessor, term and monthly cost.', change: { kind: 'closed', reason: 'Gap closed by a new upload: Equipment lease schedule 2026.xlsx, Oct 5' } };
+      m['B.3'] = { s: 'review', change: { kind: 'suggested', reason: 'New suggestion from a file uploaded on Oct 5' } };
+      m['F.2'] = { s: 'review', change: { kind: 'suggested', reason: 'New suggestion from a file uploaded on Oct 6' } };
+      m['D.1'] = { s: 'gap', reopened: true, change: { kind: 'reopened', reason: 'Reopened: the linked file was deleted by Olena K. on Oct 6' } };
+      m['B.7'] = { s: 'covered', docs: ['AR aging report Sep 2026.xlsx'] };
+      m['F.1'] = { s: 'covered', docs: ['Revenue by customer FY2025.xlsx'] };
+      m['E.2'] = { s: 'covered', docs: ['Sales and use tax filings 2024–2025.pdf'] };
+      m['B.4'] = { s: 'partial', docs: ['Stripe payouts 2025–2026.csv'] };
+      m['B.5'] = { s: 'partial', docs: ['Bank statements 2025–2026.xlsx'] };
+    },
+  },
+};
