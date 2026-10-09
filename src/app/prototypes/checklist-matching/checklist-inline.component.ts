@@ -8,7 +8,7 @@ import { DIAMOND, Req, DocInfo, Rec, ChangeKind, SrcRow, Scenario, MatchState } 
 import { LIGHTHOUSE } from './lighthouse.data';
 
 type Phase = 'empty' | 'uploading' | 'none' | 'reading' | 'structure' | 'matching' | 'results';
-type Screen = 'upload' | 'source' | 'structure' | 'matching' | 'results' | 'returning';
+type Screen = 'upload' | 'source' | 'structure' | 'matching' | 'results' | 'complete' | 'returning';
 type Filter = 'all' | 'review' | 'gap' | 'covered';
 type DrawerMode = 'none' | 'row' | 'read';
 
@@ -93,10 +93,15 @@ const PILL: Record<string, { label: string; variant: ChipVariant }> = {
               <ng-container *ngIf="phase === 'matching'">
                 <span class="aibar__text"><b>Matching…</b> {{ docsRead }} of {{ totalDocsLabel }} documents · {{ eta }}</span>
               </ng-container>
-              <ng-container *ngIf="phase === 'results'">
+              <ng-container *ngIf="phase === 'results' && !complete">
                 <fvdr-segment variant="table" size="md" [items]="filterItems" [activeId]="filter" (activeIdChange)="setFilter($any($event))" />
                 <span class="muted" *ngIf="delta">since {{ sc.returning.since }}: {{ deltaText }}</span>
               </ng-container>
+              <!-- 100%: nothing left to filter or review, so the filters give way to the outcome -->
+              <span class="done" *ngIf="phase === 'results' && complete">
+                <fvdr-icon name="finished" />
+                <span><b>Every request has a document.</b> {{ doneText }}</span>
+              </span>
             </div>
 
             <!-- Results: coverage pill sits between the filters and the actions -->
@@ -121,11 +126,11 @@ const PILL: Record<string, { label: string; variant: ChipVariant }> = {
                 <!-- With the drawer open, its own ↑↓ "n of N to review" replaces Review next -->
                 <fvdr-btn *ngIf="reviewIds.length && drawer === 'none'" [label]="'Review next (' + reviewIds.length + ')'" (clicked)="reviewNext()" />
                 <div class="export">
-                  <fvdr-btn label="Export" iconName="download" variant="secondary" (clicked)="exportOpen = !exportOpen" />
+                  <fvdr-btn label="Export" iconName="download" [variant]="complete ? 'primary' : 'secondary'" (clicked)="exportOpen = !exportOpen" />
                   <div class="menu" *ngIf="exportOpen">
                     <span class="menu__warn" *ngIf="reviewIds.length"><fvdr-icon name="warning" />{{ reviewIds.length }} suggestions not reviewed are exported as notes.</span>
                     <button class="menu__item" (click)="doExport('file')"><b>{{ sc.tabLabel }} with results</b><span class="muted">{{ hasResultCols ? 'Exactly what you see in the file now.' : 'Adds Status, Documents and Missing columns.' }}</span></button>
-                    <button class="menu__item" (click)="doExport('gap')"><b>Gap report</b><span class="muted">Only gaps and partial requests.</span></button>
+                    <button class="menu__item" *ngIf="!complete || partialCount" (click)="doExport('gap')"><b>Gap report</b><span class="muted">Only gaps and partial requests.</span></button>
                   </div>
                 </div>
               </ng-container>
@@ -383,6 +388,9 @@ const PILL: Record<string, { label: string; variant: ChipVariant }> = {
       padding: var(--space-4); border-radius: var(--radius-md); background: var(--color-stone-300); }
     /* Once results and filters are in, the block dissolves: no background, no side padding */
     .aibar--results { background: none; padding: 0; border-radius: 0; }
+    .done { display: inline-flex; align-items: center; gap: var(--space-2); font-size: var(--text-body3-size); line-height: var(--text-body3-lh); }
+    .done fvdr-icon { color: var(--color-primary-500); font-size: var(--text-body1-size); flex: none; }
+    .done b { font-weight: var(--text-label-s-weight); }
     .aibar--start { justify-content: flex-start; gap: var(--space-4); }
     .aibar__l { display: flex; align-items: center; gap: var(--space-4); min-width: 0; flex-wrap: wrap; }
     .aibar__r { display: flex; align-items: center; gap: var(--space-4); }
@@ -567,6 +575,13 @@ export class ChecklistInlineComponent implements OnDestroy {
   filterItems: SegmentItem[] = [];
   reviewIds: string[] = [];
   pct = 0; docCount = 0; otherCount = 0;
+  complete = false; partialCount = 0; private doneShown = false;
+  get doneText() {
+    const n = this.partialCount;
+    if (!n) return this.isBidder ? 'Nothing to ask the seller.' : 'The checklist is ready to send back.';
+    const part = `${n} ${n === 1 ? 'is' : 'are'} partial`;
+    return this.isBidder ? `${part}, so ask the seller for what's missing.` : `${part}, and the file notes what's missing.`;
+  }
   d: any = null;
   deltaText = '';
 
@@ -587,7 +602,7 @@ export class ChecklistInlineComponent implements OnDestroy {
       { id: 'scenario', label: 'Checklist', value: this.sc.id, options: [{ id: 'lighthouse', label: 'Lighthouse IRL' }, { id: 'diamond', label: 'Diamond master' }] },
       { id: 'screen', label: 'Screen', value: this.screen, options: [
         { id: 'upload', label: 'Upload' }, { id: 'source', label: 'File' }, { id: 'structure', label: 'Requests marked' },
-        { id: 'matching', label: 'Matching' }, { id: 'results', label: 'Results' }, { id: 'returning', label: 'Returning user' },
+        { id: 'matching', label: 'Matching' }, { id: 'results', label: 'Results' }, { id: 'complete', label: 'All covered' }, { id: 'returning', label: 'Returning user' },
       ] },
       { id: 'ai', label: 'Room AI', value: this.roomAiOn ? 'on' : 'off', options: [{ id: 'on', label: 'On' }, { id: 'off', label: 'Off' }] },
     ];
@@ -612,6 +627,23 @@ export class ChecklistInlineComponent implements OnDestroy {
   toast(message: string) { this.toastSvc.show({ variant: 'info', message, duration: 3000 }); }
   private toastUndo(message: string, prev: Record<string, Rec>, focus?: string) {
     this.toastSvc.show({ variant: 'success', message, duration: 6000, actions: [{ label: 'Undo', onClick: () => { this.st = prev; if (focus) this.openRow(focus); this.recompute(); } }] });
+  }
+  /** The decision that closes the last open request ends the review: drawer closes, success toast offers Export. */
+  private settle(): boolean {
+    if (!this.complete || this.doneShown) return false;
+    this.doneShown = true; this.closeDrawer();
+    this.toastSvc.show({ variant: 'success', title: 'Every request has a document', message: this.doneText, duration: 8000, actions: [{ label: 'Export', onClick: () => { this.exportOpen = true; } }] });
+    return true;
+  }
+  /** The checklist once every gap is closed: each request linked to a document in the room. */
+  private allCovered(): Record<string, Rec> {
+    const m: Record<string, Rec> = {};
+    this.reqs().forEach(r => {
+      if (!this.isDoc(r)) { m[r.id] = { s: r.cls as MatchState }; return; }
+      const name = r.docs?.[0] || r.cand?.name || r.near?.name || r.text.split(/[,(]/)[0].split(' ').slice(0, 4).join(' ') + '.pdf';
+      m[r.id] = { s: 'covered', docs: r.docs || [name] };
+    });
+    return m;
   }
   private hist(rec: Rec, what: string): Rec { return { ...rec, history: [...(rec.history || []), { what, who: 'You (Vlad O.)', at: 'just now' }] }; }
 
@@ -678,8 +710,9 @@ export class ChecklistInlineComponent implements OnDestroy {
     else if (screen === 'structure') { this.phase = 'structure'; this.st = base(() => 'pending'); }
     else if (screen === 'matching') { this.phase = 'matching'; this.st = base(() => 'searching'); this.runMatching(); }
     else if (screen === 'results') { this.phase = 'results'; this.st = base(r => r.final || 'gap'); }
+    else if (screen === 'complete') { this.phase = 'results'; this.st = this.allCovered(); }
     else if (screen === 'returning') { this.returning = true; this.phase = 'results'; this.st = base(r => r.final || 'gap'); this.sc.returning.apply(this.st); this.delta = true; }
-    this.recompute();
+    this.recompute(); this.doneShown = this.complete;
   }
   upload() {
     this.phase = 'uploading'; this.upPct = 0;
@@ -736,6 +769,7 @@ export class ChecklistInlineComponent implements OnDestroy {
   private afterDecision(id: string, prev: Record<string, Rec>, msg: string) {
     this.recompute();
     this.toastUndo(msg, prev, id);
+    if (this.settle()) return;
     if (this.reviewIds.length) this.reviewNext(); else { this.closeDrawer(); this.toast('All suggestions reviewed'); }
   }
   accept() {
@@ -757,9 +791,9 @@ export class ChecklistInlineComponent implements OnDestroy {
   linkNear() {
     const id = this.selected!; const r = this.req(id)!; const prev = this.st;
     this.st = { ...this.st, [id]: this.hist({ ...this.st[id], s: 'partial', docs: [r.near!.name], missing: 'Check the document, it was below the threshold' }, 'Linked ' + r.near!.name) };
-    this.recompute(); this.toastUndo('Linked as partial', prev, id);
+    this.recompute(); this.toastUndo('Linked as partial', prev, id); this.settle();
   }
-  markNa() { const id = this.selected!; const prev = this.st; this.st = { ...this.st, [id]: this.hist({ ...this.st[id], s: 'na' }, 'Marked not applicable') }; this.recompute(); this.toastUndo(id + ' marked not applicable', prev, id); }
+  markNa() { const id = this.selected!; const prev = this.st; this.st = { ...this.st, [id]: this.hist({ ...this.st[id], s: 'na' }, 'Marked not applicable') }; this.recompute(); this.toastUndo(id + ' marked not applicable', prev, id); this.settle(); }
   openCompose() {
     const r = this.req(this.selected)!; const rec = this.st[r.id];
     const asAt = r.asAt && r.asAt !== 'Current' ? `, as at ${r.asAt}` : '';
@@ -809,6 +843,9 @@ export class ChecklistInlineComponent implements OnDestroy {
       { id: 'gap', label: 'gaps', count: c(s => s === 'gap') },
     ];
     this.reviewIds = docs.filter(r => st[r.id]?.s === 'review').map(r => r.id);
+    this.partialCount = c(s => s === 'partial');
+    this.complete = this.phase === 'results' && matchable > 0 && covered === matchable && !this.reviewIds.length;
+    if (!this.complete) this.doneShown = false;
     this.filterItems = [
       { id: 'all', label: 'All', count: docs.length },
       { id: 'covered', label: 'Covered', count: this.filters[0].count },
