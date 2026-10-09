@@ -70,6 +70,7 @@ const PILL: Record<string, { label: string; variant: ChipVariant }> = {
             <fvdr-btn label="Share" iconName="share" variant="secondary" />
           </div>
 
+          <div class="work">
           <!-- ── AI bar: one line, changes with the state ── -->
           <div class="aibar" [class.aibar--busy]="phase === 'reading' || phase === 'matching'">
             <span class="aibar__mark"><fvdr-icon name="sparkle" /></span>
@@ -159,6 +160,7 @@ const PILL: Record<string, { label: string; variant: ChipVariant }> = {
               <span class="sheet__tab" *ngFor="let s of sc.sheets; let first = first" [class.sheet__tab--on]="first">{{ s.name }}</span>
               <span class="spacer"></span><span class="muted">100%</span>
             </div>
+          </div>
           </div>
         </ng-container>
       </div>
@@ -338,7 +340,9 @@ const PILL: Record<string, { label: string; variant: ChipVariant }> = {
     :host { display: block; height: 100vh; overflow: hidden; font-family: var(--font-family); font-size: var(--font-size-base); line-height: var(--line-height-base); color: var(--color-text-primary); }
     .page { display: flex; height: 100%; background: var(--color-stone-0); }
     .main { flex: 1; min-width: 0; display: flex; flex-direction: column; overflow: hidden; }
-    .content { flex: 1; min-height: 0; overflow: auto; padding: var(--space-3) var(--space-6) calc(var(--space-16) + var(--space-4)); display: flex; flex-direction: column; gap: var(--space-3); }
+    .content { flex: 1; min-height: 0; overflow: auto; padding: var(--space-3) var(--space-6) calc(var(--space-16) + var(--space-4)); display: flex; flex-direction: column; gap: var(--space-6); }
+    /* AI bar and the sheet read as one block */
+    .work { display: flex; flex-direction: column; gap: var(--space-4); }
     .content--drawer { padding-right: var(--space-6); }
     .spacer { flex: 1; }
     .b { font-weight: var(--font-weight-semi); }
@@ -368,8 +372,8 @@ const PILL: Record<string, { label: string; variant: ChipVariant }> = {
     .owner { display: inline-flex; align-items: center; gap: var(--space-2); font-size: var(--font-size-sm); color: var(--color-text-secondary); margin-right: var(--space-2); }
 
     /* AI bar */
-    .aibar { display: flex; align-items: center; gap: var(--space-3); min-height: 48px; padding: var(--space-2) var(--space-3); border-radius: var(--radius-md);
-      background: var(--color-primary-50); flex-wrap: wrap; }
+    .aibar { display: flex; align-items: center; gap: var(--space-3); min-height: 52px; box-sizing: border-box; padding: 10px var(--space-4); border-radius: var(--radius-md);
+      background: var(--color-stone-200); flex-wrap: wrap; }
     .aibar__mark { color: var(--color-primary-500); display: inline-flex; font-size: var(--font-size-lg); }
     .aibar--busy .aibar__mark { animation: pulse 1.4s ease-in-out infinite; }
     .aibar__text { font-size: var(--font-size-sm); }
