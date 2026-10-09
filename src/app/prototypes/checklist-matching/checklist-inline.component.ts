@@ -461,9 +461,9 @@ const PILL: Record<string, { label: string; variant: ChipVariant }> = {
     .dh__title { font-size: var(--text-label-l-size); line-height: var(--text-label-l-lh); font-weight: var(--text-label-l-weight); }
     .dh__ref { font-weight: var(--font-weight-semi); color: var(--color-text-secondary); }
     .dh__pos { font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); color: var(--color-text-secondary); margin-right: var(--space-1); }
-    .db { flex: 1; overflow-y: auto; padding: 0 var(--space-6); display: flex; flex-direction: column; }
-    .ds { display: flex; flex-direction: column; gap: var(--space-3); padding: var(--space-6) 0; }
-    .ds + .ds { border-top: 1px solid var(--color-divider); }
+    /* Groups are separated by space, not dividers */
+    .db { flex: 1; overflow-y: auto; padding: var(--space-6); display: flex; flex-direction: column; gap: var(--space-8); }
+    .ds { display: flex; flex-direction: column; gap: var(--space-3); }
     .ds__h { margin: 0; font-size: var(--text-body3-size); line-height: var(--text-body3-lh); font-weight: var(--font-weight-semi); color: var(--color-text-primary); }
     .ds__sub { margin-left: var(--space-1); font-weight: var(--text-body3-weight); color: var(--color-text-secondary); font-size: var(--text-body3-size); }
     .ds__row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
