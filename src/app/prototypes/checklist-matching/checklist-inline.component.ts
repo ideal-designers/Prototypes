@@ -379,7 +379,7 @@ const PILL: Record<string, { label: string; variant: ChipVariant }> = {
 
     /* AI bar */
     .aibar { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); min-height: var(--space-10); flex-wrap: wrap;
-      padding: var(--space-4); border-radius: var(--radius-md); background: var(--color-stone-300); }
+      padding: var(--space-4); border-radius: var(--radius-md); background: var(--color-stone-400); }
     .aibar--start { justify-content: flex-start; gap: var(--space-4); }
     .aibar__l { display: flex; align-items: center; gap: var(--space-4); min-width: 0; flex-wrap: wrap; }
     .aibar__r { display: flex; align-items: center; gap: var(--space-4); }
