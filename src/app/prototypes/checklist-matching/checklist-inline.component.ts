@@ -184,17 +184,17 @@ const PILL: Record<string, { label: string; variant: ChipVariant }> = {
           </section>
           <section class="ds">
             <h3 class="ds__h">Requests</h3>
-            <dl class="kv">
-              <dt>Header row</dt><dd><fvdr-dropdown size="s" [options]="headerRowOptions" [value]="'' + headerRow" (valueChange)="changeHeaderRow(asString($event))" /></dd>
-              <dt>Found</dt><dd>{{ docCount }} document requests<ng-container *ngIf="otherCount"> · {{ otherCount }} instructions and notes, kept but not matched</ng-container></dd>
-              <dt>Read from</dt><dd>{{ sc.details?.columnsUsed?.join(', ') }}</dd>
+            <dl class="kvs">
+              <div><dt>Header row</dt><dd><fvdr-dropdown [options]="headerRowOptions" [value]="'' + headerRow" (valueChange)="changeHeaderRow(asString($event))" /></dd></div>
+              <div><dt>Found</dt><dd>{{ docCount }} document requests<ng-container *ngIf="otherCount"> · {{ otherCount }} instructions and notes, kept but not matched</ng-container></dd></div>
+              <div><dt>Read from</dt><dd>{{ sc.details?.columnsUsed?.join(', ') }}</dd></div>
             </dl>
           </section>
           <section class="ds">
             <h3 class="ds__h">Where results go</h3>
-            <dl class="kv">
-              <dt>Columns</dt><dd>{{ hasResultCols ? sc.details?.resultCols?.join(', ') : 'New columns in the export' }}</dd>
-              <ng-container *ngIf="sc.statusMap"><dt>Status values</dt><dd>{{ sc.statusMap.covered }}, {{ sc.statusMap.partial }}, {{ sc.statusMap.gap }}, {{ sc.statusMap.na }}</dd></ng-container>
+            <dl class="kvs">
+              <div><dt>Columns</dt><dd>{{ hasResultCols ? sc.details?.resultCols?.join(', ') : 'New columns in the export' }}</dd></div>
+              <div *ngIf="sc.statusMap"><dt>Status values</dt><dd>{{ sc.statusMap.covered }}, {{ sc.statusMap.partial }}, {{ sc.statusMap.gap }}, {{ sc.statusMap.na }}</dd></div>
             </dl>
           </section>
           <section class="ds">
@@ -300,8 +300,8 @@ const PILL: Record<string, { label: string; variant: ChipVariant }> = {
           <!-- 4 · In your file -->
           <section class="ds" *ngIf="s.writes">
             <h3 class="ds__h">{{ s.isReview ? 'If you accept, your file gets' : 'In your file' }}</h3>
-            <dl class="kv kv--file">
-              <ng-container *ngFor="let w of s.writes"><dt>{{ w.col }}</dt><dd [class.kv__empty]="!w.val">{{ w.val || 'Empty' }}</dd></ng-container>
+            <dl class="kvs">
+              <div *ngFor="let w of s.writes"><dt>{{ w.col }}</dt><dd [class.kv__empty]="!w.val">{{ w.val || 'Empty' }}</dd></div>
             </dl>
           </section>
 
@@ -477,10 +477,15 @@ const PILL: Record<string, { label: string; variant: ChipVariant }> = {
     .strength i:last-of-type { margin-right: var(--space-1); }
     .strength--strong i { background: var(--color-primary-500); }
     .strength--medium i:nth-of-type(-n+2) { background: var(--color-warning-icon); }
-    .kv { display: grid; grid-template-columns: 160px minmax(0, 1fr); gap: var(--space-3) var(--space-4); margin: 0; font-size: var(--font-size-sm); line-height: var(--line-height-base); }
+    .kv { display: grid; grid-template-columns: 130px minmax(0, 1fr); gap: var(--space-3) var(--space-4); margin: 0; font-size: var(--font-size-sm); line-height: var(--line-height-base); }
     .kv dt { color: var(--color-text-secondary); }
     .kv dd { margin: 0; white-space: pre-line; overflow-wrap: anywhere; }
     .kv__empty { color: var(--color-text-placeholder); }
+    /* Stacked pairs — label above value, for long values and controls */
+    .kvs { margin: 0; display: flex; flex-direction: column; gap: var(--space-3); font-size: var(--font-size-sm); line-height: var(--line-height-base); }
+    .kvs > div { display: flex; flex-direction: column; gap: var(--space-1); }
+    .kvs dt { font-size: var(--font-size-xs); line-height: var(--line-height-sm); font-weight: var(--font-weight-semi); color: var(--color-text-primary); }
+    .kvs dd { margin: 0; white-space: pre-line; overflow-wrap: anywhere; }
     .hist summary { cursor: pointer; list-style: none; }
     .hist summary::-webkit-details-marker { display: none; }
     .hist ol { margin: 0; padding-left: var(--space-5); display: flex; flex-direction: column; gap: var(--space-3); font-size: var(--font-size-sm); }
