@@ -168,129 +168,150 @@ const PILL: Record<string, { label: string; variant: ChipVariant }> = {
     <aside class="drawer" *ngIf="drawer !== 'none'" role="dialog" aria-label="Request details">
       <!-- What AI read -->
       <ng-container *ngIf="drawer === 'read'">
-        <div class="drawer__head">
-          <span class="drawer__title">What AI read</span>
+        <header class="dh">
+          <span class="dh__title">What AI read</span>
           <span class="spacer"></span>
           <fvdr-btn variant="ghost" size="s" iconName="close" [iconOnly]="true" ariaLabel="Close" (clicked)="closeDrawer()" />
-        </div>
-        <div class="drawer__body">
-          <section class="blk" *ngIf="sc.details?.fields?.length">
-            <span class="blk__h">Checklist details<span class="muted" *ngIf="sc.details?.metaRows"> · {{ sc.details?.metaRows }}</span></span>
-            <dl class="kvs"><ng-container *ngFor="let f of sc.details?.fields"><dt>{{ f.label }}</dt><dd>{{ f.value }}</dd></ng-container></dl>
+        </header>
+        <div class="db">
+          <section class="ds" *ngIf="sc.details?.fields?.length">
+            <h3 class="ds__h">Checklist details <span class="ds__sub" *ngIf="sc.details?.metaRows">{{ sc.details?.metaRows }}</span></h3>
+            <dl class="kv"><ng-container *ngFor="let f of sc.details?.fields"><dt>{{ f.label }}</dt><dd>{{ f.value }}</dd></ng-container></dl>
           </section>
-          <section class="blk">
-            <span class="blk__h">Requests</span>
-            <dl class="kvs">
+          <section class="ds">
+            <h3 class="ds__h">Requests</h3>
+            <dl class="kv">
               <dt>Header row</dt><dd><fvdr-dropdown size="s" [options]="headerRowOptions" [value]="'' + headerRow" (valueChange)="changeHeaderRow(asString($event))" /></dd>
-              <dt>Found</dt><dd>{{ docCount }} document requests<ng-container *ngIf="otherCount">, {{ otherCount }} instructions and notes (kept, not matched)</ng-container></dd>
+              <dt>Found</dt><dd>{{ docCount }} document requests<ng-container *ngIf="otherCount"> · {{ otherCount }} instructions and notes, kept but not matched</ng-container></dd>
               <dt>Read from</dt><dd>{{ sc.details?.columnsUsed?.join(', ') }}</dd>
             </dl>
           </section>
-          <section class="blk">
-            <span class="blk__h">Results</span>
-            <dl class="kvs">
-              <dt>Written to</dt><dd>{{ hasResultCols ? sc.details?.resultCols?.join(', ') + ' (already in your file)' : 'New columns in the export' }}</dd>
-              <ng-container *ngIf="sc.statusMap"><dt>Status values</dt><dd>{{ sc.statusMap.covered }} · {{ sc.statusMap.partial }} · {{ sc.statusMap.gap }} · {{ sc.statusMap.na }}</dd></ng-container>
+          <section class="ds">
+            <h3 class="ds__h">Where results go</h3>
+            <dl class="kv">
+              <dt>Columns</dt><dd>{{ hasResultCols ? sc.details?.resultCols?.join(', ') : 'New columns in the export' }}</dd>
+              <ng-container *ngIf="sc.statusMap"><dt>Status values</dt><dd>{{ sc.statusMap.covered }}, {{ sc.statusMap.partial }}, {{ sc.statusMap.gap }}, {{ sc.statusMap.na }}</dd></ng-container>
             </dl>
           </section>
-          <section class="blk">
-            <span class="blk__h">Deal side</span>
+          <section class="ds">
+            <h3 class="ds__h">Deal side</h3>
             <fvdr-segment [items]="sideItems" [activeId]="isBidder ? 'buy' : 'sell'" (activeIdChange)="isBidder = $event === 'buy'" />
-            <span class="muted">{{ isBidder ? 'Missing items become questions to the seller in Q&A.' : 'Missing items become upload requests to the seller team.' }}</span>
+            <p class="ds__p">{{ isBidder ? 'Missing items become questions to the seller in Q&A.' : 'Missing items become upload requests to the seller team.' }}</p>
           </section>
-          <section class="blk">
-            <span class="blk__h">How matching works</span>
-            <p class="p">AI reads the checklist and the documents in the scope you pick, nothing else. It never changes your file, never accepts for you and never messages the seller without your click. Every decision is logged in the Activity log.</p>
+          <section class="ds ds--quiet">
+            <h3 class="ds__h">How matching works</h3>
+            <p class="ds__p">AI reads the checklist and the documents in the scope you pick, nothing else. It never changes your file, never accepts for you and never messages the seller without your click. Every decision is logged in the Activity log.</p>
           </section>
         </div>
       </ng-container>
 
       <!-- Row -->
       <ng-container *ngIf="drawer === 'row' && d as s">
-        <div class="drawer__head">
+        <header class="dh">
           <fvdr-chip [label]="s.pill.label" [variant]="s.pill.variant" size="s" />
-          <span class="b muted-strong">{{ s.ref }}</span>
-          <span class="prio" *ngIf="s.priority">{{ s.priority }}</span>
+          <span class="dh__ref">{{ s.ref }}</span>
           <span class="spacer"></span>
-          <span class="muted" *ngIf="s.pos">{{ s.pos }}</span>
+          <span class="dh__pos" *ngIf="s.pos">{{ s.pos }}</span>
           <fvdr-btn variant="ghost" size="s" iconName="chevron-up" [iconOnly]="true" ariaLabel="Previous (K)" (clicked)="step(-1)" />
           <fvdr-btn variant="ghost" size="s" iconName="chevron-down" [iconOnly]="true" ariaLabel="Next (J)" (clicked)="step(1)" />
           <fvdr-btn variant="ghost" size="s" iconName="close" [iconOnly]="true" ariaLabel="Close (Esc)" (clicked)="closeDrawer()" />
-        </div>
+        </header>
 
-        <div class="drawer__body">
-          <p class="req">{{ s.text }}</p>
-          <span class="muted">Row {{ s.row }}<ng-container *ngIf="s.asAt"> · as at {{ s.asAt }}</ng-container></span>
+        <div class="db">
+          <!-- 1 · The request -->
+          <section class="ds ds--req">
+            <p class="req">{{ s.text }}</p>
+            <ul class="meta">
+              <li><span class="meta__k">Row</span>{{ s.row }}</li>
+              <li *ngIf="s.priority"><span class="meta__k">Priority</span>{{ s.priority }}</li>
+              <li *ngIf="s.asAt"><span class="meta__k">As at</span>{{ s.asAt }}</li>
+            </ul>
+          </section>
 
-          <!-- Structure: confirm the reading -->
-          <section class="blk" *ngIf="s.isPending">
-            <span class="blk__h">AI reads this row as</span>
+          <!-- 2 · What AI found -->
+          <section class="ds" *ngIf="s.isPending">
+            <h3 class="ds__h">How AI reads this row</h3>
             <fvdr-dropdown size="s" [options]="clsOptions" value="document_request" />
-            <span class="muted">Document requests are matched to documents. Questions, instructions and notes are kept, not matched.</span>
+            <p class="ds__p">Document requests are matched to documents. Questions, instructions and notes are kept, not matched.</p>
           </section>
 
-          <!-- Suggestion -->
-          <section class="blk" *ngIf="s.isReview">
-            <span class="blk__h">Suggested document</span>
-            <div class="docc">
-              <fvdr-file-icon [type]="s.candType" />
-              <div class="docc__b"><button class="lnk" (click)="openDoc(s.candName)">{{ s.candLabel }}</button><span class="muted">{{ s.candPath }}</span></div>
-              <span class="strength" [ngClass]="'strength--' + s.strength.toLowerCase()"><i></i><i></i><i></i>{{ s.strength }}</span>
+          <section class="ds" *ngIf="s.isReview">
+            <div class="ds__row">
+              <h3 class="ds__h">Suggested document</h3>
+              <span class="strength" [ngClass]="'strength--' + s.strength.toLowerCase()" [fvdrTooltip]="s.strength + ' match'"><i></i><i></i><i></i>{{ s.strength }} match</span>
             </div>
-            <q class="quote" *ngIf="s.evidence">{{ s.evidence.quote }} <span class="muted">— {{ s.evidence.page }}</span></q>
-            <span class="warn" *ngIf="s.period"><fvdr-icon name="calendar" />Wrong period: covers {{ s.period.found }}, requested {{ s.period.requested }}</span>
-            <span class="warn" *ngIf="s.draft"><fvdr-icon name="warning" />Includes a draft, not executed</span>
-            <span class="warn" *ngIf="s.missing"><fvdr-icon name="info" />Missing: {{ s.missing }}</span>
+            <div class="doc">
+              <fvdr-file-icon [type]="s.candType" />
+              <div class="doc__b">
+                <button class="doc__name" (click)="openDoc(s.candName)">{{ s.candLabel }}</button>
+                <span class="doc__path">{{ s.candPath }}</span>
+              </div>
+            </div>
+            <figure class="quote" *ngIf="s.evidence">
+              <blockquote>{{ s.evidence.quote }}</blockquote>
+              <figcaption>{{ s.evidence.page }}</figcaption>
+            </figure>
           </section>
 
-          <!-- Linked -->
-          <section class="blk" *ngIf="s.isCovered">
-            <span class="blk__h">Linked documents</span>
-            <div class="docc" *ngFor="let doc of s.docs">
+          <section class="ds" *ngIf="s.isCovered">
+            <h3 class="ds__h">Linked documents</h3>
+            <div class="doc" *ngFor="let doc of s.docs">
               <fvdr-file-icon [type]="doc.type" />
-              <div class="docc__b"><button class="lnk" (click)="openDoc(doc.name)">{{ doc.label }}</button><span class="muted">{{ doc.path }}</span></div>
+              <div class="doc__b">
+                <button class="doc__name" (click)="openDoc(doc.name)">{{ doc.label }}</button>
+                <span class="doc__path">{{ doc.path }}</span>
+              </div>
               <fvdr-btn variant="ghost" size="s" iconName="close" [iconOnly]="true" ariaLabel="Unlink" (clicked)="unlink(doc.name)" />
             </div>
-            <span class="warn" *ngIf="s.isPartial"><fvdr-icon name="info" />Missing: {{ s.missing }}</span>
           </section>
 
-          <!-- Gap -->
-          <section class="blk" *ngIf="s.isGap">
-            <span class="blk__h tone-err">{{ s.gapTitle }}</span>
-            <span class="p">{{ s.note }}</span>
-            <div class="docc" *ngIf="s.nearName">
+          <section class="ds" *ngIf="s.isGap">
+            <h3 class="ds__h">{{ s.gapTitle }}</h3>
+            <p class="ds__p">{{ s.note }}</p>
+            <div class="doc doc--muted" *ngIf="s.nearName">
               <fvdr-file-icon [type]="s.nearType" />
-              <div class="docc__b"><span class="muted">Closest, below the threshold</span><button class="lnk" (click)="openDoc(s.nearName)">{{ s.nearName }}</button></div>
+              <div class="doc__b">
+                <button class="doc__name" (click)="openDoc(s.nearName)">{{ s.nearName }}</button>
+                <span class="doc__path">Closest document, below the match threshold</span>
+              </div>
               <fvdr-btn label="Link anyway" variant="ghost" size="s" (clicked)="linkNear()" />
             </div>
           </section>
 
-          <!-- Draft to the seller -->
-          <section class="blk compose" *ngIf="composeOpen">
-            <span class="blk__h">{{ isBidder ? 'Question to the seller · Q&A' : 'Upload request to the seller team' }}</span>
-            <fvdr-textarea [(ngModel)]="composeText" [rows]="5" />
-            <span class="muted">You can edit it. Nothing is sent until you click Send.</span>
+          <!-- 3 · Needs attention (all warnings in one place) -->
+          <section class="ds" *ngIf="s.issues.length">
+            <h3 class="ds__h">Needs attention</h3>
+            <ul class="issues">
+              <li *ngFor="let i of s.issues"><fvdr-icon [name]="i.icon" /><span><b>{{ i.title }}</b> {{ i.text }}</span></li>
+            </ul>
           </section>
 
-          <!-- What goes into the file -->
-          <section class="blk" *ngIf="s.writes">
-            <span class="blk__h">{{ s.isReview ? 'If you accept, the file gets' : 'In your file' }}</span>
-            <dl class="kvs kvs--file">
-              <ng-container *ngFor="let w of s.writes"><dt>{{ w.col }}</dt><dd>{{ w.val || '—' }}</dd></ng-container>
+          <!-- Draft to the seller -->
+          <section class="ds" *ngIf="composeOpen">
+            <h3 class="ds__h">{{ isBidder ? 'Question to the seller' : 'Upload request to the seller' }}</h3>
+            <fvdr-textarea [(ngModel)]="composeText" [rows]="6" />
+            <p class="ds__p">Goes to {{ isBidder ? 'Q&A' : 'the seller team' }} only when you click Send. You can edit it first.</p>
+          </section>
+
+          <!-- 4 · In your file -->
+          <section class="ds" *ngIf="s.writes">
+            <h3 class="ds__h">{{ s.isReview ? 'If you accept, your file gets' : 'In your file' }}</h3>
+            <dl class="kv kv--file">
+              <ng-container *ngFor="let w of s.writes"><dt>{{ w.col }}</dt><dd [class.kv__empty]="!w.val">{{ w.val || 'Empty' }}</dd></ng-container>
             </dl>
           </section>
 
-          <details class="hist" *ngIf="s.history.length">
-            <summary>History · {{ s.history.length }}</summary>
-            <ol><li *ngFor="let h of s.history"><b>{{ h.what }}</b><span class="muted">{{ h.who }} · {{ h.at }}</span></li></ol>
+          <!-- 5 · History -->
+          <details class="ds ds--quiet hist" *ngIf="s.history.length">
+            <summary class="ds__h">History <span class="ds__sub">{{ s.history.length }}</span></summary>
+            <ol><li *ngFor="let h of s.history"><span>{{ h.what }}</span><span class="hist__who">{{ h.who }} · {{ h.at }}</span></li></ol>
           </details>
         </div>
 
-        <div class="drawer__foot">
+        <footer class="df">
           <ng-container *ngIf="s.isReview">
-            <fvdr-btn [label]="s.verdict === 'Partial' ? 'Accept as partial' : 'Accept'" (clicked)="accept()" />
-            <fvdr-btn label="Reject" variant="secondary" (clicked)="reject()" />
-            <span class="spacer"></span><span class="kbd"><kbd>A</kbd> <kbd>R</kbd> <kbd>J</kbd>/<kbd>K</kbd></span>
+            <fvdr-btn [label]="s.verdict === 'Partial' ? 'Accept as partial' : 'Accept'" fvdrTooltip="A" (clicked)="accept()" />
+            <fvdr-btn label="Reject" variant="secondary" fvdrTooltip="R" (clicked)="reject()" />
           </ng-container>
           <ng-container *ngIf="(s.isGap || s.isPartial) && !composeOpen && !s.requested">
             <fvdr-btn [label]="isBidder ? 'Ask in Q&A' : 'Request from seller'" (clicked)="openCompose()" />
@@ -300,12 +321,12 @@ const PILL: Record<string, { label: string; variant: ChipVariant }> = {
             <fvdr-btn [label]="isBidder ? 'Send to Q&A' : 'Send request'" iconName="send" (clicked)="sendCompose()" />
             <fvdr-btn label="Cancel" variant="ghost" (clicked)="composeOpen = false" />
           </ng-container>
-          <span class="tone-ok" *ngIf="s.requested">{{ isBidder ? 'Asked in Q&A' : 'Requested from the seller' }}</span>
+          <span class="df__done" *ngIf="s.requested"><fvdr-icon name="check" />{{ isBidder ? 'Asked in Q&A' : 'Requested from the seller' }}</span>
           <ng-container *ngIf="s.isPending">
             <fvdr-btn label="Looks right" (clicked)="step(1)" />
             <fvdr-btn label="Edit text" variant="secondary" />
           </ng-container>
-        </div>
+        </footer>
       </ng-container>
     </aside>
 
@@ -318,7 +339,7 @@ const PILL: Record<string, { label: string; variant: ChipVariant }> = {
     .page { display: flex; height: 100%; background: var(--color-stone-0); }
     .main { flex: 1; min-width: 0; display: flex; flex-direction: column; overflow: hidden; }
     .content { flex: 1; min-height: 0; overflow: auto; padding: var(--space-3) var(--space-6) calc(var(--space-16) + var(--space-4)); display: flex; flex-direction: column; gap: var(--space-3); }
-    .content--drawer { padding-right: calc(420px + var(--space-6)); }
+    .content--drawer { padding-right: calc(440px + var(--space-6)); }
     .spacer { flex: 1; }
     .b { font-weight: var(--font-weight-semi); }
     .muted { color: var(--color-text-secondary); font-size: var(--font-size-xs); line-height: var(--line-height-sm); }
@@ -407,37 +428,58 @@ const PILL: Record<string, { label: string; variant: ChipVariant }> = {
     .sheet__tab { padding: var(--space-1) var(--space-3); border-radius: var(--radius-sm); color: var(--color-text-secondary); }
     .sheet__tab--on { background: var(--color-stone-0); color: var(--color-primary-600); font-weight: var(--font-weight-semi); box-shadow: var(--shadow-card); }
 
-    /* Drawer */
-    .drawer { position: fixed; top: var(--space-16); right: 0; bottom: var(--space-16); /* bottom offset clears the prototype switcher */ width: 420px; z-index: 120; background: var(--color-stone-0);
+    /* Drawer — header · sections · footer. Sections share one rhythm: 24px apart, divider between, 12px inside. */
+    .drawer { position: fixed; top: var(--space-16); right: 0; bottom: var(--space-16); /* bottom offset clears the prototype switcher */ width: 440px; z-index: 120; background: var(--color-stone-0);
       box-shadow: var(--shadow-popup); display: flex; flex-direction: column; animation: slide .18s ease-out; }
     @keyframes slide { from { transform: translateX(var(--space-6)); opacity: 0; } to { transform: none; opacity: 1; } }
-    .drawer__head { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--color-divider); }
-    .drawer__title { font-size: var(--font-size-lg); font-weight: var(--font-weight-semi); }
-    .drawer__body { flex: 1; overflow-y: auto; padding: var(--space-4); display: flex; flex-direction: column; gap: var(--space-4); }
-    .drawer__foot { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-3) var(--space-4); border-top: 1px solid var(--color-divider); flex-wrap: wrap; }
+    .dh { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-4) var(--space-4) var(--space-4) var(--space-6); border-bottom: 1px solid var(--color-divider); }
+    .dh__title { font-size: var(--font-size-lg); font-weight: var(--font-weight-semi); }
+    .dh__ref { font-weight: var(--font-weight-semi); color: var(--color-text-secondary); }
+    .dh__pos { font-size: var(--font-size-xs); color: var(--color-text-secondary); margin-right: var(--space-1); }
+    .db { flex: 1; overflow-y: auto; padding: 0 var(--space-6); display: flex; flex-direction: column; }
+    .ds { display: flex; flex-direction: column; gap: var(--space-3); padding: var(--space-6) 0; }
+    .ds + .ds { border-top: 1px solid var(--color-divider); }
+    .ds__h { margin: 0; font-size: var(--font-size-base); line-height: var(--line-height-base); font-weight: var(--font-weight-semi); color: var(--color-text-primary); }
+    .ds__sub { margin-left: var(--space-1); font-weight: normal; color: var(--color-text-secondary); font-size: var(--font-size-sm); }
+    .ds__row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
+    .ds__p { margin: 0; font-size: var(--font-size-sm); line-height: var(--line-height-base); color: var(--color-text-secondary); }
+    .ds--quiet .ds__h { font-size: var(--font-size-sm); color: var(--color-text-secondary); }
+    .ds--req { gap: var(--space-4); }
     .req { margin: 0; font-size: var(--font-size-lg); line-height: var(--line-height-lg); font-weight: var(--font-weight-semi); }
-    .prio { font-size: var(--font-size-xs); font-weight: var(--font-weight-semi); }
-    .blk { display: flex; flex-direction: column; gap: var(--space-2); }
-    .blk__h { font-size: var(--font-size-xs); font-weight: var(--font-weight-semi); color: var(--color-text-secondary); text-transform: none; }
-    .docc { display: flex; align-items: center; gap: var(--space-2); }
-    .docc__b { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-    .quote { font-size: var(--font-size-sm); font-style: italic; padding-left: var(--space-3); border-left: 3px solid var(--color-primary-300); }
-    .warn { display: inline-flex; align-items: center; gap: var(--space-2); font-size: var(--font-size-sm); color: var(--color-warning-text); }
-    .warn fvdr-icon { color: var(--color-warning-icon); flex: none; }
-    .strength { display: inline-flex; align-items: center; gap: 2px; font-size: var(--font-size-xs); color: var(--color-text-secondary); }
+    .meta { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-6); font-size: var(--font-size-sm); }
+    .meta li { display: flex; flex-direction: column; gap: 2px; }
+    .meta__k { font-size: var(--font-size-xs); color: var(--color-text-secondary); }
+    .doc { display: flex; align-items: center; gap: var(--space-3); }
+    .doc__b { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+    .doc__name { all: unset; cursor: pointer; font-weight: var(--font-weight-semi); overflow-wrap: anywhere; }
+    .doc__name:hover { color: var(--color-primary-600); text-decoration: underline; }
+    .doc__name:focus-visible { outline: 2px solid var(--color-primary-500); outline-offset: 1px; }
+    .doc__path { font-size: var(--font-size-xs); color: var(--color-text-secondary); }
+    .doc--muted .doc__name { font-weight: normal; }
+    .quote { margin: 0; padding-left: var(--space-4); border-left: 2px solid var(--color-primary-300); display: flex; flex-direction: column; gap: var(--space-1); }
+    .quote blockquote { margin: 0; font-size: var(--font-size-sm); line-height: var(--line-height-base); font-style: italic; }
+    .quote figcaption { font-size: var(--font-size-xs); color: var(--color-text-secondary); }
+    .issues { list-style: none; margin: 0; padding: var(--space-3) var(--space-4); display: flex; flex-direction: column; gap: var(--space-3);
+      background: var(--color-warning-bg); border-radius: var(--radius-md); font-size: var(--font-size-sm); line-height: var(--line-height-base); }
+    .issues li { display: flex; gap: var(--space-2); }
+    .issues fvdr-icon { color: var(--color-warning-icon); flex: none; margin-top: 2px; }
+    .issues b { font-weight: var(--font-weight-semi); }
+    .strength { display: inline-flex; align-items: center; gap: 2px; font-size: var(--font-size-xs); color: var(--color-text-secondary); white-space: nowrap; }
     .strength i { width: 4px; height: var(--space-3); border-radius: 1px; background: var(--color-stone-400); }
     .strength i:last-of-type { margin-right: var(--space-1); }
     .strength--strong i { background: var(--color-primary-500); }
     .strength--medium i:nth-of-type(-n+2) { background: var(--color-warning-icon); }
-    .kvs { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: var(--space-1) var(--space-4); margin: 0; font-size: var(--font-size-sm); }
-    .kvs dt { color: var(--color-text-secondary); }
-    .kvs dd { margin: 0; white-space: pre-line; }
-    .kvs--file { padding: var(--space-2) var(--space-3); background: var(--color-stone-100); border-radius: var(--radius-sm); }
-    .hist summary { cursor: pointer; font-size: var(--font-size-xs); color: var(--color-text-secondary); }
-    .hist ol { margin: var(--space-2) 0 0; padding-left: var(--space-5); display: flex; flex-direction: column; gap: var(--space-1); font-size: var(--font-size-sm); }
-    .hist li { display: flex; flex-direction: column; }
-    .kbd { font-size: var(--font-size-xs); color: var(--color-text-secondary); }
-    kbd { font-family: var(--font-family); font-size: var(--font-size-2xs, 11px); padding: 0 var(--space-1); border: 1px solid var(--color-divider); border-bottom-width: 2px; border-radius: var(--radius-sm); background: var(--color-stone-100); }
+    .kv { display: grid; grid-template-columns: 160px minmax(0, 1fr); gap: var(--space-3) var(--space-4); margin: 0; font-size: var(--font-size-sm); line-height: var(--line-height-base); }
+    .kv dt { color: var(--color-text-secondary); }
+    .kv dd { margin: 0; white-space: pre-line; overflow-wrap: anywhere; }
+    .kv__empty { color: var(--color-text-placeholder); }
+    .hist summary { cursor: pointer; list-style: none; }
+    .hist summary::-webkit-details-marker { display: none; }
+    .hist ol { margin: 0; padding-left: var(--space-5); display: flex; flex-direction: column; gap: var(--space-3); font-size: var(--font-size-sm); }
+    .hist li { display: flex; flex-direction: column; gap: 2px; }
+    .hist__who { font-size: var(--font-size-xs); color: var(--color-text-secondary); }
+    .df { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-4) var(--space-6); border-top: 1px solid var(--color-divider); }
+    .df__done { display: inline-flex; align-items: center; gap: var(--space-2); color: var(--color-primary-600); font-size: var(--font-size-sm); }
   `],
 })
 export class ChecklistInlineComponent implements OnDestroy {
@@ -764,6 +806,11 @@ export class ChecklistInlineComponent implements OnDestroy {
       note: rec.reopened ? `${this.sc.returning.reopened.file} was deleted by ${this.sc.returning.reopened.by} on ${this.sc.returning.reopened.on}.` : (r.note || ''),
       nearName: r.near && !rec.rejected ? r.near.name : '', nearType: r.near ? this.fileType(r.near.name) : 'pdf',
       requested: !!rec.requested, writes,
+      issues: [
+        ...(s === 'review' && cand?.period ? [{ icon: 'calendar', title: 'Wrong period.', text: `The document covers ${cand.period.found}; the request asks for ${cand.period.requested}.` }] : []),
+        ...(s === 'review' && cand?.draft ? [{ icon: 'warning', title: 'Draft, not executed.', text: 'At least one document in the suggestion is an unsigned draft.' }] : []),
+        ...((s === 'review' || s === 'partial') && (rec.missing || cand?.missing) ? [{ icon: 'info', title: 'Missing:', text: rec.missing || cand!.missing }] : []),
+      ],
       history: [
         ...(this.phase === 'results' ? [{ what: cand ? `AI suggested ${cd?.label || cand.name}` : r.docs ? 'AI linked ' + r.docs.length + (r.docs.length === 1 ? ' document' : ' documents') : 'AI found nothing above the threshold', who: 'AI matching', at: this.sc.matchedAt }] : []),
         ...(rec.change ? [{ what: rec.change.reason, who: 'System', at: 'since your last visit' }] : []),
