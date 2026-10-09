@@ -76,13 +76,15 @@ const PILL: Record<string, { label: string; variant: ChipVariant }> = {
             <!-- Analyze checklist leads the bar, like primary actions elsewhere in the product -->
             <fvdr-btn *ngIf="phase === 'none' && roomAiOn" label="Analyze checklist" (clicked)="read()" />
             <div class="aibar__l">
-              <span class="aibar__mark" *ngIf="phase !== 'results'"><fvdr-icon name="sparkle" /></span>
+              <span class="aibar__mark" *ngIf="phase === 'none' || phase === 'structure'"><fvdr-icon name="sparkle" /></span>
+              <!-- While AI is working, a progress ring takes the icon's place -->
+              <span class="ring" *ngIf="phase === 'reading' || phase === 'matching'" role="progressbar" aria-valuemin="0" aria-valuemax="100"
+                [attr.aria-valuenow]="busyPct" [style.--p]="busyPct"></span>
               <ng-container *ngIf="phase === 'none'">
                 <span class="aibar__text"><b>Find documents for this checklist.</b> AI marks every request in the file, then matches it to documents in {{ sc.room }}. The file isn't changed.</span>
               </ng-container>
               <ng-container *ngIf="phase === 'reading'">
                 <span class="aibar__text"><b>Reading the checklist…</b> {{ sc.sheets[0].name }} · row {{ readRow }} of {{ sc.sheets[0].rows }}</span>
-                <div class="bar bar--inline"><div class="bar__fill" [style.width.%]="100 * readRow / sc.sheets[0].rows"></div></div>
               </ng-container>
               <ng-container *ngIf="phase === 'structure'">
                 <span class="aibar__text"><b>{{ docCount }} requests marked in the file.</b> Click a row to check it.</span>
@@ -90,7 +92,6 @@ const PILL: Record<string, { label: string; variant: ChipVariant }> = {
               </ng-container>
               <ng-container *ngIf="phase === 'matching'">
                 <span class="aibar__text"><b>Matching…</b> {{ docsRead }} of {{ totalDocsLabel }} documents · {{ eta }}</span>
-                <div class="bar bar--inline"><div class="bar__fill" [style.width.%]="progress * 100"></div></div>
               </ng-container>
               <ng-container *ngIf="phase === 'results'">
                 <fvdr-segment variant="table" size="md" [items]="filterItems" [activeId]="filter" (activeIdChange)="setFilter($any($event))" />
@@ -101,7 +102,7 @@ const PILL: Record<string, { label: string; variant: ChipVariant }> = {
             <!-- Results: coverage pill sits between the filters and the actions -->
             <div class="cov" *ngIf="phase === 'results'">
               <span class="cov__val" [attr.aria-label]="pct + '% of document requests covered'">
-                <span class="cov__ring" [style.--p]="pct" aria-hidden="true"></span>
+                <span class="ring" [style.--p]="pct" aria-hidden="true"></span>
                 <span><b>{{ pct }}%</b> covered</span>
               </span>
               <button class="lnk" (click)="openRead()">What AI read</button>
@@ -370,7 +371,6 @@ const PILL: Record<string, { label: string; variant: ChipVariant }> = {
     .up-file { display: flex; gap: var(--space-3); align-items: center; width: min(420px, 100%); text-align: left; }
     .up-file__body { flex: 1; display: flex; flex-direction: column; gap: var(--space-1); }
     .bar { height: var(--space-1); border-radius: var(--radius-full); background: var(--color-stone-300); overflow: hidden; width: 100%; }
-    .bar--inline { width: 200px; flex: none; }
     .bar__fill { height: 100%; background: var(--color-primary-500); transition: width var(--transition-fast, 0.15s) linear; }
 
     .tabs-row { display: flex; align-items: center; gap: var(--space-2); }
@@ -393,10 +393,11 @@ const PILL: Record<string, { label: string; variant: ChipVariant }> = {
       background: var(--color-stone-0); border: 1px solid var(--color-divider); border-radius: var(--radius-full); font-size: var(--text-body3-size); }
     .cov__val { display: inline-flex; align-items: center; gap: var(--space-2); }
     .cov b { font-weight: var(--font-weight-semi); }
-    /* Donut: conic fill for the share, inner circle cut out with a radial mask */
-    .cov__ring { width: 20px; height: 20px; border-radius: var(--radius-full); flex: none;
-      background: conic-gradient(var(--color-primary-500) calc(var(--p, 0) * 1%), var(--color-stone-300) 0);
+    /* Donut (coverage and AI progress): conic fill for the share, inner circle cut out with a radial mask */
+    .ring { width: 20px; height: 20px; border-radius: var(--radius-full); flex: none;
+      background: conic-gradient(var(--color-primary-500) calc(var(--p, 0) * 1%), var(--ring-track, var(--color-stone-300)) 0);
       -webkit-mask: radial-gradient(circle, transparent 5.5px, var(--color-text-primary) 6px); mask: radial-gradient(circle, transparent 5.5px, var(--color-text-primary) 6px); }
+    .aibar > .aibar__l > .ring { --ring-track: var(--color-stone-400); }
     .aibar__chips { display: flex; gap: var(--space-1); }
     .fchip { all: unset; cursor: pointer; display: inline-flex; align-items: center; gap: var(--space-1); padding: 2px var(--space-2); border-radius: var(--radius-full); font-size: var(--text-body3-size); border: 1px solid transparent; }
     .fchip:hover { background: var(--color-stone-0); }
@@ -570,6 +571,9 @@ export class ChecklistInlineComponent implements OnDestroy {
   private timer: any;
 
   get hasFile() { return this.phase !== 'empty' && this.phase !== 'uploading'; }
+  get busyPct(): number {
+    return Math.round(this.phase === 'reading' ? 100 * this.readRow / this.sc.sheets[0].rows : 100 * this.progress);
+  }
   get showAiCol() { return ['structure', 'matching', 'results'].includes(this.phase); }
   get hasResultCols() { return !!this.sc.details?.resultCols; }
   get totalDocsLabel() { return this.sc.totalDocs.toLocaleString('en-US'); }
