@@ -284,7 +284,7 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
     slug: 'checklist-matching',
     title: 'Due diligence checklist — AI matching',
     module: 'General Exploration',
-    figma: 'https://www.figma.com/design/jCqXtPsLgRI4g7hqBGfxS6/Staging-Hub---FVDR---NT?node-id=38482-44570',
+    figma: 'https://www.figma.com/design/jCqXtPsLgRI4g7hqBGfxS6/Staging-Hub---FVDR---NT?node-id=38483-164847',
     status: 'wip',
     description: 'Upload an Excel due diligence checklist, let AI extract every request linked to its source row, confirm what was read, match the document requests against the room, then triage suggestions, gaps and folders. Includes the returning-user view with changes since the last visit and source-file edits',
   },
