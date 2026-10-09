@@ -71,57 +71,59 @@ const PILL: Record<string, { label: string; variant: ChipVariant }> = {
           </div>
 
           <div class="work">
-          <!-- ── AI bar: one line, changes with the state ── -->
+          <!-- ── AI bar: message group on the left, controls on the right ── -->
           <div class="aibar" [class.aibar--busy]="phase === 'reading' || phase === 'matching'">
-            <span class="aibar__mark"><fvdr-icon name="sparkle" /></span>
-
-            <ng-container *ngIf="phase === 'none'">
-              <span class="aibar__text"><b>Find documents for this checklist.</b> AI marks every request in the file, then matches it to documents in {{ sc.room }}. The file isn't changed.</span>
-              <span class="spacer"></span>
-              <fvdr-btn *ngIf="roomAiOn" label="Start" size="s" (clicked)="read()" />
-              <span *ngIf="!roomAiOn" class="muted">AI is off for this room. A project admin can turn it on in Settings.</span>
-            </ng-container>
-
-            <ng-container *ngIf="phase === 'reading'">
-              <span class="aibar__text"><b>Reading the checklist…</b> {{ sc.sheets[0].name }} · row {{ readRow }} of {{ sc.sheets[0].rows }}</span>
-              <div class="bar bar--inline"><div class="bar__fill" [style.width.%]="100 * readRow / sc.sheets[0].rows"></div></div>
-            </ng-container>
-
-            <ng-container *ngIf="phase === 'structure'">
-              <span class="aibar__text"><b>{{ docCount }} requests marked in the file.</b> Click a row to check it.</span>
-              <button class="lnk" (click)="openRead()">What AI read</button>
-              <span class="spacer"></span>
-              <fvdr-dropdown class="scope" size="s" [options]="scopeOptions" [value]="scope" (valueChange)="scope = asString($event)" />
-              <fvdr-btn label="Match documents" size="s" (clicked)="startMatching()" />
-            </ng-container>
-
-            <ng-container *ngIf="phase === 'matching'">
-              <span class="aibar__text"><b>Matching…</b> {{ docsRead }} of {{ totalDocsLabel }} documents · {{ eta }}</span>
-              <div class="bar bar--inline"><div class="bar__fill" [style.width.%]="progress * 100"></div></div>
-              <span class="spacer"></span>
-              <fvdr-btn label="Stop" variant="ghost" size="s" (clicked)="stopMatching()" />
-            </ng-container>
-
-            <ng-container *ngIf="phase === 'results'">
-              <span class="aibar__cov"><b>{{ pct }}%</b> covered</span>
-              <div class="aibar__chips" role="group" aria-label="Highlight rows">
-                <button class="fchip" *ngFor="let f of filters" [class.fchip--on]="filter === f.id" [attr.aria-pressed]="filter === f.id" (click)="setFilter(f.id)">
-                  <span class="dot" [ngClass]="'dot--' + f.id"></span>{{ f.count }} {{ f.label }}
-                </button>
-              </div>
-              <span class="muted" *ngIf="delta">· since {{ sc.returning.since }}: {{ deltaText }}</span>
-              <span class="spacer"></span>
-              <button class="lnk" (click)="openRead()">What AI read</button>
-              <fvdr-btn *ngIf="reviewIds.length" [label]="'Review next (' + reviewIds.length + ')'" size="s" (clicked)="reviewNext()" />
-              <div class="export">
-                <fvdr-btn label="Export" iconName="download" variant="secondary" size="s" (clicked)="exportOpen = !exportOpen" />
-                <div class="menu" *ngIf="exportOpen">
-                  <span class="menu__warn" *ngIf="reviewIds.length"><fvdr-icon name="warning" />{{ reviewIds.length }} suggestions not reviewed are exported as notes.</span>
-                  <button class="menu__item" (click)="doExport('file')"><b>{{ sc.tabLabel }} with results</b><span class="muted">{{ hasResultCols ? 'Exactly what you see in the file now.' : 'Adds Status, Documents and Missing columns.' }}</span></button>
-                  <button class="menu__item" (click)="doExport('gap')"><b>Gap report</b><span class="muted">Only gaps and partial requests.</span></button>
+            <div class="aibar__l">
+              <span class="aibar__mark"><fvdr-icon name="sparkle" /></span>
+              <ng-container *ngIf="phase === 'none'">
+                <span class="aibar__text"><b>Find documents for this checklist.</b> AI marks every request in the file, then matches it to documents in {{ sc.room }}. The file isn't changed.</span>
+              </ng-container>
+              <ng-container *ngIf="phase === 'reading'">
+                <span class="aibar__text"><b>Reading the checklist…</b> {{ sc.sheets[0].name }} · row {{ readRow }} of {{ sc.sheets[0].rows }}</span>
+                <div class="bar bar--inline"><div class="bar__fill" [style.width.%]="100 * readRow / sc.sheets[0].rows"></div></div>
+              </ng-container>
+              <ng-container *ngIf="phase === 'structure'">
+                <span class="aibar__text"><b>{{ docCount }} requests marked in the file.</b> Click a row to check it.</span>
+                <button class="lnk" (click)="openRead()">What AI read</button>
+              </ng-container>
+              <ng-container *ngIf="phase === 'matching'">
+                <span class="aibar__text"><b>Matching…</b> {{ docsRead }} of {{ totalDocsLabel }} documents · {{ eta }}</span>
+                <div class="bar bar--inline"><div class="bar__fill" [style.width.%]="progress * 100"></div></div>
+              </ng-container>
+              <ng-container *ngIf="phase === 'results'">
+                <span class="aibar__cov"><b>{{ pct }}%</b> covered</span>
+                <div class="aibar__chips" role="group" aria-label="Highlight rows">
+                  <button class="fchip" *ngFor="let f of filters" [class.fchip--on]="filter === f.id" [attr.aria-pressed]="filter === f.id" (click)="setFilter(f.id)">
+                    <span class="dot" [ngClass]="'dot--' + f.id"></span>{{ f.count }} {{ f.label }}
+                  </button>
                 </div>
-              </div>
-            </ng-container>
+                <span class="muted" *ngIf="delta">since {{ sc.returning.since }}: {{ deltaText }}</span>
+                <button class="lnk" (click)="openRead()">What AI read</button>
+              </ng-container>
+            </div>
+
+            <div class="aibar__r">
+              <ng-container *ngIf="phase === 'none'">
+                <fvdr-btn *ngIf="roomAiOn" label="Start" (clicked)="read()" />
+                <span *ngIf="!roomAiOn" class="muted">AI is off for this room. A project admin can turn it on in Settings.</span>
+              </ng-container>
+              <ng-container *ngIf="phase === 'structure'">
+                <fvdr-dropdown class="scope" [options]="scopeOptions" [value]="scope" (valueChange)="scope = asString($event)" />
+                <fvdr-btn label="Match documents" (clicked)="startMatching()" />
+              </ng-container>
+              <fvdr-btn *ngIf="phase === 'matching'" label="Stop" variant="ghost" (clicked)="stopMatching()" />
+              <ng-container *ngIf="phase === 'results'">
+                <fvdr-btn *ngIf="reviewIds.length" [label]="'Review next (' + reviewIds.length + ')'" (clicked)="reviewNext()" />
+                <div class="export">
+                  <fvdr-btn label="Export" iconName="download" variant="secondary" (clicked)="exportOpen = !exportOpen" />
+                  <div class="menu" *ngIf="exportOpen">
+                    <span class="menu__warn" *ngIf="reviewIds.length"><fvdr-icon name="warning" />{{ reviewIds.length }} suggestions not reviewed are exported as notes.</span>
+                    <button class="menu__item" (click)="doExport('file')"><b>{{ sc.tabLabel }} with results</b><span class="muted">{{ hasResultCols ? 'Exactly what you see in the file now.' : 'Adds Status, Documents and Missing columns.' }}</span></button>
+                    <button class="menu__item" (click)="doExport('gap')"><b>Gap report</b><span class="muted">Only gaps and partial requests.</span></button>
+                  </div>
+                </div>
+              </ng-container>
+            </div>
           </div>
 
           <!-- ── The file itself ── -->
@@ -372,8 +374,10 @@ const PILL: Record<string, { label: string; variant: ChipVariant }> = {
     .owner { display: inline-flex; align-items: center; gap: var(--space-2); font-size: var(--font-size-sm); color: var(--color-text-secondary); margin-right: var(--space-2); }
 
     /* AI bar */
-    .aibar { display: flex; align-items: center; gap: var(--space-3); min-height: 52px; box-sizing: border-box; padding: 10px var(--space-4); border-radius: var(--radius-md);
+    .aibar { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); min-height: 60px; box-sizing: border-box; padding: 10px var(--space-4); border-radius: var(--radius-md);
       background: var(--color-stone-200); flex-wrap: wrap; }
+    .aibar__l { display: flex; align-items: center; gap: var(--space-4); min-width: 0; flex-wrap: wrap; }
+    .aibar__r { display: flex; align-items: center; gap: var(--space-3); }
     .aibar__mark { color: var(--color-primary-500); display: inline-flex; font-size: var(--font-size-lg); }
     .aibar--busy .aibar__mark { animation: pulse 1.4s ease-in-out infinite; }
     .aibar__text { font-size: var(--font-size-sm); }
@@ -386,7 +390,7 @@ const PILL: Record<string, { label: string; variant: ChipVariant }> = {
     .fchip:focus-visible { outline: 2px solid var(--color-primary-500); }
     .dot { width: 8px; height: 8px; border-radius: var(--radius-full); background: var(--color-stone-500); }
     .dot--covered { background: var(--color-primary-500); } .dot--review { background: var(--color-warning-icon); } .dot--gap { background: var(--color-error-600); } .dot--all { background: var(--color-text-secondary); }
-    .scope { width: 300px; }
+    .scope { width: 370px; }
     @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .45; } }
     .pulse { animation: pulse 1.4s ease-in-out infinite; }
     .export { position: relative; }
