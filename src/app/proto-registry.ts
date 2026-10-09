@@ -280,5 +280,13 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
     status: 'wip',
     description: 'One-screen Q&A setup built as an n8n-style node canvas: start from a template (Basic, Advanced, Advisory, Multi-level approval), insert standard or custom roles on any connection, drop people and question teams straight onto roles, edit permissions and reject routing per role, and see validation on the canvas instead of a separate Users step',
   },
+  {
+    slug: 'checklist-matching',
+    title: 'Due diligence checklist — AI matching',
+    module: 'General Exploration',
+    figma: 'https://www.figma.com/design/qz9CuvZeRHDSnuXIcZq6hT/%F0%9F%8F%86--Advisory-suite?node-id=9164-22675',
+    status: 'wip',
+    description: 'Upload an Excel due diligence checklist, let AI extract every request linked to its source row, confirm what was read, match the document requests against the room, then triage suggestions, gaps and folders. Includes the returning-user view with changes since the last visit and source-file edits',
+  },
   // REGISTRY_PLACEHOLDER
 ];

@@ -224,6 +224,11 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./prototypes/qna-setup-canvas/qna-setup-canvas.component').then(m => m.QnaSetupCanvasComponent),
   },
+  {
+    path: 'checklist-matching',
+    loadComponent: () =>
+      import('./prototypes/checklist-matching/checklist-matching.component').then(m => m.ChecklistMatchingComponent),
+  },
   // PROTO_ROUTES_PLACEHOLDER
   {
     path: '**',
