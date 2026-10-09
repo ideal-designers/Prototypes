@@ -72,7 +72,7 @@ const PILL: Record<string, { label: string; variant: ChipVariant }> = {
 
           <div class="work">
           <!-- ── AI bar: message group on the left, controls on the right ── -->
-          <div class="aibar" [class.aibar--busy]="phase === 'reading' || phase === 'matching'" [class.aibar--start]="phase === 'none'">
+          <div class="aibar" [class.aibar--busy]="phase === 'reading' || phase === 'matching'" [class.aibar--start]="phase === 'none'" [class.aibar--results]="phase === 'results'">
             <!-- Analyze checklist leads the bar, like primary actions elsewhere in the product -->
             <fvdr-btn *ngIf="phase === 'none' && roomAiOn" label="Analyze checklist" (clicked)="read()" />
             <div class="aibar__l">
@@ -381,6 +381,8 @@ const PILL: Record<string, { label: string; variant: ChipVariant }> = {
     /* AI bar */
     .aibar { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); min-height: var(--space-10); flex-wrap: wrap;
       padding: var(--space-4); border-radius: var(--radius-md); background: var(--color-stone-300); }
+    /* Once results and filters are in, the block dissolves: no background, no side padding */
+    .aibar--results { background: none; padding: 0; border-radius: 0; }
     .aibar--start { justify-content: flex-start; gap: var(--space-4); }
     .aibar__l { display: flex; align-items: center; gap: var(--space-4); min-width: 0; flex-wrap: wrap; }
     .aibar__r { display: flex; align-items: center; gap: var(--space-4); }
