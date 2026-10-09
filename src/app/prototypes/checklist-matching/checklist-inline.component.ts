@@ -199,7 +199,7 @@ const PILL: Record<string, { label: string; variant: ChipVariant }> = {
           </section>
           <section class="ds">
             <h3 class="ds__h">Deal side</h3>
-            <fvdr-segment [items]="sideItems" [activeId]="isBidder ? 'buy' : 'sell'" (activeIdChange)="isBidder = $event === 'buy'" />
+            <fvdr-segment variant="table" size="md" [items]="sideItems" [activeId]="isBidder ? 'buy' : 'sell'" (activeIdChange)="isBidder = $event === 'buy'" />
             <p class="ds__p">{{ isBidder ? 'Missing items become questions to the seller in Q&A.' : 'Missing items become upload requests to the seller team.' }}</p>
           </section>
           <section class="ds ds--quiet">
