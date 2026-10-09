@@ -72,7 +72,9 @@ const PILL: Record<string, { label: string; variant: ChipVariant }> = {
 
           <div class="work">
           <!-- ── AI bar: message group on the left, controls on the right ── -->
-          <div class="aibar" [class.aibar--busy]="phase === 'reading' || phase === 'matching'">
+          <div class="aibar" [class.aibar--busy]="phase === 'reading' || phase === 'matching'" [class.aibar--start]="phase === 'none'">
+            <!-- Start leads the bar, like primary actions elsewhere in the product -->
+            <fvdr-btn *ngIf="phase === 'none' && roomAiOn" label="Start" (clicked)="read()" />
             <div class="aibar__l">
               <span class="aibar__mark" *ngIf="phase !== 'results'"><fvdr-icon name="sparkle" /></span>
               <ng-container *ngIf="phase === 'none'">
@@ -107,7 +109,6 @@ const PILL: Record<string, { label: string; variant: ChipVariant }> = {
 
             <div class="aibar__r">
               <ng-container *ngIf="phase === 'none'">
-                <fvdr-btn *ngIf="roomAiOn" label="Start" (clicked)="read()" />
                 <span *ngIf="!roomAiOn" class="muted">AI is off for this room. A project admin can turn it on in Settings.</span>
               </ng-container>
               <ng-container *ngIf="phase === 'structure'">
@@ -378,6 +379,7 @@ const PILL: Record<string, { label: string; variant: ChipVariant }> = {
 
     /* AI bar */
     .aibar { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); min-height: var(--space-10); flex-wrap: wrap; }
+    .aibar--start { justify-content: flex-start; gap: var(--space-4); }
     .aibar__l { display: flex; align-items: center; gap: var(--space-4); min-width: 0; flex-wrap: wrap; }
     .aibar__r { display: flex; align-items: center; gap: var(--space-4); }
     .aibar__mark { color: var(--color-primary-500); display: inline-flex; font-size: var(--font-size-lg); }
