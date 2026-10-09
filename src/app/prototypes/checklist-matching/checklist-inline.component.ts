@@ -635,13 +635,18 @@ export class ChecklistInlineComponent implements OnDestroy {
     this.toastSvc.show({ variant: 'success', title: 'Every request has a document', message: this.doneText, duration: 8000, actions: [{ label: 'Export', onClick: () => { this.exportOpen = true; } }] });
     return true;
   }
+  /** The document the seller uploaded for a request: the suggestion with the requested date, or a file named after the request. */
+  private uploadedDoc(r: Req): string {
+    const dated = /^\d{2}-[A-Z][a-z]{2}-\d{4}$/.test(r.asAt || '');
+    if (r.cand) return dated ? r.cand.name.replace(/\d{2}-[A-Z][a-z]{2}-\d{4}/, r.asAt!) : r.cand.name;
+    return r.text.split(/, |\(| involving | including /)[0].split(' ').slice(0, 6).join(' ') + (dated ? ' ' + r.asAt : '') + '.pdf';
+  }
   /** The checklist once every gap is closed: each request linked to a document in the room. */
   private allCovered(): Record<string, Rec> {
     const m: Record<string, Rec> = {};
     this.reqs().forEach(r => {
       if (!this.isDoc(r)) { m[r.id] = { s: r.cls as MatchState }; return; }
-      const name = r.docs?.[0] || r.cand?.name || r.near?.name || r.text.split(/[,(]/)[0].split(' ').slice(0, 4).join(' ') + '.pdf';
-      m[r.id] = { s: 'covered', docs: r.docs || [name] };
+      m[r.id] = { s: 'covered', docs: r.docs || [this.uploadedDoc(r)] };
     });
     return m;
   }
