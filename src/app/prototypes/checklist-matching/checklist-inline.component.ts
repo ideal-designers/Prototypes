@@ -92,7 +92,7 @@ const PILL: Record<string, { label: string; variant: ChipVariant }> = {
               </ng-container>
               <ng-container *ngIf="phase === 'results'">
                 <span class="aibar__cov"><b>{{ pct }}%</b> covered</span>
-                <fvdr-segment variant="table" size="mobile" [items]="filterItems" [activeId]="filter" (activeIdChange)="setFilter($any($event))" />
+                <fvdr-segment variant="table" size="md" [items]="filterItems" [activeId]="filter" (activeIdChange)="setFilter($any($event))" />
                 <span class="muted" *ngIf="delta">since {{ sc.returning.since }}: {{ deltaText }}</span>
                 <button class="lnk" (click)="openRead()">What AI read</button>
               </ng-container>
