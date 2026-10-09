@@ -329,7 +329,7 @@ const PILL: Record<string, { label: string; variant: ChipVariant }> = {
           </ng-container>
           <ng-container *ngIf="composeOpen">
             <fvdr-btn [label]="isBidder ? 'Send to Q&A' : 'Send request'" iconName="send" (clicked)="sendCompose()" />
-            <fvdr-btn label="Cancel" variant="ghost" (clicked)="composeOpen = false" />
+            <fvdr-btn label="Cancel" variant="secondary" (clicked)="composeOpen = false" />
           </ng-container>
           <span class="df__done" *ngIf="s.requested"><fvdr-icon name="check" />{{ isBidder ? 'Asked in Q&A' : 'Requested from the seller' }}</span>
           <ng-container *ngIf="s.isPending">

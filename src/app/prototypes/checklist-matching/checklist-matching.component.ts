@@ -557,7 +557,7 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
                             <span class="muted">{{ clsHint[editCls] }}</span>
                             <div class="row-actions">
                               <fvdr-btn label="Save" size="s" (clicked)="saveRowEdit()" />
-                              <fvdr-btn label="Cancel" variant="ghost" size="s" (clicked)="editRowId = null; recompute()" />
+                              <fvdr-btn label="Cancel" variant="secondary" size="s" (clicked)="editRowId = null; recompute()" />
                             </div>
                           </div>
                         </div>
@@ -729,7 +729,7 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
                         <fvdr-textarea [(ngModel)]="editText" [rows]="4" helperText="Changes what this request is matched against. The text in your file isn't changed." />
                         <div class="row-actions">
                           <fvdr-btn label="Save and match again" size="s" (clicked)="saveReading()" />
-                          <fvdr-btn label="Cancel" variant="ghost" size="s" (clicked)="editId = null" />
+                          <fvdr-btn label="Cancel" variant="secondary" size="s" (clicked)="editId = null" />
                         </div>
                       </ng-container>
                     </div>
@@ -784,7 +784,7 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
         <fvdr-textarea [(ngModel)]="composeText" [rows]="5" [helperText]="isBidder ? 'Posted to Q&A as a new question, linked to ' + sel.label + '. You can edit it before it goes.' : 'The seller team gets this as an upload request, linked to ' + sel.label + '.'" />
         <div class="row-actions">
           <fvdr-btn [label]="isBidder ? 'Send to Q&A' : 'Send request'" size="s" iconName="send" (clicked)="sendCompose()" />
-          <fvdr-btn label="Cancel" variant="ghost" size="s" (clicked)="composeOpen = false" />
+          <fvdr-btn label="Cancel" variant="secondary" size="s" (clicked)="composeOpen = false" />
         </div>
       </div>
     </ng-template>
