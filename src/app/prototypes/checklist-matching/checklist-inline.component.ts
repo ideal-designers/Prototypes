@@ -331,7 +331,7 @@ const PILL: Record<string, { label: string; variant: ChipVariant }> = {
     </aside>
 
     <fvdr-toast-host />
-    <fvdr-vdr-proto-switcher [groups]="protoGroups" (changed)="onProto($event)" (restart)="go(screen)" />
+    <fvdr-vdr-proto-switcher [style.left]="drawer !== 'none' ? 'calc((100% - 440px) / 2)' : null" [groups]="protoGroups" (changed)="onProto($event)" (restart)="go(screen)" />
   </div>
   `,
   styles: [`
@@ -339,7 +339,7 @@ const PILL: Record<string, { label: string; variant: ChipVariant }> = {
     .page { display: flex; height: 100%; background: var(--color-stone-0); }
     .main { flex: 1; min-width: 0; display: flex; flex-direction: column; overflow: hidden; }
     .content { flex: 1; min-height: 0; overflow: auto; padding: var(--space-3) var(--space-6) calc(var(--space-16) + var(--space-4)); display: flex; flex-direction: column; gap: var(--space-3); }
-    .content--drawer { padding-right: calc(440px + var(--space-6)); }
+    .content--drawer { padding-right: var(--space-10); }
     .spacer { flex: 1; }
     .b { font-weight: var(--font-weight-semi); }
     .muted { color: var(--color-text-secondary); font-size: var(--font-size-xs); line-height: var(--line-height-sm); }
@@ -429,10 +429,10 @@ const PILL: Record<string, { label: string; variant: ChipVariant }> = {
     .sheet__tab--on { background: var(--color-stone-0); color: var(--color-primary-600); font-weight: var(--font-weight-semi); box-shadow: var(--shadow-card); }
 
     /* Drawer — header · sections · footer. Sections share one rhythm: 24px apart, divider between, 12px inside. */
-    .drawer { position: fixed; top: var(--space-16); right: 0; bottom: var(--space-16); /* bottom offset clears the prototype switcher */ width: 440px; z-index: 120; background: var(--color-stone-0);
-      box-shadow: var(--shadow-popup); display: flex; flex-direction: column; animation: slide .18s ease-out; }
+    .drawer { flex: none; width: 440px; height: 100%; background: var(--color-stone-0); border-left: 1px solid var(--color-divider);
+      display: flex; flex-direction: column; animation: slide .18s ease-out; }
     @keyframes slide { from { transform: translateX(var(--space-6)); opacity: 0; } to { transform: none; opacity: 1; } }
-    .dh { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-4) var(--space-4) var(--space-4) var(--space-6); border-bottom: 1px solid var(--color-divider); }
+    .dh { flex: none; display: flex; align-items: center; gap: var(--space-2); height: var(--space-16); box-sizing: border-box; padding: 0 var(--space-4) 0 var(--space-6); border-bottom: 1px solid var(--color-divider); }
     .dh__title { font-size: var(--font-size-lg); font-weight: var(--font-weight-semi); }
     .dh__ref { font-weight: var(--font-weight-semi); color: var(--color-text-secondary); }
     .dh__pos { font-size: var(--font-size-xs); color: var(--color-text-secondary); margin-right: var(--space-1); }
