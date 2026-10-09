@@ -1,0 +1,59 @@
+name: Proto Meta
+
+# Keeps src/app/proto-meta.generated.ts (dashboard "Last updated" date + author) current.
+# Vercel builds have no .git, so they ship the committed snapshot — this job regenerates it
+# from full git history and commits it back to main; the bot push triggers a normal Vercel deploy.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/app/prototypes/**'
+      - 'src/app/proto-registry.ts'
+      - 'src/app/app.routes.ts'
+      - 'src/assets/previews/**'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: proto-meta
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    name: Refresh dashboard dates
+    runs-on: ubuntu-latest
+    # Loop guard: pushes made with GITHUB_TOKEN don't trigger workflows anyway, and the
+    # bot commit only touches proto-meta.generated.ts (outside the paths filter).
+    if: github.actor != 'github-actions[bot]'
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Regenerate proto-meta
+        run: node scripts/proto-meta.js
+
+      - name: Commit if changed
+        run: |
+          if git diff --quiet -- src/app/proto-meta.generated.ts; then
+            echo "proto-meta.generated.ts is up to date"
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/app/proto-meta.generated.ts
+          git commit -m 'chore(proto-meta): refresh dashboard dates'
+          # main may have moved while we ran — rebase onto it and retry
+          for i in 1 2 3; do
+            git push origin HEAD:main && exit 0
+            git pull --rebase origin main
+          done
+          exit 1
