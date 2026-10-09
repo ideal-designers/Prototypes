@@ -339,7 +339,7 @@ const PILL: Record<string, { label: string; variant: ChipVariant }> = {
     .page { display: flex; height: 100%; background: var(--color-stone-0); }
     .main { flex: 1; min-width: 0; display: flex; flex-direction: column; overflow: hidden; }
     .content { flex: 1; min-height: 0; overflow: auto; padding: var(--space-3) var(--space-6) calc(var(--space-16) + var(--space-4)); display: flex; flex-direction: column; gap: var(--space-3); }
-    .content--drawer { padding-right: var(--space-10); }
+    .content--drawer { padding-right: var(--space-6); }
     .spacer { flex: 1; }
     .b { font-weight: var(--font-weight-semi); }
     .muted { color: var(--color-text-secondary); font-size: var(--font-size-xs); line-height: var(--line-height-sm); }
