@@ -365,7 +365,7 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
                         </div>
                         <div role="cell" class="c-docs">
                           <div class="doc-list" *ngIf="it.chips.length">
-                            <div class="tdoc" *ngFor="let c of it.chips"><fvdr-file-icon [type]="c.type" /><span class="tdoc__name">{{ c.label }}</span></div>
+                            <div class="tdoc" *ngFor="let c of it.chips" (mouseenter)="checkTrunc($event, it.id + c.name)"><fvdr-file-icon [type]="c.type" /><span class="tdoc__name" [fvdrTooltip]="c.label" [tooltipDisabled]="!trunc.has(it.id + c.name)">{{ c.label }}</span></div>
                           </div>
                           <button class="more" *ngIf="it.hasMore" (click)="toggleMore(it.id); $event.stopPropagation()">{{ it.moreLabel }}</button>
                           <span *ngIf="it.line" class="t-note" [ngClass]="'tone--' + it.lineTone">{{ it.line }}</span>
@@ -408,7 +408,7 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
                               <fvdr-btn label="Edit text" variant="secondary" size="s" (clicked)="startRowEdit(it.id)" />
                             </div>
                             <div class="doc-list" *ngIf="it.chips.length">
-                              <div class="tdoc" *ngFor="let c of it.chips"><fvdr-file-icon [type]="c.type" /><span class="tdoc__name">{{ c.label }}</span></div>
+                              <div class="tdoc" *ngFor="let c of it.chips" (mouseenter)="checkTrunc($event, it.id + c.name)"><fvdr-file-icon [type]="c.type" /><span class="tdoc__name" [fvdrTooltip]="c.label" [tooltipDisabled]="!trunc.has(it.id + c.name)">{{ c.label }}</span></div>
                             </div>
                           </ng-container>
                           <div class="row-edit" *ngIf="it.isEditing" (click)="$event.stopPropagation()">
@@ -786,7 +786,7 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
     .t-muted { color: var(--color-text-secondary); }
     .t-note { font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); }
     .tbl-empty { padding: var(--space-8); text-align: center; color: var(--color-text-secondary); }
-    .doc-list { display: flex; flex-direction: column; width: 100%; }
+    .doc-list { display: flex; flex-direction: column; gap: var(--space-1); width: 100%; min-width: 0; }
     .doc { display: flex; align-items: center; gap: var(--space-2); min-width: 0; }
     .doc + .doc { border-top: 1px solid var(--color-stone-300); }
     .doc__name { flex: 1; min-width: 0; overflow: hidden; font-size: var(--text-body3-size); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow-wrap: anywhere; }
@@ -886,9 +886,10 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
       background: conic-gradient(var(--color-primary-500) calc(var(--p, 0) * 1%), var(--ring-track, var(--color-stone-300)) 0);
       -webkit-mask: radial-gradient(circle, transparent 5.5px, var(--color-text-primary) 6px); mask: radial-gradient(circle, transparent 5.5px, var(--color-text-primary) 6px); }
     .ring--bar { --ring-track: var(--color-stone-400); }
-    .tdoc { display: flex; align-items: flex-start; gap: var(--space-2); }
+    .tdoc { display: flex; align-items: center; gap: var(--space-2); min-width: 0; max-width: 100%; }
     .tdoc > fvdr-file-icon { flex: none; display: flex; align-items: center; height: var(--text-body3-lh); }
-    .tdoc__name { overflow-wrap: anywhere; }
+    /* One line per file; long names are cut with an ellipsis and get a tooltip */
+    .tdoc__name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
     /* ── Drawer, same anatomy as v3 ── */
     .drawer { flex: none; width: 440px; height: 100%; display: flex; flex-direction: column; background: var(--color-stone-0); border-left: 1px solid var(--color-divider);
@@ -1052,6 +1053,12 @@ export class ChecklistMatchingComponent implements OnDestroy {
   sel: any = null;
   filterItems: SegmentItem[] = [];
   readOpen = false;
+  /** File names that don't fit their cell (checked on hover) — only these get a tooltip. */
+  trunc = new Set<string>();
+  checkTrunc(ev: MouseEvent, key: string) {
+    const el = (ev.currentTarget as HTMLElement).querySelector('.tdoc__name') as HTMLElement | null;
+    if (el && el.scrollWidth > el.clientWidth) this.trunc.add(key); else this.trunc.delete(key);
+  }
   get drawerOpen() { return (this.readOpen && this.view === 'requests') || this.showPanel; }
   get structLine() {
     const t = this.typeChips; if (!t) return '';
@@ -1633,7 +1640,8 @@ export class ChecklistMatchingComponent implements OnDestroy {
     this.sel = this.selVm(reqs);
     this.showPanel = isResults && this.view === 'requests' && this.layout !== 'folders' && ((this.panel === 'item' && !!this.sel) || this.panel === 'diff');
     // With the drawer open, Priority lives in the drawer; the table keeps room for documents
-    this.tblCols = this.drawerOpen ? `112px 48px minmax(200px, 1fr) minmax(180px, 260px)` : `112px 56px${prio} minmax(240px, 1fr) minmax(220px, 340px)`;
+    // Request and Documents share the remaining width equally
+    this.tblCols = this.drawerOpen ? `112px 48px minmax(0, 1fr) minmax(0, 1fr)` : `112px 56px${prio} minmax(0, 1fr) minmax(0, 1fr)`;
 
     this.buildSource();
     if (isResults && this.layout === 'folders') this.fv = this.foldersView(reqs);
