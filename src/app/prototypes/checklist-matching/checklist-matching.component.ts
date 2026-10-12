@@ -475,7 +475,7 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
             <p class="ds__p">AI reads the checklist and the documents in the scope you pick, nothing else. It never changes your file, never accepts for you and never messages the seller without your click. Every decision is logged in the Activity log.</p>
           </section>
         </div>
-        <footer class="df"><fvdr-btn label="Done" variant="secondary" (clicked)="closeRead()" /></footer>
+        <footer class="df"><fvdr-btn label="Done" (clicked)="closeRead()" /></footer>
       </ng-container>
 
       <!-- A request -->
@@ -1577,9 +1577,9 @@ export class ChecklistMatchingComponent implements OnDestroy {
     const inFolders = this.layout === 'folders';
     const fdef: [Filter, string, number][] = [
       ['all', 'All', inFolders ? reqs.filter(r => this.isDoc(r)).length : reqs.length],
+      ['covered', 'Covered', (counts['covered'] || 0) + (counts['partial'] || 0)],
       ['review', 'To review', counts['review'] || 0],
       ['gap', 'Gaps', counts['gap'] || 0],
-      ['covered', 'Covered', (counts['covered'] || 0) + (counts['partial'] || 0)],
     ];
     this.filters = fdef.filter(f => !(inFolders && f[0] === 'other')).map(([id, label, count]) => ({
       id, label, count, active: (this.filter === id || (inFolders && id === 'all' && this.filter === 'other')) && !this.changeFilter,
