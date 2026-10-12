@@ -621,7 +621,7 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
       padding: var(--space-3) var(--space-6) calc(var(--space-16) + var(--space-4)); display: flex; flex-direction: column; gap: var(--space-4); }
     .spacer { flex: 1; }
     .muted { color: var(--color-text-secondary); font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); }
-    b { font-weight: var(--font-weight-semi); }
+    b { font-weight: var(--text-label-s-weight); }
 
     .tone--default { color: var(--color-text-primary); }
     .tone--muted { color: var(--color-text-secondary); }
@@ -648,7 +648,7 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
     .consent { display: flex; flex-direction: column; gap: var(--space-1); text-align: left; max-width: 560px; }
     .up-file { display: flex; align-items: center; gap: var(--space-3); width: min(420px, 100%); text-align: left; }
     .up-file__body { flex: 1; display: flex; flex-direction: column; gap: var(--space-1); }
-    .up-file__name { font-weight: var(--font-weight-semi); }
+    .up-file__name { font-weight: var(--text-label-s-weight); }
     .up-file__meta { font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); color: var(--color-text-secondary); }
 
     .bar { height: var(--space-1); border-radius: var(--radius-full); background: var(--color-stone-300); overflow: hidden; width: 100%; }
@@ -665,7 +665,7 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
       border-radius: var(--radius-md); box-shadow: var(--shadow-popup); padding: var(--space-1); display: flex; flex-direction: column; }
     .menu__item { all: unset; cursor: pointer; display: flex; flex-direction: column; gap: var(--space-1); padding: var(--space-2) var(--space-3); border-radius: var(--radius-sm); }
     .menu__item:hover, .menu__item:focus-visible { background: var(--color-hover-bg); }
-    .menu__title { font-weight: var(--font-weight-semi); }
+    .menu__title { font-weight: var(--text-label-s-weight); }
     .menu__sub { font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); color: var(--color-text-secondary); }
     .menu__foot { padding: var(--space-2) var(--space-3); border-top: 1px solid var(--color-divider); font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); color: var(--color-text-secondary); }
 
@@ -684,8 +684,8 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
     .sheet__grid { min-width: 1100px; font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); }
     .sr { display: grid; border-bottom: 1px solid var(--color-divider); }
     .sr--cols { background: var(--color-stone-200); color: var(--color-text-secondary); text-align: center; }
-    .sr--header { background: var(--color-text-primary); color: var(--color-stone-0); font-weight: var(--font-weight-semi); }
-    .sr--section { background: var(--color-stone-400); font-weight: var(--font-weight-semi); }
+    .sr--header { background: var(--color-text-primary); color: var(--color-stone-0); font-weight: var(--text-label-s-weight); }
+    .sr--section { background: var(--color-stone-400); font-weight: var(--text-label-s-weight); }
     .sr--title .sc--span { font-size: var(--text-label-l-size); line-height: var(--text-label-l-lh); font-weight: var(--text-label-l-weight); }
     .sr--meta .sc--span { font-style: italic; }
     .sr--legend .sc--span { font-weight: var(--text-label-s-weight); }
@@ -701,12 +701,12 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
     .sc--filled { background: var(--color-primary-50); box-shadow: inset 0 0 0 1px var(--color-primary-100); }
     .sheet__tabs { display: flex; align-items: center; gap: var(--space-1); padding: var(--space-1) var(--space-2); border-top: 1px solid var(--color-divider); background: var(--color-stone-100); font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); }
     .sheet__tab { padding: var(--space-1) var(--space-3); border-radius: var(--radius-sm); color: var(--color-text-secondary); }
-    .sheet__tab--on { background: var(--color-stone-0); color: var(--color-primary-600); font-weight: var(--font-weight-semi); box-shadow: var(--shadow-card); }
+    .sheet__tab--on { background: var(--color-stone-0); color: var(--color-primary-600); font-weight: var(--text-label-s-weight); box-shadow: var(--shadow-card); }
     .sheet__zoom { color: var(--color-text-secondary); }
 
     /* Delta */
     .delta { flex: none; display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; padding: var(--space-3) 0; border-bottom: 1px solid var(--color-divider); }
-    .delta__title { display: inline-flex; align-items: center; gap: var(--space-2); font-weight: var(--font-weight-semi); }
+    .delta__title { display: inline-flex; align-items: center; gap: var(--space-2); font-weight: var(--text-label-s-weight); }
     .delta__title fvdr-icon { color: var(--color-primary-500); }
 
     /* Empty states */
@@ -739,8 +739,8 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
     .tr--group { display: flex; align-items: center; gap: var(--space-3); padding: 0 var(--space-4); background: var(--color-stone-100); border-radius: var(--radius-sm);
       color: var(--color-text-secondary); font-weight: var(--text-label-s-weight); }
     .tr--group .muted { font-weight: var(--text-body3-weight); }
-    .g-label { color: var(--color-text-secondary); font-weight: var(--font-weight-semi); }
-    .g-name { font-weight: var(--font-weight-semi); }
+    .g-label { color: var(--color-text-secondary); font-weight: var(--text-label-s-weight); }
+    .g-name { font-weight: var(--text-label-s-weight); }
     .tr--item { cursor: pointer; }
     .tr--item:hover { background: var(--color-hover-bg); }
     .tr--sel, .tr--sel:hover { background: var(--color-primary-50); }
@@ -769,7 +769,7 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
 
     /* Side panel */
     /* Sticks to the bottom of the visible area while the panel is taller than it. Offset clears the prototype switcher. */
-    .strength { display: inline-flex; align-items: center; gap: 2px; font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); font-weight: var(--font-weight-semi); color: var(--color-text-secondary); }
+    .strength { display: inline-flex; align-items: center; gap: 2px; font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); font-weight: var(--text-label-s-weight); color: var(--color-text-secondary); }
     .strength i { width: 4px; height: var(--space-3); border-radius: 1px; background: var(--color-stone-400); }
     .strength i:last-of-type { margin-right: var(--space-1); }
     .strength--strong i { background: var(--color-primary-500); }
@@ -778,7 +778,7 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
     .bulk { display: flex; flex-direction: column; gap: var(--space-3); max-height: 50vh; overflow-y: auto; padding-right: var(--space-1); }
     .bulk__item { display: flex; flex-direction: column; gap: var(--space-2); padding-bottom: var(--space-3); border-bottom: 1px solid var(--color-divider); }
     .how { margin: 0; padding-left: var(--space-5); display: flex; flex-direction: column; gap: var(--space-3); font-size: var(--text-body3-size); line-height: var(--text-body3-lh); }
-    .lnk { all: unset; cursor: pointer; color: var(--color-primary-600); font-weight: var(--font-weight-semi); }
+    .lnk { all: unset; cursor: pointer; color: var(--color-primary-600); font-weight: var(--text-label-s-weight); }
     .lnk:hover { text-decoration: underline; }
     .lnk:focus-visible { outline: 2px solid var(--color-primary-500); outline-offset: 1px; border-radius: var(--radius-sm); }
     .menu__warn { display: flex; gap: var(--space-2); padding: var(--space-2) var(--space-3); margin-bottom: var(--space-1); background: var(--color-warning-bg); border-radius: var(--radius-sm); font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); }
@@ -794,7 +794,7 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
     .folders { flex: 1; display: grid; grid-template-columns: 340px 1fr; gap: var(--space-6); min-width: 0; }
     .folders__reqs { border-right: 1px solid var(--color-divider); padding-right: var(--space-4); }
     .folders__head { display: flex; justify-content: space-between; align-items: center; padding: var(--space-2) 0; border-bottom: 1px solid var(--color-divider); }
-    .h-sec { font-weight: var(--font-weight-semi); }
+    .h-sec { font-weight: var(--text-label-s-weight); }
     .fgroup__name { font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); color: var(--color-text-secondary); padding: var(--space-3) 0 var(--space-1); }
     .freq { all: unset; box-sizing: border-box; cursor: pointer; width: 100%; display: grid; grid-template-columns: 8px 36px minmax(0, 1fr) auto; gap: var(--space-2);
       align-items: center; padding: var(--space-1) var(--space-2); border-radius: var(--radius-sm); font-size: var(--text-body3-size); }
@@ -841,7 +841,7 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
     .aibar { flex: none; display: flex; align-items: center; gap: var(--space-4); flex-wrap: wrap; min-height: var(--space-10);
       padding: var(--space-4); border-radius: var(--radius-md); background: var(--color-stone-300); }
     .aibar__text { font-size: var(--text-body3-size); line-height: var(--text-body3-lh); }
-    .aibar__text b { font-weight: var(--font-weight-semi); }
+    .aibar__text b { font-weight: var(--text-label-s-weight); }
     .aibar__grow { flex: 1; min-width: 0; }
     .aibar .scope { width: 320px; }
     .rbar { flex: none; display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); flex-wrap: wrap; min-height: var(--space-10); }
@@ -850,7 +850,7 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
     .covp { display: inline-flex; align-items: center; gap: var(--space-6); height: var(--space-10); padding: 0 var(--space-4) 0 var(--space-3); box-sizing: border-box;
       background: var(--color-stone-0); border: 1px solid var(--color-divider); border-radius: var(--radius-full); font-size: var(--text-body3-size); }
     .covp__val { display: inline-flex; align-items: center; gap: var(--space-2); }
-    .covp b { font-weight: var(--font-weight-semi); }
+    .covp b { font-weight: var(--text-label-s-weight); }
     /* Source file: compact AI card — orb, one line, small action */
     .aicard { flex: none; align-self: flex-start; max-width: 100%; box-sizing: border-box; display: inline-flex; align-items: center; gap: var(--space-4);
       padding: var(--space-3) var(--space-4); background: var(--color-stone-100); border: 1px solid var(--color-divider); border-radius: var(--radius-md); }
@@ -869,11 +869,11 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
       font-size: var(--text-body3-size); line-height: var(--text-body3-lh); color: var(--color-text-primary); }
     .drawer .dh { flex: none; display: flex; align-items: center; gap: var(--space-2); height: var(--space-16); box-sizing: border-box; padding: 0 var(--space-4) 0 var(--space-6); border-bottom: 1px solid var(--color-divider); }
     .drawer .dh__title { font-size: var(--text-label-l-size); line-height: var(--text-label-l-lh); font-weight: var(--text-label-l-weight); }
-    .drawer .dh__ref { font-weight: var(--font-weight-semi); color: var(--color-text-secondary); }
+    .drawer .dh__ref { font-weight: var(--text-label-s-weight); color: var(--color-text-secondary); }
     .drawer .dh__pos { font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); color: var(--color-text-secondary); margin-right: var(--space-1); }
     .drawer .db { flex: 1; overflow-y: auto; padding: var(--space-6); display: flex; flex-direction: column; gap: var(--space-8); }
     .drawer .ds { display: flex; flex-direction: column; gap: var(--space-3); }
-    .drawer .ds__h { margin: 0; font-size: var(--text-body3-size); line-height: var(--text-body3-lh); font-weight: var(--font-weight-semi); }
+    .drawer .ds__h { margin: 0; font-size: var(--text-body3-size); line-height: var(--text-body3-lh); font-weight: var(--text-label-s-weight); }
     .drawer .ds__sub { margin-left: var(--space-1); font-weight: var(--text-body3-weight); color: var(--color-text-secondary); }
     .drawer .ds__row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
     .drawer .ds__p { margin: 0; color: var(--color-text-secondary); }
@@ -889,7 +889,7 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
     .drawer .doc > fvdr-file-icon { flex: none; display: flex; align-items: center; height: var(--text-body3-lh); }
     .drawer .doc > fvdr-btn { flex: none; }
     .drawer .doc__b { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; align-items: flex-start; }
-    .drawer .doc__name { all: unset; cursor: pointer; font-weight: var(--font-weight-semi); overflow-wrap: anywhere; }
+    .drawer .doc__name { all: unset; cursor: pointer; font-weight: var(--text-label-s-weight); overflow-wrap: anywhere; }
     .drawer .doc__name:hover { color: var(--color-primary-600); text-decoration: underline; }
     .drawer .doc__name:focus-visible, .drawer .doc__path--btn:focus-visible { outline: 2px solid var(--color-primary-500); outline-offset: 1px; }
     .drawer .doc__path { all: unset; font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); color: var(--color-text-secondary); }
@@ -904,13 +904,13 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
       background: var(--color-warning-bg); border-radius: var(--radius-md); }
     .drawer .issues li { display: flex; gap: var(--space-2); }
     .drawer .issues fvdr-icon { color: var(--color-warning-icon); flex: none; margin-top: 2px; }
-    .drawer .issues b { font-weight: var(--font-weight-semi); }
+    .drawer .issues b { font-weight: var(--text-label-s-weight); }
     .drawer .kv { display: grid; grid-template-columns: 130px minmax(0, 1fr); gap: var(--space-3) var(--space-4); margin: 0; }
     .drawer .kv dt { color: var(--color-text-secondary); }
     .drawer .kv dd { margin: 0; overflow-wrap: anywhere; }
     .drawer .kvs { margin: 0; display: flex; flex-direction: column; gap: var(--space-3); }
     .drawer .kvs > div { display: flex; flex-direction: column; gap: var(--space-1); }
-    .drawer .kvs dt { font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); font-weight: var(--font-weight-semi); }
+    .drawer .kvs dt { font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); font-weight: var(--text-label-s-weight); }
     .drawer .kvs dd { margin: 0; white-space: pre-line; overflow-wrap: anywhere; }
     .drawer .kv__empty { color: var(--color-text-placeholder); }
     .drawer .hist summary { cursor: pointer; list-style: none; }
