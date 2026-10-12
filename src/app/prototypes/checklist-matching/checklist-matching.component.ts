@@ -219,27 +219,26 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
               <span class="aibar__text"><b>The file was edited after extraction.</b> 1 request added, 1 changed.</span>
             </div>
 
-            <!-- Before results: one grey bar, primary action first -->
-            <div class="aibar" *ngIf="phase === 'none' || phase === 'reading' || phase === 'structure' || phase === 'matching'">
+            <!-- Before results: the same AI card as in Source file (Figma) -->
+            <div class="aicard" *ngIf="phase === 'none' || phase === 'reading'">
+              <fvdr-ai-orb [size]="20" [thinking]="phase === 'reading'" [showLabel]="false" />
               <ng-container *ngIf="phase === 'none'">
-                <fvdr-btn *ngIf="roomAiOn" label="Extract requests" (clicked)="extract()" />
                 <span class="aibar__text" *ngIf="roomAiOn"><b>Turn this checklist into requests.</b> AI lists every request in the file, linked to its row. The file isn't changed.</span>
                 <span class="aibar__text" *ngIf="!roomAiOn">AI is off for this room. A project admin can turn it on in Settings.</span>
+                <fvdr-btn *ngIf="roomAiOn" label="Extract requests" size="s" iconName="matching-items" (clicked)="extract()" />
               </ng-container>
-              <ng-container *ngIf="phase === 'reading'">
-                <span class="ring ring--bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" [attr.aria-valuenow]="readPct" [style.--p]="readPct"></span>
-                <span class="aibar__text"><b>Reading the checklist…</b> {{ readSheet }} · row {{ readRowInSheet }} of {{ readSheetRows }}</span>
-              </ng-container>
-              <ng-container *ngIf="phase === 'structure'">
-                <fvdr-dropdown class="scope" [options]="scopeOptions" [value]="scope" (valueChange)="scope = asString($event)" />
-                <fvdr-btn [label]="'Match ' + typeChips.docCount + ' requests'" (clicked)="startMatching()" />
-                <span class="aibar__text aibar__grow">{{ structLine }}</span>
-                <button class="lnk" (click)="openRead()">What AI read</button>
-              </ng-container>
-              <ng-container *ngIf="phase === 'matching'">
-                <span class="ring ring--bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" [attr.aria-valuenow]="progress * 100" [style.--p]="progress * 100"></span>
-                <span class="aibar__text aibar__grow"><b>Matching…</b> {{ docsRead }} of {{ totalDocsLabel }} documents · {{ etaLabel }}</span>
-              </ng-container>
+              <span class="aibar__text" *ngIf="phase === 'reading'"><b>Reading the checklist…</b> {{ readSheet }} · row {{ readRowInSheet }} of {{ readSheetRows }}</span>
+            </div>
+            <!-- Check what was read: full-width card, small controls first, summary, What AI read on the right -->
+            <div class="aicard aicard--wide" *ngIf="phase === 'structure'">
+              <fvdr-dropdown class="scope" size="s" [options]="scopeOptions" [value]="scope" (valueChange)="scope = asString($event)" />
+              <fvdr-btn [label]="'Match ' + typeChips.docCount + ' requests'" size="s" (clicked)="startMatching()" />
+              <span class="aibar__text aibar__grow">{{ structLine }}</span>
+              <button class="lnk" *ngIf="!readOpen" (click)="openRead()">What AI read</button>
+            </div>
+            <div class="aicard" *ngIf="phase === 'matching'">
+              <span class="ring ring--bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" [attr.aria-valuenow]="progress * 100" [style.--p]="progress * 100"></span>
+              <span class="aibar__text"><b>Matching…</b> {{ docsRead }} of {{ totalDocsLabel }} documents · {{ etaLabel }}</span>
             </div>
 
             <div class="empty" *ngIf="phase === 'failed'">
@@ -843,7 +842,8 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
     .aibar__text { font-size: var(--text-body3-size); line-height: var(--text-body3-lh); }
     .aibar__text b { font-weight: var(--text-label-s-weight); }
     .aibar__grow { flex: 1; min-width: 0; }
-    .aibar .scope { width: 320px; }
+    .aicard .scope { width: 320px; }
+    .aicard.aicard--wide { align-self: stretch; display: flex; }
     .rbar { flex: none; display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); flex-wrap: wrap; min-height: var(--space-10); }
     .rbar__l { display: flex; align-items: center; gap: var(--space-4); flex-wrap: wrap; }
     .lnk--icon { display: inline-flex; align-items: center; gap: var(--space-1); }
@@ -1562,7 +1562,7 @@ export class ChecklistMatchingComponent implements OnDestroy {
     ];
     this.viewItems = [
       { id: 'source', label: 'Source file' },
-      { id: 'requests', label: 'Requests', count: isResults && counts['review'] ? counts['review'] : undefined },
+      { id: 'requests', label: 'Requests' },
     ];
 
     // Grid templates
