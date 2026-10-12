@@ -79,7 +79,8 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
         <!-- ═══ Upload ═══ -->
         <section class="upload" *ngIf="phase === 'empty' || phase === 'uploading'" aria-label="Upload checklist">
           <!-- Empty state (Figma 38483:164983): the whole content area is the drop zone -->
-          <div class="drop drop--empty" *ngIf="phase === 'empty'">
+          <div class="drop drop--empty" *ngIf="phase === 'empty'" [class.drop--over]="dragDepth > 0"
+               (dragenter)="onDragEnter($event)" (dragover)="onDragOver($event)" (dragleave)="onDragLeave()" (drop)="onDrop($event)">
             <img class="drop__art" src="assets/illustrations/dd-checklist-empty.svg" width="176" height="120" alt="" />
             <h2 class="drop__title">No due diligence checklist uploaded yet</h2>
             <p class="drop__text">To share the due diligence checklist with your team and track your deal progress, drag &amp; drop your file here or use choose file button</p>
@@ -95,7 +96,7 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
             <div class="up-file">
               <fvdr-file-icon type="xls" />
               <div class="up-file__body">
-                <span class="up-file__name">{{ sc.fileName }}</span>
+                <span class="up-file__name">{{ droppedName || sc.fileName }}</span>
                 <span class="up-file__meta">{{ sc.fileMeta }} · uploading {{ upPct }}%</span>
                 <div class="bar"><div class="bar__fill" [style.width.%]="upPct"></div></div>
               </div>
@@ -635,7 +636,10 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
     .drop { border: 1px dashed var(--color-stone-500); border-radius: var(--radius-lg); padding: var(--space-16) var(--space-6);
       display: flex; flex-direction: column; align-items: center; gap: var(--space-3); text-align: center; }
     .drop--uploading { padding: var(--space-8) var(--space-6); }
-    .drop--empty { flex: 1; justify-content: center; gap: var(--space-4); }
+    .drop--empty { flex: 1; justify-content: center; gap: var(--space-4); transition: border-color 0.15s, background-color 0.15s; }
+    /* A file is dragged over the zone */
+    .drop--over { border-color: var(--color-primary-500); background: var(--color-primary-50); }
+    .drop--over > * { pointer-events: none; }
     .drop__art { display: block; }
     .drop__off { margin: 0; color: var(--color-text-secondary); }
     .drop--empty .drop__text { max-width: 434px; }
@@ -1181,6 +1185,7 @@ export class ChecklistMatchingComponent implements OnDestroy {
 
   goScreen(screen: Screen) {
     this.stopTimers();
+    this.dragDepth = 0; this.droppedName = '';
     this.screen = screen;
     this.contentEl?.nativeElement.scrollTo({ top: 0 });
     Object.assign(this, {
@@ -1238,6 +1243,19 @@ export class ChecklistMatchingComponent implements OnDestroy {
     else if (k === 'k') { e.preventDefault(); this.stepAny(-1); }
     else if (this.sel?.isReview && k === 'a') { e.preventDefault(); this.accept(); }
     else if (this.sel?.isReview && k === 'r') { e.preventDefault(); this.reject(); }
+  }
+
+  // ── Drag & drop on the empty state ──
+  dragDepth = 0; droppedName = '';
+  private hasFiles(e: DragEvent) { return !!e.dataTransfer && Array.from(e.dataTransfer.types || []).includes('Files'); }
+  onDragEnter(e: DragEvent) { if (!this.hasFiles(e)) return; e.preventDefault(); this.dragDepth++; }
+  onDragOver(e: DragEvent) { if (!this.hasFiles(e)) return; e.preventDefault(); if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy'; }
+  onDragLeave() { this.dragDepth = Math.max(0, this.dragDepth - 1); }
+  onDrop(e: DragEvent) {
+    e.preventDefault(); this.dragDepth = 0;
+    const f = e.dataTransfer?.files?.[0]; if (!f) return;
+    if (!/\.xlsx?$/i.test(f.name)) { this.toastSvc.show({ variant: 'error', message: `${f.name} isn't an Excel file. Drop an .xlsx checklist.` }); return; }
+    this.droppedName = f.name; this.upload();
   }
 
   upload() {
