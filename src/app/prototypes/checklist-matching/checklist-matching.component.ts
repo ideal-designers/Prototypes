@@ -78,18 +78,16 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
 
         <!-- ═══ Upload ═══ -->
         <section class="upload" *ngIf="phase === 'empty' || phase === 'uploading'" aria-label="Upload checklist">
-          <div class="drop" *ngIf="phase === 'empty'">
-            <span class="drop__icon"><fvdr-icon name="upload" /></span>
-            <h2 class="drop__title">Upload your due diligence checklist</h2>
-            <p class="drop__text">Drag an Excel file here or choose one from your computer.</p>
+          <!-- Empty state (Figma 38483:164983): the whole content area is the drop zone -->
+          <div class="drop drop--empty" *ngIf="phase === 'empty'">
+            <img class="drop__art" src="assets/illustrations/dd-checklist-empty.svg" width="176" height="120" alt="" />
+            <h2 class="drop__title">No due diligence checklist uploaded yet</h2>
+            <p class="drop__text">To share the due diligence checklist with your team and track your deal progress, drag &amp; drop your file here or use choose file button</p>
             <div class="consent" *ngIf="roomAiOn">
               <fvdr-checkbox [checked]="aiConsent" (checkedChange)="aiConsent = $event" label="Extract requests with AI after upload" />
-              <p class="consent__hint">Only the checklist's text is read. Nothing is matched until you start it.</p>
             </div>
-            <div class="consent consent--off" *ngIf="!roomAiOn">
-              <p class="consent__hint">AI is off for this room. A project admin can turn it on in Settings.</p>
-            </div>
-            <fvdr-btn label="Choose file" (clicked)="upload()" />
+            <p class="drop__off" *ngIf="!roomAiOn">AI is off for this room. A project admin can turn it on in Settings.</p>
+            <fvdr-btn label="Choose file" iconName="plus" (clicked)="upload()" />
             <span class="drop__caption">Excel files (.xlsx)</span>
           </div>
 
@@ -633,19 +631,19 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
     .tone--success { color: var(--color-primary-600); }
 
     /* Upload */
-    .upload { display: flex; flex-direction: column; }
+    .upload { flex: 1; min-height: 0; display: flex; flex-direction: column; }
     .drop { border: 1px dashed var(--color-stone-500); border-radius: var(--radius-lg); padding: var(--space-16) var(--space-6);
       display: flex; flex-direction: column; align-items: center; gap: var(--space-3); text-align: center; }
     .drop--uploading { padding: var(--space-8) var(--space-6); }
-    .drop__icon { width: var(--space-12); height: var(--space-12); border-radius: var(--radius-full); background: var(--color-primary-50);
-      color: var(--color-primary-500); display: inline-flex; align-items: center; justify-content: center; font-size: var(--font-size-2xl); }
+    .drop--empty { flex: 1; justify-content: center; gap: var(--space-4); }
+    .drop__art { display: block; }
+    .drop__off { margin: 0; color: var(--color-text-secondary); }
+    .drop--empty .drop__text { max-width: 434px; }
+    .consent ::ng-deep .checkbox-label { font-weight: var(--text-label-s-weight); }
     .drop__title { margin: 0; font-size: var(--text-sub2-size); line-height: var(--text-sub2-lh); font-weight: var(--text-sub2-weight); }
     .drop__text { margin: 0; max-width: 560px; color: var(--color-text-secondary); }
     .drop__caption { font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); color: var(--color-text-secondary); }
-    .consent { display: flex; flex-direction: column; gap: var(--space-1); text-align: left; max-width: 560px; margin: var(--space-2) 0; }
-    .consent--off { flex-direction: row; gap: var(--space-2); color: var(--color-text-secondary); }
-    .consent__hint { margin: 0 0 0 calc(var(--space-6) + var(--space-1)); font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); color: var(--color-text-secondary); }
-    .consent--off .consent__hint { margin: 0; }
+    .consent { display: flex; flex-direction: column; gap: var(--space-1); text-align: left; max-width: 560px; }
     .up-file { display: flex; align-items: center; gap: var(--space-3); width: min(420px, 100%); text-align: left; }
     .up-file__body { flex: 1; display: flex; flex-direction: column; gap: var(--space-1); }
     .up-file__name { font-weight: var(--font-weight-semi); }
