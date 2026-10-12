@@ -22,7 +22,7 @@ interface RowVm {
   id: string; label: string; row: number; text: string; pill: Pill; priority: string; asAt: string;
   chips: DocChip[]; allCount: number; hasMore: boolean; expanded: boolean; moreLabel: string;
   prefix: string; note: string; noteTone: Tone;
-  next: string; nextTone: Tone; action: string; actionHint: string; issue: string;
+  next: string; nextTone: Tone; action: string; actionHint: string; issue: string; line: string; lineTone: Tone;
   flagOpen: boolean; isEditing: boolean; canEdit: boolean; isEdited: boolean;
   tag: { label: string; variant: ChipVariant } | null; reason: string; reasonTone: Tone;
   selected: boolean; muted: boolean; changeOrder: number; noFilesText: string;
@@ -73,23 +73,22 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
     <div class="main">
       <fvdr-header [breadcrumbs]="crumbs" [actions]="headerActions" userName="VO" />
 
-      <div class="content" #content>
+      <div class="content" #content [class.content--drawer]="drawerOpen">
 
         <!-- ═══ Upload ═══ -->
         <section class="upload" *ngIf="phase === 'empty' || phase === 'uploading'" aria-label="Upload checklist">
           <div class="drop" *ngIf="phase === 'empty'">
             <span class="drop__icon"><fvdr-icon name="upload" /></span>
             <h2 class="drop__title">Upload your due diligence checklist</h2>
-            <p class="drop__text">Drag an Excel file here or choose one from your computer. You'll be able to view and edit it here and share it with groups.</p>
+            <p class="drop__text">Drag an Excel file here or choose one from your computer.</p>
             <div class="consent" *ngIf="roomAiOn">
               <fvdr-checkbox [checked]="aiConsent" (checkedChange)="aiConsent = $event" label="Extract requests with AI after upload" />
-              <p class="consent__hint">AI features are on for this room, turned on by a project admin. Only this checklist's text is processed. No documents are matched until you start matching yourself.</p>
+              <p class="consent__hint">Only the checklist's text is read. Nothing is matched until you start it.</p>
             </div>
             <div class="consent consent--off" *ngIf="!roomAiOn">
-              <fvdr-icon name="info" />
-              <p class="consent__hint">AI features are off for this room. The checklist works as usual; a project admin can turn on AI in Settings.</p>
+              <p class="consent__hint">AI is off for this room. A project admin can turn it on in Settings.</p>
             </div>
-            <fvdr-btn label="Choose file" iconName="upload" (clicked)="upload()" />
+            <fvdr-btn label="Choose file" (clicked)="upload()" />
             <span class="drop__caption">Excel files (.xlsx)</span>
           </div>
 
@@ -154,48 +153,32 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
 
           <!-- ─── Source file ─── -->
           <ng-container *ngIf="view === 'source'">
-            <div class="notice notice--ai" *ngIf="phase === 'none' && highlightRow === null && roomAiOn">
-              <span class="ai-mark"><fvdr-icon name="sparkle" /></span>
-              <div class="notice__body">
-                <span class="notice__title">Turn this checklist into requests</span>
-                <span class="notice__text">AI reads the whole file and lists every request, linked to its row. You check the list, then match it against documents in the room. Your file isn't changed.</span>
-              </div>
-              <fvdr-btn label="Extract requests" (clicked)="extract('source')" />
+            <div class="aibar" *ngIf="highlightRow === null && phase !== 'empty' && phase !== 'uploading'">
+              <ng-container *ngIf="phase === 'none' && roomAiOn">
+                <fvdr-btn label="Extract requests" (clicked)="extract('source')" />
+                <span class="aibar__text"><b>Turn this checklist into requests.</b> AI lists every request in the file, linked to its row. The file isn't changed.</span>
+              </ng-container>
+              <span class="aibar__text" *ngIf="phase === 'none' && !roomAiOn">AI is off for this room. A project admin can turn it on in Settings.</span>
+              <ng-container *ngIf="phase === 'reading'">
+                <span class="ring ring--bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" [attr.aria-valuenow]="readPct" [style.--p]="readPct"></span>
+                <span class="aibar__text"><b>Reading the checklist…</b> {{ readSheet }} · row {{ readRowInSheet }} of {{ readSheetRows }}</span>
+              </ng-container>
+              <ng-container *ngIf="phase === 'structure'">
+                <fvdr-btn label="Review requests" (clicked)="setView('requests')" />
+                <span class="aibar__text"><b>{{ foundLine }}.</b> Check what AI read, then match them to documents.</span>
+              </ng-container>
+              <ng-container *ngIf="phase === 'matching'">
+                <span class="ring ring--bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" [attr.aria-valuenow]="progress * 100" [style.--p]="progress * 100"></span>
+                <span class="aibar__text"><b>Matching…</b> {{ docsRead }} of {{ totalDocsLabel }} documents · {{ etaLabel }}</span>
+              </ng-container>
+              <ng-container *ngIf="phase === 'results'">
+                <span class="aibar__text aibar__grow">{{ srcInfoText }}</span>
+                <fvdr-toggle *ngIf="hasResultCols" [(checked)]="previewResults" label="Show results in the file" (checkedChange)="recompute()" />
+              </ng-container>
             </div>
-            <div class="notice" *ngIf="phase === 'none' && highlightRow === null && !roomAiOn">
-              <fvdr-icon name="info" class="notice__icon" />
-              <div class="notice__body">
-                <span class="notice__title">AI features are off for this room</span>
-                <span class="notice__text">The checklist works as usual. To extract requests and match documents, a project admin needs to turn on AI features in Settings.</span>
-              </div>
-              <fvdr-btn label="Open AI settings" variant="secondary" (clicked)="toast('Opens AI settings for this project. Only project admins can change them.')" />
-            </div>
-            <div class="notice notice--ai" *ngIf="phase === 'reading' && highlightRow === null">
-              <span class="ai-mark ai-mark--busy"><fvdr-icon name="sparkle" /></span>
-              <div class="notice__body">
-                <span class="notice__title">AI is reading this checklist</span>
-                <span class="notice__text">{{ readSheet }} · row {{ readRowInSheet }} of {{ readSheetRows }}. You can keep working, nothing is matched yet.</span>
-                <div class="bar"><div class="bar__fill" [style.width.%]="readPct"></div></div>
-              </div>
-            </div>
-            <div class="notice notice--ai" *ngIf="phase === 'structure' && highlightRow === null">
-              <span class="ai-mark"><fvdr-icon name="sparkle" /></span>
-              <div class="notice__body">
-                <span class="notice__title">{{ foundLine }}</span>
-                <span class="notice__text">Check what AI read, then match the document requests against the {{ totalDocsLabel }} documents in {{ sc.room }}.</span>
-              </div>
-              <fvdr-btn label="Review requests" (clicked)="setView('requests')" />
-            </div>
-            <div class="notice" *ngIf="(phase === 'matching' || phase === 'results') && highlightRow === null">
-              <fvdr-icon name="info" class="notice__icon" />
-              <span class="notice__text notice__text--grow">{{ srcInfoText }}</span>
-              <fvdr-toggle *ngIf="phase === 'results' && hasResultCols" [(checked)]="previewResults" label="Show results in the file's columns" (checkedChange)="recompute()" />
-              <fvdr-btn label="Open requests" variant="secondary" size="s" (clicked)="setView('requests')" />
-            </div>
-            <div class="notice notice--hl" *ngIf="highlightRow !== null">
-              <fvdr-icon name="link" class="notice__icon" />
-              <span class="notice__text notice__text--grow">{{ hlText }}</span>
-              <fvdr-btn label="Back to request" variant="secondary" size="s" iconName="chevron-left" (clicked)="backToRequest()" />
+            <div class="aibar" *ngIf="highlightRow !== null">
+              <fvdr-btn label="Back to request" variant="secondary" (clicked)="backToRequest()" />
+              <span class="aibar__text aibar__grow">{{ hlText }}</span>
             </div>
 
             <div class="sheet">
@@ -234,167 +217,73 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
           <!-- ─── Requests ─── -->
           <ng-container *ngIf="view === 'requests'">
 
+            <!-- Returning user: what changed, one line -->
             <section class="delta" *ngIf="phase === 'results' && delta" aria-label="Changes since your last visit">
-              <span class="delta__title"><fvdr-icon name="history" />Since your visit on {{ sc.returning.since }}</span>
-              <div class="delta__chips">
-                <fvdr-chip *ngFor="let c of changeChips" [label]="c.label" [variant]="c.variant" size="m" [rounded]="true"
-                           [clickable]="true" [selected]="changeFilter === c.kind" (clicked)="pickChange(c.kind)" />
-                <fvdr-btn *ngIf="changeFilter" label="Back to all requests" variant="link" size="s" (clicked)="changeFilter = null; recompute()" />
-                <fvdr-btn *ngIf="!changeFilter" [label]="'Show all ' + changeTotal + ' changes'" variant="link" size="s" (clicked)="pickChange('all')" />
-              </div>
+              <span class="delta__title">Since {{ sc.returning.since }}</span>
+              <fvdr-chip *ngFor="let c of changeChips" [label]="c.label" [variant]="c.variant" size="s" [rounded]="true"
+                         [clickable]="true" [selected]="changeFilter === c.kind" (clicked)="pickChange(c.kind)" />
+              <fvdr-btn *ngIf="changeFilter" label="Show all requests" variant="link" size="s" (clicked)="changeFilter = null; recompute()" />
               <span class="spacer"></span>
-              <fvdr-btn variant="ghost" size="s" iconName="close" [iconOnly]="true" ariaLabel="Dismiss changes summary" (clicked)="delta = false; changeFilter = null; recompute()" />
+              <fvdr-btn variant="ghost" size="s" iconName="close" [iconOnly]="true" ariaLabel="Dismiss" (clicked)="delta = false; changeFilter = null; recompute()" />
             </section>
 
-            <div class="notice notice--warn" *ngIf="phase === 'results' && stale">
-              <fvdr-icon name="warning" class="notice__icon" />
-              <span class="notice__text notice__text--grow"><b>The source file was edited after the requests were extracted.</b> 1 request added, 1 changed.</span>
-              <fvdr-btn label="Review changes" variant="secondary" size="s" (clicked)="openDiff()" />
+            <div class="aibar" *ngIf="phase === 'results' && stale">
+              <fvdr-btn label="Review changes" variant="secondary" (clicked)="openDiff()" />
+              <span class="aibar__text"><b>The file was edited after extraction.</b> 1 request added, 1 changed.</span>
             </div>
 
-            <div class="empty" *ngIf="phase === 'none'">
-              <span class="ai-mark ai-mark--lg"><fvdr-icon name="sparkle" /></span>
-              <h2 class="empty__title">Turn this checklist into requests</h2>
-              <p class="empty__text">AI reads the whole file, sorts every item into sections, document requests, questions, instructions and notes, then finds documents for the document requests. Your file isn't changed.</p>
-              <fvdr-btn *ngIf="roomAiOn" label="Extract requests" (clicked)="extract()" />
-              <div class="notice" *ngIf="!roomAiOn">
-                <fvdr-icon name="info" class="notice__icon" />
-                <span class="notice__text">AI features are off for this room. A project admin can turn them on in Settings.</span>
-                <fvdr-btn label="Open AI settings" variant="secondary" size="s" (clicked)="toast('Opens AI settings for this project. Only project admins can change them.')" />
-              </div>
+            <!-- Before results: one grey bar, primary action first -->
+            <div class="aibar" *ngIf="phase === 'none' || phase === 'reading' || phase === 'structure' || phase === 'matching'">
+              <ng-container *ngIf="phase === 'none'">
+                <fvdr-btn *ngIf="roomAiOn" label="Extract requests" (clicked)="extract()" />
+                <span class="aibar__text" *ngIf="roomAiOn"><b>Turn this checklist into requests.</b> AI lists every request in the file, linked to its row. The file isn't changed.</span>
+                <span class="aibar__text" *ngIf="!roomAiOn">AI is off for this room. A project admin can turn it on in Settings.</span>
+              </ng-container>
+              <ng-container *ngIf="phase === 'reading'">
+                <span class="ring ring--bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" [attr.aria-valuenow]="readPct" [style.--p]="readPct"></span>
+                <span class="aibar__text"><b>Reading the checklist…</b> {{ readSheet }} · row {{ readRowInSheet }} of {{ readSheetRows }}</span>
+              </ng-container>
+              <ng-container *ngIf="phase === 'structure'">
+                <fvdr-dropdown class="scope" [options]="scopeOptions" [value]="scope" (valueChange)="scope = asString($event)" />
+                <fvdr-btn [label]="'Match ' + typeChips.docCount + ' requests'" (clicked)="startMatching()" />
+                <span class="aibar__text aibar__grow">{{ structLine }}</span>
+                <button class="lnk" (click)="openRead()">What AI read</button>
+              </ng-container>
+              <ng-container *ngIf="phase === 'matching'">
+                <span class="ring ring--bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" [attr.aria-valuenow]="progress * 100" [style.--p]="progress * 100"></span>
+                <span class="aibar__text aibar__grow"><b>Matching…</b> {{ docsRead }} of {{ totalDocsLabel }} documents · {{ etaLabel }}</span>
+                <fvdr-btn label="Stop" variant="secondary" (clicked)="stopMatching()" />
+              </ng-container>
             </div>
 
-            <div class="empty" *ngIf="phase === 'reading'">
-              <span class="ai-mark ai-mark--lg ai-mark--busy"><fvdr-icon name="sparkle" /></span>
-              <h2 class="empty__title">Reading the whole checklist file</h2>
-              <p class="empty__text">{{ readSheet }} · row {{ readRowInSheet }} of {{ readSheetRows }}</p>
-              <div class="bar bar--wide"><div class="bar__fill" [style.width.%]="readPct"></div></div>
-            </div>
-
-            <div class="empty empty--fail" *ngIf="phase === 'failed'">
-              <span class="ai-mark ai-mark--lg ai-mark--warn"><fvdr-icon name="warning" /></span>
+            <div class="empty" *ngIf="phase === 'failed'">
               <h2 class="empty__title">AI couldn't find requests in this file</h2>
-              <p class="empty__text">It looked for a header row with a request column on every sheet, and didn't find one. This usually happens when the header sits below a title block, or the file is a tracker, not a checklist.</p>
+              <p class="empty__text">No header row with a request column was found. Pick the header row and read again, or upload another file.</p>
               <div class="fail-actions">
                 <fvdr-dropdown label="Header row" size="m" [options]="headerRowOptions" [value]="'' + headerRow" (valueChange)="headerRow = +asString($event)" />
-                <fvdr-btn label="Read again from this row" (clicked)="extract()" />
+                <fvdr-btn label="Read again" (clicked)="extract()" />
+                <fvdr-btn label="Upload another file" variant="secondary" (clicked)="goScreen('upload')" />
               </div>
-              <span class="muted">Or <button class="lnk" (click)="goScreen('upload')">upload another file</button>. The file in the room isn't changed either way.</span>
             </div>
 
-            <!-- Structure check -->
-            <section class="summary" *ngIf="phase === 'structure'" aria-label="Extraction summary">
-              <div class="summary__main">
-                <span class="kicker"><fvdr-icon name="sparkle" />Extracted from the whole file</span>
-                <h2 class="summary__title">Check what was read</h2>
-                <div class="summary__chips">
-                  <fvdr-chip [label]="typeChips.doc" variant="blue" size="s" [rounded]="true" />
-                  <fvdr-chip [label]="typeChips.q" variant="purple" size="s" [rounded]="true" *ngIf="typeChips.qCount" />
-                  <fvdr-chip [label]="typeChips.i" variant="grey" size="s" [rounded]="true" *ngIf="typeChips.iCount" />
-                  <fvdr-chip [label]="typeChips.n" variant="grey" size="s" [rounded]="true" *ngIf="typeChips.nCount" />
-                  <fvdr-chip [label]="sc.sections.length + ' sections'" size="s" [rounded]="true" />
-                  <fvdr-chip *ngIf="!flagResolved && hasFlag" label="1 row to confirm below" variant="yellow" size="s" [rounded]="true" />
-                </div>
+            <!-- Results: filters, coverage, next step — no background -->
+            <div class="rbar" *ngIf="phase === 'results'">
+              <fvdr-segment variant="table" size="md" [items]="filterItems" [activeId]="changeFilter ? '' : filter" (activeIdChange)="pickFilter($any($event))" />
+              <div class="covp">
+                <span class="covp__val" [attr.aria-label]="pct + '% of document requests covered'">
+                  <span class="ring" [style.--p]="pct" aria-hidden="true"></span>
+                  <span><b>{{ pct }}%</b> covered</span>
+                </span>
+                <button class="lnk" (click)="openRead()">What AI read</button>
               </div>
-              <div class="summary__side">
-                <fvdr-dropdown label="Match against" [options]="scopeOptions" [value]="scope" (valueChange)="scope = asString($event)" />
-                <fvdr-btn [label]="'Match ' + typeChips.docCount + ' document requests'" size="l" (clicked)="startMatching()" />
-                <span class="summary__hint">AI compares the requests with the documents in this scope. The source file stays unchanged. <button class="lnk" (click)="howOpen = true">How matching works</button></span>
+              <div class="rbar__r">
+                <fvdr-btn *ngIf="filter !== 'gap' && (counts['review'] || 0) > 0 && !showPanel" [label]="'Review ' + counts['review'] + ' suggestions'" (clicked)="startReview()" />
+                <fvdr-btn *ngIf="filter === 'gap' && askableGaps.length" [label]="(isBidder ? 'Ask about ' : 'Request ') + askableGaps.length + ' gaps'" (clicked)="openBulkAsk()" />
+                <fvdr-segment variant="table" size="md" [items]="layoutItems" [activeId]="layout" (activeIdChange)="pickLayout($event)" />
               </div>
-            </section>
+            </div>
 
-            <!-- What AI read around the requests -->
-            <section class="details" *ngIf="phase === 'structure' && sc.details" aria-label="Checklist details">
-              <div class="details__col">
-                <span class="details__h">Checklist details<span class="muted" *ngIf="sc.details.metaRows"> · read from {{ sc.details.metaRows }}</span></span>
-                <dl class="kvs">
-                  <ng-container *ngFor="let f of sc.details.fields"><dt>{{ f.label }}</dt><dd>{{ f.value }}</dd></ng-container>
-                </dl>
-              </div>
-              <div class="details__col">
-                <span class="details__h">Columns</span>
-                <dl class="kvs">
-                  <dt>Header row</dt>
-                  <dd class="hdr-row">
-                    <ng-container *ngIf="!hdrEdit">Row {{ headerRow }} <button class="lnk" (click)="hdrEdit = true">Change</button></ng-container>
-                    <fvdr-dropdown *ngIf="hdrEdit" size="s" [options]="headerRowOptions" [value]="'' + headerRow" (valueChange)="changeHeaderRow(asString($event))" />
-                  </dd>
-                  <dt>Read from</dt><dd>{{ sc.details.columnsUsed.join(', ') }}</dd>
-                  <dt>Results go to</dt>
-                  <dd *ngIf="sc.details.resultCols">{{ sc.details.resultCols.join(', ') }} <span class="muted">— already in your file</span></dd>
-                  <ng-container *ngIf="sc.statusMap">
-                    <dt>Status values</dt>
-                    <dd class="map">
-                      <span><fvdr-chip label="Covered" variant="green" size="xs" /> → {{ sc.statusMap.covered }}</span>
-                      <span><fvdr-chip label="Partial" variant="teal" size="xs" /> → {{ sc.statusMap.partial }}</span>
-                      <span><fvdr-chip label="Gap" variant="danger" size="xs" /> → {{ sc.statusMap.gap }}</span>
-                      <span><fvdr-chip label="N/A" variant="grey" size="xs" /> → {{ sc.statusMap.na }}</span>
-                    </dd>
-                  </ng-container>
-                  <dd *ngIf="!sc.details.resultCols">New Status, Documents and Missing columns in the export</dd>
-                </dl>
-              </div>
-              <div class="details__col">
-                <span class="details__h">Deal side</span>
-                <div class="side">
-                  <fvdr-segment [items]="sideItems" [activeId]="isBidder ? 'buy' : 'sell'" (activeIdChange)="setSide($event)" />
-                  <span class="muted">{{ sideHint }}</span>
-                </div>
-              </div>
-            </section>
-
-            <!-- Matching -->
-            <section class="summary" *ngIf="phase === 'matching'" aria-label="Matching progress">
-              <div class="summary__main">
-                <span class="kicker"><fvdr-icon name="sparkle" />Matching in progress</span>
-                <div class="summary__line"><span class="summary__title">{{ docsRead }} of {{ totalDocsLabel }} documents read</span><span class="summary__hint">Gaps are confirmed once every document has been read.</span></div>
-                <div class="bar bar--wide"><div class="bar__fill" [style.width.%]="progress * 100"></div></div>
-              </div>
-              <div class="stats">
-                <div class="stat"><span class="stat__label">Found</span><span class="stat__val stat__val--info">{{ counts['found'] || 0 }}</span></div>
-                <div class="stat"><span class="stat__label">Still searching</span><span class="stat__val">{{ counts['searching'] || 0 }}</span></div>
-<div class="stat"><span class="stat__label">Time left</span><span class="stat__val stat__val--sm">{{ etaLabel }}</span></div>
-                <fvdr-btn label="Notify me when it's done" variant="secondary" iconName="bell" (clicked)="toast('Done. We\\'ll email you when matching finishes.')" />
-                <fvdr-btn label="Stop" variant="ghost" iconName="stop" (clicked)="stopMatching()" />
-              </div>
-            </section>
-
-            <!-- Results summary -->
-            <section class="summary summary--results" *ngIf="phase === 'results'" aria-label="Coverage summary">
-              <div class="cov">
-                <div class="cov__line"><span class="cov__pct">{{ pct }}%</span><span class="cov__of">of {{ matchable }} document requests covered</span></div>
-                <span class="summary__hint">Matched against {{ totalDocsLabel }} documents · {{ sc.matchedAt }} · <button class="lnk" (click)="howOpen = true">How matching works</button></span>
-              </div>
-              <div class="stats">
-                <div class="stat"><span class="stat__label">Covered</span><span class="stat__val stat__val--success">{{ counts['covered'] || 0 }}</span></div>
-                <div class="stat"><span class="stat__label">Partial</span><span class="stat__val stat__val--teal">{{ counts['partial'] || 0 }}</span></div>
-                <div class="stat"><span class="stat__label">To review</span><span class="stat__val stat__val--warn">{{ counts['review'] || 0 }}</span></div>
-                <div class="stat"><span class="stat__label">Gaps</span><span class="stat__val stat__val--error">{{ counts['gap'] || 0 }}</span></div>
-              </div>
-              <span class="spacer"></span>
-              <fvdr-btn *ngIf="likelyIds.length > 0" [label]="'Accept ' + likelyIds.length + ' likely ' + (likelyIds.length === 1 ? 'match' : 'matches')" variant="secondary" size="l" iconName="check"
-                        [fvdrTooltip]="'Accepts suggestions AI rated a strong match: ' + likelyIds.join(', ') + '. You can undo.'" (clicked)="acceptLikely()" />
-              <fvdr-btn *ngIf="(counts['review'] || 0) > 0" [label]="'Review ' + counts['review'] + ' suggestions'" size="l" (clicked)="startReview()" />
-              <fvdr-btn *ngIf="!(counts['review'] || 0)" [label]="'View ' + (counts['gap'] || 0) + ' gaps'" size="l" variant="secondary" (clicked)="showGaps()" />
-            </section>
-
-            <!-- Workspace -->
             <div class="ws" *ngIf="phase === 'structure' || phase === 'matching' || phase === 'results'">
-              <div class="ws__bar" *ngIf="phase === 'results'">
-                <div class="filters" role="group" aria-label="Filter requests">
-                  <fvdr-chip *ngFor="let f of filters" [label]="f.label" [counter]="f.count" size="l" [rounded]="true"
-                             [clickable]="true" [selected]="f.active" (clicked)="pickFilter(f.id)" />
-                  <ng-container *ngIf="sc.hasPriority">
-                    <span class="filters__div" aria-hidden="true"></span>
-                    <fvdr-chip label="High priority" icon="attention" [counter]="highCount" size="l" [rounded]="true"
-                               [clickable]="true" [selected]="highOnly" (clicked)="highOnly = !highOnly; recompute()" />
-                  </ng-container>
-                </div>
-                <span class="spacer"></span>
-                <fvdr-btn *ngIf="filter === 'gap' && askableGaps.length" [label]="(isBidder ? 'Ask about ' : 'Request ') + askableGaps.length + ' gaps' + (isBidder ? ' in Q&A' : ' from seller')"
-                          variant="secondary" size="s" [iconName]="isBidder ? 'qna' : 'send'" (clicked)="openBulkAsk()" />
-                <fvdr-segment variant="table" size="sm" [items]="layoutItems" [activeId]="layout" (activeIdChange)="pickLayout($event)" />
-              </div>
 
               <div class="ws__body">
                 <!-- Folders layout -->
@@ -414,7 +303,6 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
                   <div class="folders__tree">
                     <div class="fhead">
                       <div class="fhead__text">
-                        <span class="kicker kicker--plain">{{ fv.kicker }}</span>
                         <span class="fhead__title">{{ fv.title }}</span>
                         <span class="muted">{{ fv.sub }}</span>
                       </div>
@@ -426,8 +314,6 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
                       <span class="legend__item"><span class="sw sw--partial"></span>Partial</span>
                       <span class="legend__item"><span class="sw sw--suggested"></span>Suggested, to review</span>
                       <span class="legend__item"><span class="sw sw--closest"></span>Closest, below threshold</span>
-                      <span class="spacer"></span>
-                      <span class="muted">Click a file to see every request it answers</span>
                     </div>
                     <div class="ftree">
                       <div *ngFor="let r of fv.rows; trackBy: byKey" class="frow" [ngClass]="'frow--' + r.tint"
@@ -448,17 +334,15 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
                   </div>
                 </div>
 
-                <!-- Table layout -->
+                <!-- Table layout: status, ref, priority, request, documents — one note per row -->
                 <div class="tbl-wrap" *ngIf="phase === 'results' && layout === 'table'">
-                  <div class="tbl" role="table" aria-label="Requests and matched documents" [class.tbl--narrow]="showPanel">
+                  <div class="tbl" role="table" aria-label="Requests and matched documents" [class.tbl--narrow]="drawerOpen">
                     <div class="tr tr--head" role="row" [style.grid-template-columns]="tblCols">
                       <span role="columnheader">Status</span>
                       <span role="columnheader">Ref</span>
-                      <span role="columnheader" *ngIf="sc.hasPriority">Priority</span>
-                      <span role="columnheader">Request, as written in the source</span>
+                      <span role="columnheader" *ngIf="sc.hasPriority && !drawerOpen">Priority</span>
+                      <span role="columnheader">Request</span>
                       <span role="columnheader">Documents</span>
-                      <span role="columnheader" *ngIf="!showPanel">Missing or next step</span>
-                      <span role="columnheader">Source</span>
                     </div>
                     <div *ngIf="!groups.length" class="tbl-empty">Nothing here. Try another filter.</div>
                     <ng-container *ngFor="let g of groups; trackBy: byId">
@@ -467,91 +351,64 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
                         <span class="g-name">{{ g.name }}</span>
                         <span class="spacer"></span>
                         <span class="muted">{{ g.meta }}</span>
-                        <div class="mini-bar" *ngIf="g.hasBar"><div class="mini-bar__fill" [style.width.%]="g.pct"></div></div>
                       </div>
                       <div *ngFor="let it of g.items; trackBy: byId" class="tr tr--item" role="row" [class.tr--sel]="it.selected"
                            [style.grid-template-columns]="tblCols" (click)="select(it.id)">
                         <span role="cell"><fvdr-chip [label]="it.pill.label" [variant]="it.pill.variant" size="s" [class.pulse]="it.pill.pulse" /></span>
                         <div role="cell" class="c-id"><span>{{ it.label }}</span><fvdr-chip *ngIf="it.tag" [label]="it.tag.label" [variant]="it.tag.variant" size="xs" /></div>
-                        <div role="cell" class="c-prio" *ngIf="sc.hasPriority"><span class="prio" [class.prio--high]="it.priority === 'High'">{{ it.priority || '—' }}</span></div>
+                        <div role="cell" *ngIf="sc.hasPriority && !drawerOpen">{{ it.priority || '—' }}</div>
                         <div role="cell" class="c-text">
                           <span [class.t-muted]="it.muted">{{ it.text }}</span>
-                          <span class="t-asat" *ngIf="it.asAt"><fvdr-icon name="calendar" />As at {{ it.asAt }}</span>
+                          <span class="t-asat" *ngIf="it.asAt">As at {{ it.asAt }}</span>
                           <span *ngIf="it.reason" class="t-note" [ngClass]="'tone--' + it.reasonTone">{{ it.reason }}</span>
                         </div>
                         <div role="cell" class="c-docs">
-                          <span *ngIf="it.prefix" class="t-prefix">{{ it.prefix }}</span>
                           <div class="doc-list" *ngIf="it.chips.length">
-                            <div class="doc" *ngFor="let c of it.chips" [fvdrTooltip]="c.label + ' · ' + c.path">
-                              <fvdr-file-icon [type]="c.type" />
-                              <span class="doc__name">{{ c.label }}</span>
-                              <fvdr-btn variant="ghost" size="s" iconName="link" [iconOnly]="true" [ariaLabel]="c.isFolder ? 'Open folder' : 'Open file'" (clicked)="openPreview(c.name); $event.stopPropagation()" />
-                              <fvdr-btn variant="ghost" size="s" iconName="folder" [iconOnly]="true" ariaLabel="Open folder in Documents" (clicked)="openFolder(c.name); $event.stopPropagation()" />
-                            </div>
+                            <div class="tdoc" *ngFor="let c of it.chips"><fvdr-file-icon [type]="c.type" /><span class="tdoc__name">{{ c.label }}</span></div>
                           </div>
                           <button class="more" *ngIf="it.hasMore" (click)="toggleMore(it.id); $event.stopPropagation()">{{ it.moreLabel }}</button>
-                          <span *ngIf="!it.chips.length" class="t-dash">{{ it.noFilesText }}</span>
-                          <span *ngIf="it.issue" class="issue"><fvdr-icon name="warning" />{{ it.issue }}</span>
-                          <span *ngIf="showPanel && it.next !== '—' && !it.issue" class="t-note" [ngClass]="'tone--' + it.nextTone">{{ it.next }}</span>
-                        </div>
-                        <div role="cell" class="c-next" *ngIf="!showPanel">
-                          <span class="t-note" [ngClass]="'tone--' + it.nextTone">{{ it.next }}</span>
-                          <fvdr-btn *ngIf="it.action" [label]="it.action" variant="secondary" size="s" [fvdrTooltip]="it.actionHint" (clicked)="rowAction(it); $event.stopPropagation()" />
-                        </div>
-                        <div role="cell" class="c-src">
-                          <button class="src-link" (click)="openSrc(it.row, it.id); $event.stopPropagation()" [fvdrTooltip]="'Open row ' + it.row + ' in the source file'">R{{ it.row }}</button>
+                          <span *ngIf="it.line" class="t-note" [ngClass]="'tone--' + it.lineTone">{{ it.line }}</span>
                         </div>
                       </div>
                     </ng-container>
                   </div>
                 </div>
 
-                <!-- List layout (structure, matching, results-list) -->
-                <div class="tbl-wrap" *ngIf="phase !== 'results' || layout === 'list'">
+                <!-- List: structure check and matching -->
+                <div class="tbl-wrap" *ngIf="phase !== 'results'">
                   <div class="tbl tbl--list" role="table" aria-label="Requests">
                     <div class="tr tr--head" role="row" [style.grid-template-columns]="listCols">
                       <span role="columnheader">{{ phase === 'structure' ? 'Type' : 'Status' }}</span>
                       <span role="columnheader">Ref</span>
                       <span role="columnheader" *ngIf="sc.hasPriority">Priority</span>
-                      <span role="columnheader">Request, as written in the source file</span>
-                      <span role="columnheader" class="c-right">Source file</span>
+                      <span role="columnheader">Request</span>
+                      <span role="columnheader" class="c-right">Row</span>
                     </div>
-                    <div *ngIf="!groups.length" class="tbl-empty">Nothing here. Try another filter.</div>
                     <ng-container *ngFor="let g of groups; trackBy: byId">
                       <div class="tr tr--group" role="row">
                         <span class="g-label">{{ g.label }}</span>
                         <span class="g-name">{{ g.name }}</span>
                         <span class="spacer"></span>
-                        <button class="src-link src-link--sec" *ngIf="g.hasSrc" (click)="openSrc(g.row, 'section ' + g.id)">Section · Row {{ g.row }}</button>
                         <span class="muted">{{ g.meta }}</span>
-                        <div class="mini-bar" *ngIf="g.hasBar"><div class="mini-bar__fill" [style.width.%]="g.pct"></div></div>
                       </div>
                       <div *ngFor="let it of g.items; trackBy: byId" class="tr tr--item" role="row" [style.grid-template-columns]="listCols"
-                           [class.tr--flag]="it.flagOpen" [class.tr--sel]="it.selected" [class.tr--editing]="it.isEditing" (click)="select(it.id)">
+                           [class.tr--flag]="it.flagOpen" [class.tr--editing]="it.isEditing">
                         <span role="cell"><fvdr-chip [label]="it.pill.label" [variant]="it.pill.variant" size="s" [class.pulse]="it.pill.pulse" /></span>
                         <div role="cell" class="c-id"><span>{{ it.label }}</span><fvdr-chip *ngIf="it.tag" [label]="it.tag.label" [variant]="it.tag.variant" size="xs" /></div>
-                        <div role="cell" class="c-prio" *ngIf="sc.hasPriority"><span class="prio" [class.prio--high]="it.priority === 'High'">{{ it.priority || '—' }}</span></div>
+                        <div role="cell" *ngIf="sc.hasPriority">{{ it.priority || '—' }}</div>
                         <div role="cell" class="c-text">
                           <ng-container *ngIf="!it.isEditing">
                             <span [class.t-muted]="it.muted">{{ it.text }}</span>
-                            <span class="t-asat" *ngIf="it.asAt"><fvdr-icon name="calendar" />As at {{ it.asAt }}</span>
+                            <span class="t-asat" *ngIf="it.asAt">As at {{ it.asAt }}</span>
                             <span *ngIf="it.reason" class="t-note" [ngClass]="'tone--' + it.reasonTone">{{ it.reason }}</span>
                             <span *ngIf="it.note" class="t-note" [ngClass]="'tone--' + it.noteTone">{{ it.note }}</span>
                             <div class="row-actions" *ngIf="it.flagOpen">
                               <fvdr-btn label="Keep this reading" variant="secondary" size="s" (clicked)="keepFlag()" />
-                              <fvdr-btn label="Edit text" variant="ghost" size="s" (clicked)="startRowEdit(it.id)" />
+                              <fvdr-btn label="Edit text" variant="secondary" size="s" (clicked)="startRowEdit(it.id)" />
                             </div>
-                            <span *ngIf="it.prefix" class="t-prefix">{{ it.prefix }}</span>
                             <div class="doc-list" *ngIf="it.chips.length">
-                              <div class="doc" *ngFor="let c of it.chips">
-                                <fvdr-file-icon [type]="c.type" />
-                                <span class="doc__name">{{ c.label }}</span>
-                                <span class="doc__path">{{ c.path }}</span>
-                                <fvdr-btn variant="ghost" size="s" iconName="link" [iconOnly]="true" [ariaLabel]="c.isFolder ? 'Open folder' : 'Open file'" (clicked)="openPreview(c.name); $event.stopPropagation()" />
-                                <fvdr-btn variant="ghost" size="s" iconName="folder" [iconOnly]="true" ariaLabel="Open folder in Documents" (clicked)="openFolder(c.name); $event.stopPropagation()" />
-                              </div>
+                              <div class="tdoc" *ngFor="let c of it.chips"><fvdr-file-icon [type]="c.type" /><span class="tdoc__name">{{ c.label }}</span></div>
                             </div>
-                            <button class="more" *ngIf="it.hasMore" (click)="toggleMore(it.id); $event.stopPropagation()">{{ it.moreLabel }}</button>
                           </ng-container>
                           <div class="row-edit" *ngIf="it.isEditing" (click)="$event.stopPropagation()">
                             <fvdr-textarea [(ngModel)]="editRowText" label="Request text" [rows]="3" />
@@ -565,214 +422,13 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
                         </div>
                         <div role="cell" class="c-src c-right">
                           <fvdr-btn *ngIf="it.canEdit" variant="ghost" size="s" iconName="edit" [iconOnly]="true" ariaLabel="Edit request" (clicked)="startRowEdit(it.id); $event.stopPropagation()" />
-                          <button class="src-link" (click)="openSrc(it.row, it.id); $event.stopPropagation()">Row {{ it.row }}</button>
+                          <button class="src-link" (click)="openSrc(it.row, it.id); $event.stopPropagation()" [fvdrTooltip]="'Open row ' + it.row + ' in the source file'">{{ it.row }}</button>
                         </div>
                       </div>
                     </ng-container>
                   </div>
                 </div>
 
-                <!-- Side panel -->
-                <aside class="panel" *ngIf="showPanel" aria-label="Request details">
-                  <ng-container *ngIf="panel === 'item' && sel as s">
-                    <div class="panel__head">
-                      <fvdr-chip [label]="s.pill.label" [variant]="s.pill.variant" size="s" />
-                      <span class="panel__id">{{ s.label }}</span>
-                      <span class="prio" *ngIf="s.priority" [class.prio--high]="s.priority === 'High'">{{ s.priority }}</span>
-                      <span class="muted" *ngIf="s.queue">{{ s.queue }}</span>
-                      <span class="spacer"></span>
-                      <fvdr-btn variant="ghost" size="s" iconName="close" [iconOnly]="true" ariaLabel="Close details" (clicked)="clearSel()" />
-                    </div>
-                    <h3 class="panel__title">{{ s.text }}</h3>
-                    <div class="panel__src">
-                      <span class="muted">{{ s.srcLine }}</span>
-                      <fvdr-btn label="Open in source file" variant="link" size="s" (clicked)="openSrc(s.row, s.id)" />
-                    </div>
-                    <div class="kv" *ngIf="s.original !== s.text && s.hasOriginal"><span class="kv__k">Original row text</span><span>{{ s.original }}</span></div>
-
-                    <!-- Review -->
-                    <ng-container *ngIf="s.isReview">
-                      <div class="p-block">
-                        <span class="kv__k">Suggested document</span>
-                        <div class="doc doc--lg">
-                          <fvdr-file-icon [type]="fileType(s.docName)" />
-                          <div class="doc__col">
-                            <button class="doc__link" (click)="openPreview(s.docName)">{{ s.docLabel }}</button>
-                            <button class="doc__pathlink" (click)="openFolder(s.docName)">{{ s.docPath }}</button>
-                          </div>
-                        </div>
-                        <ul class="p-files" *ngIf="s.docFiles.length">
-                          <li *ngFor="let f of s.docFiles" [class.p-files__draft]="f.draft">{{ f.name }}<fvdr-chip *ngIf="f.draft" label="Draft, not executed" variant="yellow" size="xs" /></li>
-                        </ul>
-                        <p class="p-text"><b>Document summary:</b> {{ s.summary }}</p>
-                        <p class="p-text"><b>Why it was suggested:</b> {{ s.why }}</p>
-                        <div class="evidence" *ngIf="s.evidence">
-                          <span class="evidence__h">Found in the document <span class="muted">· {{ s.evidence.page }}</span></span>
-                          <q class="evidence__q">{{ s.evidence.quote }}</q>
-                        </div>
-                        <div class="p-period" *ngIf="s.period">
-                          <fvdr-icon name="calendar" />
-                          <div class="p-period__body">
-                            <span class="p-period__title">Wrong period</span>
-                            <span>Requested as at <b>{{ s.period.requested }}</b> · document covers <b>{{ s.period.found }}</b></span>
-                          </div>
-                        </div>
-                        <div class="p-verdict">
-                          <span class="strength" [ngClass]="'strength--' + s.strength.toLowerCase()" [fvdrTooltip]="strengthHint[s.strength]"><i></i><i></i><i></i>{{ s.strength }} match</span>
-                          <fvdr-chip [label]="s.verdict" [variant]="s.verdict === 'Partial' ? 'teal' : 'green'" size="s" />
-                          <span class="tone--warn" *ngIf="s.missing">Missing: {{ s.missing }}</span>
-                        </div>
-                        <span class="muted" *ngIf="s.ifAccepted">If accepted: <b>{{ s.ifAccepted }}</b> in your file</span>
-                        <div class="row-actions">
-                          <fvdr-btn label="Open file" variant="secondary" size="s" iconName="link" (clicked)="openPreview(s.docName)" />
-                          <fvdr-btn label="Open folder" variant="secondary" size="s" iconName="folder" (clicked)="openFolder(s.docName)" />
-                        </div>
-                      </div>
-                    </ng-container>
-
-                    <!-- Covered / partial -->
-                    <ng-container *ngIf="s.isCovered">
-                      <div class="p-block">
-                        <div class="p-row"><span class="kv__k">Linked documents</span><span class="muted">{{ s.docs.length === 1 ? '1 linked' : s.docs.length + ' linked' }}</span></div>
-                        <div class="linked" *ngFor="let d of s.docs">
-                          <fvdr-file-icon [type]="d.type" />
-                          <div class="doc__col">
-                            <span class="doc__name">{{ d.label }}</span>
-                            <span class="muted">{{ d.meta }}</span>
-                          </div>
-                          <fvdr-btn *ngIf="!d.isFolder" variant="ghost" size="s" iconName="link" [iconOnly]="true" ariaLabel="Open file" (clicked)="openPreview(d.name)" />
-                          <fvdr-btn variant="ghost" size="s" iconName="folder" [iconOnly]="true" ariaLabel="Open folder" (clicked)="openFolder(d.name)" />
-                          <fvdr-btn variant="ghost" size="s" iconName="close" [iconOnly]="true" ariaLabel="Unlink" (clicked)="unlink(d.name)" />
-                        </div>
-                        <fvdr-btn label="Link another document" variant="link" size="s" iconName="plus" (clicked)="toast('A document picker opens here to link any file or folder from the room')" />
-                        <p class="p-text"><b>Why:</b> {{ s.coverWhy }}</p>
-                        <ng-container *ngIf="s.isPartial">
-                          <p class="p-text tone--warn"><b>Still missing:</b> {{ s.partialMissing }}. This stays in the gap report as partially covered.</p>
-                          <fvdr-btn *ngIf="!s.requested && !composeOpen" [label]="isBidder ? 'Ask about the missing part in Q&A' : 'Request the missing part'" variant="secondary" size="s" (clicked)="openCompose()" />
-                          <ng-container *ngTemplateOutlet="composer" />
-                          <span *ngIf="s.requested" class="muted">{{ reqDoneText }}</span>
-                        </ng-container>
-                        <div class="p-export" *ngIf="s.exportStatus">
-                          <span class="kv__k">In the exported file</span>
-                          <span>Status: <b>{{ s.exportStatus }}</b></span>
-                        </div>
-                      </div>
-                    </ng-container>
-
-                    <!-- Gap -->
-                    <ng-container *ngIf="s.isGap">
-                      <div class="p-gap">
-                        <span class="p-gap__title"><fvdr-icon name="error" />{{ s.gapTitle }}</span>
-                        <span>{{ s.gapText }}</span>
-                      </div>
-                      <div class="p-block" *ngIf="s.hasNear">
-                        <span class="kv__k">Closest document, below the match threshold</span>
-                        <div class="doc doc--lg">
-                          <fvdr-file-icon [type]="fileType(s.nearName)" />
-                          <div class="doc__col">
-                            <button class="doc__link" (click)="openPreview(s.nearName)">{{ s.nearName }}</button>
-                            <button class="doc__pathlink" (click)="openFolder(s.nearName)">{{ s.nearPath }}</button>
-                          </div>
-                        </div>
-                        <p class="p-text">{{ s.nearWhy }}</p>
-                        <div class="evidence" *ngIf="s.nearEvidence">
-                          <span class="evidence__h"><span class="strength strength--weak"><i></i><i></i><i></i>Weak match</span><span class="muted">· {{ s.nearEvidence.page }}</span></span>
-                          <q class="evidence__q">{{ s.nearEvidence.quote }}</q>
-                        </div>
-                        <div class="row-actions">
-                          <fvdr-btn label="Open file" variant="secondary" size="s" (clicked)="openPreview(s.nearName)" />
-                          <fvdr-btn label="Open folder" variant="secondary" size="s" (clicked)="openFolder(s.nearName)" />
-                          <fvdr-btn label="Link it anyway" variant="ghost" size="s" (clicked)="linkNear()" />
-                        </div>
-                      </div>
-                      <div class="p-actions">
-                        <fvdr-btn *ngIf="s.isReopened" label="Restore file" (clicked)="restoreFile()" />
-                        <fvdr-btn *ngIf="!s.requested && !composeOpen" [label]="isBidder ? 'Ask seller in Q&A' : 'Request from seller'" [variant]="s.isReopened ? 'secondary' : 'primary'" (clicked)="openCompose()" />
-                        <fvdr-btn label="Link a document" variant="secondary" (clicked)="toast('A document picker opens here to link any file or folder from the room')" />
-                        <fvdr-btn label="Mark not applicable" variant="secondary" (clicked)="markNa()" />
-                      </div>
-                      <ng-container *ngTemplateOutlet="composer" />
-                      <span *ngIf="s.requested" class="tone--success p-text">{{ reqDoneText }}</span>
-                      <p class="p-hint"><fvdr-icon name="info" />{{ sideHint }}</p>
-                    </ng-container>
-
-                    <ng-container *ngIf="s.isQuestion">
-                      <p class="p-text">This is a question. It asks for a written answer, not documents, so it isn't matched and doesn't count toward coverage.</p>
-                      <fvdr-btn *ngIf="!s.requested && !composeOpen" [label]="isBidder ? 'Send to Q&A' : 'Request answer from seller'" (clicked)="openCompose()" />
-                      <ng-container *ngTemplateOutlet="composer" />
-                      <span *ngIf="s.requested" class="tone--success p-text">{{ isBidder ? 'Added to Q&A on Oct 6.' : 'Answer requested from the seller team on Oct 6.' }}</span>
-                    </ng-container>
-                    <p class="p-text" *ngIf="s.isInstruction">This is an instruction on how to respond. It isn't matched. It's kept so people uploading documents can see it.</p>
-                    <p class="p-text" *ngIf="s.isNote">This is a note, such as a link, legend or definition. It isn't matched and is kept for reference.</p>
-                    <div class="p-row" *ngIf="s.isNa">
-                      <span class="p-text">Marked not applicable. It won't appear in the gap report.</span>
-                      <fvdr-btn label="Undo" variant="ghost" size="s" (clicked)="undoNa()" />
-                    </div>
-
-                    <div class="history" *ngIf="s.history.length">
-                      <span class="kv__k">History</span>
-                      <ol class="history__list">
-                        <li *ngFor="let h of s.history"><span class="history__what">{{ h.what }}</span><span class="muted">{{ h.who }} · {{ h.at }}</span></li>
-                      </ol>
-                      <span class="muted"><fvdr-icon name="lock-close" /> Every decision is also logged in Reports → Activity log.</span>
-                    </div>
-
-                    <div class="p-reading" *ngIf="s.canEditReading">
-                      <div class="p-row">
-                        <span class="kv__k">How AI reads this request</span>
-                        <fvdr-btn *ngIf="editId !== s.id" label="Correct" variant="secondary" size="s" iconName="edit" (clicked)="startEditReading()" />
-                      </div>
-                      <ng-container *ngIf="editId !== s.id">
-                        <span class="p-text">{{ s.reading }}</span>
-                        <span class="muted" *ngIf="s.asAt">Period checked against: as at {{ s.asAt }}</span>
-                        <span *ngIf="s.readingEdited" class="muted">Corrected by you. The text in your file stays as it is.</span>
-                      </ng-container>
-                      <ng-container *ngIf="editId === s.id">
-                        <fvdr-textarea [(ngModel)]="editText" [rows]="4" helperText="Changes what this request is matched against. The text in your file isn't changed." />
-                        <div class="row-actions">
-                          <fvdr-btn label="Save and match again" size="s" (clicked)="saveReading()" />
-                          <fvdr-btn label="Cancel" variant="secondary" size="s" (clicked)="editId = null" />
-                        </div>
-                      </ng-container>
-                    </div>
-                    <div class="panel__bar" *ngIf="s.isReview">
-                      <div class="panel__bar-main">
-                        <fvdr-btn [label]="s.verdict === 'Partial' ? 'Accept as partial' : 'Accept'" (clicked)="accept()" />
-                        <fvdr-btn label="Reject" variant="secondary" (clicked)="reject()" />
-                        <span class="spacer"></span>
-                        <fvdr-btn variant="ghost" size="s" iconName="chevron-up" [iconOnly]="true" ariaLabel="Previous suggestion (K)" (clicked)="stepReview(-1)" />
-                        <span class="muted nowrap">{{ s.queueShort }}</span>
-                        <fvdr-btn variant="ghost" size="s" iconName="chevron-down" [iconOnly]="true" ariaLabel="Next suggestion (J)" (clicked)="stepReview(1)" />
-                      </div>
-                      <span class="kbd-hint"><kbd>A</kbd> accept · <kbd>R</kbd> reject · <kbd>J</kbd>/<kbd>K</kbd> next/previous</span>
-                    </div>
-                  </ng-container>
-
-                  <!-- Diff -->
-                  <ng-container *ngIf="panel === 'diff' && sc.edits as e">
-                    <div class="panel__head">
-                      <fvdr-chip label="Source file changed" variant="yellow" size="s" />
-                      <span class="spacer"></span>
-                      <fvdr-btn variant="ghost" size="s" iconName="close" [iconOnly]="true" ariaLabel="Close" (clicked)="panel = 'none'; recompute()" />
-                    </div>
-                    <h3 class="panel__title">Changes in {{ sc.sheets[0].name }}</h3>
-                    <p class="muted">Edited by {{ e.editedBy }}, after the requests were extracted.</p>
-                    <div class="diff">
-                      <span class="kv__k tone--success">Added · Row {{ e.added.row }} · Document request</span>
-                      <span>{{ e.added.text }}</span>
-                    </div>
-                    <div class="diff">
-                      <span class="kv__k tone--warn">Changed · Row {{ e.changed.row }} · {{ e.changed.id }}</span>
-                      <span class="diff__old">{{ e.changed.from }}</span>
-                      <span class="diff__new">{{ e.changed.to }}</span>
-                    </div>
-                    <p class="p-text">Confirmed matches on every other request stay as they are. The 2 affected requests will be matched again.</p>
-                    <div class="p-cta">
-                      <fvdr-btn label="Apply changes" (clicked)="applyDiff()" />
-                      <fvdr-btn label="Not now" variant="secondary" (clicked)="panel = 'none'; recompute()" />
-                    </div>
-                  </ng-container>
-                </aside>
               </div>
             </div>
           </ng-container>
@@ -780,18 +436,191 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
       </div>
     </div>
 
-    <ng-template #composer>
-      <div class="composer" *ngIf="composeOpen && sel">
-        <span class="kv__k">{{ isBidder ? 'Question to the seller · Q&A' : 'Upload request to the seller team' }}</span>
-        <fvdr-textarea [(ngModel)]="composeText" [rows]="5" [helperText]="isBidder ? 'Posted to Q&A as a new question, linked to ' + sel.label + '. You can edit it before it goes.' : 'The seller team gets this as an upload request, linked to ' + sel.label + '.'" />
-        <div class="row-actions">
-          <fvdr-btn [label]="isBidder ? 'Send to Q&A' : 'Send request'" size="s" iconName="send" (clicked)="sendCompose()" />
-          <fvdr-btn label="Cancel" variant="secondary" size="s" (clicked)="composeOpen = false" />
+    <!-- ── Drawer (same anatomy as v3): header · sections separated by space · actions in the footer ── -->
+    <aside class="drawer" *ngIf="drawerOpen" role="dialog" aria-label="Details">
+      <!-- What AI read -->
+      <ng-container *ngIf="readOpen">
+        <header class="dh">
+          <span class="dh__title">What AI read</span>
+          <span class="spacer"></span>
+          <fvdr-btn variant="ghost" size="s" iconName="close" [iconOnly]="true" ariaLabel="Close" (clicked)="closeRead()" />
+        </header>
+        <div class="db">
+          <section class="ds" *ngIf="sc.details?.fields?.length">
+            <h3 class="ds__h">Checklist details <span class="ds__sub" *ngIf="sc.details?.metaRows">{{ sc.details?.metaRows }}</span></h3>
+            <dl class="kv"><ng-container *ngFor="let f of sc.details?.fields"><dt>{{ f.label }}</dt><dd>{{ f.value }}</dd></ng-container></dl>
+          </section>
+          <section class="ds">
+            <h3 class="ds__h">Requests</h3>
+            <dl class="kvs">
+              <div><dt>Header row</dt><dd><fvdr-dropdown [options]="headerRowOptions" [value]="'' + headerRow" (valueChange)="changeHeaderRow(asString($event))" /></dd></div>
+              <div><dt>Found</dt><dd>{{ structLine }}</dd></div>
+              <div *ngIf="sc.details?.columnsUsed"><dt>Read from</dt><dd>{{ sc.details?.columnsUsed?.join(', ') }}</dd></div>
+            </dl>
+          </section>
+          <section class="ds">
+            <h3 class="ds__h">Where results go</h3>
+            <dl class="kvs">
+              <div><dt>Columns</dt><dd>{{ hasResultCols ? sc.details?.resultCols?.join(', ') : 'New columns in the export' }}</dd></div>
+              <div *ngIf="sc.statusMap"><dt>Status values</dt><dd>{{ sc.statusMap.covered }}, {{ sc.statusMap.partial }}, {{ sc.statusMap.gap }}, {{ sc.statusMap.na }}</dd></div>
+            </dl>
+          </section>
+          <section class="ds">
+            <h3 class="ds__h">Deal side</h3>
+            <fvdr-segment variant="table" size="md" [items]="sideItems" [activeId]="isBidder ? 'buy' : 'sell'" (activeIdChange)="setSide($event)" />
+            <p class="ds__p">{{ isBidder ? 'Missing items become questions to the seller in Q&A.' : 'Missing items become upload requests to the seller team.' }}</p>
+          </section>
+          <section class="ds ds--quiet">
+            <h3 class="ds__h">How matching works</h3>
+            <p class="ds__p">AI reads the checklist and the documents in the scope you pick, nothing else. It never changes your file, never accepts for you and never messages the seller without your click. Every decision is logged in the Activity log.</p>
+          </section>
         </div>
-      </div>
-    </ng-template>
+        <footer class="df"><fvdr-btn label="Done" variant="secondary" (clicked)="closeRead()" /></footer>
+      </ng-container>
 
-    <fvdr-modal [visible]="bulkOpen" size="l" [title]="isBidder ? 'Ask the seller about ' + bulkItems.length + ' gaps' : 'Request ' + bulkItems.length + ' missing documents'"
+      <!-- A request -->
+      <ng-container *ngIf="!readOpen && panel === 'item' && sel as s">
+        <header class="dh">
+          <fvdr-chip [label]="s.pill.label" [variant]="s.pill.variant" size="s" />
+          <span class="dh__ref">{{ s.label }}</span>
+          <span class="spacer"></span>
+          <span class="dh__pos" *ngIf="s.queue">{{ s.queue }}</span>
+          <fvdr-btn variant="ghost" size="s" iconName="chevron-up" [iconOnly]="true" ariaLabel="Previous (K)" (clicked)="stepAny(-1)" />
+          <fvdr-btn variant="ghost" size="s" iconName="chevron-down" [iconOnly]="true" ariaLabel="Next (J)" (clicked)="stepAny(1)" />
+          <fvdr-btn variant="ghost" size="s" iconName="close" [iconOnly]="true" ariaLabel="Close (Esc)" (clicked)="clearSel()" />
+        </header>
+        <div class="db">
+          <section class="ds ds--req">
+            <p class="req">{{ s.text }}</p>
+            <ul class="meta">
+              <li><span class="meta__k">Row</span><button class="lnk" (click)="openSrc(s.row, s.id)" [fvdrTooltip]="'Open row ' + s.row + ' in the source file'">{{ s.row }}</button></li>
+              <li *ngIf="s.priority"><span class="meta__k">Priority</span>{{ s.priority }}</li>
+              <li *ngIf="s.asAt"><span class="meta__k">As at</span>{{ s.asAt }}</li>
+            </ul>
+          </section>
+
+          <section class="ds" *ngIf="s.isReview">
+            <div class="ds__row">
+              <h3 class="ds__h">Suggested document</h3>
+              <span class="strength" [ngClass]="'strength--' + s.strength.toLowerCase()" [fvdrTooltip]="strengthHint[s.strength]"><i></i><i></i><i></i>{{ s.strength }} match</span>
+            </div>
+            <div class="doc">
+              <fvdr-file-icon [type]="fileType(s.docName)" />
+              <div class="doc__b">
+                <button class="doc__name" (click)="openPreview(s.docName)">{{ s.docLabel }}</button>
+                <button class="doc__path doc__path--btn" (click)="openFolder(s.docName)">{{ s.docPath }}</button>
+              </div>
+            </div>
+            <figure class="quote" *ngIf="s.evidence">
+              <blockquote>{{ s.evidence.quote }}</blockquote>
+              <figcaption>{{ s.evidence.page }}</figcaption>
+            </figure>
+          </section>
+
+          <section class="ds" *ngIf="s.isCovered">
+            <h3 class="ds__h">Linked documents</h3>
+            <div class="doc" *ngFor="let d of s.docs">
+              <fvdr-file-icon [type]="d.type" />
+              <div class="doc__b">
+                <button class="doc__name" (click)="openPreview(d.name)">{{ d.label }}</button>
+                <span class="doc__path">{{ d.meta }}</span>
+              </div>
+              <fvdr-btn variant="ghost" size="s" iconName="close" [iconOnly]="true" ariaLabel="Unlink" (clicked)="unlink(d.name)" />
+            </div>
+            <button class="lnk lnk--start" (click)="toast('A document picker opens here to link any file or folder from the room')">Link another document</button>
+          </section>
+
+          <section class="ds" *ngIf="s.isGap">
+            <h3 class="ds__h">{{ s.gapTitle }}</h3>
+            <p class="ds__p" *ngIf="s.gapText">{{ s.gapText }}</p>
+            <div class="doc doc--muted" *ngIf="s.hasNear">
+              <fvdr-file-icon [type]="fileType(s.nearName)" />
+              <div class="doc__b">
+                <button class="doc__name" (click)="openPreview(s.nearName)">{{ s.nearName }}</button>
+                <span class="doc__path">Closest document, below the match threshold</span>
+              </div>
+              <fvdr-btn label="Link anyway" variant="ghost" size="s" (clicked)="linkNear()" />
+            </div>
+          </section>
+
+          <section class="ds" *ngIf="s.isQuestion || s.isInstruction || s.isNote || s.isNa">
+            <p class="ds__p" *ngIf="s.isQuestion">A question asks for a written answer, not documents. It isn't matched and doesn't count toward coverage.</p>
+            <p class="ds__p" *ngIf="s.isInstruction">An instruction on how to respond. It isn't matched and stays visible to people uploading documents.</p>
+            <p class="ds__p" *ngIf="s.isNote">A note, such as a link, legend or definition. It isn't matched.</p>
+            <p class="ds__p" *ngIf="s.isNa">Marked not applicable. It won't appear in the gap report.</p>
+          </section>
+
+          <section class="ds" *ngIf="s.issues.length">
+            <h3 class="ds__h">Needs attention</h3>
+            <ul class="issues">
+              <li *ngFor="let i of s.issues"><fvdr-icon [name]="i.icon" /><span><b>{{ i.title }}</b> {{ i.text }}</span></li>
+            </ul>
+          </section>
+
+          <section class="ds" *ngIf="composeOpen">
+            <h3 class="ds__h">{{ isBidder ? 'Question to the seller' : 'Upload request to the seller' }}</h3>
+            <fvdr-textarea [(ngModel)]="composeText" [rows]="6" />
+            <p class="ds__p">Goes to {{ isBidder ? 'Q&A' : 'the seller team' }} only when you click Send. You can edit it first.</p>
+          </section>
+
+          <section class="ds" *ngIf="s.writes">
+            <h3 class="ds__h">{{ s.isReview ? 'If you accept, your file gets' : 'In your file' }}</h3>
+            <dl class="kvs">
+              <div *ngFor="let w of s.writes"><dt>{{ w.col }}</dt><dd [class.kv__empty]="!w.val">{{ w.val || 'Empty' }}</dd></div>
+            </dl>
+          </section>
+
+          <details class="ds ds--quiet hist" *ngIf="s.history.length">
+            <summary class="ds__h">History <span class="ds__sub">{{ s.history.length }}</span></summary>
+            <ol><li *ngFor="let h of s.history"><span>{{ h.what }}</span><span class="hist__who">{{ h.who }} · {{ h.at }}</span></li></ol>
+          </details>
+        </div>
+        <footer class="df">
+          <ng-container *ngIf="s.isReview">
+            <fvdr-btn [label]="s.verdict === 'Partial' ? 'Accept as partial' : 'Accept'" fvdrTooltip="A" (clicked)="accept()" />
+            <fvdr-btn label="Reject" variant="secondary" fvdrTooltip="R" (clicked)="reject()" />
+          </ng-container>
+          <ng-container *ngIf="composeOpen">
+            <fvdr-btn [label]="isBidder ? 'Send to Q&A' : 'Send request'" (clicked)="sendCompose()" />
+            <fvdr-btn label="Cancel" variant="secondary" (clicked)="composeOpen = false" />
+          </ng-container>
+          <ng-container *ngIf="!composeOpen && !s.requested && !s.isReview">
+            <fvdr-btn *ngIf="s.isReopened" label="Restore file" (clicked)="restoreFile()" />
+            <fvdr-btn *ngIf="s.isGap || s.isPartial || s.isQuestion" [label]="isBidder ? (s.isQuestion ? 'Send to Q&A' : 'Ask in Q&A') : 'Request from seller'" [variant]="s.isReopened ? 'secondary' : 'primary'" (clicked)="openCompose()" />
+            <fvdr-btn *ngIf="s.isGap" label="Mark N/A" variant="secondary" (clicked)="markNa()" />
+            <fvdr-btn *ngIf="s.isNa" label="Undo N/A" variant="secondary" (clicked)="undoNa()" />
+          </ng-container>
+          <span class="df__done" *ngIf="s.requested && !composeOpen">{{ isBidder ? 'Asked in Q&A' : 'Requested from the seller' }}</span>
+        </footer>
+      </ng-container>
+
+      <!-- Changes in the source file -->
+      <ng-container *ngIf="!readOpen && panel === 'diff' && sc.edits as e">
+        <header class="dh">
+          <span class="dh__title">Changes in {{ sc.sheets[0].name }}</span>
+          <span class="spacer"></span>
+          <fvdr-btn variant="ghost" size="s" iconName="close" [iconOnly]="true" ariaLabel="Close" (clicked)="panel = 'none'; recompute()" />
+        </header>
+        <div class="db">
+          <p class="ds__p">Edited by {{ e.editedBy }} after the requests were extracted. Confirmed matches on other requests stay as they are.</p>
+          <section class="ds">
+            <h3 class="ds__h">Added · row {{ e.added.row }}</h3>
+            <p class="ds__p ds__p--strong">{{ e.added.text }}</p>
+          </section>
+          <section class="ds">
+            <h3 class="ds__h">Changed · row {{ e.changed.row }} · {{ e.changed.id }}</h3>
+            <span class="diff__old">{{ e.changed.from }}</span>
+            <span class="diff__new">{{ e.changed.to }}</span>
+          </section>
+        </div>
+        <footer class="df">
+          <fvdr-btn label="Apply and match 2 requests" (clicked)="applyDiff()" />
+          <fvdr-btn label="Not now" variant="secondary" (clicked)="panel = 'none'; recompute()" />
+        </footer>
+      </ng-container>
+    </aside>
+
+    <fvdr-modal [visible]="bulkOpen" size="m" [title]="isBidder ? 'Ask the seller about ' + bulkItems.length + ' gaps' : 'Request ' + bulkItems.length + ' missing documents'"
                 [confirmLabel]="'Send ' + bulkSelected + (bulkSelected === 1 ? ' question' : ' questions')" cancelLabel="Cancel" [confirmDisabled]="!bulkSelected"
                 (confirmed)="sendBulk()" (cancelled)="bulkOpen = false" (closed)="bulkOpen = false">
       <p class="muted">Each gap becomes its own {{ isBidder ? 'Q&A question' : 'upload request' }}, linked to its request. Edit the wording before sending.</p>
@@ -817,14 +646,14 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
   </div>
   `,
   styles: [`
-    :host { display: block; height: 100vh; overflow: hidden; font-family: var(--font-family); font-size: var(--font-size-base);
-      line-height: var(--line-height-base); color: var(--color-text-primary); }
+    :host { display: block; height: 100vh; overflow: hidden; font-family: var(--font-family); font-size: var(--text-body3-size);
+      line-height: var(--text-body3-lh); color: var(--color-text-primary); }
     .page { display: flex; height: 100%; background: var(--color-stone-0); }
     .main { flex: 1; min-width: 0; display: flex; flex-direction: column; overflow: hidden; }
     .content { flex: 1; min-height: 0; overflow: auto; background: var(--color-stone-0);
       padding: var(--space-3) var(--space-6) calc(var(--space-16) + var(--space-4)); display: flex; flex-direction: column; gap: var(--space-4); }
     .spacer { flex: 1; }
-    .muted { color: var(--color-text-secondary); font-size: var(--font-size-xs); line-height: var(--line-height-sm); }
+    .muted { color: var(--color-text-secondary); font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); }
     b { font-weight: var(--font-weight-semi); }
 
     .tone--default { color: var(--color-text-primary); }
@@ -840,20 +669,19 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
     .drop--uploading { padding: var(--space-8) var(--space-6); }
     .drop__icon { width: var(--space-12); height: var(--space-12); border-radius: var(--radius-full); background: var(--color-primary-50);
       color: var(--color-primary-500); display: inline-flex; align-items: center; justify-content: center; font-size: var(--font-size-2xl); }
-    .drop__title { margin: 0; font-size: var(--font-size-xl); font-weight: var(--font-weight-semi); }
+    .drop__title { margin: 0; font-size: var(--text-sub2-size); line-height: var(--text-sub2-lh); font-weight: var(--text-sub2-weight); }
     .drop__text { margin: 0; max-width: 560px; color: var(--color-text-secondary); }
-    .drop__caption { font-size: var(--font-size-xs); color: var(--color-text-secondary); }
+    .drop__caption { font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); color: var(--color-text-secondary); }
     .consent { display: flex; flex-direction: column; gap: var(--space-1); text-align: left; max-width: 560px; margin: var(--space-2) 0; }
     .consent--off { flex-direction: row; gap: var(--space-2); color: var(--color-text-secondary); }
-    .consent__hint { margin: 0 0 0 calc(var(--space-6) + var(--space-1)); font-size: var(--font-size-xs); line-height: var(--line-height-sm); color: var(--color-text-secondary); }
+    .consent__hint { margin: 0 0 0 calc(var(--space-6) + var(--space-1)); font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); color: var(--color-text-secondary); }
     .consent--off .consent__hint { margin: 0; }
     .up-file { display: flex; align-items: center; gap: var(--space-3); width: min(420px, 100%); text-align: left; }
     .up-file__body { flex: 1; display: flex; flex-direction: column; gap: var(--space-1); }
     .up-file__name { font-weight: var(--font-weight-semi); }
-    .up-file__meta { font-size: var(--font-size-xs); color: var(--color-text-secondary); }
+    .up-file__meta { font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); color: var(--color-text-secondary); }
 
     .bar { height: var(--space-1); border-radius: var(--radius-full); background: var(--color-stone-300); overflow: hidden; width: 100%; }
-    .bar--wide { max-width: 480px; }
     .bar__fill { height: 100%; background: var(--color-primary-500); transition: width var(--transition-fast, 0.15s) linear; }
 
     /* Tabs + toolbar */
@@ -861,29 +689,17 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
     .tabs-row fvdr-tabs { flex: 1; }
     .toolbar { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; }
     .toolbar__actions { display: flex; gap: var(--space-4); flex-wrap: wrap; }
-    .owner { display: inline-flex; align-items: center; gap: var(--space-2); font-size: var(--font-size-sm); color: var(--color-text-secondary); }
+    .owner { display: inline-flex; align-items: center; gap: var(--space-2); font-size: var(--text-body3-size); color: var(--color-text-secondary); }
     .export { position: relative; }
     .menu { position: absolute; right: 0; top: calc(100% + var(--space-1)); z-index: 30; width: 360px; background: var(--color-stone-0);
       border-radius: var(--radius-md); box-shadow: var(--shadow-popup); padding: var(--space-1); display: flex; flex-direction: column; }
     .menu__item { all: unset; cursor: pointer; display: flex; flex-direction: column; gap: var(--space-1); padding: var(--space-2) var(--space-3); border-radius: var(--radius-sm); }
     .menu__item:hover, .menu__item:focus-visible { background: var(--color-hover-bg); }
     .menu__title { font-weight: var(--font-weight-semi); }
-    .menu__sub { font-size: var(--font-size-xs); line-height: var(--line-height-sm); color: var(--color-text-secondary); }
-    .menu__foot { padding: var(--space-2) var(--space-3); border-top: 1px solid var(--color-divider); font-size: var(--font-size-xs); color: var(--color-text-secondary); }
+    .menu__sub { font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); color: var(--color-text-secondary); }
+    .menu__foot { padding: var(--space-2) var(--space-3); border-top: 1px solid var(--color-divider); font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); color: var(--color-text-secondary); }
 
     /* Notices */
-    .notice { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3) 0; border-bottom: 1px solid var(--color-divider); }
-    .notice__icon { color: var(--color-text-secondary); font-size: var(--font-size-lg); flex: none; }
-    .notice--warn .notice__icon { color: var(--color-warning-icon); }
-    .notice--hl .notice__icon { color: var(--color-primary-500); }
-    .notice__body { flex: 1; display: flex; flex-direction: column; gap: var(--space-1); min-width: 0; }
-    .notice__title { font-weight: var(--font-weight-semi); }
-    .notice__text { color: var(--color-text-secondary); }
-    .notice__text--grow { flex: 1; }
-    .ai-mark { flex: none; width: var(--space-8); height: var(--space-8); border-radius: var(--radius-full); background: var(--color-primary-50);
-      color: var(--color-primary-500); display: inline-flex; align-items: center; justify-content: center; font-size: var(--font-size-lg); }
-    .ai-mark--lg { width: var(--space-12); height: var(--space-12); font-size: var(--font-size-2xl); }
-    .ai-mark--busy { animation: pulse 1.4s ease-in-out infinite; }
     @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .45; } }
     .pulse { animation: pulse 1.4s ease-in-out infinite; }
 
@@ -891,205 +707,109 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
     .sheet { flex: none; display: flex; flex-direction: column; border: 1px solid var(--color-divider); border-radius: var(--radius-md); overflow: hidden; }
     .sheet__formula { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--color-divider); }
     .sheet__search { color: var(--color-text-secondary); }
-    .sheet__ref, .sheet__val { height: var(--space-8); display: inline-flex; align-items: center; padding: 0 var(--space-2); border: 1px solid var(--color-divider); border-radius: var(--radius-sm); font-size: var(--font-size-sm); }
+    .sheet__ref, .sheet__val { height: var(--space-8); display: inline-flex; align-items: center; padding: 0 var(--space-2); border: 1px solid var(--color-divider); border-radius: var(--radius-sm); font-size: var(--text-body3-size); }
     .sheet__ref { width: 72px; }
     .sheet__val { flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
     .sheet__scroll { overflow: auto; }
-    .sheet__grid { min-width: 1100px; font-size: var(--font-size-sm); line-height: var(--line-height-sm); }
+    .sheet__grid { min-width: 1100px; font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); }
     .sr { display: grid; border-bottom: 1px solid var(--color-divider); }
     .sr--cols { background: var(--color-stone-200); color: var(--color-text-secondary); text-align: center; }
     .sr--header { background: var(--color-text-primary); color: var(--color-stone-0); font-weight: var(--font-weight-semi); }
     .sr--section { background: var(--color-stone-400); font-weight: var(--font-weight-semi); }
-    .sr--title .sc--span { font-size: var(--font-size-lg); font-weight: var(--font-weight-bold, 700); }
+    .sr--title .sc--span { font-size: var(--text-label-l-size); line-height: var(--text-label-l-lh); font-weight: var(--text-label-l-weight); }
     .sr--meta .sc--span { font-style: italic; }
-    .sr--legend .sc--span { font-weight: var(--font-weight-bold, 700); }
+    .sr--legend .sc--span { font-weight: var(--text-label-s-weight); }
     .sr--hl { background: var(--color-primary-50); outline: 2px solid var(--color-primary-500); outline-offset: -2px; }
     .sc { padding: var(--space-2); border-right: 1px solid var(--color-divider); min-width: 0; overflow-wrap: anywhere; white-space: pre-line; }
     .sc--span { grid-column: 2 / -1; }
-    .sc--n { background: var(--color-stone-200); color: var(--color-text-secondary); text-align: center; font-weight: normal; font-style: normal; }
+    .sc--n { background: var(--color-stone-200); color: var(--color-text-secondary); text-align: center; font-weight: var(--text-body3-weight); font-style: normal; }
     .sr--header .sc--n { color: var(--color-text-secondary); }
     .sc--right { text-align: right; }
     .sc--sel { display: flex; justify-content: space-between; align-items: center; gap: var(--space-1); }
     .sc--sel fvdr-icon { color: var(--color-text-secondary); }
     .sc--yellow { background: var(--color-warning-bg); }
     .sc--filled { background: var(--color-primary-50); box-shadow: inset 0 0 0 1px var(--color-primary-100); }
-    .sheet__tabs { display: flex; align-items: center; gap: var(--space-1); padding: var(--space-1) var(--space-2); border-top: 1px solid var(--color-divider); background: var(--color-stone-100); font-size: var(--font-size-xs); }
+    .sheet__tabs { display: flex; align-items: center; gap: var(--space-1); padding: var(--space-1) var(--space-2); border-top: 1px solid var(--color-divider); background: var(--color-stone-100); font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); }
     .sheet__tab { padding: var(--space-1) var(--space-3); border-radius: var(--radius-sm); color: var(--color-text-secondary); }
     .sheet__tab--on { background: var(--color-stone-0); color: var(--color-primary-600); font-weight: var(--font-weight-semi); box-shadow: var(--shadow-card); }
     .sheet__zoom { color: var(--color-text-secondary); }
 
     /* Delta */
-    .delta { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; padding: var(--space-3) 0; border-bottom: 1px solid var(--color-divider); }
+    .delta { flex: none; display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; padding: var(--space-3) 0; border-bottom: 1px solid var(--color-divider); }
     .delta__title { display: inline-flex; align-items: center; gap: var(--space-2); font-weight: var(--font-weight-semi); }
     .delta__title fvdr-icon { color: var(--color-primary-500); }
-    .delta__chips { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; }
 
     /* Empty states */
     .empty { display: flex; flex-direction: column; align-items: center; gap: var(--space-3); padding: var(--space-16) var(--space-6); text-align: center; }
-    .empty__title { margin: 0; font-size: var(--font-size-xl); font-weight: var(--font-weight-semi); }
+    .empty__title { margin: 0; font-size: var(--text-sub2-size); line-height: var(--text-sub2-lh); font-weight: var(--text-sub2-weight); }
     .empty__text { margin: 0; max-width: 560px; color: var(--color-text-secondary); }
 
     /* Summary blocks */
-    .summary { display: flex; gap: var(--space-8); align-items: center; padding: var(--space-4) 0; border-bottom: 1px solid var(--color-divider); flex-wrap: wrap; }
-    .summary__main { flex: 1; min-width: 280px; display: flex; flex-direction: column; gap: var(--space-2); }
-    .summary__side { width: 360px; display: flex; flex-direction: column; gap: var(--space-2); }
-    .summary__title { margin: 0; font-size: var(--font-size-xl); line-height: var(--line-height-lg); font-weight: var(--font-weight-semi); }
-    .summary__line { display: flex; align-items: baseline; gap: var(--space-3); flex-wrap: wrap; }
-    .summary__chips { display: flex; flex-wrap: wrap; gap: var(--space-2); }
-    .summary__hint { font-size: var(--font-size-xs); line-height: var(--line-height-sm); color: var(--color-text-secondary); }
-    .kicker { display: inline-flex; align-items: center; gap: var(--space-1); font-size: var(--font-size-xs); font-weight: var(--font-weight-semi); color: var(--color-primary-600); }
-    .kicker--plain { color: var(--color-text-secondary); font-weight: normal; }
-    .stats { display: flex; align-items: center; gap: var(--space-6); }
-    .stat { display: flex; flex-direction: column; }
-    .stat__label { font-size: var(--font-size-xs); color: var(--color-text-secondary); }
-    .stat__val { font-size: var(--font-size-3xl); line-height: var(--line-height-lg); font-weight: var(--font-weight-semi); }
-    .stat__val--info { color: var(--color-info-500); }
-    .stat__val--success { color: var(--color-primary-600); }
-    .stat__val--teal { color: var(--color-primary-700); }
-    .stat__val--warn { color: var(--color-warning-text); }
-    .stat__val--error { color: var(--color-error-600); }
-    .cov { display: flex; flex-direction: column; gap: var(--space-1); }
-    .cov__line { display: flex; align-items: baseline; gap: var(--space-2); }
-    .cov__pct { font-size: var(--font-size-5xl); line-height: 1; font-weight: var(--font-weight-semi); }
-    .cov__of { color: var(--color-text-secondary); }
 
     /* Checklist details */
-    .details { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr); gap: var(--space-8); padding: var(--space-4) 0; border-bottom: 1px solid var(--color-divider); }
-    .details__col { display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
-    .details__h { font-weight: var(--font-weight-semi); }
-    .kvs { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: var(--space-1) var(--space-4); margin: 0; font-size: var(--font-size-sm); }
+    .kvs { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: var(--space-1) var(--space-4); margin: 0; font-size: var(--text-body3-size); }
     .kvs dt { color: var(--color-text-secondary); }
     .kvs dd { margin: 0; }
-    .side { display: flex; flex-direction: column; gap: var(--space-2); align-items: flex-start; }
 
     /* Workspace */
     .ws { flex: none; display: flex; flex-direction: column; gap: var(--space-3); }
-    .ws__bar { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; }
-    .filters { display: flex; gap: var(--space-2); flex-wrap: wrap; align-items: center; }
-    .filters__div { width: 1px; height: var(--space-6); background: var(--color-divider); }
     .ws__body { display: flex; gap: var(--space-6); align-items: flex-start; }
     .tbl-wrap { flex: 1; min-width: 0; overflow-x: auto; }
 
-    .tbl { min-width: 980px; }
-    .tbl--narrow { min-width: 660px; }
+    .tbl { min-width: 820px; }
+    .tbl--narrow { min-width: 0; }
     .tbl--list { min-width: 660px; }
     .tr { display: grid; gap: var(--space-3); padding: var(--space-3); border-bottom: 1px solid var(--color-divider); align-items: start; }
-    .tr--head { font-size: var(--font-size-xs); color: var(--color-text-secondary); padding-top: var(--space-2); padding-bottom: var(--space-2); }
+    .tr--head { font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); color: var(--color-text-secondary); padding-top: var(--space-2); padding-bottom: var(--space-2); }
     .tr--group { display: flex; align-items: center; gap: var(--space-3); background: var(--color-stone-100); padding: var(--space-2) var(--space-3); }
     .g-label { color: var(--color-text-secondary); font-weight: var(--font-weight-semi); }
     .g-name { font-weight: var(--font-weight-semi); }
-    .mini-bar { width: 72px; height: var(--space-1); border-radius: var(--radius-full); background: var(--color-stone-300); overflow: hidden; }
-    .mini-bar__fill { height: 100%; background: var(--color-primary-500); }
     .tr--item { cursor: pointer; }
     .tr--item:hover { background: var(--color-stone-100); }
     .tr--sel, .tr--sel:hover { background: var(--color-primary-50); box-shadow: inset 3px 0 0 var(--color-primary-500); }
     .tr--flag, .tr--flag:hover { background: var(--color-warning-bg); }
     .tr--editing { background: var(--color-stone-100); cursor: default; }
     .c-id { display: flex; flex-direction: column; gap: var(--space-1); align-items: flex-start; color: var(--color-text-secondary); padding-top: var(--space-1); }
-    .c-prio { padding-top: var(--space-1); }
-    .prio { font-size: var(--font-size-xs); color: var(--color-text-secondary); }
-    .prio--high { color: var(--color-text-primary); font-weight: var(--font-weight-semi); }
     .c-text { display: flex; flex-direction: column; gap: var(--space-1); padding-top: var(--space-1); min-width: 0; }
-    .t-asat { display: inline-flex; align-items: center; gap: var(--space-1); font-size: var(--font-size-xs); color: var(--color-text-secondary); }
+    .t-asat { display: inline-flex; align-items: center; gap: var(--space-1); font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); color: var(--color-text-secondary); }
     .c-docs, .c-next { display: flex; flex-direction: column; gap: var(--space-1); align-items: flex-start; min-width: 0; padding-top: var(--space-1); }
     .c-src { display: flex; align-items: center; gap: var(--space-1); }
     .c-right { justify-content: flex-end; text-align: right; }
     .t-muted { color: var(--color-text-secondary); }
-    .t-note { font-size: var(--font-size-xs); line-height: var(--line-height-sm); }
-    .t-prefix { font-size: var(--font-size-xs); color: var(--color-text-secondary); }
-    .t-dash { color: var(--color-text-placeholder); }
-    .issue { display: inline-flex; align-items: center; gap: var(--space-1); font-size: var(--font-size-xs); color: var(--color-warning-text); }
-    .issue fvdr-icon { color: var(--color-warning-icon); }
+    .t-note { font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); }
     .tbl-empty { padding: var(--space-8); text-align: center; color: var(--color-text-secondary); }
     .doc-list { display: flex; flex-direction: column; width: 100%; }
     .doc { display: flex; align-items: center; gap: var(--space-2); min-width: 0; }
     .doc + .doc { border-top: 1px solid var(--color-stone-300); }
-    .doc__name { flex: 1; min-width: 0; overflow: hidden; font-size: var(--font-size-sm); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow-wrap: anywhere; }
-    .doc__path { color: var(--color-text-secondary); font-size: var(--font-size-xs); white-space: nowrap; }
-    .doc--lg { align-items: flex-start; }
-    .doc__col { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-    .doc__link, .doc__pathlink { all: unset; cursor: pointer; }
-    .doc__link { font-weight: var(--font-weight-semi); }
-    .doc__link:hover { color: var(--color-primary-600); text-decoration: underline; }
-    .doc__pathlink { font-size: var(--font-size-xs); color: var(--color-primary-600); }
-    .doc__pathlink:hover { text-decoration: underline; }
-    .more { all: unset; cursor: pointer; font-size: var(--font-size-xs); color: var(--color-primary-600); }
-    .src-link { all: unset; cursor: pointer; font-size: var(--font-size-xs); color: var(--color-primary-600); padding: 2px var(--space-2); border-radius: var(--radius-sm); }
+    .doc__name { flex: 1; min-width: 0; overflow: hidden; font-size: var(--text-body3-size); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow-wrap: anywhere; }
+    .doc__path { color: var(--color-text-secondary); font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); white-space: nowrap; }
+    .more { all: unset; cursor: pointer; font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); color: var(--color-primary-600); }
+    .src-link { all: unset; cursor: pointer; font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); color: var(--color-primary-600); padding: 2px var(--space-2); border-radius: var(--radius-sm); }
     .src-link:hover { background: var(--color-primary-50); }
     .src-link:focus-visible, .more:focus-visible, .doc__link:focus-visible, .doc__pathlink:focus-visible { outline: 2px solid var(--color-primary-500); outline-offset: 1px; }
-    .src-link--sec { color: var(--color-text-secondary); }
     .row-actions { display: flex; gap: var(--space-2); flex-wrap: wrap; align-items: center; margin-top: var(--space-1); }
     .row-edit { display: flex; flex-direction: column; gap: var(--space-2); max-width: 640px; }
 
     /* Side panel */
-    .panel { width: 380px; flex: none; position: relative; border-left: 1px solid var(--color-divider); padding: 0 0 0 var(--space-5);
-      display: flex; flex-direction: column; gap: var(--space-3); }
     /* Sticks to the bottom of the visible area while the panel is taller than it. Offset clears the prototype switcher. */
-    .panel__bar { position: sticky; bottom: var(--space-16); margin-top: auto; background: var(--color-stone-0); border-top: 1px solid var(--color-divider);
-      padding: var(--space-3) 0; display: flex; flex-direction: column; gap: var(--space-2); box-shadow: 0 -8px 16px -12px var(--color-stone-500); }
-    .panel__bar-main { display: flex; align-items: center; gap: var(--space-2); }
-    .nowrap { white-space: nowrap; }
-    .kbd-hint { font-size: var(--font-size-xs); color: var(--color-text-secondary); }
-    kbd { font-family: var(--font-family); font-size: var(--font-size-2xs, 11px); padding: 0 var(--space-1); border: 1px solid var(--color-divider); border-bottom-width: 2px; border-radius: var(--radius-sm); background: var(--color-stone-100); }
-    .evidence { display: flex; flex-direction: column; gap: var(--space-1); padding: var(--space-2) var(--space-3); border-left: 3px solid var(--color-primary-300); background: var(--color-stone-100); font-size: var(--font-size-sm); }
-    .evidence__h { display: inline-flex; align-items: center; gap: var(--space-1); font-size: var(--font-size-xs); font-weight: var(--font-weight-semi); color: var(--color-text-secondary); }
-    .evidence__q { font-style: italic; }
-    .strength { display: inline-flex; align-items: center; gap: 2px; font-size: var(--font-size-xs); font-weight: var(--font-weight-semi); color: var(--color-text-secondary); }
+    .strength { display: inline-flex; align-items: center; gap: 2px; font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); font-weight: var(--font-weight-semi); color: var(--color-text-secondary); }
     .strength i { width: 4px; height: var(--space-3); border-radius: 1px; background: var(--color-stone-400); }
     .strength i:last-of-type { margin-right: var(--space-1); }
     .strength--strong i { background: var(--color-primary-500); }
     .strength--medium i:nth-of-type(-n+2) { background: var(--color-warning-icon); }
     .strength--weak i:first-of-type { background: var(--color-stone-600); }
-    .history { display: flex; flex-direction: column; gap: var(--space-2); padding-top: var(--space-3); border-top: 1px solid var(--color-divider); }
-    .history__list { margin: 0; padding-left: var(--space-5); display: flex; flex-direction: column; gap: var(--space-2); font-size: var(--font-size-sm); }
-    .history__list li { display: flex; flex-direction: column; }
-    .history__what { font-weight: var(--font-weight-semi); }
-    .history fvdr-icon { vertical-align: -2px; }
-    .composer { display: flex; flex-direction: column; gap: var(--space-2); padding: var(--space-3); border: 1px solid var(--color-primary-300); border-radius: var(--radius-md); }
     .bulk { display: flex; flex-direction: column; gap: var(--space-3); max-height: 50vh; overflow-y: auto; padding-right: var(--space-1); }
     .bulk__item { display: flex; flex-direction: column; gap: var(--space-2); padding-bottom: var(--space-3); border-bottom: 1px solid var(--color-divider); }
-    .how { margin: 0; padding-left: var(--space-5); display: flex; flex-direction: column; gap: var(--space-3); font-size: var(--font-size-sm); line-height: var(--line-height-base); }
+    .how { margin: 0; padding-left: var(--space-5); display: flex; flex-direction: column; gap: var(--space-3); font-size: var(--text-body3-size); line-height: var(--text-body3-lh); }
     .lnk { all: unset; cursor: pointer; color: var(--color-primary-600); font-weight: var(--font-weight-semi); }
     .lnk:hover { text-decoration: underline; }
     .lnk:focus-visible { outline: 2px solid var(--color-primary-500); outline-offset: 1px; border-radius: var(--radius-sm); }
-    .menu__warn { display: flex; gap: var(--space-2); padding: var(--space-2) var(--space-3); margin-bottom: var(--space-1); background: var(--color-warning-bg); border-radius: var(--radius-sm); font-size: var(--font-size-xs); line-height: var(--line-height-sm); }
+    .menu__warn { display: flex; gap: var(--space-2); padding: var(--space-2) var(--space-3); margin-bottom: var(--space-1); background: var(--color-warning-bg); border-radius: var(--radius-sm); font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); }
     .menu__warn fvdr-icon { color: var(--color-warning-icon); flex: none; margin-top: 2px; }
     .menu__warn-body { display: flex; flex-direction: column; gap: var(--space-1); }
     .menu__warn-links { display: flex; gap: var(--space-3); }
-    .stat__val--sm { font-size: var(--font-size-lg); }
-    .hdr-row { display: flex; align-items: center; gap: var(--space-2); }
-    .map { display: flex; flex-direction: column; gap: var(--space-1); }
-    .map span { display: inline-flex; align-items: center; gap: var(--space-1); }
-    .ai-mark--warn { background: var(--color-warning-bg); color: var(--color-warning-icon); }
     .fail-actions { display: flex; align-items: flex-end; gap: var(--space-3); }
-    .panel__head { display: flex; align-items: center; gap: var(--space-2); }
-    .panel__id { color: var(--color-text-secondary); font-weight: var(--font-weight-semi); }
-    .panel__title { margin: 0; font-size: var(--font-size-lg); line-height: var(--line-height-lg); font-weight: var(--font-weight-semi); }
-    .panel__src { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-1); }
     .kv { display: flex; flex-direction: column; gap: var(--space-1); }
-    .kv__k { font-size: var(--font-size-xs); font-weight: var(--font-weight-semi); color: var(--color-text-secondary); }
-    .p-block { display: flex; flex-direction: column; gap: var(--space-2); padding-top: var(--space-3); border-top: 1px solid var(--color-divider); }
-    .p-text { margin: 0; font-size: var(--font-size-sm); line-height: var(--line-height-base); }
-    .p-files { margin: 0; padding-left: var(--space-5); font-size: var(--font-size-sm); display: flex; flex-direction: column; gap: var(--space-1); }
-    .p-files li { display: flex; align-items: center; gap: var(--space-2); }
-    .p-period { display: flex; gap: var(--space-2); padding: var(--space-2) var(--space-3); border-left: 3px solid var(--color-warning-icon); background: var(--color-warning-bg); font-size: var(--font-size-sm); }
-    .p-period fvdr-icon { color: var(--color-warning-icon); flex: none; margin-top: 2px; }
-    .p-period__body { display: flex; flex-direction: column; gap: 2px; }
-    .p-period__title { font-weight: var(--font-weight-semi); color: var(--color-warning-text); }
-    .p-verdict { display: flex; align-items: center; gap: var(--space-2); font-size: var(--font-size-sm); flex-wrap: wrap; }
-    .p-cta { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2); padding-top: var(--space-2); }
-    .p-nav { display: flex; justify-content: space-between; }
-    .p-row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); }
-    .p-export { display: flex; flex-direction: column; gap: 2px; font-size: var(--font-size-sm); padding-top: var(--space-2); border-top: 1px dashed var(--color-divider); }
-    .p-gap { display: flex; flex-direction: column; gap: var(--space-1); padding-top: var(--space-3); border-top: 1px solid var(--color-divider); font-size: var(--font-size-sm); }
-    .p-gap__title { display: inline-flex; align-items: center; gap: var(--space-2); font-weight: var(--font-weight-semi); color: var(--color-error-600); }
-    .p-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); }
-    .p-hint { margin: 0; display: flex; gap: var(--space-2); font-size: var(--font-size-xs); line-height: var(--line-height-sm); color: var(--color-text-secondary); }
-    .p-hint fvdr-icon { flex: none; margin-top: 2px; }
-    .p-reading { display: flex; flex-direction: column; gap: var(--space-2); padding-top: var(--space-3); border-top: 1px solid var(--color-divider); }
-    .linked { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-1) 0; }
-    .linked + .linked { border-top: 1px solid var(--color-stone-300); }
-    .diff { display: flex; flex-direction: column; gap: var(--space-1); padding: var(--space-3) 0; border-top: 1px solid var(--color-divider); font-size: var(--font-size-sm); }
     .diff__old { color: var(--color-text-secondary); text-decoration: line-through; }
     .diff__new { color: var(--color-primary-700); }
 
@@ -1098,16 +818,16 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
     .folders__reqs { border-right: 1px solid var(--color-divider); padding-right: var(--space-4); }
     .folders__head { display: flex; justify-content: space-between; align-items: center; padding: var(--space-2) 0; border-bottom: 1px solid var(--color-divider); }
     .h-sec { font-weight: var(--font-weight-semi); }
-    .fgroup__name { font-size: var(--font-size-xs); color: var(--color-text-secondary); padding: var(--space-3) 0 var(--space-1); }
+    .fgroup__name { font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); color: var(--color-text-secondary); padding: var(--space-3) 0 var(--space-1); }
     .freq { all: unset; box-sizing: border-box; cursor: pointer; width: 100%; display: grid; grid-template-columns: 8px 36px minmax(0, 1fr) auto; gap: var(--space-2);
-      align-items: center; padding: var(--space-1) var(--space-2); border-radius: var(--radius-sm); font-size: var(--font-size-sm); }
+      align-items: center; padding: var(--space-1) var(--space-2); border-radius: var(--radius-sm); font-size: var(--text-body3-size); }
     .freq:hover { background: var(--color-stone-100); }
     .freq:focus-visible { outline: 2px solid var(--color-primary-500); outline-offset: -2px; }
     .freq--hit { background: var(--color-primary-50); }
     .freq--sel { background: var(--color-primary-50); box-shadow: inset 3px 0 0 var(--color-primary-500); }
     .freq__id { color: var(--color-text-secondary); }
     .freq__text { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-    .freq__count { font-size: var(--font-size-xs); color: var(--color-text-secondary); }
+    .freq__count { font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); color: var(--color-text-secondary); }
     .freq__count--gap { color: var(--color-error-600); }
     .dot { width: 8px; height: 8px; border-radius: var(--radius-full); background: var(--color-stone-500); }
     .dot--covered { background: var(--color-primary-500); }
@@ -1117,8 +837,8 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
     .folders__tree { min-width: 0; display: flex; flex-direction: column; gap: var(--space-2); }
     .fhead { display: flex; align-items: flex-start; gap: var(--space-3); flex-wrap: wrap; padding: var(--space-2) 0; border-bottom: 1px solid var(--color-divider); }
     .fhead__text { flex: 1; min-width: 240px; display: flex; flex-direction: column; gap: 2px; }
-    .fhead__title { font-size: var(--font-size-lg); font-weight: var(--font-weight-semi); }
-    .legend { display: flex; align-items: center; gap: var(--space-4); flex-wrap: wrap; font-size: var(--font-size-xs); color: var(--color-text-secondary); }
+    .fhead__title { font-size: var(--text-label-s-size); line-height: var(--text-label-s-lh); font-weight: var(--text-label-s-weight); }
+    .legend { display: flex; align-items: center; gap: var(--space-4); flex-wrap: wrap; font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); color: var(--color-text-secondary); }
     .legend__item { display: inline-flex; align-items: center; gap: var(--space-1); }
     .sw { width: 10px; height: 10px; border-radius: var(--radius-xs, 2px); }
     .sw--linked { background: var(--color-primary-100); }
@@ -1126,7 +846,7 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
     .sw--suggested { background: var(--color-warning-bg); border: 1px solid var(--color-warning-border); }
     .sw--closest { background: var(--color-stone-300); }
     .ftree { display: flex; flex-direction: column; }
-    .frow { display: flex; align-items: center; gap: var(--space-2); min-height: 36px; padding: var(--space-1) var(--space-3); border-bottom: 1px solid var(--color-stone-300); cursor: pointer; font-size: var(--font-size-sm); }
+    .frow { display: flex; align-items: center; gap: var(--space-2); min-height: 36px; padding: var(--space-1) var(--space-3); border-bottom: 1px solid var(--color-stone-300); cursor: pointer; font-size: var(--text-body3-size); }
     .frow:hover { background: var(--color-stone-100); }
     .frow--related { background: var(--color-stone-100); }
     .frow--linked { background: var(--color-primary-100); }
@@ -1138,7 +858,85 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
     .frow__chev { color: var(--color-text-secondary); transition: transform var(--transition-fast, 0.15s) ease; }
     .frow__chev--open { transform: rotate(90deg); }
     .frow__name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .frow__meta { color: var(--color-text-secondary); font-size: var(--font-size-xs); white-space: nowrap; }
+    .frow__meta { color: var(--color-text-secondary); font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); white-space: nowrap; }
+    /* ── v2 simplification: one grey bar before results, a plain row after ── */
+    .content--drawer { padding-right: var(--space-6); }
+    .aibar { flex: none; display: flex; align-items: center; gap: var(--space-4); flex-wrap: wrap; min-height: var(--space-10);
+      padding: var(--space-4); border-radius: var(--radius-md); background: var(--color-stone-300); }
+    .aibar__text { font-size: var(--text-body3-size); line-height: var(--text-body3-lh); }
+    .aibar__text b { font-weight: var(--font-weight-semi); }
+    .aibar__grow { flex: 1; min-width: 0; }
+    .aibar .scope { width: 320px; }
+    .rbar { flex: none; display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); flex-wrap: wrap; min-height: var(--space-10); }
+    .rbar__r { display: flex; align-items: center; gap: var(--space-4); }
+    .covp { display: inline-flex; align-items: center; gap: var(--space-6); height: var(--space-10); padding: 0 var(--space-4) 0 var(--space-3); box-sizing: border-box;
+      background: var(--color-stone-0); border: 1px solid var(--color-divider); border-radius: var(--radius-full); font-size: var(--text-body3-size); }
+    .covp__val { display: inline-flex; align-items: center; gap: var(--space-2); }
+    .covp b { font-weight: var(--font-weight-semi); }
+    /* Donut for coverage and AI progress */
+    .ring { width: 20px; height: 20px; border-radius: var(--radius-full); flex: none;
+      background: conic-gradient(var(--color-primary-500) calc(var(--p, 0) * 1%), var(--ring-track, var(--color-stone-300)) 0);
+      -webkit-mask: radial-gradient(circle, transparent 5.5px, var(--color-text-primary) 6px); mask: radial-gradient(circle, transparent 5.5px, var(--color-text-primary) 6px); }
+    .ring--bar { --ring-track: var(--color-stone-400); }
+    .tdoc { display: flex; align-items: flex-start; gap: var(--space-2); }
+    .tdoc > fvdr-file-icon { flex: none; display: flex; align-items: center; height: var(--text-body3-lh); }
+    .tdoc__name { overflow-wrap: anywhere; }
+
+    /* ── Drawer, same anatomy as v3 ── */
+    .drawer { flex: none; width: 440px; height: 100%; display: flex; flex-direction: column; background: var(--color-stone-0); border-left: 1px solid var(--color-divider);
+      font-size: var(--text-body3-size); line-height: var(--text-body3-lh); color: var(--color-text-primary); }
+    .drawer .dh { flex: none; display: flex; align-items: center; gap: var(--space-2); height: var(--space-16); box-sizing: border-box; padding: 0 var(--space-4) 0 var(--space-6); border-bottom: 1px solid var(--color-divider); }
+    .drawer .dh__title { font-size: var(--text-label-l-size); line-height: var(--text-label-l-lh); font-weight: var(--text-label-l-weight); }
+    .drawer .dh__ref { font-weight: var(--font-weight-semi); color: var(--color-text-secondary); }
+    .drawer .dh__pos { font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); color: var(--color-text-secondary); margin-right: var(--space-1); }
+    .drawer .db { flex: 1; overflow-y: auto; padding: var(--space-6); display: flex; flex-direction: column; gap: var(--space-8); }
+    .drawer .ds { display: flex; flex-direction: column; gap: var(--space-3); }
+    .drawer .ds__h { margin: 0; font-size: var(--text-body3-size); line-height: var(--text-body3-lh); font-weight: var(--font-weight-semi); }
+    .drawer .ds__sub { margin-left: var(--space-1); font-weight: var(--text-body3-weight); color: var(--color-text-secondary); }
+    .drawer .ds__row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
+    .drawer .ds__p { margin: 0; color: var(--color-text-secondary); }
+    .drawer .ds__p--strong { color: var(--color-text-primary); }
+    .drawer .ds--quiet .ds__h { color: var(--color-text-secondary); }
+    .drawer .ds--req { gap: var(--space-4); }
+    .drawer .req { margin: 0; font-size: var(--text-label-l-size); line-height: var(--text-label-l-lh); font-weight: var(--text-label-l-weight); }
+    .drawer .meta { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-6); }
+    .drawer .meta li { display: flex; flex-direction: column; gap: 2px; align-items: flex-start; }
+    .drawer .meta__k { font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); color: var(--color-text-secondary); }
+    .drawer .doc { display: flex; align-items: flex-start; gap: var(--space-3); }
+    .drawer .doc > fvdr-file-icon { flex: none; display: flex; align-items: center; height: var(--text-body3-lh); }
+    .drawer .doc > fvdr-btn { flex: none; }
+    .drawer .doc__b { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; align-items: flex-start; }
+    .drawer .doc__name { all: unset; cursor: pointer; font-weight: var(--font-weight-semi); overflow-wrap: anywhere; }
+    .drawer .doc__name:hover { color: var(--color-primary-600); text-decoration: underline; }
+    .drawer .doc__name:focus-visible, .drawer .doc__path--btn:focus-visible { outline: 2px solid var(--color-primary-500); outline-offset: 1px; }
+    .drawer .doc__path { all: unset; font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); color: var(--color-text-secondary); }
+    .drawer .doc__path--btn { cursor: pointer; }
+    .drawer .doc__path--btn:hover { color: var(--color-primary-600); text-decoration: underline; }
+    .drawer .doc--muted .doc__name { font-weight: var(--text-body3-weight); }
+    .drawer .lnk--start { align-self: flex-start; }
+    .drawer .quote { margin: 0; padding-left: var(--space-4); border-left: 2px solid var(--color-primary-300); display: flex; flex-direction: column; gap: var(--space-1); }
+    .drawer .quote blockquote { margin: 0; font-style: italic; }
+    .drawer .quote figcaption { font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); color: var(--color-text-secondary); }
+    .drawer .issues { list-style: none; margin: 0; padding: var(--space-3) var(--space-4); display: flex; flex-direction: column; gap: var(--space-3);
+      background: var(--color-warning-bg); border-radius: var(--radius-md); }
+    .drawer .issues li { display: flex; gap: var(--space-2); }
+    .drawer .issues fvdr-icon { color: var(--color-warning-icon); flex: none; margin-top: 2px; }
+    .drawer .issues b { font-weight: var(--font-weight-semi); }
+    .drawer .kv { display: grid; grid-template-columns: 130px minmax(0, 1fr); gap: var(--space-3) var(--space-4); margin: 0; }
+    .drawer .kv dt { color: var(--color-text-secondary); }
+    .drawer .kv dd { margin: 0; overflow-wrap: anywhere; }
+    .drawer .kvs { margin: 0; display: flex; flex-direction: column; gap: var(--space-3); }
+    .drawer .kvs > div { display: flex; flex-direction: column; gap: var(--space-1); }
+    .drawer .kvs dt { font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); font-weight: var(--font-weight-semi); }
+    .drawer .kvs dd { margin: 0; white-space: pre-line; overflow-wrap: anywhere; }
+    .drawer .kv__empty { color: var(--color-text-placeholder); }
+    .drawer .hist summary { cursor: pointer; list-style: none; }
+    .drawer .hist summary::-webkit-details-marker { display: none; }
+    .drawer .hist ol { margin: 0; padding-left: var(--space-5); display: flex; flex-direction: column; gap: var(--space-3); }
+    .drawer .hist li { display: flex; flex-direction: column; gap: 2px; }
+    .drawer .hist__who { font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); color: var(--color-text-secondary); }
+    .drawer .df { flex: none; display: flex; align-items: center; gap: var(--space-3); padding: var(--space-4) var(--space-6); border-top: 1px solid var(--color-divider); }
+    .drawer .df__done { color: var(--color-primary-600); }
   `],
 })
 export class ChecklistMatchingComponent implements OnDestroy {
@@ -1165,11 +963,7 @@ export class ChecklistMatchingComponent implements OnDestroy {
   ];
   crumbs: BreadcrumbItem[] = [{ id: 'dd', label: 'Due diligence checklist' }];
   headerActions: HeaderAction[] = [{ id: 'help', icon: 'help', label: 'Help' }];
-  layoutItems: SegmentItem[] = [
-    { id: 'table', label: 'Table', icon: 'table-view' },
-    { id: 'list', label: 'List', icon: 'list-view' },
-    { id: 'folders', label: 'Folders', icon: 'folder' },
-  ];
+  layoutItems: SegmentItem[] = [{ id: 'table', label: 'Table' }, { id: 'folders', label: 'Folders' }];
   sideItems: SegmentItem[] = [{ id: 'sell', label: 'Sell-side' }, { id: 'buy', label: 'Buy-side' }];
   clsOptions: DropdownOption[] = [
     { value: 'document_request', label: 'Document request' },
@@ -1247,6 +1041,23 @@ export class ChecklistMatchingComponent implements OnDestroy {
   pct = 0;
   highCount = 0;
   sel: any = null;
+  filterItems: SegmentItem[] = [];
+  readOpen = false;
+  get drawerOpen() { return (this.readOpen && this.view === 'requests') || this.showPanel; }
+  get structLine() {
+    const t = this.typeChips; if (!t) return '';
+    const parts = [t.doc, t.qCount ? t.q : '', t.iCount ? t.i : '', t.nCount ? t.n : ''].filter(Boolean);
+    return `${parts.join(', ')} in ${this.sc.sections.length} sections`;
+  }
+  openRead() { this.readOpen = true; this.exportOpen = false; this.recompute(); }
+  closeRead() { this.readOpen = false; this.recompute(); }
+  /** Drawer arrows: through the review queue while reviewing, otherwise through the rows on screen. */
+  stepAny(dir: 1 | -1) {
+    if (this.sel?.isReview) { this.stepReview(dir); return; }
+    const ids = this.groups.flatMap(g => g.items.map(i => i.id)); if (!ids.length) return;
+    const i = this.selected ? ids.indexOf(this.selected) : -1;
+    this.selected = ids[(i + dir + ids.length) % ids.length]; this.composeOpen = false; this.recompute();
+  }
   showPanel = false;
   changeChips: { kind: ChangeKind; label: string; variant: ChipVariant }[] = [];
   changeTotal = 0;
@@ -1291,7 +1102,7 @@ export class ChecklistMatchingComponent implements OnDestroy {
   get totalDocsLabel() { return this.sc.totalDocs.toLocaleString('en-US'); }
   get docsRead() { return Math.round(this.progress * this.sc.totalDocs).toLocaleString('en-US'); }
   get hasResultCols() { return !!this.sc.details?.resultCols; }
-  get etaLabel() { const m = Math.ceil((1 - this.progress) * 3); return m <= 0 ? 'Finishing' : `About ${m} min`; }
+  get etaLabel() { const m = Math.ceil((1 - this.progress) * 3); return m <= 0 ? 'finishing' : `about ${m} min left`; }
   get sideHint() {
     return this.isBidder
       ? 'Buy-side checklist: missing items become questions to the seller in Q&A.'
@@ -1304,8 +1115,7 @@ export class ChecklistMatchingComponent implements OnDestroy {
   get srcInfoText() {
     if (this.stale) return 'This file changed after the requests were extracted. Review the changes in Requests.';
     if (this.phase === 'results') {
-      const base = `${this.matchable} document requests extracted on ${this.sc.extractedOn} · ${this.counts['review'] || 0} to review, ${this.counts['gap'] || 0} gaps.`;
-      return this.hasResultCols && this.previewResults ? base + ' Results are previewed in the file\'s own columns; the file in the room is unchanged until you export.' : base;
+      return this.hasResultCols && this.previewResults ? 'Results are shown in the file\'s own columns. The file in the room changes only when you export.' : `Requests extracted on ${this.sc.extractedOn}.`;
     }
     return `Matching ${this.matchable} document requests from this file against ${this.totalDocsLabel} documents.`;
   }
@@ -1437,15 +1247,17 @@ export class ChecklistMatchingComponent implements OnDestroy {
 
   @HostListener('document:keydown', ['$event'])
   onKey(e: KeyboardEvent) {
-    if (this.panel !== 'item' || !this.sel?.isReview || this.bulkOpen || this.howOpen) return;
+    if (!this.drawerOpen || this.bulkOpen || this.howOpen) return;
     const t = e.target as HTMLElement | null;
     if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
     if (e.metaKey || e.ctrlKey || e.altKey) return;
     const k = e.key.toLowerCase();
-    if (k === 'a') { e.preventDefault(); this.accept(); }
-    else if (k === 'r') { e.preventDefault(); this.reject(); }
-    else if (k === 'j') { e.preventDefault(); this.stepReview(1); }
-    else if (k === 'k') { e.preventDefault(); this.stepReview(-1); }
+    if (k === 'escape') { if (this.readOpen) this.closeRead(); else this.clearSel(); }
+    else if (this.readOpen) return;
+    else if (k === 'j') { e.preventDefault(); this.stepAny(1); }
+    else if (k === 'k') { e.preventDefault(); this.stepAny(-1); }
+    else if (this.sel?.isReview && k === 'a') { e.preventDefault(); this.accept(); }
+    else if (this.sel?.isReview && k === 'r') { e.preventDefault(); this.reject(); }
   }
 
   upload() {
@@ -1548,8 +1360,8 @@ export class ChecklistMatchingComponent implements OnDestroy {
     if (this.layout === 'folders') this.layout = 'table';
     this.recompute();
   }
-  select(id: string) { if (this.phase !== 'results') return; Object.assign(this, { selected: id, panel: 'item', exportOpen: false, editId: null }); this.recompute(); }
-  clearSel() { Object.assign(this, { selected: null, panel: 'none', editId: null }); this.recompute(); }
+  select(id: string) { if (this.phase !== 'results') return; Object.assign(this, { selected: id, panel: 'item', exportOpen: false, editId: null, readOpen: false, composeOpen: false }); this.recompute(); }
+  clearSel() { Object.assign(this, { selected: null, panel: 'none', editId: null, composeOpen: false }); this.recompute(); }
   toggleMore(id: string) { this.expanded = { ...this.expanded, [id]: !this.expanded[id] }; this.recompute(); }
   rowAction(it: RowVm) {
     this.select(it.id);
@@ -1751,18 +1563,15 @@ export class ChecklistMatchingComponent implements OnDestroy {
       { value: 'a', label: 'Documents a group can see…' },
     ];
     this.viewItems = [
-      { id: 'source', label: 'Source file', icon: 'documents' },
-      { id: 'requests', label: 'Requests', icon: 'sparkle', count: isResults && counts['review'] ? counts['review'] : undefined },
+      { id: 'source', label: 'Source file' },
+      { id: 'requests', label: 'Requests', count: isResults && counts['review'] ? counts['review'] : undefined },
     ];
 
     // Grid templates
     const w = (x: number | 'fill') => x === 'fill' ? 'minmax(260px, 1fr)' : x + 'px';
     this.gridCols = '40px ' + sc.source.widths.map(w).join(' ');
     const prio = sc.hasPriority ? ' 72px' : '';
-    this.tblCols = this.showPanel
-      ? `112px 48px${prio} minmax(200px, 1fr) minmax(200px, 280px) 48px`
-      : `112px 56px${prio} minmax(240px, 1fr) minmax(240px, 320px) minmax(160px, 220px) 56px`;
-    this.listCols = `136px 56px${prio} minmax(0, 1fr) 120px`;
+    this.listCols = `136px 56px${prio} minmax(0, 1fr) 88px`;
 
     // Filters
     const inFolders = this.layout === 'folders';
@@ -1771,11 +1580,11 @@ export class ChecklistMatchingComponent implements OnDestroy {
       ['review', 'To review', counts['review'] || 0],
       ['gap', 'Gaps', counts['gap'] || 0],
       ['covered', 'Covered', (counts['covered'] || 0) + (counts['partial'] || 0)],
-      ['other', 'Questions and notes', (counts['question'] || 0) + (counts['instruction'] || 0) + (counts['note'] || 0)],
     ];
     this.filters = fdef.filter(f => !(inFolders && f[0] === 'other')).map(([id, label, count]) => ({
       id, label, count, active: (this.filter === id || (inFolders && id === 'all' && this.filter === 'other')) && !this.changeFilter,
     }));
+    this.filterItems = this.filters.map(f => ({ id: f.id, label: f.label, count: f.count }));
 
     // Change chips
     const chg: Record<ChangeKind, number> = { reopened: 0, closed: 0, suggested: 0 };
@@ -1820,13 +1629,29 @@ export class ChecklistMatchingComponent implements OnDestroy {
 
     // Selected
     this.sel = this.selVm(reqs);
-    this.showPanel = isResults && this.layout !== 'folders' && ((this.panel === 'item' && !!this.sel) || this.panel === 'diff');
-    this.tblCols = this.showPanel
-      ? `112px 48px${prio} minmax(200px, 1fr) minmax(200px, 280px) 48px`
-      : `112px 56px${prio} minmax(240px, 1fr) minmax(240px, 320px) minmax(160px, 220px) 56px`;
+    this.showPanel = isResults && this.view === 'requests' && this.layout !== 'folders' && ((this.panel === 'item' && !!this.sel) || this.panel === 'diff');
+    // With the drawer open, Priority lives in the drawer; the table keeps room for documents
+    this.tblCols = this.drawerOpen ? `112px 48px minmax(200px, 1fr) minmax(180px, 260px)` : `112px 56px${prio} minmax(240px, 1fr) minmax(220px, 340px)`;
 
     this.buildSource();
     if (isResults && this.layout === 'folders') this.fv = this.foldersView(reqs);
+  }
+
+  /** The one thing worth reading under a row's documents, if anything. */
+  private lineFor(r: Req, rec: Rec): { line: string; lineTone: Tone } {
+    const s = rec.s; const miss = rec.missing || r.cand?.missing || '';
+    const asked = rec.requested ? (this.isBidder ? ' · asked in Q&A' : ' · requested from seller') : '';
+    if (s === 'review') {
+      if (r.cand?.period) return { line: `Wrong period: document covers ${r.cand.period.found}`, lineTone: 'warn' };
+      if (r.cand?.draft) return { line: 'Includes an unsigned draft', lineTone: 'warn' };
+      return { line: miss ? 'Missing: ' + miss : '', lineTone: 'warn' };
+    }
+    if (s === 'partial') return { line: 'Missing: ' + miss + asked, lineTone: 'warn' };
+    if (s === 'gap') return { line: (rec.reopened ? 'Linked file deleted' : rec.rejected ? 'Suggestion rejected' : 'Nothing found') + asked, lineTone: 'error' };
+    if (s === 'na') return { line: 'Not applicable', lineTone: 'muted' };
+    if (s === 'question') return { line: rec.requested ? (this.isBidder ? 'Added to Q&A' : 'Answer requested') : 'Needs a written answer', lineTone: 'muted' };
+    if (s === 'instruction' || s === 'note') return { line: 'Not matched', lineTone: 'muted' };
+    return { line: '', lineTone: 'muted' };
   }
 
   private issueFor(r: Req, s: string): string {
@@ -1852,7 +1677,6 @@ export class ChecklistMatchingComponent implements OnDestroy {
       else if (s === 'gap') {
         if (rec.reopened) note = 'Linked file deleted, now in the recycle bin';
         else if (rec.rejected) note = 'Suggestion rejected';
-        else if (r.near) { prefix = 'Closest, below threshold'; chipNames = [r.near.name]; }
         else note = 'Nothing found';
         noteTone = 'error';
       }
@@ -1889,6 +1713,7 @@ export class ChecklistMatchingComponent implements OnDestroy {
       chips: all.length > LIMIT && !exp ? all.slice(0, LIMIT) : all, allCount: all.length,
       hasMore: all.length > LIMIT, expanded: exp, moreLabel: exp ? 'Show fewer' : `Show ${all.length - LIMIT} more`,
       prefix, note, noteTone, next, nextTone, action, issue: isResults ? this.issueFor(r, s) : '',
+      ...this.lineFor(r, rec),
       actionHint: action === 'Review' ? 'Open the suggestion to accept or reject it' : this.sideHint,
       flagOpen: !!(r.flag && phase === 'structure' && !this.flagResolved), isEditing, canEdit: phase === 'structure' && !isEditing,
       isEdited: !!r.edited, tag, reason, reasonTone: isResults && ch ? CHANGE_TONE[ch.kind] : 'muted',
@@ -1949,7 +1774,23 @@ export class ChecklistMatchingComponent implements OnDestroy {
         : `Source: ${this.sc.sheets[0].name}, row ${r.row} · ${this.lbl(r)} under “${sec?.src.replace(/:$/, '')}”`,
       canEditReading: r.cls === 'document_request' || r.cls === 'question',
       reading: rec.reading || r.readAs || r.text, readingEdited: !!rec.reading,
+      issues: [
+        ...(rec.s === 'review' && r.cand?.period ? [{ icon: 'calendar', title: 'Wrong period.', text: `The document covers ${r.cand.period.found}; the request asks for ${r.cand.period.requested}.` }] : []),
+        ...(rec.s === 'review' && r.cand?.draft ? [{ icon: 'warning', title: 'Draft, not executed.', text: 'At least one document in the suggestion is an unsigned draft.' }] : []),
+        ...((rec.s === 'review' || rec.s === 'partial') && (rec.missing || r.cand?.missing) ? [{ icon: 'info', title: 'Missing:', text: rec.missing || r.cand!.missing }] : []),
+      ],
+      writes: this.writesFor(r, rec),
     };
+  }
+
+  /** What the file's own result columns hold (or will hold after Accept) for this request. */
+  private writesFor(r: Req, rec: Rec): { col: string; val: string }[] | null {
+    const cols = this.sc.details?.resultCols; const map = this.sc.statusMap;
+    if (!cols || !map || cols.length < 3) return null;
+    const s = rec.s; const miss = rec.missing || r.cand?.missing || '';
+    if (s === 'review') return [{ col: cols[0], val: r.cand!.verdict === 'Partial' ? map.partial : map.covered }, { col: cols[1], val: this.doc(r.cand!.name).label || r.cand!.name }, { col: cols[2], val: miss ? 'Missing: ' + miss : '' }];
+    if (s === 'covered' || s === 'partial') return [{ col: cols[0], val: map[s] }, { col: cols[1], val: (rec.docs || r.docs || []).map(n => this.doc(n).label || n).join('\n') }, { col: cols[2], val: s === 'partial' ? 'Missing: ' + miss : '' }];
+    return null;
   }
 
   private buildSource() {
@@ -1960,7 +1801,7 @@ export class ChecklistMatchingComponent implements OnDestroy {
     this.hlCell = hr ? (hr.kind === 'item' ? hr.cells[2] : hr.cells[0]) || '' : '';
     const hlReq = this.findReq(this.backTo);
     const what = hlReq ? (hlReq.label ? 'this ' + hlReq.cls.replace('_', ' ') : 'request ' + hlReq.id) : (this.backTo || 'this item');
-    this.hlText = `Row ${hl} of ${this.sc.sheets[0].name} is the source of ${what}. The file is shown as it is, nothing is drawn over it.`;
+    this.hlText = `Row ${hl} is the source of ${what}.`;
   }
 
   private foldersView(reqs: Req[]) {
