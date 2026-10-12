@@ -7,6 +7,7 @@ import {
   FvdrFileType,
   FvdrIconName,
   ToastService,
+  SegmentItem,
 } from '../../shared/ds';
 import { TrackerService } from '../../services/tracker.service';
 
@@ -33,7 +34,12 @@ interface TreeItem {
   restricted?: number[]; // levels (1–7) not offered for this file type
   published?: boolean;   // toggled by the "···" menu / chip click
   partial?: boolean;     // folder-only: published itself, but has unpublished children
+  docsTotal?: number;    // partial folders: how many documents sit inside
+  docsUnpublished?: number; // …and how many of them are still unpublished
 }
+
+type PartialVariant = 'menu' | 'split' | 'choice';
+type PublishMode = 'publish' | 'unpublish';
 
 interface GroupUser {
   id: number;
@@ -488,19 +494,43 @@ const GROUPS: Group[] = [
       <span class="file-icon-slot">
       <span class="file-icon-wrap"
             [ngClass]="'file-icon-wrap--' + pubState(item)"
-            role="button"
+            [attr.role]="isSplit(item) ? 'group' : 'button'"
             tabindex="0"
             data-track="permission-chip"
-            [attr.aria-label]="stateLabel(item) + ' — click to toggle'"
-            (click)="$event.stopPropagation(); requestPublishToggle(item)">
+            [attr.aria-label]="stateLabel(item) + (isSplit(item) ? '' : ' — click to toggle')"
+            (click)="onChipClick(item, $event)">
         <fvdr-file-icon [type]="fileType(item.type)" />
         <span class="pub-check-icon">
           <fvdr-icon [name]="pubState(item) === 'unpublished' ? 'close' : 'check'" />
         </span>
         <span class="pub-check-label">
-          <span class="pub-check-label-in"><span class="pub-check-text">{{ stateLabel(item) }}</span></span>
+          <span class="pub-check-label-in">
+            <span class="pub-check-text pub-split" *ngIf="isSplit(item); else plainLabel">
+              <button type="button" class="pub-split-btn pub-split-btn--publish" data-track="partial-publish"
+                      (click)="$event.stopPropagation(); requestPublishToggle(item, 'publish')">
+                <fvdr-icon name="check" /> Publish
+              </button>
+              <button type="button" class="pub-split-btn pub-split-btn--unpublish" data-track="partial-unpublish"
+                      (click)="$event.stopPropagation(); requestPublishToggle(item, 'unpublish')">
+                <fvdr-icon name="close" /> Unpublish
+              </button>
+            </span>
+            <ng-template #plainLabel><span class="pub-check-text">{{ stateLabel(item) }}</span></ng-template>
+          </span>
         </span>
       </span>
+      <!-- Variant A: two-option popover under the chip -->
+      <div class="publish-menu partial-menu" *ngIf="partialMenuFor === item.id" (click)="$event.stopPropagation()">
+        <div class="partial-menu-hint">{{ docsHint(item) }}</div>
+        <button class="publish-menu-item" data-track="partial-publish" (click)="requestPublishToggle(item, 'publish')">
+          <fvdr-icon name="check" />
+          <span>Publish all documents inside</span>
+        </button>
+        <button class="publish-menu-item" data-track="partial-unpublish" (click)="requestPublishToggle(item, 'unpublish')">
+          <fvdr-icon name="close" />
+          <span>Unpublish all documents inside</span>
+        </button>
+      </div>
       </span>
     </ng-template>
 
@@ -527,10 +557,22 @@ const GROUPS: Group[] = [
         <span>View permission log</span>
       </button>
       <div class="publish-menu-divider"></div>
-      <button class="publish-menu-item" (click)="requestPublishToggle(item)">
-        <fvdr-icon [name]="item.published ? 'close' : 'check'" />
-        <span>{{ item.published ? 'Unpublish' : 'Publish' }}</span>
-      </button>
+      <ng-container *ngIf="item.partial; else singleToggle">
+        <button class="publish-menu-item" (click)="requestPublishToggle(item, 'publish')">
+          <fvdr-icon name="check" />
+          <span>Publish all documents inside</span>
+        </button>
+        <button class="publish-menu-item" (click)="requestPublishToggle(item, 'unpublish')">
+          <fvdr-icon name="close" />
+          <span>Unpublish all documents inside</span>
+        </button>
+      </ng-container>
+      <ng-template #singleToggle>
+        <button class="publish-menu-item" (click)="requestPublishToggle(item)">
+          <fvdr-icon [name]="item.published ? 'close' : 'check'" />
+          <span>{{ item.published ? 'Unpublish' : 'Publish' }}</span>
+        </button>
+      </ng-template>
     </ng-template>
 
     <!-- Save bar -->
@@ -544,9 +586,9 @@ const GROUPS: Group[] = [
     <!-- Publish / Unpublish confirmation -->
     <fvdr-modal
       [visible]="!!publishConfirmItem"
-      [title]="publishConfirmItem?.published ? 'Unpublish file' : 'Publish file'"
+      [title]="publishConfirmMode === 'unpublish' ? (publishConfirmItem?.partial ? 'Unpublish all documents' : 'Unpublish file') : (publishConfirmItem?.partial ? 'Publish all documents' : 'Publish file')"
       cancelLabel="Cancel"
-      [confirmLabel]="publishConfirmItem?.published ? 'Unpublish' : 'Publish'"
+      [confirmLabel]="publishConfirmMode === 'unpublish' ? 'Unpublish' : 'Publish'"
       confirmVariant="primary"
       size="s"
       (confirmed)="confirmPublishToggle()"
@@ -554,16 +596,43 @@ const GROUPS: Group[] = [
       (closed)="cancelPublishConfirm()">
       <div class="publish-confirm-body" *ngIf="publishConfirmItem as pItem">
         <p class="publish-confirm-text">
-          {{ pItem.published
+          {{ publishConfirmMode === 'unpublish'
               ? 'Once unpublished, documents will no longer be visible to project participants.'
               : 'Once published, documents will become visible to project participants according to their permissions.' }}
         </p>
         <p class="publish-confirm-text">
-          {{ pItem.published ? 'Unpublish' : 'Publish' }} <strong>{{ pItem.name }}</strong>?
+          {{ publishConfirmMode === 'unpublish' ? 'Unpublish' : 'Publish' }} <strong>{{ pItem.name }}</strong>{{ pItem.partial ? ' and ' + docsInsideCount(pItem, publishConfirmMode) + ' inside' : '' }}?
         </p>
         <fvdr-checkbox [(ngModel)]="publishConfirmDontShow" label="Don't show again" />
       </div>
     </fvdr-modal>
+
+    <!-- Variant C: choose Publish or Unpublish for a folder with mixed content -->
+    <fvdr-modal
+      [visible]="!!partialChoiceItem"
+      title="Publishing"
+      cancelLabel="Cancel"
+      [confirmLabel]="partialChoice === 'unpublish' ? 'Unpublish' : partialChoice === 'publish' ? 'Publish' : 'Apply'"
+      [confirmDisabled]="!partialChoice"
+      size="s"
+      (confirmed)="confirmPartialChoice()"
+      (cancelled)="partialChoiceItem = null"
+      (closed)="partialChoiceItem = null">
+      <div class="publish-confirm-body" *ngIf="partialChoiceItem as pItem">
+        <p class="publish-confirm-text">
+          <strong>{{ pItem.name }}</strong> has both published and unpublished documents inside. What do you want to do?
+        </p>
+        <fvdr-radio [options]="partialChoiceOpts" [(value)]="partialChoice" />
+      </div>
+    </fvdr-modal>
+
+    <!-- Prototype-only: compare the three ways to act on a mixed folder -->
+    <div class="variant-switch">
+      <span class="variant-switch-label">Mixed folder — click behaviour</span>
+      <fvdr-segment size="sm" [items]="partialVariantItems" [activeId]="partialVariant"
+                    (activeIdChange)="setPartialVariant($any($event))" />
+      <span class="variant-switch-note">{{ partialVariantNote }}</span>
+    </div>
 
     <!-- First-use coach mark -->
     <div class="coach-overlay" *ngIf="coachStep" (click)="finishCoachmark()">
@@ -923,6 +992,49 @@ const GROUPS: Group[] = [
       font-size: 12px;
       color: var(--color-text-primary);
     }
+
+    /* Keyboard users tabbing into the inline Publish / Unpublish buttons keep the chip open. */
+    .file-icon-wrap:focus-within .pub-check-label { grid-template-columns: 1fr; opacity: 1; }
+
+    /* Variant B — the expanded label becomes two actions */
+    .pub-check-text.pub-split { display: inline-flex; align-items: center; gap: var(--space-1); padding-right: 0; }
+    .pub-split-btn {
+      display: inline-flex; align-items: center; gap: var(--space-1);
+      height: 22px; padding: 0 var(--space-2);
+      border: 0; border-radius: var(--radius-sm);
+      background: transparent;
+      font: inherit; font-size: 12px; white-space: nowrap;
+      color: var(--color-text-primary);
+      cursor: pointer;
+    }
+    .pub-split-btn:hover, .pub-split-btn:focus-visible { background: var(--color-stone-0); outline: none; }
+    .file-icon-wrap .pub-split-btn fvdr-icon { font-size: 12px; }
+    .pub-split-btn--publish fvdr-icon   { color: var(--color-primary-500); }
+    .pub-split-btn--unpublish fvdr-icon { color: var(--color-text-secondary); }
+
+    /* Variant A — popover under the chip */
+    .publish-menu.partial-menu { width: 300px; z-index: 300; }
+    .partial-menu-hint {
+      padding: var(--space-2) var(--space-4) var(--space-3);
+      font-size: 12px; line-height: 16px;
+      color: var(--color-text-secondary);
+    }
+
+    /* Prototype-only variant switcher */
+    .variant-switch {
+      position: fixed; left: 80px; bottom: var(--space-4); z-index: 250;
+      display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-3);
+      max-width: 560px;
+      padding: var(--space-3) var(--space-4);
+      border-radius: var(--radius-sm);
+      background: var(--color-stone-0);
+      box-shadow: 0 1px 4px rgba(52, 58, 64, 0.2);
+    }
+    .variant-switch-label {
+      font-size: 12px; text-transform: uppercase; letter-spacing: .04em;
+      color: var(--color-text-secondary);
+    }
+    .variant-switch-note { flex: 1 1 100%; font-size: 12px; line-height: 16px; color: var(--color-text-secondary); }
 
     @media (prefers-reduced-motion: reduce) {
       .file-icon-wrap, .pub-check-label { transition-duration: 1ms; }
@@ -1398,7 +1510,26 @@ export class PermissionsLegendV3Component implements OnInit, AfterViewInit, OnDe
   // Publishing context menu
   publishMenuFor: number | null = null;
   publishConfirmItem: TreeItem | null = null;
+  publishConfirmMode: PublishMode = 'publish';
   publishConfirmDontShow = false;
+
+  // Mixed folders (published + unpublished documents inside)
+  partialVariant: PartialVariant = 'menu';
+  partialMenuFor: number | null = null;
+  partialChoiceItem: TreeItem | null = null;
+  partialChoice: PublishMode | '' = '';
+  partialChoiceOpts: { value: string; label: string }[] = [];
+  readonly partialVariantItems: SegmentItem[] = [
+    { id: 'menu',   label: 'A · Popover' },
+    { id: 'split',  label: 'B · Inline' },
+    { id: 'choice', label: 'C · Dialog' },
+  ];
+  private static readonly VARIANT_NOTES: Record<PartialVariant, string> = {
+    menu:   'Click the chip: a small menu opens under it with Publish all / Unpublish all.',
+    split:  'Hover the chip: its label turns into two buttons, Publish and Unpublish.',
+    choice: 'Click the chip: one dialog asks which way to go, with the document counts.',
+  };
+  get partialVariantNote(): string { return PermissionsLegendV3Component.VARIANT_NOTES[this.partialVariant]; }
 
   // Coach mark
   coachStep = 0; // 0 = hidden, 1 | 2 = active step
@@ -1415,7 +1546,7 @@ export class PermissionsLegendV3Component implements OnInit, AfterViewInit, OnDe
   readonly treeItems: TreeItem[] = [
     { id: 1, index: '1',   name: 'Stage folder',                        type: 'folder', perms: [6,6,5,4,3,6], published: true },
     { id: 2, index: '2',   name: 'Organizational chart and manage',     type: 'folder', perms: [7,7,6,5,4,5], published: true },
-    { id: 3, index: '3.1', name: 'Corporate DD — Product and Services', type: 'folder', perms: [5,6,4,2,3,5], published: true, partial: true },
+    { id: 3, index: '3.1', name: 'Corporate DD — Product and Services', type: 'folder', perms: [5,6,4,2,3,5], published: true, partial: true, docsTotal: 5, docsUnpublished: 2 },
     { id: 4, index: '4',   name: 'Financial DD — Accounts Receivables', type: 'folder', perms: [6,6,5,3,4,6], published: true },
     { id: 5, index: '5',   name: 'Key contacts by function',            type: 'xlsx',   perms: [4,5,3,1,2,4], published: true },
     { id: 6, index: '6',   name: 'Tax accounting.xlsx',                 type: 'xlsx',   perms: [5,5,4,2,3,5], published: true },
@@ -1620,22 +1751,85 @@ export class PermissionsLegendV3Component implements OnInit, AfterViewInit, OnDe
   }
 
   setPublished(item: TreeItem, published: boolean): void {
+    const wasPartial = !!item.partial;
+    const affected = published ? item.docsUnpublished ?? 0 : (item.docsTotal ?? 0) - (item.docsUnpublished ?? 0);
     item.published = published;
+    if (wasPartial) {
+      item.partial = false;
+      item.docsUnpublished = published ? 0 : item.docsTotal;
+    }
     this.closePublishMenu();
+    const inside = wasPartial ? ` and ${affected} document${affected === 1 ? '' : 's'} inside` : '';
     this.toast.show({
       variant: 'success',
-      message: published ? `“${item.name}” published` : `“${item.name}” unpublished`,
+      message: published ? `“${item.name}”${inside} published` : `“${item.name}”${inside} unpublished`,
     });
   }
 
-  /** Menu "Publish"/"Unpublish" click — confirm first, unless the user opted out. */
-  requestPublishToggle(item: TreeItem): void {
+  isSplit(item: TreeItem): boolean {
+    return !!item.partial && this.partialVariant === 'split';
+  }
+
+  docsHint(item: TreeItem): string {
+    const unpub = item.docsUnpublished ?? 0;
+    return `${(item.docsTotal ?? 0) - unpub} published, ${unpub} unpublished documents inside`;
+  }
+
+  /** "2 unpublished documents" / "3 published documents" — what a Publish / Unpublish would touch. */
+  docsInsideCount(item: TreeItem, mode: PublishMode): string {
+    const unpub = item.docsUnpublished ?? 0;
+    const n = mode === 'publish' ? unpub : (item.docsTotal ?? 0) - unpub;
+    return `${n} ${mode === 'publish' ? 'unpublished' : 'published'} document${n === 1 ? '' : 's'}`;
+  }
+
+  partialChoiceOptions(item: TreeItem): { value: string; label: string }[] {
+    return [
+      { value: 'publish',   label: `Publish all — ${this.docsInsideCount(item, 'publish')} will become visible` },
+      { value: 'unpublish', label: `Unpublish all — ${this.docsInsideCount(item, 'unpublish')} will be hidden` },
+    ];
+  }
+
+  setPartialVariant(id: PartialVariant): void {
+    this.partialVariant = id;
+    this.partialMenuFor = null;
+    this.partialChoiceItem = null;
+  }
+
+  /** Chip click. Mixed folders branch by variant; everything else toggles as before. */
+  onChipClick(item: TreeItem, event: MouseEvent): void {
+    event.stopPropagation();
+    if (!item.partial) {
+      this.requestPublishToggle(item);
+      return;
+    }
     this.closePublishMenu();
+    if (this.partialVariant === 'menu') {
+      this.partialMenuFor = this.partialMenuFor === item.id ? null : item.id;
+    } else if (this.partialVariant === 'choice') {
+      this.partialChoice = '';
+      this.partialChoiceOpts = this.partialChoiceOptions(item);
+      this.partialChoiceItem = item;
+    }
+  }
+
+  confirmPartialChoice(): void {
+    const item = this.partialChoiceItem;
+    if (!item || !this.partialChoice) return;
+    this.setPublished(item, this.partialChoice === 'publish');
+    this.partialChoiceItem = null;
+  }
+
+  /** Publish / Unpublish click — confirm first, unless the user opted out. */
+  requestPublishToggle(item: TreeItem, mode?: PublishMode): void {
+    this.closePublishMenu();
+    this.partialMenuFor = null;
+    const m: PublishMode = mode ?? (item.published ? 'unpublish' : 'publish');
     if (localStorage.getItem(PUBLISH_CONFIRM_SKIP_KEY)) {
-      this.setPublished(item, !item.published);
+      this.setPublished(item, m === 'publish');
       return;
     }
     this.publishConfirmDontShow = false;
+    this.publishConfirmMode = m;
     this.publishConfirmItem = item;
   }
 
@@ -1645,7 +1839,7 @@ export class PermissionsLegendV3Component implements OnInit, AfterViewInit, OnDe
     if (this.publishConfirmDontShow) {
       localStorage.setItem(PUBLISH_CONFIRM_SKIP_KEY, '1');
     }
-    this.setPublished(item, !item.published);
+    this.setPublished(item, this.publishConfirmMode === 'publish');
     this.publishConfirmItem = null;
   }
 
@@ -1656,6 +1850,7 @@ export class PermissionsLegendV3Component implements OnInit, AfterViewInit, OnDe
   @HostListener('document:click')
   onDocumentClick(): void {
     if (this.publishMenuFor !== null) this.closePublishMenu();
+    this.partialMenuFor = null;
   }
 
   // ── Coach mark ────────────────────────────────────────────
