@@ -763,10 +763,13 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
     /* DS table: stone header without borders, 48px rows, 16px cell padding, zebra rows, no divider lines */
     .tr { display: grid; gap: var(--space-4); padding: var(--space-3) var(--space-4); min-height: var(--space-12); box-sizing: border-box; align-items: start;
       font-size: var(--text-body3-size); line-height: var(--text-body3-lh); }
-    .tr--head { align-items: center; padding-top: 0; padding-bottom: 0; background: var(--color-stone-200); border-radius: var(--radius-sm);
+    .tr--head { align-items: center; padding-top: 0; padding-bottom: 0; margin-bottom: var(--space-2); background: var(--color-stone-200); border-radius: var(--radius-sm);
       font-weight: var(--text-label-s-weight); color: var(--color-text-primary); }
     .tr--zebra { background: var(--color-stone-100); }
-    .tr--group { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-6) var(--space-4) var(--space-2); min-height: 0; }
+    /* Section row as in the product's Activity log: a tinted row, secondary semibold label, no lines */
+    .tr--group { display: flex; align-items: center; gap: var(--space-3); padding: 0 var(--space-4); background: var(--color-stone-100); border-radius: var(--radius-sm);
+      color: var(--color-text-secondary); font-weight: var(--text-label-s-weight); }
+    .tr--group .muted { font-weight: var(--text-body3-weight); }
     .g-label { color: var(--color-text-secondary); font-weight: var(--font-weight-semi); }
     .g-name { font-weight: var(--font-weight-semi); }
     .tr--item { cursor: pointer; }
