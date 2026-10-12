@@ -12,7 +12,7 @@ import { LIGHTHOUSE } from './lighthouse.data';
 
 type Phase = 'empty' | 'uploading' | 'none' | 'reading' | 'failed' | 'structure' | 'matching' | 'results';
 type Screen = 'upload' | 'source' | 'structure' | 'readfail' | 'matching' | 'triage' | 'gaps' | 'returning';
-type Filter = 'all' | 'review' | 'gap' | 'covered' | 'other';
+type Filter = 'all' | 'review' | 'gap' | 'covered' | 'partial' | 'other';
 type Layout = 'table' | 'list' | 'folders';
 type Tone = 'default' | 'muted' | 'warn' | 'error' | 'success';
 
@@ -115,6 +115,8 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
           <div class="toolbar">
             <fvdr-segment [items]="viewItems" [activeId]="view" (activeIdChange)="setView($event)" />
             <span class="spacer"></span>
+            <span class="owner" fvdrTooltip="Only people who can edit this checklist see the requests and AI results" tooltipPosition="bottom"><fvdr-avatar initials="VO" size="sm" /> Only you</span>
+            <fvdr-btn label="Share" iconName="share" variant="secondary" size="m" />
             <div class="export" *ngIf="view === 'requests' && phase === 'results'">
               <fvdr-btn label="Export" iconName="download" variant="secondary" size="m" (clicked)="exportOpen = !exportOpen" />
               <div class="menu" *ngIf="exportOpen" role="menu">
@@ -140,8 +142,6 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
                 <span class="menu__foot">The file in the room stays unchanged.</span>
               </div>
             </div>
-            <span class="owner" fvdrTooltip="Only people who can edit this checklist see the requests and AI results" tooltipPosition="bottom"><fvdr-avatar initials="VO" size="sm" /> Only you</span>
-            <fvdr-btn label="Share" iconName="share" variant="secondary" size="m" />
           </div>
 
           <!-- File actions belong to the Source file mode, so they sit under the mode switch -->
@@ -154,28 +154,23 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
 
           <!-- ─── Source file ─── -->
           <ng-container *ngIf="view === 'source'">
-            <div class="aibar" *ngIf="highlightRow === null && phase !== 'empty' && phase !== 'uploading'">
-              <ng-container *ngIf="phase === 'none' && roomAiOn">
-                <fvdr-btn label="Extract requests" (clicked)="extract('source')" />
-                <span class="aibar__text"><b>Turn this checklist into requests.</b> AI lists every request in the file, linked to its row. The file isn't changed.</span>
+            <div class="aicard" *ngIf="highlightRow === null && (phase === 'none' || phase === 'reading' || phase === 'structure' || phase === 'matching')">
+              <fvdr-ai-orb [size]="20" [thinking]="phase === 'reading' || phase === 'matching'" [showLabel]="false" />
+              <ng-container *ngIf="phase === 'none'">
+                <span class="aibar__text" *ngIf="roomAiOn"><b>Turn this checklist into requests.</b> AI lists every request in the file, linked to its row. The file isn't changed.</span>
+                <span class="aibar__text" *ngIf="!roomAiOn">AI is off for this room. A project admin can turn it on in Settings.</span>
+                <fvdr-btn *ngIf="roomAiOn" label="Extract requests" size="s" iconName="matching-items" (clicked)="extract('source')" />
               </ng-container>
-              <span class="aibar__text" *ngIf="phase === 'none' && !roomAiOn">AI is off for this room. A project admin can turn it on in Settings.</span>
-              <ng-container *ngIf="phase === 'reading'">
-                <span class="ring ring--bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" [attr.aria-valuenow]="readPct" [style.--p]="readPct"></span>
-                <span class="aibar__text"><b>Reading the checklist…</b> {{ readSheet }} · row {{ readRowInSheet }} of {{ readSheetRows }}</span>
-              </ng-container>
+              <span class="aibar__text" *ngIf="phase === 'reading'"><b>Reading the checklist…</b> {{ readSheet }} · row {{ readRowInSheet }} of {{ readSheetRows }}</span>
               <ng-container *ngIf="phase === 'structure'">
-                <fvdr-btn label="Review requests" (clicked)="setView('requests')" />
                 <span class="aibar__text"><b>{{ foundLine }}.</b> Check what AI read, then match them to documents.</span>
+                <fvdr-btn label="Review requests" size="s" iconName="matching-items" (clicked)="setView('requests')" />
               </ng-container>
-              <ng-container *ngIf="phase === 'matching'">
-                <span class="ring ring--bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" [attr.aria-valuenow]="progress * 100" [style.--p]="progress * 100"></span>
-                <span class="aibar__text"><b>Matching…</b> {{ docsRead }} of {{ totalDocsLabel }} documents · {{ etaLabel }}</span>
-              </ng-container>
-              <ng-container *ngIf="phase === 'results'">
-                <span class="aibar__text aibar__grow">{{ srcInfoText }}</span>
-                <fvdr-toggle *ngIf="hasResultCols" [(checked)]="previewResults" label="Show results in the file" (checkedChange)="recompute()" />
-              </ng-container>
+              <span class="aibar__text" *ngIf="phase === 'matching'"><b>Matching…</b> {{ docsRead }} of {{ totalDocsLabel }} documents · {{ etaLabel }}</span>
+            </div>
+            <div class="aibar" *ngIf="highlightRow === null && phase === 'results'">
+              <span class="aibar__text aibar__grow">{{ srcInfoText }}</span>
+              <fvdr-toggle *ngIf="hasResultCols" [(checked)]="previewResults" label="Show results in the file" (checkedChange)="recompute()" />
             </div>
             <div class="aibar" *ngIf="highlightRow !== null">
               <fvdr-btn label="Back to request" variant="secondary" (clicked)="backToRequest()" />
@@ -218,15 +213,7 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
           <!-- ─── Requests ─── -->
           <ng-container *ngIf="view === 'requests'">
 
-            <!-- Returning user: what changed, one line -->
-            <section class="delta" *ngIf="phase === 'results' && delta" aria-label="Changes since your last visit">
-              <span class="delta__title">Since {{ sc.returning.since }}</span>
-              <fvdr-chip *ngFor="let c of changeChips" [label]="c.label" [variant]="c.variant" size="s" [rounded]="true"
-                         [clickable]="true" [selected]="changeFilter === c.kind" (clicked)="pickChange(c.kind)" />
-              <fvdr-btn *ngIf="changeFilter" label="Show all requests" variant="link" size="s" (clicked)="changeFilter = null; recompute()" />
-              <span class="spacer"></span>
-              <fvdr-btn variant="ghost" size="s" iconName="close" [iconOnly]="true" ariaLabel="Dismiss" (clicked)="delta = false; changeFilter = null; recompute()" />
-            </section>
+            <!-- Returning user: changes show on the rows themselves (New / Changed tags and reasons) -->
 
             <div class="aibar" *ngIf="phase === 'results' && stale">
               <fvdr-btn label="Review changes" variant="secondary" (clicked)="openDiff()" />
@@ -269,18 +256,17 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
 
             <!-- Results: filters, coverage, next step — no background -->
             <div class="rbar" *ngIf="phase === 'results'">
-              <fvdr-segment variant="table" size="md" [items]="filterItems" [activeId]="changeFilter ? '' : filter" (activeIdChange)="pickFilter($any($event))" />
+              <div class="rbar__l">
+                <fvdr-segment variant="table" size="md" [items]="filterItems" [activeId]="changeFilter ? '' : filter" (activeIdChange)="pickFilter($any($event))" />
+                <fvdr-btn *ngIf="filter !== 'gap' && (counts['review'] || 0) > 0 && !showPanel" [label]="'Review ' + counts['review'] + ' suggestions'" variant="secondary" (clicked)="startReview()" />
+                <fvdr-btn *ngIf="filter === 'gap' && askableGaps.length" [label]="(isBidder ? 'Ask about ' : 'Request ') + askableGaps.length + ' gaps'" variant="secondary" (clicked)="openBulkAsk()" />
+              </div>
               <div class="covp">
                 <span class="covp__val" [attr.aria-label]="pct + '% of document requests covered'">
                   <span class="ring" [style.--p]="pct" aria-hidden="true"></span>
                   <span><b>{{ pct }}%</b> covered</span>
                 </span>
-                <button class="lnk" (click)="openRead()">What AI read</button>
-              </div>
-              <div class="rbar__r">
-                <fvdr-btn *ngIf="filter !== 'gap' && (counts['review'] || 0) > 0 && !showPanel" [label]="'Review ' + counts['review'] + ' suggestions'" (clicked)="startReview()" />
-                <fvdr-btn *ngIf="filter === 'gap' && askableGaps.length" [label]="(isBidder ? 'Ask about ' : 'Request ') + askableGaps.length + ' gaps'" (clicked)="openBulkAsk()" />
-                <fvdr-segment variant="table" size="md" [items]="layoutItems" [activeId]="layout" (activeIdChange)="pickLayout($event)" />
+                <button class="lnk lnk--icon" (click)="openRead()"><fvdr-icon name="help" />Info</button>
               </div>
             </div>
 
@@ -380,8 +366,8 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
                   <div class="tbl tbl--list" role="table" aria-label="Requests">
                     <div class="tr tr--head" role="row" [style.grid-template-columns]="listCols">
                       <span role="columnheader">{{ phase === 'structure' ? 'Type' : 'Status' }}</span>
-                      <span role="columnheader">Ref</span>
-                      <span role="columnheader" *ngIf="sc.hasPriority">Priority</span>
+                      <span role="columnheader">{{ phase === 'structure' ? '#' : 'Ref' }}</span>
+                      <span role="columnheader" *ngIf="sc.hasPriority && phase !== 'structure'">Priority</span>
                       <span role="columnheader">Request</span>
                       <span role="columnheader" class="c-right">Row</span>
                     </div>
@@ -396,7 +382,7 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
                            [class.tr--flag]="it.flagOpen" [class.tr--editing]="it.isEditing">
                         <span role="cell"><fvdr-chip [label]="it.pill.label" [variant]="it.pill.variant" size="s" [class.pulse]="it.pill.pulse" /></span>
                         <div role="cell" class="c-id"><span>{{ it.label }}</span><fvdr-chip *ngIf="it.tag" [label]="it.tag.label" [variant]="it.tag.variant" size="xs" /></div>
-                        <div role="cell" *ngIf="sc.hasPriority">{{ it.priority || '—' }}</div>
+                        <div role="cell" *ngIf="sc.hasPriority && phase !== 'structure'">{{ it.priority || '—' }}</div>
                         <div role="cell" class="c-text">
                           <ng-container *ngIf="!it.isEditing">
                             <span [class.t-muted]="it.muted">{{ it.text }}</span>
@@ -466,15 +452,6 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
               <div *ngIf="sc.statusMap"><dt>Status values</dt><dd>{{ sc.statusMap.covered }}, {{ sc.statusMap.partial }}, {{ sc.statusMap.gap }}, {{ sc.statusMap.na }}</dd></div>
             </dl>
           </section>
-          <section class="ds">
-            <h3 class="ds__h">Deal side</h3>
-            <fvdr-segment variant="table" size="md" [items]="sideItems" [activeId]="isBidder ? 'buy' : 'sell'" (activeIdChange)="setSide($event)" />
-            <p class="ds__p">{{ isBidder ? 'Missing items become questions to the seller in Q&A.' : 'Missing items become upload requests to the seller team.' }}</p>
-          </section>
-          <section class="ds ds--quiet">
-            <h3 class="ds__h">How matching works</h3>
-            <p class="ds__p">AI reads the checklist and the documents in the scope you pick, nothing else. It never changes your file, never accepts for you and never messages the seller without your click. Every decision is logged in the Activity log.</p>
-          </section>
         </div>
         <footer class="df"><fvdr-btn label="Done" (clicked)="closeRead()" /></footer>
       </ng-container>
@@ -512,10 +489,6 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
                 <button class="doc__path doc__path--btn" (click)="openFolder(s.docName)">{{ s.docPath }}</button>
               </div>
             </div>
-            <figure class="quote" *ngIf="s.evidence">
-              <blockquote>{{ s.evidence.quote }}</blockquote>
-              <figcaption>{{ s.evidence.page }}</figcaption>
-            </figure>
           </section>
 
           <section class="ds" *ngIf="s.isCovered">
@@ -554,7 +527,7 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
           <section class="ds" *ngIf="s.issues.length">
             <h3 class="ds__h">Needs attention</h3>
             <ul class="issues">
-              <li *ngFor="let i of s.issues"><fvdr-icon [name]="i.icon" /><span><b>{{ i.title }}</b> {{ i.text }}</span></li>
+              <li *ngFor="let i of s.issues"><span><b>{{ i.title }}</b> {{ i.text }}</span></li>
             </ul>
           </section>
 
@@ -571,14 +544,10 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
             </dl>
           </section>
 
-          <details class="ds ds--quiet hist" *ngIf="s.history.length">
-            <summary class="ds__h">History <span class="ds__sub">{{ s.history.length }}</span></summary>
-            <ol><li *ngFor="let h of s.history"><span>{{ h.what }}</span><span class="hist__who">{{ h.who }} · {{ h.at }}</span></li></ol>
-          </details>
         </div>
         <footer class="df">
           <ng-container *ngIf="s.isReview">
-            <fvdr-btn [label]="s.verdict === 'Partial' ? 'Accept as partial' : 'Accept'" fvdrTooltip="A" (clicked)="accept()" />
+            <fvdr-btn label="Save" fvdrTooltip="A" (clicked)="accept()" />
             <fvdr-btn label="Reject" variant="secondary" fvdrTooltip="R" (clicked)="reject()" />
           </ng-container>
           <ng-container *ngIf="composeOpen">
@@ -876,11 +845,15 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
     .aibar__grow { flex: 1; min-width: 0; }
     .aibar .scope { width: 320px; }
     .rbar { flex: none; display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); flex-wrap: wrap; min-height: var(--space-10); }
-    .rbar__r { display: flex; align-items: center; gap: var(--space-4); }
+    .rbar__l { display: flex; align-items: center; gap: var(--space-4); flex-wrap: wrap; }
+    .lnk--icon { display: inline-flex; align-items: center; gap: var(--space-1); }
     .covp { display: inline-flex; align-items: center; gap: var(--space-6); height: var(--space-10); padding: 0 var(--space-4) 0 var(--space-3); box-sizing: border-box;
       background: var(--color-stone-0); border: 1px solid var(--color-divider); border-radius: var(--radius-full); font-size: var(--text-body3-size); }
     .covp__val { display: inline-flex; align-items: center; gap: var(--space-2); }
     .covp b { font-weight: var(--font-weight-semi); }
+    /* Source file: compact AI card — orb, one line, small action */
+    .aicard { flex: none; align-self: flex-start; max-width: 100%; box-sizing: border-box; display: inline-flex; align-items: center; gap: var(--space-4);
+      padding: var(--space-3) var(--space-4); background: var(--color-stone-100); border: 1px solid var(--color-divider); border-radius: var(--radius-md); }
     /* Donut for coverage and AI progress */
     .ring { width: 20px; height: 20px; border-radius: var(--radius-full); flex: none;
       background: conic-gradient(var(--color-primary-500) calc(var(--p, 0) * 1%), var(--ring-track, var(--color-stone-300)) 0);
@@ -1580,13 +1553,14 @@ export class ChecklistMatchingComponent implements OnDestroy {
     const w = (x: number | 'fill') => x === 'fill' ? 'minmax(260px, 1fr)' : x + 'px';
     this.gridCols = '40px ' + sc.source.widths.map(w).join(' ');
     const prio = sc.hasPriority ? ' 72px' : '';
-    this.listCols = `136px 56px${prio} minmax(0, 1fr) 88px`;
+    this.listCols = `136px 56px${phase === 'structure' ? '' : prio} minmax(0, 1fr) 88px`;
 
     // Filters
     const inFolders = this.layout === 'folders';
     const fdef: [Filter, string, number][] = [
       ['all', 'All', inFolders ? reqs.filter(r => this.isDoc(r)).length : reqs.length],
-      ['covered', 'Covered', (counts['covered'] || 0) + (counts['partial'] || 0)],
+      ['covered', 'Covered', counts['covered'] || 0],
+      ['partial', 'Partial', counts['partial'] || 0],
       ['review', 'To review', counts['review'] || 0],
       ['gap', 'Gaps', counts['gap'] || 0],
     ];
@@ -1610,7 +1584,7 @@ export class ChecklistMatchingComponent implements OnDestroy {
       if (isResults && this.highOnly && r.priority !== 'High') return false;
       if (isResults && this.changeFilter) { const ch = rec?.change; return !!ch && (this.changeFilter === 'all' || ch.kind === this.changeFilter); }
       if (!isResults || this.filter === 'all') return true;
-      if (this.filter === 'covered') return s === 'covered' || s === 'partial';
+      if (this.filter === 'covered') return s === 'covered';
       if (this.filter === 'other') return s === 'question' || s === 'instruction' || s === 'note';
       return s === this.filter;
     };
@@ -1789,7 +1763,7 @@ export class ChecklistMatchingComponent implements OnDestroy {
         ...(rec.s === 'review' && r.cand?.draft ? [{ icon: 'warning', title: 'Draft, not executed.', text: 'At least one document in the suggestion is an unsigned draft.' }] : []),
         ...((rec.s === 'review' || rec.s === 'partial') && (rec.missing || r.cand?.missing) ? [{ icon: 'info', title: 'Missing:', text: rec.missing || r.cand!.missing }] : []),
       ],
-      writes: this.writesFor(r, rec),
+      writes: this.writesFor(r, rec)?.slice(0, 1) || null,
     };
   }
 
@@ -1823,7 +1797,7 @@ export class ChecklistMatchingComponent implements OnDestroy {
     const fpass = (s?: string) => {
       const f = this.filter;
       if (f === 'all' || f === 'other') return true;
-      if (f === 'covered') return s === 'covered' || s === 'partial';
+      if (f === 'covered') return s === 'covered';
       return s === f;
     };
     const allDocReqs = reqs.filter(r => this.isDoc(r));
