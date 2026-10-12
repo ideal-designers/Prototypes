@@ -114,12 +114,6 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
 
           <div class="toolbar">
             <fvdr-segment [items]="viewItems" [activeId]="view" (activeIdChange)="setView($event)" />
-            <div class="toolbar__actions" *ngIf="view === 'source'">
-              <fvdr-btn label="Edit" iconName="edit" size="m" />
-              <fvdr-btn label="Upload new version" iconName="refresh" variant="secondary" size="m" />
-              <fvdr-btn label="Download" iconName="download" variant="secondary" size="m" />
-              <fvdr-btn label="Delete" iconName="trash" variant="danger-secondary" size="m" />
-            </div>
             <span class="spacer"></span>
             <div class="export" *ngIf="view === 'requests' && phase === 'results'">
               <fvdr-btn label="Export" iconName="download" variant="secondary" size="m" (clicked)="exportOpen = !exportOpen" />
@@ -148,6 +142,14 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
             </div>
             <span class="owner" fvdrTooltip="Only people who can edit this checklist see the requests and AI results" tooltipPosition="bottom"><fvdr-avatar initials="VO" size="sm" /> Only you</span>
             <fvdr-btn label="Share" iconName="share" variant="secondary" size="m" />
+          </div>
+
+          <!-- File actions belong to the Source file mode, so they sit under the mode switch -->
+          <div class="toolbar__actions" *ngIf="view === 'source'">
+            <fvdr-btn label="Edit" iconName="edit" size="m" />
+            <fvdr-btn label="Upload new version" iconName="refresh" variant="secondary" size="m" />
+            <fvdr-btn label="Download" iconName="download" variant="secondary" size="m" />
+            <fvdr-btn label="Delete" iconName="trash" variant="danger-secondary" size="m" />
           </div>
 
           <!-- ─── Source file ─── -->
@@ -858,7 +860,7 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
     .tabs-row { display: flex; align-items: center; gap: var(--space-2); }
     .tabs-row fvdr-tabs { flex: 1; }
     .toolbar { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; }
-    .toolbar__actions { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+    .toolbar__actions { display: flex; gap: var(--space-4); flex-wrap: wrap; }
     .owner { display: inline-flex; align-items: center; gap: var(--space-2); font-size: var(--font-size-sm); color: var(--color-text-secondary); }
     .export { position: relative; }
     .menu { position: absolute; right: 0; top: calc(100% + var(--space-1)); z-index: 30; width: 360px; background: var(--color-stone-0);
