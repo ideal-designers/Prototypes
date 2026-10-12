@@ -27,10 +27,12 @@ export interface ProtoGroup { id: string; label?: string; options: ProtoOption[]
                   (click)="o.id !== g.value && changed.emit({ group: g.id, value: o.id })">{{ o.label }}</button>
         </div>
       </ng-container>
-      <span class="sw__div" aria-hidden="true"></span>
-      <button type="button" class="sw__reset" title="Restart the prototype" (click)="restart.emit()">
-        <fvdr-icon name="refresh"></fvdr-icon>Restart
-      </button>
+      <ng-container *ngIf="showRestart">
+        <span class="sw__div" aria-hidden="true"></span>
+        <button type="button" class="sw__reset" title="Restart the prototype" (click)="restart.emit()">
+          <fvdr-icon name="refresh"></fvdr-icon>Restart
+        </button>
+      </ng-container>
     </div>
   `,
   styles: [`
@@ -58,6 +60,7 @@ export interface ProtoGroup { id: string; label?: string; options: ProtoOption[]
 })
 export class VdrProtoSwitcherComponent {
   @Input() groups: ProtoGroup[] = [];
+  @Input() showRestart = true;
   @Output() changed = new EventEmitter<{ group: string; value: string }>();
   @Output() restart = new EventEmitter<void>();
 

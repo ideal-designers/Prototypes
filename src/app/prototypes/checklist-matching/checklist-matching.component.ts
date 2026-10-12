@@ -1,3 +1,4 @@
+import { Router } from '@angular/router';
 import { Component, ElementRef, HostListener, OnDestroy, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -642,7 +643,7 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
     </fvdr-modal>
 
     <fvdr-toast-host />
-    <fvdr-vdr-proto-switcher [groups]="protoGroups" (changed)="onProto($event)" (restart)="goScreen(screen)" />
+    <fvdr-vdr-proto-switcher [groups]="protoGroups" (changed)="onProto($event)" [showRestart]="false" />
   </div>
   `,
   styles: [`
@@ -940,6 +941,7 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
   `],
 })
 export class ChecklistMatchingComponent implements OnDestroy {
+  private router = inject(Router);
   private toastSvc = inject(ToastService);
   @ViewChild('content') private contentEl?: ElementRef<HTMLElement>;
 
@@ -1081,16 +1083,8 @@ export class ChecklistMatchingComponent implements OnDestroy {
 
   private ut: any; private rt: any; private mt: any;
 
-  get protoGroups(): ProtoGroup[] {
-    return [
-      { id: 'scenario', label: 'Checklist', value: this.sc.id, options: [{ id: 'lighthouse', label: 'Lighthouse IRL' }, { id: 'diamond', label: 'Diamond master' }] },
-      { id: 'screen', label: 'Screen', value: this.screen, options: [
-        { id: 'upload', label: 'Upload' }, { id: 'source', label: 'Source file' }, { id: 'structure', label: 'Structure check' }, { id: 'readfail', label: 'Read failed' },
-        { id: 'matching', label: 'Matching' }, { id: 'triage', label: 'Triage' }, { id: 'gaps', label: 'Gaps' }, { id: 'returning', label: 'Returning user' },
-      ] },
-      { id: 'ai', label: 'Room AI', value: this.roomAiOn ? 'on' : 'off', options: [{ id: 'on', label: 'On' }, { id: 'off', label: 'Off' }] },
-    ];
-  }
+  /** The prototype panel only switches between the two concept versions. */
+  protoGroups: ProtoGroup[] = [{ id: 'version', label: 'Version', value: 'v2', options: [{ id: 'v3', label: 'Version 3' }, { id: 'v2', label: 'Version 2' }] }];
 
   get hasChecklist() { return this.phase !== 'empty' && this.phase !== 'uploading'; }
   get totalRows() { return this.sc.sheets.reduce((a, s) => a + s.rows, 0); }
@@ -1192,6 +1186,7 @@ export class ChecklistMatchingComponent implements OnDestroy {
 
   // ══════════ Screens ══════════
   onProto(e: { group: string; value: string }) {
+    if (e.group === 'version') { this.router.navigateByUrl('/checklist-matching-inline'); return; }
     if (e.group === 'scenario') { this.sc = SCENARIOS[e.value]; this.isBidder = this.sc.side === 'buy'; this.goScreen(this.screen); }
     if (e.group === 'screen') this.goScreen(e.value as Screen);
     if (e.group === 'ai') { this.roomAiOn = e.value === 'on'; this.goScreen(this.screen); }

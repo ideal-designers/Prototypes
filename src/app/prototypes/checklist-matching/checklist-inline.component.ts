@@ -1,3 +1,4 @@
+import { Router } from '@angular/router';
 import { Component, ElementRef, HostListener, OnDestroy, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -346,7 +347,7 @@ const PILL: Record<string, { label: string; variant: ChipVariant }> = {
     </aside>
 
     <fvdr-toast-host />
-    <fvdr-vdr-proto-switcher [style.left]="drawer !== 'none' ? 'calc((100% - 440px) / 2)' : null" [groups]="protoGroups" (changed)="onProto($event)" (restart)="go(screen)" />
+    <fvdr-vdr-proto-switcher [style.left]="drawer !== 'none' ? 'calc((100% - 440px) / 2)' : null" [groups]="protoGroups" (changed)="onProto($event)" [showRestart]="false" />
   </div>
   `,
   styles: [`
@@ -523,6 +524,7 @@ const PILL: Record<string, { label: string; variant: ChipVariant }> = {
   `],
 })
 export class ChecklistInlineComponent implements OnDestroy {
+  private router = inject(Router);
   private toastSvc = inject(ToastService);
   @ViewChild('content') private contentEl?: ElementRef<HTMLElement>;
 
@@ -597,16 +599,8 @@ export class ChecklistInlineComponent implements OnDestroy {
   get docsRead() { return Math.round(this.progress * this.sc.totalDocs).toLocaleString('en-US'); }
   get eta() { const m = Math.ceil((1 - this.progress) * 3); return m <= 0 ? 'finishing' : `about ${m} min left`; }
   get selRow() { return this.selected ? this.sourceRows.find(r => r.reqId === this.selected) : undefined; }
-  get protoGroups(): ProtoGroup[] {
-    return [
-      { id: 'scenario', label: 'Checklist', value: this.sc.id, options: [{ id: 'lighthouse', label: 'Lighthouse IRL' }, { id: 'diamond', label: 'Diamond master' }] },
-      { id: 'screen', label: 'Screen', value: this.screen, options: [
-        { id: 'upload', label: 'Upload' }, { id: 'source', label: 'File' }, { id: 'structure', label: 'Requests marked' },
-        { id: 'matching', label: 'Matching' }, { id: 'results', label: 'Results' }, { id: 'complete', label: 'All covered' }, { id: 'returning', label: 'Returning user' },
-      ] },
-      { id: 'ai', label: 'Room AI', value: this.roomAiOn ? 'on' : 'off', options: [{ id: 'on', label: 'On' }, { id: 'off', label: 'Off' }] },
-    ];
-  }
+  /** The prototype panel only switches between the two concept versions. */
+  protoGroups: ProtoGroup[] = [{ id: 'version', label: 'Version', value: 'v3', options: [{ id: 'v3', label: 'Version 3' }, { id: 'v2', label: 'Version 2' }] }];
 
   constructor() { this.go('source'); }
   ngOnDestroy() { clearInterval(this.timer); }
@@ -699,6 +693,7 @@ export class ChecklistInlineComponent implements OnDestroy {
 
   // ── screens ──
   onProto(e: { group: string; value: string }) {
+    if (e.group === 'version') { this.router.navigateByUrl('/checklist-matching'); return; }
     if (e.group === 'scenario') { this.sc = SCENARIOS[e.value]; this.isBidder = this.sc.side === 'buy'; }
     if (e.group === 'ai') this.roomAiOn = e.value === 'on';
     this.go(e.group === 'screen' ? e.value as Screen : this.screen);
