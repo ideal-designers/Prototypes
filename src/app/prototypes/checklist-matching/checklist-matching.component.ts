@@ -239,7 +239,6 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
               <ng-container *ngIf="phase === 'matching'">
                 <span class="ring ring--bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" [attr.aria-valuenow]="progress * 100" [style.--p]="progress * 100"></span>
                 <span class="aibar__text aibar__grow"><b>Matching…</b> {{ docsRead }} of {{ totalDocsLabel }} documents · {{ etaLabel }}</span>
-                <fvdr-btn label="Stop" variant="secondary" (clicked)="stopMatching()" />
               </ng-container>
             </div>
 
@@ -407,7 +406,6 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
                           </div>
                         </div>
                         <div role="cell" class="c-src c-right">
-                          <fvdr-btn *ngIf="it.canEdit" variant="ghost" size="s" iconName="edit" [iconOnly]="true" ariaLabel="Edit request" (clicked)="startRowEdit(it.id); $event.stopPropagation()" />
                           <button class="src-link" (click)="openSrc(it.row, it.id); $event.stopPropagation()" [fvdrTooltip]="'Open row ' + it.row + ' in the source file'">{{ it.row }}</button>
                         </div>
                       </div>
@@ -433,7 +431,7 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
         </header>
         <div class="db">
           <section class="ds" *ngIf="sc.details?.fields?.length">
-            <h3 class="ds__h">Checklist details <span class="ds__sub" *ngIf="sc.details?.metaRows">{{ sc.details?.metaRows }}</span></h3>
+            <div class="ds__row"><h3 class="ds__h">Checklist details</h3><span class="ds__meta" *ngIf="sc.details?.metaRows">{{ sc.details?.metaRows }}</span></div>
             <dl class="kv"><ng-container *ngFor="let f of sc.details?.fields"><dt>{{ f.label }}</dt><dd>{{ f.value }}</dd></ng-container></dl>
           </section>
           <section class="ds">
@@ -882,7 +880,8 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
     .drawer .ds__p--strong { color: var(--color-text-primary); }
     .drawer .ds--quiet .ds__h { color: var(--color-text-secondary); }
     .drawer .ds--req { gap: var(--space-4); }
-    .drawer .req { margin: 0; font-size: var(--text-label-l-size); line-height: var(--text-label-l-lh); font-weight: var(--text-label-l-weight); }
+    .drawer .req { margin: 0; font-size: var(--text-sub2-size); line-height: var(--text-sub2-lh); font-weight: var(--text-sub2-weight); }
+    .drawer .ds__meta { font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); color: var(--color-text-secondary); }
     .drawer .meta { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-6); }
     .drawer .meta li { display: flex; flex-direction: column; gap: 2px; align-items: flex-start; }
     .drawer .meta__k { font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); color: var(--color-text-secondary); }
@@ -1218,7 +1217,8 @@ export class ChecklistMatchingComponent implements OnDestroy {
 
   /** Toast with an Undo link that restores the state captured before the action. */
   private toastUndo(message: string, prev: Record<string, Rec>, focus?: string | null) {
-    this.toastSvc.show({ variant: 'success', message, duration: 6000, actions: [{ label: 'Undo', onClick: () => {
+    const m = message.match(/^(.+?)\.\s+(.+)$/);
+    this.toastSvc.show({ variant: 'info', title: m ? m[1] : undefined, message: m ? m[2] : message, duration: 6000, actions: [{ label: 'Undo', onClick: () => {
       this.st = prev;
       if (focus) { this.selected = focus; this.panel = 'item'; }
       this.recompute();
@@ -1765,7 +1765,7 @@ export class ChecklistMatchingComponent implements OnDestroy {
       coverWhy: rec.why || r.why || r.cand?.why || '',
       partialMissing: rec.missing || r.cand?.missing || '',
       exportStatus: statusOut,
-      gapTitle: rec.reopened ? 'Reopened: the linked file was deleted' : rec.rejected ? 'Suggestion rejected' : r.near ? 'Nothing above the match threshold' : 'Nothing found',
+      gapTitle: rec.reopened ? 'Reopened: the linked file was deleted' : rec.rejected ? 'Suggestion rejected' : 'Nothing found',
       gapText: rec.reopened ? `${ro.file} was deleted by ${ro.by} on ${ro.on} and is in the recycle bin. Restore it, or ask the seller for a current version.`
         : rec.rejected ? 'The suggested document was rejected. Ask the seller for it, link another document, or mark the request not applicable.' : (r.note || ''),
       hasNear: !!(r.near && !rec.rejected), nearName: r.near?.name || '', nearPath: nd.path, nearWhy: r.near?.why || '',
