@@ -353,7 +353,7 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
                         <span class="spacer"></span>
                         <span class="muted">{{ g.meta }}</span>
                       </div>
-                      <div *ngFor="let it of g.items; trackBy: byId" class="tr tr--item" role="row" [class.tr--sel]="it.selected"
+                      <div *ngFor="let it of g.items; let odd = odd; trackBy: byId" class="tr tr--item" role="row" [class.tr--zebra]="odd" [class.tr--sel]="it.selected"
                            [style.grid-template-columns]="tblCols" (click)="select(it.id)">
                         <span role="cell"><fvdr-chip [label]="it.pill.label" [variant]="it.pill.variant" size="s" [class.pulse]="it.pill.pulse" /></span>
                         <div role="cell" class="c-id"><span>{{ it.label }}</span><fvdr-chip *ngIf="it.tag" [label]="it.tag.label" [variant]="it.tag.variant" size="xs" /></div>
@@ -392,7 +392,7 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
                         <span class="spacer"></span>
                         <span class="muted">{{ g.meta }}</span>
                       </div>
-                      <div *ngFor="let it of g.items; trackBy: byId" class="tr tr--item" role="row" [style.grid-template-columns]="listCols"
+                      <div *ngFor="let it of g.items; let odd = odd; trackBy: byId" class="tr tr--item" role="row" [class.tr--zebra]="odd" [style.grid-template-columns]="listCols"
                            [class.tr--flag]="it.flagOpen" [class.tr--editing]="it.isEditing">
                         <span role="cell"><fvdr-chip [label]="it.pill.label" [variant]="it.pill.variant" size="s" [class.pulse]="it.pill.pulse" /></span>
                         <div role="cell" class="c-id"><span>{{ it.label }}</span><fvdr-chip *ngIf="it.tag" [label]="it.tag.label" [variant]="it.tag.variant" size="xs" /></div>
@@ -760,14 +760,18 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
     .tbl { min-width: 820px; }
     .tbl--narrow { min-width: 0; }
     .tbl--list { min-width: 660px; }
-    .tr { display: grid; gap: var(--space-3); padding: var(--space-3); border-bottom: 1px solid var(--color-divider); align-items: start; }
-    .tr--head { font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); color: var(--color-text-secondary); padding-top: var(--space-2); padding-bottom: var(--space-2); }
-    .tr--group { display: flex; align-items: center; gap: var(--space-3); background: var(--color-stone-100); padding: var(--space-2) var(--space-3); }
+    /* DS table: stone header without borders, 48px rows, 16px cell padding, zebra rows, no divider lines */
+    .tr { display: grid; gap: var(--space-4); padding: var(--space-3) var(--space-4); min-height: var(--space-12); box-sizing: border-box; align-items: start;
+      font-size: var(--text-body3-size); line-height: var(--text-body3-lh); }
+    .tr--head { align-items: center; padding-top: 0; padding-bottom: 0; background: var(--color-stone-200); border-radius: var(--radius-sm);
+      font-weight: var(--text-label-s-weight); color: var(--color-text-primary); }
+    .tr--zebra { background: var(--color-stone-100); }
+    .tr--group { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-6) var(--space-4) var(--space-2); min-height: 0; }
     .g-label { color: var(--color-text-secondary); font-weight: var(--font-weight-semi); }
     .g-name { font-weight: var(--font-weight-semi); }
     .tr--item { cursor: pointer; }
-    .tr--item:hover { background: var(--color-stone-100); }
-    .tr--sel, .tr--sel:hover { background: var(--color-primary-50); box-shadow: inset 3px 0 0 var(--color-primary-500); }
+    .tr--item:hover { background: var(--color-hover-bg); }
+    .tr--sel, .tr--sel:hover { background: var(--color-primary-50); }
     .tr--flag, .tr--flag:hover { background: var(--color-warning-bg); }
     .tr--editing { background: var(--color-stone-100); cursor: default; }
     .c-id { display: flex; flex-direction: column; gap: var(--space-1); align-items: flex-start; color: var(--color-text-secondary); padding-top: var(--space-1); }
