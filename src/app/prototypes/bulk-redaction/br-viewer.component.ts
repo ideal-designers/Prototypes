@@ -3,11 +3,11 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { DS_COMPONENTS, FloatingPanelItem, RedactionMarkPage, RedactionMarkType, SegmentItem, ToastService } from '../../shared/ds';
+import type { StatusChipPick } from '../../shared/ds';
 import { BrStore } from './br-store.service';
 import { BrPdfComponent } from './br-pdf.component';
 import { BrPdfService } from './br-pdf.service';
 import { BrRulesComponent } from './br-rules.component';
-import { BrStatusComponent, BrStatusPick } from './br-status.component';
 import { BrTagInputComponent } from './br-tag-input.component';
 import { PII_ICON_SVG } from './br-icons';
 import {
@@ -31,7 +31,7 @@ interface Section { key: string; label: string; count: number; groups: MarkGroup
 @Component({
   selector: 'fvdr-br-viewer',
   standalone: true,
-  imports: [CommonModule, FormsModule, ...DS_COMPONENTS, BrPdfComponent, BrRulesComponent, BrStatusComponent, BrTagInputComponent],
+  imports: [CommonModule, FormsModule, ...DS_COMPONENTS, BrPdfComponent, BrRulesComponent, BrTagInputComponent],
   template: `
     <div class="rv" role="dialog" aria-label="Redaction viewer">
       <!-- ══ Header ══ -->
@@ -47,8 +47,8 @@ interface Section { key: string; label: string; count: number; groups: MarkGroup
           </div>
           <span class="rv-mode"><fvdr-icon name="redact"></fvdr-icon>Redacting<fvdr-icon name="chevron-down"></fvdr-icon></span>
           <!-- Status (#9, #10): Draft → Ready for review → Reviewed are changed by hand from here -->
-          <fvdr-br-status *ngIf="status !== 'none'" [status]="status" [label]="statusText" [counter]="marks.length || null" [menu]="store.canSetStatus(docId)"
-                          (picked)="setStatus($event)"></fvdr-br-status>
+          <fvdr-status-chip *ngIf="status !== 'none'" [status]="status" [label]="statusText" [counter]="marks.length || null" [menu]="store.canSetStatus(docId)"
+                          (picked)="setStatus($event)"></fvdr-status-chip>
         </div>
         <div class="rv-right">
           <!-- Switching between the batch's documents (#7) -->
@@ -378,7 +378,7 @@ export class BrViewerComponent implements OnInit, OnChanges {
   }
 
   // ── Status (#9, #10) ─────────────────────────────────────────────────────
-  setStatus(s: BrStatusPick): void {
+  setStatus(s: StatusChipPick): void {
     this.store.setStatus([this.docId], s);
     this.toast.show({ variant: 'success', message: `Status changed to ${STATUS_LABEL[s].toLowerCase()}`, duration: 3000 });
   }

@@ -2613,6 +2613,39 @@ interface SidebarGroup { category: (typeof DS_CATEGORIES)[number]; items: Compon
           </div>
         </ng-container>
 
+        <!-- ═══ STATUS CHIP ═══ -->
+        <ng-container *ngSwitchCase="'status-chip'">
+          <div class="example-block">
+            <p class="example-label">All states</p>
+            <div class="example-row" style="flex-wrap:wrap; gap:16px; align-items:center">
+              <fvdr-status-chip status="none"></fvdr-status-chip>
+              <fvdr-status-chip status="detecting"></fvdr-status-chip>
+              <fvdr-status-chip status="draft"></fvdr-status-chip>
+              <fvdr-status-chip status="ready"></fvdr-status-chip>
+              <fvdr-status-chip status="reviewed"></fvdr-status-chip>
+              <fvdr-status-chip status="applied"></fvdr-status-chip>
+            </div>
+          </div>
+          <div class="example-block">
+            <p class="example-label">Changeable — [menu]="true" (arrow + dropdown)</p>
+            <div class="example-row" style="flex-wrap:wrap; gap:16px; align-items:flex-start; min-height:140px">
+              <fvdr-status-chip [status]="statusChipValue" [menu]="true" (picked)="statusChipValue = $event"></fvdr-status-chip>
+              <fvdr-status-chip status="draft" [menu]="true"></fvdr-status-chip>
+              <fvdr-status-chip status="ready" [menu]="true"></fvdr-status-chip>
+              <fvdr-status-chip status="reviewed" [menu]="true"></fvdr-status-chip>
+            </div>
+          </div>
+          <div class="example-block">
+            <p class="example-label">With label override + counter</p>
+            <div class="example-row" style="flex-wrap:wrap; gap:16px; align-items:center">
+              <fvdr-status-chip status="draft" label="Draft marks" [counter]="10" [menu]="true"></fvdr-status-chip>
+              <fvdr-status-chip status="ready" [counter]="10" [menu]="true"></fvdr-status-chip>
+              <fvdr-status-chip status="reviewed" label="Reviewed marks" [counter]="10" [menu]="true"></fvdr-status-chip>
+              <fvdr-status-chip status="applied" label="Applied" [counter]="4"></fvdr-status-chip>
+            </div>
+          </div>
+        </ng-container>
+
         <!-- ═══ FILTER BUTTON ═══ -->
         <ng-container *ngSwitchCase="'filter-btn'">
 
@@ -5662,6 +5695,7 @@ export class DsComponentPageComponent implements OnInit, OnDestroy {
   demoFpActiveId = '';
 
   // ── Filter button demo ────────────────────────────────────
+  statusChipValue: 'draft' | 'ready' | 'reviewed' = 'draft';
   readonly filterBtnColors: FilterBtnColor[] = [
     'default', 'stone', 'blue', 'yellow', 'orange',
     'lime', 'teal', 'indigo', 'purple', 'magenta', 'danger', 'coffee',

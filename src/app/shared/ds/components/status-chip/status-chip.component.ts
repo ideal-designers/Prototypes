@@ -1,22 +1,30 @@
 import { Component, EventEmitter, HostListener, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FvdrIconComponent } from '../../shared/ds/icons/icon.component';
-import { TooltipDirective } from '../../shared/ds';
-import { DocStatus, STATUS_LABEL } from './bulk-redaction.data';
+import { FvdrIconComponent } from '../../icons/icon.component';
+import { TooltipDirective } from '../tooltip/tooltip.directive';
 
-export type BrStatusPick = 'draft' | 'ready' | 'reviewed';
+export type StatusChipState = 'none' | 'detecting' | 'draft' | 'ready' | 'reviewed' | 'applied';
+export type StatusChipPick = 'draft' | 'ready' | 'reviewed';
+
+const LABELS: Record<StatusChipState, string> = {
+  none: 'No marks', detecting: 'Drafting...', draft: 'Draft', ready: 'Ready for review', reviewed: 'Reviewed', applied: 'Applied',
+};
 
 /**
- * Redaction status chip — Figma "Components → Chips" (124:2197): 28px, 4px radius, 8px padding, 14px label,
- * an 8px status square, optional counter and an arrow when the status can be changed by hand.
- * Colours per status come from that chip set (Grey / Default / Orange / Purple / Green).
- * Local to this prototype for now; promote to the DS (with all states) once the design is signed off.
+ * DS Status chip — Figma "Components → Chips" (124:2197, 817:784).
+ * A document-redaction status: 28px chip, 4px radius, 8px padding, 14px label, an 8px status square,
+ * optional counter and — when the status can be changed by hand — an arrow that opens the statuses dropdown
+ * (160px, 32px rows, square + label).
  *
- *   <fvdr-br-status status="ready" [menu]="true" (picked)="set($event)"></fvdr-br-status>
- *   <fvdr-br-status status="draft" label="Draft marks" [counter]="10" [menu]="true"></fvdr-br-status>
+ * Colours come from the Chips set: Draft = Grey, Drafting… = Default, Ready for review = Orange,
+ * Reviewed = Purple, Applied = Green. "No marks" is the small 24px / 12px Default chip.
+ *
+ * Usage:
+ *   <fvdr-status-chip status="ready" [menu]="true" (picked)="set($event)" />
+ *   <fvdr-status-chip status="draft" label="Draft marks" [counter]="10" [menu]="true" />
  */
 @Component({
-  selector: 'fvdr-br-status',
+  selector: 'fvdr-status-chip',
   standalone: true,
   imports: [CommonModule, FvdrIconComponent, TooltipDirective],
   template: `
@@ -52,7 +60,6 @@ export type BrStatusPick = 'draft' | 'ready' | 'reviewed';
     .dot { width: 8px; height: 8px; margin: 0 4px; border-radius: 2px; flex-shrink: 0; background: var(--color-stone-500); }
     .arrow { font-size: var(--font-size-xs); flex-shrink: 0; }
 
-    /* Colour per status — Chips: Grey / Default / Orange / Purple / Green */
     .st--draft { background: var(--chip-bg-grey, #f7f7f7); }
     .st--none { background: var(--chip-bg-default, #eceef9); height: 24px; font-size: var(--font-size-xs); line-height: 16px; }
     .st--detecting { background: var(--chip-bg-default, #eceef9); }
@@ -68,7 +75,6 @@ export type BrStatusPick = 'draft' | 'ready' | 'reviewed';
     .st--reviewed .arrow { color: var(--chip-icon-purple, #a964f7); }
     .st--applied .arrow { color: var(--chip-icon-green, #2c9c74); }
 
-    /* Statuses dropdown — 160px, 32px rows, dot + label */
     .panel { position: absolute; top: calc(100% + var(--space-1)); left: 0; z-index: 60; min-width: 160px; padding: 0;
       background: var(--color-stone-0); border-radius: var(--radius-sm); box-shadow: var(--shadow-popup); }
     .opt { display: flex; align-items: center; gap: 4px; height: 32px; padding: 0 var(--space-4) 0 var(--space-3); cursor: pointer;
@@ -76,20 +82,20 @@ export type BrStatusPick = 'draft' | 'ready' | 'reviewed';
     .opt:hover, .opt--on { background: var(--color-stone-200); }
   `],
 })
-export class BrStatusComponent {
-  @Input() status: DocStatus = 'draft';
-  /** Overrides the status name, e.g. "Draft marks" in the viewer header. */
+export class StatusChipComponent {
+  @Input() status: StatusChipState = 'draft';
+  /** Overrides the status name, e.g. "Draft marks". */
   @Input() label = '';
   @Input() counter: number | null = null;
   /** Interactive: shows the arrow and opens the statuses dropdown. */
   @Input() menu = false;
-  @Output() picked = new EventEmitter<BrStatusPick>();
+  @Output() picked = new EventEmitter<StatusChipPick>();
 
-  readonly labels = STATUS_LABEL;
-  readonly options: BrStatusPick[] = ['draft', 'ready', 'reviewed'];
+  readonly labels = LABELS;
+  readonly options: StatusChipPick[] = ['draft', 'ready', 'reviewed'];
   open = false;
 
-  get text(): string { return this.label || STATUS_LABEL[this.status]; }
+  get text(): string { return this.label || LABELS[this.status]; }
 
   @HostListener('document:click') close(): void { this.open = false; }
 
@@ -98,7 +104,7 @@ export class BrStatusComponent {
     e.stopPropagation();
     this.open = !this.open;
   }
-  pick(o: BrStatusPick): void {
+  pick(o: StatusChipPick): void {
     this.open = false;
     if (o !== this.status) this.picked.emit(o);
   }

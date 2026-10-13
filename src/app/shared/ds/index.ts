@@ -1,4 +1,5 @@
 import { TooltipDirective } from './components/tooltip/tooltip.directive';
+import { StatusChipComponent } from './components/status-chip/status-chip.component';
 /**
  * FVDR Design System — Shared Components
  *
@@ -244,6 +245,8 @@ export { DroplistComponent } from './components/droplist/droplist.component';
 export type { DroplistItem } from './components/droplist/droplist.component';
 
 export { StatusComponent, StatusButtonComponent } from './components/status/status.component';
+export { StatusChipComponent } from './components/status-chip/status-chip.component';
+export type { StatusChipState, StatusChipPick } from './components/status-chip/status-chip.component';
 export type { StatusVariant, StatusBtnVariant } from './components/status/status.component';
 
 export { MultiselectComponent } from './components/multiselect/multiselect.component';
@@ -397,6 +400,7 @@ export type {
 
 /** Convenience array — spread into component imports[] */
 export const DS_COMPONENTS = [
+  StatusChipComponent,
   // Original
   ButtonComponent,
   TooltipDirective,

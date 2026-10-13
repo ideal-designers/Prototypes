@@ -2,9 +2,9 @@ import { Component, EventEmitter, HostListener, OnInit, Output, ViewChild, injec
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { BreadcrumbItem, DS_COMPONENTS, DroplistItem, QuickAccessItem, ToastService } from '../../shared/ds';
+import type { StatusChipPick } from '../../shared/ds';
 import { BrStore } from './br-store.service';
 import { BrRulesComponent } from './br-rules.component';
-import { BrStatusComponent, BrStatusPick } from './br-status.component';
 import { BrTrayComponent } from './br-tray.component';
 import { Memo, StartRequest, ViewRequest } from './br-types';
 import {
@@ -21,7 +21,7 @@ interface TreeRow { node: DocNode; level: number; hasKids: boolean }
 @Component({
   selector: 'fvdr-br-documents-page',
   standalone: true,
-  imports: [CommonModule, FormsModule, ...DS_COMPONENTS, BrRulesComponent, BrStatusComponent, BrTrayComponent],
+  imports: [CommonModule, FormsModule, ...DS_COMPONENTS, BrRulesComponent, BrTrayComponent],
   template: `
     <div class="toolbar">
       <fvdr-btn label="Add" variant="primary" iconName="plus"></fvdr-btn>
@@ -72,7 +72,7 @@ interface TreeRow { node: DocNode; level: number; hasKids: boolean }
           </span>
           <span class="pub"><fvdr-icon name="cross-circle"></fvdr-icon></span>
           <span class="st">
-            <fvdr-br-status *ngIf="tracked(n) && statusOf(n) !== 'none'; else dash" [status]="statusOf(n)" [menu]="canMenu(n)" (picked)="rowStatus(n, $event)"></fvdr-br-status>
+            <fvdr-status-chip *ngIf="tracked(n) && statusOf(n) !== 'none'; else dash" [status]="statusOf(n)" [menu]="canMenu(n)" (picked)="rowStatus(n, $event)"></fvdr-status-chip>
             <ng-template #dash><span class="dash">—</span></ng-template>
           </span>
         </div>
@@ -232,7 +232,7 @@ export class BrDocumentsPageComponent implements OnInit {
   canMenu(n: DocNode): boolean {
     return n.kind === 'file' ? this.store.canSetStatus(n.id) : filesUnder(n.id).some(f => this.store.canSetStatus(f.id));
   }
-  rowStatus(n: DocNode, s: BrStatusPick): void {
+  rowStatus(n: DocNode, s: StatusChipPick): void {
     const ids = n.kind === 'file' ? [n.id] : filesUnder(n.id).map(f => f.id);
     const c = this.store.setStatus(ids, s);
     this.toast.show({ variant: 'success', duration: 3000,

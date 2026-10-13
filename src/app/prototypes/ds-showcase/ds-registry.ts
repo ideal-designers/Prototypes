@@ -2048,6 +2048,61 @@ const redactionMarkCard: ComponentDocEntry = {
     'Implement the fvdr-redaction-mark-card Angular component. Import: @fvdr/ui. @Input() type: "personal-name"|"address"|"date-time"|"email"|"phone"|"iban"|"ssn"|"passport"|"text-mark"|"redacted-area" = "personal-name" (maps to a 16px icon + default label). @Input() title:string (the detected value; falls back to the type label). @Input() pageLabel:string (shown as subtitle when groupedBy="category"). @Input() status: "draft"|"applied" = "draft" (orange/green 8px status square). @Input() groupedBy: "page"|"category" = "page" (page → subtitle is the type label; category → subtitle is the page). @Input() selected = false (selected highlight). @Input() deletable = true. @Output() clicked and @Output() deleted. The delete (trash) action is revealed on hover. Use DS tokens only.',
 };
 
+const statusChip: ComponentDocEntry = {
+  id: 'status-chip',
+  name: 'Status Chip',
+  selector: 'fvdr-status-chip',
+  category: 'display',
+  status: 'beta',
+  figmaNode: '124:2197',
+  description: 'The redaction status of a document: Drafting…, Draft, Ready for review, Reviewed, Applied, No marks. A 28px chip with a status square, an optional counter and — when the status can be changed by hand — an arrow that opens the statuses dropdown.',
+  whenToUse: [
+    'Show where a document is in the redaction flow (Documents list, Redaction table, viewer header)',
+    'Let people move a document between Draft, Ready for review and Reviewed — [menu]="true" adds the arrow and the dropdown',
+    'Show a count next to the status, e.g. "Draft marks 10" ([label] + [counter])',
+  ],
+  whenNotToUse: [
+    'Generic tags and categories — use fvdr-chip',
+    'Project / account statuses — use fvdr-status or fvdr-status-btn',
+    'Toggle filters — use fvdr-filter-btn',
+  ],
+  anatomy: [
+    { index: 1, part: 'Container', spec: '28px high, 4px radius, 8px side padding, colour per status (Chips: Grey / Default / Orange / Purple / Green)' },
+    { index: 2, part: 'Status square', spec: '8×8px, 2px radius, 4px margin each side' },
+    { index: 3, part: 'Label', spec: '14px / 20px, regular — [label] overrides the status name' },
+    { index: 4, part: 'Counter', spec: 'Optional, same text style, shown via [counter]' },
+    { index: 5, part: 'Arrow', spec: '12px chevron-down in the status colour, shown via [menu]' },
+    { index: 6, part: 'Dropdown', spec: '160px wide, 32px rows: square + label; the current status is highlighted' },
+  ],
+  states: [
+    { name: 'No marks',  description: 'Default chip, smaller: 24px high, 12px label' },
+    { name: 'Drafting…', description: 'Default (lavender) chip, detection in progress; tooltip "Detection in progress"' },
+    { name: 'Draft',     description: 'Grey chip, grey square' },
+    { name: 'Ready for review', description: 'Orange chip, orange square' },
+    { name: 'Reviewed',  description: 'Purple chip, purple square' },
+    { name: 'Applied',   description: 'Green chip, green square — final, not changed by hand' },
+  ],
+  tokens: [
+    { token: '--chip-bg-grey',    value: '#F7F7F7', usage: 'Draft' },
+    { token: '--chip-bg-default', value: '#ECEEF9', usage: 'Drafting…, No marks' },
+    { token: '--chip-bg-orange',  value: '#FFEDE1', usage: 'Ready for review' },
+    { token: '--chip-bg-purple',  value: '#F9F1FF', usage: 'Reviewed' },
+    { token: '--chip-bg-green',   value: '#EAF6ED', usage: 'Applied' },
+    { token: '--radius-sm',       value: '4px',     usage: 'Corner radius' },
+  ],
+  usedIn: ['Bulk redaction — Documents list', 'Bulk redaction — Redaction table', 'Redaction viewer header'],
+  relatedComponents: ['chip', 'status', 'filter-btn'],
+  codeSnippet: `<!-- Read-only -->
+<fvdr-status-chip status="applied" />
+
+<!-- Changeable: arrow + dropdown (Draft / Ready for review / Reviewed) -->
+<fvdr-status-chip status="ready" [menu]="true" (picked)="setStatus($event)" />
+
+<!-- With a label override and a counter -->
+<fvdr-status-chip status="draft" label="Draft marks" [counter]="10" [menu]="true" />`,
+  claudePrompt: 'Use fvdr-status-chip for the redaction status of a document. @Input() status: "none"|"detecting"|"draft"|"ready"|"reviewed"|"applied" = "draft" (labels: No marks, Drafting..., Draft, Ready for review, Reviewed, Applied). @Input() label:string overrides the status name. @Input() counter:number|null. @Input() menu:boolean — shows the arrow and a dropdown with Draft / Ready for review / Reviewed. @Output() picked: "draft"|"ready"|"reviewed". 28px chip (No marks is 24px), 4px radius, 14px label, 8px status square; colours Grey / Default / Orange / Purple / Green from the Chips set. DS tokens only.',
+};
+
 const filterBtn: ComponentDocEntry = {
   id: 'filter-btn',
   name: 'Filter Button',
@@ -2301,6 +2356,7 @@ export const DS_REGISTRY: ComponentDocEntry[] = [
   tabs,
   tooltip,
   status,
+  statusChip,
   modal,
   // Stubs
   textarea,

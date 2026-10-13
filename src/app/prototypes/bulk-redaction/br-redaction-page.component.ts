@@ -2,9 +2,9 @@ import { Component, EventEmitter, HostListener, Input, OnInit, Output, ViewChild
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { BreadcrumbItem, DS_COMPONENTS, DroplistItem, ToastService } from '../../shared/ds';
+import type { StatusChipPick } from '../../shared/ds';
 import { BrStore } from './br-store.service';
 import { BrRulesComponent } from './br-rules.component';
-import { BrStatusComponent, BrStatusPick } from './br-status.component';
 import { BrTrayComponent } from './br-tray.component';
 import { Memo, StartRequest, ViewRequest } from './br-types';
 import {
@@ -22,7 +22,7 @@ interface Row { node: DocNode; level: number; hasKids: boolean }
 @Component({
   selector: 'fvdr-br-redaction-page',
   standalone: true,
-  imports: [CommonModule, FormsModule, ...DS_COMPONENTS, BrRulesComponent, BrStatusComponent, BrTrayComponent],
+  imports: [CommonModule, FormsModule, ...DS_COMPONENTS, BrRulesComponent, BrTrayComponent],
   template: `
     <!-- ═══ Empty state ═══ -->
     <div class="empty" *ngIf="view === 'empty'">
@@ -150,9 +150,9 @@ interface Row { node: DocNode; level: number; hasKids: boolean }
             <ng-container *ngIf="agg(r.node) as a">
               <span *ngIf="statusOf(r.node) === 'none'" class="dash">—</span>
               <ng-container *ngIf="statusOf(r.node) !== 'none'">
-                <fvdr-br-status *ngIf="a.draft || statusOf(r.node) === 'detecting'" [status]="statusOf(r.node)" [counter]="a.draft || null"
-                                [menu]="canMenu(r.node)" (picked)="rowStatus(r.node, $event)"></fvdr-br-status>
-                <fvdr-br-status *ngIf="a.applied" status="applied" [counter]="a.applied"></fvdr-br-status>
+                <fvdr-status-chip *ngIf="a.draft || statusOf(r.node) === 'detecting'" [status]="statusOf(r.node)" [counter]="a.draft || null"
+                                [menu]="canMenu(r.node)" (picked)="rowStatus(r.node, $event)"></fvdr-status-chip>
+                <fvdr-status-chip *ngIf="a.applied" status="applied" [counter]="a.applied"></fvdr-status-chip>
               </ng-container>
             </ng-container>
           </span>
@@ -417,7 +417,7 @@ export class BrRedactionPageComponent implements OnInit {
   canMenu(n: DocNode): boolean {
     return n.kind === 'file' ? this.store.canSetStatus(n.id) : this.tracked(n).some(i => this.store.canSetStatus(i));
   }
-  rowStatus(n: DocNode, s: BrStatusPick): void {
+  rowStatus(n: DocNode, s: StatusChipPick): void {
     const c = this.store.setStatus(n.kind === 'file' ? [n.id] : this.tracked(n), s);
     this.toast.show({ variant: 'success', duration: 3000,
       message: c > 1 ? `${c} files changed to ${STATUS_LABEL[s].toLowerCase()}` : `Status changed to ${STATUS_LABEL[s].toLowerCase()}` });
@@ -452,7 +452,7 @@ export class BrRedactionPageComponent implements OnInit {
       case 'unredact': { const c = this.store.unredact(files);
         this.toast.show({ variant: 'success', message: `Redaction removed from ${c} file${c === 1 ? '' : 's'}`, duration: 3000 }); break; }
       case 'review': this.openRow(n); break;
-      default: if (['draft', 'ready', 'reviewed'].includes(item.id)) this.rowStatus(n, item.id as BrStatusPick);
+      default: if (['draft', 'ready', 'reviewed'].includes(item.id)) this.rowStatus(n, item.id as StatusChipPick);
     }
   }
   get drafting(): boolean { return this.checkedFiles().some(i => this.store.status(i) === 'detecting'); }
