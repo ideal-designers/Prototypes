@@ -13,7 +13,6 @@ import { TrackerService } from '../../services/tracker.service';
 
 const SLUG = 'permissions-legend-v3';
 const COACH_KEY = 'vdsn32-permissions-coachmark-seen-v3';
-const PUBLISH_CONFIRM_SKIP_KEY = 'vdsn32-publish-confirm-skip-v3';
 
 /** Publish state of a document — drives the chip's colours and its hover label
  *  (Figma 1718-75705 / permission-icon-animation lab). */
@@ -1483,6 +1482,8 @@ export class PermissionsLegendV3Component implements OnInit, AfterViewInit, OnDe
   publishConfirmItem: TreeItem | null = null;
   publishConfirmMode: PublishMode = 'publish';
   publishConfirmDontShow = false;
+  /** "Don't show again" lives in memory only, so a page reload brings the confirmation back. */
+  private skipPublishConfirm = false;
 
   // Mixed folders (published + unpublished documents inside)
   partialVariant: PartialVariant = 'menu';
@@ -1789,7 +1790,7 @@ export class PermissionsLegendV3Component implements OnInit, AfterViewInit, OnDe
     this.closePublishMenu();
     this.partialMenuFor = null;
     const m: PublishMode = mode ?? (item.published ? 'unpublish' : 'publish');
-    if (localStorage.getItem(PUBLISH_CONFIRM_SKIP_KEY)) {
+    if (this.skipPublishConfirm) {
       this.setPublished(item, m === 'publish');
       return;
     }
@@ -1802,7 +1803,7 @@ export class PermissionsLegendV3Component implements OnInit, AfterViewInit, OnDe
     const item = this.publishConfirmItem;
     if (!item) return;
     if (this.publishConfirmDontShow) {
-      localStorage.setItem(PUBLISH_CONFIRM_SKIP_KEY, '1');
+      this.skipPublishConfirm = true;
     }
     this.setPublished(item, this.publishConfirmMode === 'publish');
     this.publishConfirmItem = null;
