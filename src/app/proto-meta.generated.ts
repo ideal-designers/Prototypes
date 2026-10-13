@@ -174,5 +174,9 @@ export const PROTO_META: Record<string, ProtoMetaInfo> = {
   "checklist-matching-inline": {
     "updated": "2026-10-13T11:59:51+03:00",
     "author": "Dmitriy Siniehin"
+  },
+  "bulk-redaction": {
+    "updated": "2026-10-13T13:24:14+02:00",
+    "author": "Nikita Tonkonozhenko"
   }
 };
