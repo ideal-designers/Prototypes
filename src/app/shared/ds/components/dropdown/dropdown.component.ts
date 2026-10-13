@@ -171,7 +171,7 @@ export type DropdownSize = 's' | 'm' | 'l';
       gap: var(--space-2);
       width: 100%;
       background: var(--color-stone-0);
-      border: 1.5px solid var(--color-stone-400);
+      border: 1px solid var(--color-stone-400);
       border-radius: var(--radius-sm);
       padding: 0 var(--space-3);
       cursor: pointer;
@@ -282,7 +282,7 @@ export type DropdownSize = 's' | 'm' | 'l';
     .dropdown__search-wrap { padding: var(--space-2); border-bottom: 1px solid var(--color-stone-400); }
     .dropdown__search {
       width: 100%; height: 40px;
-      border: 1.5px solid var(--color-stone-400);
+      border: 1px solid var(--color-stone-400);
       border-radius: var(--radius-sm);
       padding: 0 var(--space-3);
       font-family: var(--font-family);

@@ -234,6 +234,11 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./prototypes/checklist-matching/checklist-inline.component').then(m => m.ChecklistInlineComponent),
   },
+    {
+    path: 'bulk-redaction',
+    loadComponent: () =>
+      import('./prototypes/bulk-redaction/bulk-redaction.component').then(m => m.BulkRedactionComponent),
+  },
   // PROTO_ROUTES_PLACEHOLDER
   {
     path: '**',

@@ -12,7 +12,7 @@ export type InputState = 'default' | 'error' | 'success' | 'disabled';
  *
  * DS specs:
  *   Height: S=32px, M=40px, L=48px
- *   Border: 1.5px #DEE0EB, focus #2C9C74, error #E54430
+ *   Border: 1px #DEE0EB, focus #2C9C74, error #E54430
  *   Bg: #F7F7F7 default, #FFFFFF focus
  *   Radius: 4px
  *   Label: 12px caption above, helper/error text 12px below
@@ -71,7 +71,7 @@ export type InputState = 'default' | 'error' | 'success' | 'disabled';
       display: flex;
       align-items: center;
       background: var(--color-stone-0);
-      border: 1.5px solid var(--color-stone-400);
+      border: 1px solid var(--color-stone-400);
       border-radius: var(--radius-sm);
       transition: border-color 0.15s, background 0.15s;
     }

@@ -296,5 +296,13 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
     status: 'wip',
     description: 'Simpler take on the AI checklist: no separate Requests view. AI marks every request in the source spreadsheet, writes results into the file\'s own columns, and a click on a row opens a drawer with the finding and Accept / Reject / Ask in Q&A',
   },
+    {
+    slug: 'bulk-redaction',
+    title: 'Bulk Redaction',
+    module: 'Documents',
+    figma: 'https://www.figma.com/design/02e4Sm7wmZioAEV6imoNR7/FVDR---Viewers--Project-statuses--Upgrade-?node-id=16500-33397',
+    status: 'wip',
+    description: 'Bulk redaction: Concept 1 (dedicated Redaction section) vs Concept 2 (redact from the Documents list)',
+  },
   // REGISTRY_PLACEHOLDER
 ];
