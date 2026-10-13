@@ -299,7 +299,7 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
     {
     slug: 'bulk-redaction',
     title: 'Bulk Redaction',
-    module: 'Documents',
+    module: 'Viewer/Redaction',
     figma: 'https://www.figma.com/design/02e4Sm7wmZioAEV6imoNR7/FVDR---Viewers--Project-statuses--Upgrade-?node-id=16500-33397',
     status: 'wip',
     description: 'Bulk redaction: Concept 1 (dedicated Redaction section) vs Concept 2 (redact from the Documents list)',
