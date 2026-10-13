@@ -114,7 +114,7 @@ export const PROTO_META: Record<string, ProtoMetaInfo> = {
     "preview": true
   },
   "permissions-legend-v3": {
-    "updated": "2026-10-13T16:11:38+03:00",
+    "updated": "2026-10-13T16:14:44+03:00",
     "author": "Yuliia Porokhivnyk",
     "preview": true
   },
