@@ -144,7 +144,7 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
 
           <!-- File actions belong to the Source file mode, so they sit under the mode switch -->
           <div class="toolbar__actions" *ngIf="view === 'source'">
-            <fvdr-btn label="Edit" iconName="edit" size="m" [variant]="phase === 'none' && roomAiOn ? 'secondary' : 'primary'" />
+            <fvdr-btn label="Edit" iconName="edit" size="m" [variant]="(phase === 'none' && roomAiOn) || phase === 'structure' ? 'secondary' : 'primary'" />
             <fvdr-btn label="Upload new version" iconName="refresh" variant="secondary" size="m" />
             <fvdr-btn label="Download" iconName="download" variant="secondary" size="m" />
             <fvdr-btn label="Delete" iconName="trash" variant="danger-secondary" size="m" />
@@ -233,7 +233,7 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
               <fvdr-dropdown class="scope" size="s" [options]="scopeOptions" [value]="scope" (valueChange)="scope = asString($event)" />
               <fvdr-btn [label]="'Match ' + typeChips.docCount + ' requests'" size="s" (clicked)="startMatching()" />
               <span class="aibar__text aibar__grow">{{ structLine }}</span>
-              <button class="lnk" *ngIf="!readOpen" (click)="openRead()">What AI read</button>
+              <button class="lnk" *ngIf="!drawerOpen" (click)="openRead()">What AI read</button>
             </div>
             <div class="aicard" *ngIf="phase === 'matching'">
               <span class="ring ring--bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" [attr.aria-valuenow]="progress * 100" [style.--p]="progress * 100"></span>
@@ -377,36 +377,27 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
                         <span class="muted">{{ g.meta }}</span>
                       </div>
                       <div *ngFor="let it of g.items; let odd = odd; trackBy: byId" class="tr tr--item" role="row" [class.tr--zebra]="odd" [style.grid-template-columns]="listCols"
-                           [class.tr--flag]="it.flagOpen" [class.tr--editing]="it.isEditing">
+                           [class.tr--flag]="it.flagOpen" [class.tr--sel]="it.isEditing" [class.tr--click]="phase === 'structure'" (click)="phase === 'structure' && startRowEdit(it.id)">
                         <span role="cell"><fvdr-chip [label]="it.pill.label" [variant]="it.pill.variant" size="s" [class.pulse]="it.pill.pulse" /></span>
                         <div role="cell" class="c-id"><span>{{ it.label }}</span><fvdr-chip *ngIf="it.tag" [label]="it.tag.label" [variant]="it.tag.variant" size="xs" /></div>
                         <div role="cell" *ngIf="sc.hasPriority && phase !== 'structure'">{{ it.priority || '—' }}</div>
                         <div role="cell" class="c-text">
-                          <ng-container *ngIf="!it.isEditing">
+                          <ng-container>
                             <span [class.t-muted]="it.muted">{{ it.text }}</span>
                             <span class="t-asat" *ngIf="it.asAt">As at {{ it.asAt }}</span>
                             <span *ngIf="it.reason" class="t-note" [ngClass]="'tone--' + it.reasonTone">{{ it.reason }}</span>
                             <span *ngIf="it.note" class="t-note" [ngClass]="'tone--' + it.noteTone">{{ it.note }}</span>
                             <div class="row-actions" *ngIf="it.flagOpen">
-                              <fvdr-btn label="Keep this reading" variant="secondary" size="s" (clicked)="keepFlag()" />
-                              <fvdr-btn label="Edit text" variant="secondary" size="s" (clicked)="startRowEdit(it.id)" />
+                              <fvdr-btn label="Keep this reading" variant="secondary" size="s" (clicked)="keepFlag(); $event.stopPropagation()" />
+                              <fvdr-btn label="Edit text" variant="secondary" size="s" (clicked)="startRowEdit(it.id); $event.stopPropagation()" />
                             </div>
                             <div class="doc-list" *ngIf="it.chips.length">
                               <div class="tdoc" *ngFor="let c of it.chips" (mouseenter)="checkTrunc($event, it.id + c.name)"><fvdr-file-icon [type]="c.type" /><span class="tdoc__name" [fvdrTooltip]="c.label" [tooltipDisabled]="!trunc.has(it.id + c.name)">{{ c.label }}</span></div>
                             </div>
                           </ng-container>
-                          <div class="row-edit" *ngIf="it.isEditing" (click)="$event.stopPropagation()">
-                            <fvdr-textarea [(ngModel)]="editRowText" label="Request text" [rows]="3" />
-                            <fvdr-dropdown label="Type" [options]="clsOptions" [value]="editCls" (valueChange)="editCls = $any(asString($event))" />
-                            <span class="muted">{{ clsHint[editCls] }}</span>
-                            <div class="row-actions">
-                              <fvdr-btn label="Save" size="s" (clicked)="saveRowEdit()" />
-                              <fvdr-btn label="Cancel" variant="secondary" size="s" (clicked)="editRowId = null; recompute()" />
-                            </div>
-                          </div>
                         </div>
                         <div role="cell" class="c-src c-right">
-                          <fvdr-chip [label]="phase === 'structure' ? 'Row ' + it.row : '' + it.row" variant="grey" size="s" [clickable]="true" [fvdrTooltip]="'Open row ' + it.row + ' in the source file'" (clicked)="openSrc(it.row, it.id)" />
+                          <fvdr-chip [label]="phase === 'structure' ? 'Row ' + it.row : '' + it.row" variant="grey" size="s" [clickable]="true" [fvdrTooltip]="'Open row ' + it.row + ' in the source file'" (clicked)="openSrc(it.row, it.id)" (click)="$event.stopPropagation()" />
                         </div>
                       </div>
                     </ng-container>
@@ -451,6 +442,49 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
           </section>
         </div>
         <footer class="df"><fvdr-btn label="Done" (clicked)="closeRead()" /></footer>
+      </ng-container>
+
+      <!-- Edit a request while checking what AI read -->
+      <ng-container *ngIf="!readOpen && editOpen && editVm as e">
+        <header class="dh">
+          <fvdr-chip [label]="e.pill.label" [variant]="e.pill.variant" size="s" />
+          <span class="dh__ref">{{ e.label }}</span>
+          <span class="spacer"></span>
+          <span class="dh__pos">{{ e.pos }}</span>
+          <span class="dh__nav">
+            <fvdr-btn variant="ghost" size="s" iconName="chevron-up" [iconOnly]="true" ariaLabel="Previous (K)" (clicked)="stepEdit(-1)" />
+            <fvdr-btn variant="ghost" size="s" iconName="chevron-down" [iconOnly]="true" ariaLabel="Next (J)" (clicked)="stepEdit(1)" />
+          </span>
+          <fvdr-btn variant="ghost" size="s" iconName="close" [iconOnly]="true" ariaLabel="Close (Esc)" (clicked)="cancelRowEdit()" />
+        </header>
+        <div class="db">
+          <section class="ds ds--req">
+            <p class="req">{{ e.text }}</p>
+            <ul class="meta">
+              <li><span class="meta__k">Row</span><fvdr-chip [label]="'' + e.row" variant="grey" size="s" [clickable]="true" [fvdrTooltip]="'Open row ' + e.row + ' in the source file'" (clicked)="openSrc(e.row, e.id)" /></li>
+              <li *ngIf="e.priority"><span class="meta__k">Priority</span>{{ e.priority }}</li>
+              <li *ngIf="e.asAt"><span class="meta__k">As at</span>{{ e.asAt }}</li>
+            </ul>
+          </section>
+          <section class="ds">
+            <fvdr-dropdown label="Type" [options]="clsOptions" [value]="editCls" (valueChange)="editCls = $any(asString($event))" />
+            <p class="ds__p ds__p--hint">{{ clsHint[editCls] }}</p>
+          </section>
+          <section class="ds">
+            <fvdr-textarea [(ngModel)]="editRowText" label="Request text" [rows]="4" [maxlength]="500" helperText="Changes what AI matches against. The text in your file isn't changed." />
+          </section>
+          <section class="ds">
+            <h3 class="ds__h">In your file</h3>
+            <figure class="quote">
+              <blockquote>{{ e.original }}</blockquote>
+              <figcaption>{{ e.where }}</figcaption>
+            </figure>
+          </section>
+        </div>
+        <footer class="df">
+          <fvdr-btn label="Save" (clicked)="saveRowEdit()" />
+          <fvdr-btn label="Cancel" variant="secondary" (clicked)="cancelRowEdit()" />
+        </footer>
       </ng-container>
 
       <!-- A request -->
@@ -883,6 +917,9 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
     .drawer .ds__row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
     .drawer .ds__p { margin: 0; color: var(--color-text-secondary); }
     .drawer .ds__p--strong { color: var(--color-text-primary); }
+    .drawer .ds__p--hint { font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); }
+    .tr--click { cursor: pointer; }
+    .tr--click:hover { background: var(--color-hover-bg); }
     .drawer .ds--quiet .ds__h { color: var(--color-text-secondary); }
     .drawer .ds--req { gap: var(--space-4); }
     .drawer .req { margin: 0; font-size: var(--text-sub2-size); line-height: var(--text-sub2-lh); font-weight: var(--text-sub2-weight); }
@@ -961,8 +998,10 @@ export class ChecklistMatchingComponent implements OnDestroy {
     { value: 'note', label: 'Note' },
   ];
   clsHint: Record<ReqCls, string> = {
-    document_request: 'Matched to documents', question: 'Answered in writing, not matched',
-    instruction: 'Kept for reference, not matched', note: 'Kept for reference, not matched',
+    document_request: 'Document requests are matched to documents in the room.',
+    question: 'Questions need a written answer. They stay in the list but aren’t matched.',
+    instruction: 'Instructions explain how to respond. They stay in the list but aren’t matched.',
+    note: 'Notes, links and legends stay in the list but aren’t matched.',
   };
   sheetCols = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
   colIdx = [0, 1, 2, 3, 4, 5, 6, 7];
@@ -1047,7 +1086,23 @@ export class ChecklistMatchingComponent implements OnDestroy {
     const el = (ev.currentTarget as HTMLElement).querySelector('.tdoc__name') as HTMLElement | null;
     if (el && el.scrollWidth > el.clientWidth) this.trunc.add(key); else this.trunc.delete(key);
   }
-  get drawerOpen() { return (this.readOpen && this.view === 'requests') || this.showPanel; }
+  get drawerOpen() { return (this.readOpen && this.view === 'requests') || this.showPanel || this.editOpen; }
+  get editOpen() { return this.view === 'requests' && this.phase === 'structure' && !!this.editRowId; }
+  /** What the editing drawer shows for the open row. */
+  get editVm() {
+    const id = this.editRowId; if (!id) return null;
+    const r = this.getReqs().find(x => x.id === id); const base = this.sc.reqs.find(x => x.id === id); if (!r || !base) return null;
+    const ids = this.groups.flatMap(g => g.items.map(i => i.id));
+    return { id, label: this.lbl(r), row: r.row, priority: r.priority || '', asAt: r.asAt && r.asAt !== 'Current' ? r.asAt : '',
+      text: r.readAs || r.text, pill: this.pill(r.cls), original: base.text, pos: `${ids.indexOf(id) + 1} of ${ids.length}`,
+      where: `${this.sc.sheets[0].name}, row ${r.row}` };
+  }
+  cancelRowEdit() { this.editRowId = null; this.recompute(); }
+  stepEdit(dir: 1 | -1) {
+    const ids = this.groups.flatMap(g => g.items.map(i => i.id)); if (!ids.length) return;
+    const i = this.editRowId ? ids.indexOf(this.editRowId) : -1;
+    this.startRowEdit(ids[(i + dir + ids.length) % ids.length]);
+  }
   /** The scope the user matches against, as named in the dropdown (without the count). */
   get scopeLabel() { const o = this.scopeOptions.find(x => x.value === this.scope); return (o?.label || '').replace(/\s*\(.*\)$/, '').replace(/…$/, ''); }
   get structLine() {
@@ -1055,7 +1110,7 @@ export class ChecklistMatchingComponent implements OnDestroy {
     const parts = [t.doc, t.qCount ? t.q : '', t.iCount ? t.i : '', t.nCount ? t.n : ''].filter(Boolean);
     return `${parts.join(', ')} in ${this.sc.sections.length} sections`;
   }
-  openRead() { this.readOpen = true; this.exportOpen = false; this.recompute(); }
+  openRead() { this.readOpen = true; this.exportOpen = false; this.editRowId = null; this.recompute(); }
   closeRead() { this.readOpen = false; this.recompute(); }
   /** Drawer arrows: through the review queue while reviewing, otherwise through the rows on screen. */
   stepAny(dir: 1 | -1) {
@@ -1200,7 +1255,7 @@ export class ChecklistMatchingComponent implements OnDestroy {
 
   goScreen(screen: Screen) {
     this.stopTimers();
-    this.dragDepth = 0; this.droppedName = '';
+    this.dragDepth = 0; this.droppedName = ''; this.willFail = false;
     this.screen = screen;
     this.contentEl?.nativeElement.scrollTo({ top: 0 });
     Object.assign(this, {
@@ -1253,7 +1308,8 @@ export class ChecklistMatchingComponent implements OnDestroy {
     if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
     if (e.metaKey || e.ctrlKey || e.altKey) return;
     const k = e.key.toLowerCase();
-    if (k === 'escape') { if (this.readOpen) this.closeRead(); else this.clearSel(); }
+    if (k === 'escape') { if (this.readOpen) this.closeRead(); else if (this.editOpen) this.cancelRowEdit(); else this.clearSel(); }
+    else if (this.editOpen && !this.readOpen) { if (k === 'j') this.stepEdit(1); else if (k === 'k') this.stepEdit(-1); return; }
     else if (this.readOpen) return;
     else if (k === 'j') { e.preventDefault(); this.stepAny(1); }
     else if (k === 'k') { e.preventDefault(); this.stepAny(-1); }
@@ -1262,7 +1318,7 @@ export class ChecklistMatchingComponent implements OnDestroy {
   }
 
   // ── Drag & drop on the empty state ──
-  dragDepth = 0; droppedName = '';
+  dragDepth = 0; droppedName = ''; private willFail = false;
   private hasFiles(e: DragEvent) { return !!e.dataTransfer && Array.from(e.dataTransfer.types || []).includes('Files'); }
   onDragEnter(e: DragEvent) { if (!this.hasFiles(e)) return; e.preventDefault(); this.dragDepth++; }
   onDragOver(e: DragEvent) { if (!this.hasFiles(e)) return; e.preventDefault(); if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy'; }
@@ -1271,7 +1327,10 @@ export class ChecklistMatchingComponent implements OnDestroy {
     e.preventDefault(); this.dragDepth = 0;
     const f = e.dataTransfer?.files?.[0]; if (!f) return;
     if (!/\.xlsx?$/i.test(f.name)) { this.toastSvc.show({ variant: 'error', message: `${f.name} isn't an Excel file. Drop an .xlsx checklist.` }); return; }
-    this.droppedName = f.name; this.upload();
+    this.droppedName = f.name;
+    // Prototype: AI knows only the sample checklist; any other Excel file shows the "couldn't read" state
+    this.willFail = f.name !== this.sc.fileName;
+    this.upload();
   }
 
   upload() {
@@ -1293,9 +1352,11 @@ export class ChecklistMatchingComponent implements OnDestroy {
     this.st = this.baseMap(() => 'pending');
     this.recompute();
     const total = this.totalRows;
+    const fail = this.willFail; this.willFail = false;
     const step = Math.max(1, Math.round(total / 30));
     this.rt = setInterval(() => {
       const n = this.readRow + step;
+      if (n >= total && fail) { clearInterval(this.rt); Object.assign(this, { readRow: total, phase: 'failed', view: 'requests', headerRow: 1 }); this.recompute(); return; }
       if (n >= total) { clearInterval(this.rt); this.readRow = total; this.phase = 'structure'; this.isBidder = this.sc.side === 'buy'; this.recompute(); return; }
       this.readRow = n;
     }, 60);
