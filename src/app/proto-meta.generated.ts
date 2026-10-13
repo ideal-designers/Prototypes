@@ -114,7 +114,7 @@ export const PROTO_META: Record<string, ProtoMetaInfo> = {
     "preview": true
   },
   "permissions-legend-v3": {
-    "updated": "2026-10-02T16:08:26+03:00",
+    "updated": "2026-10-12T13:08:42+03:00",
     "author": "Yuliia Porokhivnyk",
     "preview": true
   },
@@ -168,11 +168,11 @@ export const PROTO_META: Record<string, ProtoMetaInfo> = {
     "author": "Dmitriy Siniehin"
   },
   "checklist-matching": {
-    "updated": "2026-10-12T12:18:38+03:00",
+    "updated": "2026-10-13T11:59:51+03:00",
     "author": "Dmitriy Siniehin"
   },
   "checklist-matching-inline": {
-    "updated": "2026-10-12T12:18:38+03:00",
+    "updated": "2026-10-13T11:59:51+03:00",
     "author": "Dmitriy Siniehin"
   }
 };

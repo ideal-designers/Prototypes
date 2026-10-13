@@ -12,7 +12,7 @@ import { LIGHTHOUSE } from './lighthouse.data';
 
 type Phase = 'empty' | 'uploading' | 'none' | 'reading' | 'failed' | 'structure' | 'matching' | 'results';
 type Screen = 'upload' | 'source' | 'structure' | 'readfail' | 'matching' | 'triage' | 'gaps' | 'returning';
-type Filter = 'all' | 'review' | 'gap' | 'covered' | 'other';
+type Filter = 'all' | 'review' | 'gap' | 'covered' | 'partial' | 'other';
 type Layout = 'table' | 'list' | 'folders';
 type Tone = 'default' | 'muted' | 'warn' | 'error' | 'success';
 
@@ -41,8 +41,8 @@ const SCENARIOS: Record<string, Scenario> = { lighthouse: LIGHTHOUSE, diamond: D
 const PILLS: Record<string, Pill> = {
   pending: { label: 'Document request', variant: 'blue' },
   document_request: { label: 'Document request', variant: 'blue' },
-  question: { label: 'Question', variant: 'purple' },
-  instruction: { label: 'Instruction', variant: 'grey' },
+  question: { label: 'Question', variant: 'magenta' },
+  instruction: { label: 'Instruction', variant: 'coffee' },
   note: { label: 'Note', variant: 'grey' },
   searching: { label: 'Searching', variant: 'default', pulse: true },
   found: { label: 'Found', variant: 'indigo' },
@@ -78,18 +78,17 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
 
         <!-- ═══ Upload ═══ -->
         <section class="upload" *ngIf="phase === 'empty' || phase === 'uploading'" aria-label="Upload checklist">
-          <div class="drop" *ngIf="phase === 'empty'">
-            <span class="drop__icon"><fvdr-icon name="upload" /></span>
-            <h2 class="drop__title">Upload your due diligence checklist</h2>
-            <p class="drop__text">Drag an Excel file here or choose one from your computer.</p>
+          <!-- Empty state (Figma 38483:164983): the whole content area is the drop zone -->
+          <div class="drop drop--empty" *ngIf="phase === 'empty'" [class.drop--over]="dragDepth > 0"
+               (dragenter)="onDragEnter($event)" (dragover)="onDragOver($event)" (dragleave)="onDragLeave()" (drop)="onDrop($event)">
+            <img class="drop__art" src="assets/illustrations/dd-checklist-empty.svg" width="176" height="120" alt="" />
+            <h2 class="drop__title">No due diligence checklist uploaded yet</h2>
+            <p class="drop__text">To share the due diligence checklist with your team and track your deal progress, drag &amp; drop your file here or use choose file button</p>
             <div class="consent" *ngIf="roomAiOn">
               <fvdr-checkbox [checked]="aiConsent" (checkedChange)="aiConsent = $event" label="Extract requests with AI after upload" />
-              <p class="consent__hint">Only the checklist's text is read. Nothing is matched until you start it.</p>
             </div>
-            <div class="consent consent--off" *ngIf="!roomAiOn">
-              <p class="consent__hint">AI is off for this room. A project admin can turn it on in Settings.</p>
-            </div>
-            <fvdr-btn label="Choose file" (clicked)="upload()" />
+            <p class="drop__off" *ngIf="!roomAiOn">AI is off for this room. A project admin can turn it on in Settings.</p>
+            <fvdr-btn label="Choose file" iconName="plus" (clicked)="upload()" />
             <span class="drop__caption">Excel files (.xlsx)</span>
           </div>
 
@@ -97,7 +96,7 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
             <div class="up-file">
               <fvdr-file-icon type="xls" />
               <div class="up-file__body">
-                <span class="up-file__name">{{ sc.fileName }}</span>
+                <span class="up-file__name">{{ droppedName || sc.fileName }}</span>
                 <span class="up-file__meta">{{ sc.fileMeta }} · uploading {{ upPct }}%</span>
                 <div class="bar"><div class="bar__fill" [style.width.%]="upPct"></div></div>
               </div>
@@ -115,7 +114,9 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
           <div class="toolbar">
             <fvdr-segment [items]="viewItems" [activeId]="view" (activeIdChange)="setView($event)" />
             <span class="spacer"></span>
-            <div class="export" *ngIf="view === 'requests' && phase === 'results'">
+            <span class="owner" fvdrTooltip="Only people who can edit this checklist see the requests and AI results" tooltipPosition="bottom"><fvdr-avatar initials="VO" size="sm" /> Only you</span>
+            <fvdr-btn label="Share" iconName="share" variant="secondary" size="m" />
+            <div class="export" *ngIf="phase === 'results'">
               <fvdr-btn label="Export" iconName="download" variant="secondary" size="m" (clicked)="exportOpen = !exportOpen" />
               <div class="menu" *ngIf="exportOpen" role="menu">
                 <div class="menu__warn" *ngIf="(counts['review'] || 0) > 0">
@@ -124,7 +125,6 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
                     <span><b>{{ counts['review'] }} suggestions not reviewed.</b> They're exported as notes, not as matches.</span>
                     <span class="menu__warn-links">
                       <button class="lnk" (click)="exportOpen = false; startReview()">Review first</button>
-                      <button class="lnk" *ngIf="hasResultCols" (click)="exportOpen = false; previewResults = true; setView('source')">Preview in file</button>
                     </span>
                   </div>
                 </div>
@@ -140,13 +140,11 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
                 <span class="menu__foot">The file in the room stays unchanged.</span>
               </div>
             </div>
-            <span class="owner" fvdrTooltip="Only people who can edit this checklist see the requests and AI results" tooltipPosition="bottom"><fvdr-avatar initials="VO" size="sm" /> Only you</span>
-            <fvdr-btn label="Share" iconName="share" variant="secondary" size="m" />
           </div>
 
           <!-- File actions belong to the Source file mode, so they sit under the mode switch -->
           <div class="toolbar__actions" *ngIf="view === 'source'">
-            <fvdr-btn label="Edit" iconName="edit" size="m" />
+            <fvdr-btn label="Edit" iconName="edit" size="m" [variant]="(phase === 'none' && roomAiOn) || phase === 'structure' ? 'secondary' : 'primary'" />
             <fvdr-btn label="Upload new version" iconName="refresh" variant="secondary" size="m" />
             <fvdr-btn label="Download" iconName="download" variant="secondary" size="m" />
             <fvdr-btn label="Delete" iconName="trash" variant="danger-secondary" size="m" />
@@ -154,28 +152,23 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
 
           <!-- ─── Source file ─── -->
           <ng-container *ngIf="view === 'source'">
-            <div class="aibar" *ngIf="highlightRow === null && phase !== 'empty' && phase !== 'uploading'">
-              <ng-container *ngIf="phase === 'none' && roomAiOn">
-                <fvdr-btn label="Extract requests" (clicked)="extract('source')" />
-                <span class="aibar__text"><b>Turn this checklist into requests.</b> AI lists every request in the file, linked to its row. The file isn't changed.</span>
+            <div class="aicard" *ngIf="highlightRow === null && (phase === 'none' || phase === 'reading' || phase === 'structure' || phase === 'matching')">
+              <fvdr-ai-orb [size]="20" [thinking]="phase === 'reading' || phase === 'matching'" [showLabel]="false" />
+              <ng-container *ngIf="phase === 'none'">
+                <span class="aibar__text" *ngIf="roomAiOn"><b>Turn this checklist into requests.</b> AI lists every request in the file, linked to its row. The file isn't changed.</span>
+                <span class="aibar__text" *ngIf="!roomAiOn">AI is off for this room. A project admin can turn it on in Settings.</span>
+                <fvdr-btn *ngIf="roomAiOn" label="Extract requests" size="s" iconName="matching-items" (clicked)="extract('source')" />
               </ng-container>
-              <span class="aibar__text" *ngIf="phase === 'none' && !roomAiOn">AI is off for this room. A project admin can turn it on in Settings.</span>
-              <ng-container *ngIf="phase === 'reading'">
-                <span class="ring ring--bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" [attr.aria-valuenow]="readPct" [style.--p]="readPct"></span>
-                <span class="aibar__text"><b>Reading the checklist…</b> {{ readSheet }} · row {{ readRowInSheet }} of {{ readSheetRows }}</span>
-              </ng-container>
+              <span class="aibar__text" *ngIf="phase === 'reading'"><b>Reading the checklist…</b> {{ readSheet }} · row {{ readRowInSheet }} of {{ readSheetRows }}</span>
               <ng-container *ngIf="phase === 'structure'">
-                <fvdr-btn label="Review requests" (clicked)="setView('requests')" />
                 <span class="aibar__text"><b>{{ foundLine }}.</b> Check what AI read, then match them to documents.</span>
+                <fvdr-btn label="Review requests" size="s" iconName="matching-items" (clicked)="setView('requests')" />
               </ng-container>
-              <ng-container *ngIf="phase === 'matching'">
-                <span class="ring ring--bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" [attr.aria-valuenow]="progress * 100" [style.--p]="progress * 100"></span>
-                <span class="aibar__text"><b>Matching…</b> {{ docsRead }} of {{ totalDocsLabel }} documents · {{ etaLabel }}</span>
-              </ng-container>
-              <ng-container *ngIf="phase === 'results'">
-                <span class="aibar__text aibar__grow">{{ srcInfoText }}</span>
-                <fvdr-toggle *ngIf="hasResultCols" [(checked)]="previewResults" label="Show results in the file" (checkedChange)="recompute()" />
-              </ng-container>
+              <span class="aibar__text" *ngIf="phase === 'matching'"><b>Matching…</b> {{ docsRead }} of {{ totalDocsLabel }} documents · {{ etaLabel }}</span>
+            </div>
+            <div class="aibar" *ngIf="highlightRow === null && phase === 'results'">
+              <span class="aibar__text aibar__grow">{{ srcInfoText }}</span>
+              <fvdr-toggle *ngIf="hasResultCols" [(checked)]="previewResults" label="Show results in the file" (checkedChange)="recompute()" />
             </div>
             <div class="aibar" *ngIf="highlightRow !== null">
               <fvdr-btn label="Back to request" variant="secondary" (clicked)="backToRequest()" />
@@ -218,46 +211,39 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
           <!-- ─── Requests ─── -->
           <ng-container *ngIf="view === 'requests'">
 
-            <!-- Returning user: what changed, one line -->
-            <section class="delta" *ngIf="phase === 'results' && delta" aria-label="Changes since your last visit">
-              <span class="delta__title">Since {{ sc.returning.since }}</span>
-              <fvdr-chip *ngFor="let c of changeChips" [label]="c.label" [variant]="c.variant" size="s" [rounded]="true"
-                         [clickable]="true" [selected]="changeFilter === c.kind" (clicked)="pickChange(c.kind)" />
-              <fvdr-btn *ngIf="changeFilter" label="Show all requests" variant="link" size="s" (clicked)="changeFilter = null; recompute()" />
-              <span class="spacer"></span>
-              <fvdr-btn variant="ghost" size="s" iconName="close" [iconOnly]="true" ariaLabel="Dismiss" (clicked)="delta = false; changeFilter = null; recompute()" />
-            </section>
+            <!-- Returning user: changes show on the rows themselves (New / Changed tags and reasons) -->
 
             <div class="aibar" *ngIf="phase === 'results' && stale">
               <fvdr-btn label="Review changes" variant="secondary" (clicked)="openDiff()" />
               <span class="aibar__text"><b>The file was edited after extraction.</b> 1 request added, 1 changed.</span>
             </div>
 
-            <!-- Before results: one grey bar, primary action first -->
-            <div class="aibar" *ngIf="phase === 'none' || phase === 'reading' || phase === 'structure' || phase === 'matching'">
+            <!-- Before results: the same AI card as in Source file (Figma) -->
+            <div class="aicard" *ngIf="phase === 'none' || phase === 'reading'">
+              <fvdr-ai-orb [size]="20" [thinking]="phase === 'reading'" [showLabel]="false" />
               <ng-container *ngIf="phase === 'none'">
-                <fvdr-btn *ngIf="roomAiOn" label="Extract requests" (clicked)="extract()" />
                 <span class="aibar__text" *ngIf="roomAiOn"><b>Turn this checklist into requests.</b> AI lists every request in the file, linked to its row. The file isn't changed.</span>
                 <span class="aibar__text" *ngIf="!roomAiOn">AI is off for this room. A project admin can turn it on in Settings.</span>
+                <fvdr-btn *ngIf="roomAiOn" label="Extract requests" size="s" iconName="matching-items" (clicked)="extract()" />
               </ng-container>
-              <ng-container *ngIf="phase === 'reading'">
-                <span class="ring ring--bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" [attr.aria-valuenow]="readPct" [style.--p]="readPct"></span>
-                <span class="aibar__text"><b>Reading the checklist…</b> {{ readSheet }} · row {{ readRowInSheet }} of {{ readSheetRows }}</span>
-              </ng-container>
-              <ng-container *ngIf="phase === 'structure'">
-                <fvdr-dropdown class="scope" [options]="scopeOptions" [value]="scope" (valueChange)="scope = asString($event)" />
-                <fvdr-btn [label]="'Match ' + typeChips.docCount + ' requests'" (clicked)="startMatching()" />
-                <span class="aibar__text aibar__grow">{{ structLine }}</span>
-                <button class="lnk" (click)="openRead()">What AI read</button>
-              </ng-container>
-              <ng-container *ngIf="phase === 'matching'">
-                <span class="ring ring--bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" [attr.aria-valuenow]="progress * 100" [style.--p]="progress * 100"></span>
-                <span class="aibar__text aibar__grow"><b>Matching…</b> {{ docsRead }} of {{ totalDocsLabel }} documents · {{ etaLabel }}</span>
-                <fvdr-btn label="Stop" variant="secondary" (clicked)="stopMatching()" />
-              </ng-container>
+              <span class="aibar__text" *ngIf="phase === 'reading'"><b>Reading the checklist…</b> {{ readSheet }} · row {{ readRowInSheet }} of {{ readSheetRows }}</span>
+            </div>
+            <!-- Check what was read: full-width card, small controls first, summary, What AI read on the right -->
+            <div class="aicard aicard--wide" *ngIf="phase === 'structure'">
+              <fvdr-dropdown class="scope" size="s" [options]="scopeOptions" [value]="scope" (valueChange)="scope = asString($event)" />
+              <fvdr-btn [label]="'Match ' + typeChips.docCount + ' requests'" size="s" (clicked)="startMatching()" />
+              <span class="aibar__text aibar__grow">{{ structLine }}</span>
+              <button class="lnk" *ngIf="!drawerOpen" (click)="openRead()">What AI read</button>
+            </div>
+            <div class="aicard" *ngIf="phase === 'matching'">
+              <span class="ring ring--bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" [attr.aria-valuenow]="progress * 100" [style.--p]="progress * 100"></span>
+              <span class="aibar__text"><b>Matching “{{ scopeLabel }}”</b></span>
+              <span class="aicard__fact"><fvdr-icon name="matching-items" />{{ docsRead }} of {{ totalDocsLabel }} documents</span>
+              <span class="aicard__fact"><fvdr-icon name="time" />{{ etaLabel }}</span>
             </div>
 
             <div class="empty" *ngIf="phase === 'failed'">
+              <img src="assets/illustrations/dd-checklist-read-failed.svg" width="176" height="120" alt="" />
               <h2 class="empty__title">AI couldn't find requests in this file</h2>
               <p class="empty__text">No header row with a request column was found. Pick the header row and read again, or upload another file.</p>
               <div class="fail-actions">
@@ -269,18 +255,16 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
 
             <!-- Results: filters, coverage, next step — no background -->
             <div class="rbar" *ngIf="phase === 'results'">
-              <fvdr-segment variant="table" size="md" [items]="filterItems" [activeId]="changeFilter ? '' : filter" (activeIdChange)="pickFilter($any($event))" />
+              <div class="rbar__l">
+                <fvdr-segment variant="table" size="md" [items]="filterItems" [activeId]="changeFilter ? '' : filter" (activeIdChange)="pickFilter($any($event))" />
+                <fvdr-btn *ngIf="filter !== 'gap' && (counts['review'] || 0) > 0 && !showPanel" [label]="'Review ' + counts['review'] + ' suggestions'" variant="secondary" (clicked)="startReview()" />
+              </div>
               <div class="covp">
                 <span class="covp__val" [attr.aria-label]="pct + '% of document requests covered'">
                   <span class="ring" [style.--p]="pct" aria-hidden="true"></span>
                   <span><b>{{ pct }}%</b> covered</span>
                 </span>
-                <button class="lnk" (click)="openRead()">What AI read</button>
-              </div>
-              <div class="rbar__r">
-                <fvdr-btn *ngIf="filter !== 'gap' && (counts['review'] || 0) > 0 && !showPanel" [label]="'Review ' + counts['review'] + ' suggestions'" (clicked)="startReview()" />
-                <fvdr-btn *ngIf="filter === 'gap' && askableGaps.length" [label]="(isBidder ? 'Ask about ' : 'Request ') + askableGaps.length + ' gaps'" (clicked)="openBulkAsk()" />
-                <fvdr-segment variant="table" size="md" [items]="layoutItems" [activeId]="layout" (activeIdChange)="pickLayout($event)" />
+                <button class="lnk lnk--icon" (click)="openRead()"><fvdr-icon name="help" />Info</button>
               </div>
             </div>
 
@@ -365,7 +349,7 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
                         </div>
                         <div role="cell" class="c-docs">
                           <div class="doc-list" *ngIf="it.chips.length">
-                            <div class="tdoc" *ngFor="let c of it.chips"><fvdr-file-icon [type]="c.type" /><span class="tdoc__name">{{ c.label }}</span></div>
+                            <div class="tdoc" *ngFor="let c of it.chips" (mouseenter)="checkTrunc($event, it.id + c.name)"><fvdr-file-icon [type]="c.type" /><span class="tdoc__name" [fvdrTooltip]="c.label" [tooltipDisabled]="!trunc.has(it.id + c.name)">{{ c.label }}</span></div>
                           </div>
                           <button class="more" *ngIf="it.hasMore" (click)="toggleMore(it.id); $event.stopPropagation()">{{ it.moreLabel }}</button>
                           <span *ngIf="it.line" class="t-note" [ngClass]="'tone--' + it.lineTone">{{ it.line }}</span>
@@ -380,10 +364,10 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
                   <div class="tbl tbl--list" role="table" aria-label="Requests">
                     <div class="tr tr--head" role="row" [style.grid-template-columns]="listCols">
                       <span role="columnheader">{{ phase === 'structure' ? 'Type' : 'Status' }}</span>
-                      <span role="columnheader">Ref</span>
-                      <span role="columnheader" *ngIf="sc.hasPriority">Priority</span>
+                      <span role="columnheader">{{ phase === 'structure' ? '#' : 'Ref' }}</span>
+                      <span role="columnheader" *ngIf="sc.hasPriority && phase !== 'structure'">Priority</span>
                       <span role="columnheader">Request</span>
-                      <span role="columnheader" class="c-right">Row</span>
+                      <span role="columnheader" class="c-right">{{ phase === 'structure' ? 'Source file' : 'Row' }}</span>
                     </div>
                     <ng-container *ngFor="let g of groups; trackBy: byId">
                       <div class="tr tr--group" role="row">
@@ -393,37 +377,27 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
                         <span class="muted">{{ g.meta }}</span>
                       </div>
                       <div *ngFor="let it of g.items; let odd = odd; trackBy: byId" class="tr tr--item" role="row" [class.tr--zebra]="odd" [style.grid-template-columns]="listCols"
-                           [class.tr--flag]="it.flagOpen" [class.tr--editing]="it.isEditing">
+                           [class.tr--flag]="it.flagOpen" [class.tr--sel]="it.isEditing" [class.tr--click]="phase === 'structure'" (click)="phase === 'structure' && startRowEdit(it.id)">
                         <span role="cell"><fvdr-chip [label]="it.pill.label" [variant]="it.pill.variant" size="s" [class.pulse]="it.pill.pulse" /></span>
                         <div role="cell" class="c-id"><span>{{ it.label }}</span><fvdr-chip *ngIf="it.tag" [label]="it.tag.label" [variant]="it.tag.variant" size="xs" /></div>
-                        <div role="cell" *ngIf="sc.hasPriority">{{ it.priority || '—' }}</div>
+                        <div role="cell" *ngIf="sc.hasPriority && phase !== 'structure'">{{ it.priority || '—' }}</div>
                         <div role="cell" class="c-text">
-                          <ng-container *ngIf="!it.isEditing">
+                          <ng-container>
                             <span [class.t-muted]="it.muted">{{ it.text }}</span>
                             <span class="t-asat" *ngIf="it.asAt">As at {{ it.asAt }}</span>
                             <span *ngIf="it.reason" class="t-note" [ngClass]="'tone--' + it.reasonTone">{{ it.reason }}</span>
                             <span *ngIf="it.note" class="t-note" [ngClass]="'tone--' + it.noteTone">{{ it.note }}</span>
                             <div class="row-actions" *ngIf="it.flagOpen">
-                              <fvdr-btn label="Keep this reading" variant="secondary" size="s" (clicked)="keepFlag()" />
-                              <fvdr-btn label="Edit text" variant="secondary" size="s" (clicked)="startRowEdit(it.id)" />
+                              <fvdr-btn label="Keep this reading" variant="secondary" size="s" (clicked)="keepFlag(); $event.stopPropagation()" />
+                              <fvdr-btn label="Edit text" variant="secondary" size="s" (clicked)="startRowEdit(it.id); $event.stopPropagation()" />
                             </div>
                             <div class="doc-list" *ngIf="it.chips.length">
-                              <div class="tdoc" *ngFor="let c of it.chips"><fvdr-file-icon [type]="c.type" /><span class="tdoc__name">{{ c.label }}</span></div>
+                              <div class="tdoc" *ngFor="let c of it.chips" (mouseenter)="checkTrunc($event, it.id + c.name)"><fvdr-file-icon [type]="c.type" /><span class="tdoc__name" [fvdrTooltip]="c.label" [tooltipDisabled]="!trunc.has(it.id + c.name)">{{ c.label }}</span></div>
                             </div>
                           </ng-container>
-                          <div class="row-edit" *ngIf="it.isEditing" (click)="$event.stopPropagation()">
-                            <fvdr-textarea [(ngModel)]="editRowText" label="Request text" [rows]="3" />
-                            <fvdr-dropdown label="Type" [options]="clsOptions" [value]="editCls" (valueChange)="editCls = $any(asString($event))" />
-                            <span class="muted">{{ clsHint[editCls] }}</span>
-                            <div class="row-actions">
-                              <fvdr-btn label="Save" size="s" (clicked)="saveRowEdit()" />
-                              <fvdr-btn label="Cancel" variant="secondary" size="s" (clicked)="editRowId = null; recompute()" />
-                            </div>
-                          </div>
                         </div>
                         <div role="cell" class="c-src c-right">
-                          <fvdr-btn *ngIf="it.canEdit" variant="ghost" size="s" iconName="edit" [iconOnly]="true" ariaLabel="Edit request" (clicked)="startRowEdit(it.id); $event.stopPropagation()" />
-                          <button class="src-link" (click)="openSrc(it.row, it.id); $event.stopPropagation()" [fvdrTooltip]="'Open row ' + it.row + ' in the source file'">{{ it.row }}</button>
+                          <fvdr-chip [label]="phase === 'structure' ? 'Row ' + it.row : '' + it.row" variant="grey" size="s" [clickable]="true" [fvdrTooltip]="'Open row ' + it.row + ' in the source file'" (clicked)="openSrc(it.row, it.id)" (click)="$event.stopPropagation()" />
                         </div>
                       </div>
                     </ng-container>
@@ -448,7 +422,7 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
         </header>
         <div class="db">
           <section class="ds" *ngIf="sc.details?.fields?.length">
-            <h3 class="ds__h">Checklist details <span class="ds__sub" *ngIf="sc.details?.metaRows">{{ sc.details?.metaRows }}</span></h3>
+            <div class="ds__row"><h3 class="ds__h">Checklist details</h3><span class="ds__meta" *ngIf="sc.details?.metaRows">{{ sc.details?.metaRows }}</span></div>
             <dl class="kv"><ng-container *ngFor="let f of sc.details?.fields"><dt>{{ f.label }}</dt><dd>{{ f.value }}</dd></ng-container></dl>
           </section>
           <section class="ds">
@@ -466,17 +440,51 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
               <div *ngIf="sc.statusMap"><dt>Status values</dt><dd>{{ sc.statusMap.covered }}, {{ sc.statusMap.partial }}, {{ sc.statusMap.gap }}, {{ sc.statusMap.na }}</dd></div>
             </dl>
           </section>
-          <section class="ds">
-            <h3 class="ds__h">Deal side</h3>
-            <fvdr-segment variant="table" size="md" [items]="sideItems" [activeId]="isBidder ? 'buy' : 'sell'" (activeIdChange)="setSide($event)" />
-            <p class="ds__p">{{ isBidder ? 'Missing items become questions to the seller in Q&A.' : 'Missing items become upload requests to the seller team.' }}</p>
-          </section>
-          <section class="ds ds--quiet">
-            <h3 class="ds__h">How matching works</h3>
-            <p class="ds__p">AI reads the checklist and the documents in the scope you pick, nothing else. It never changes your file, never accepts for you and never messages the seller without your click. Every decision is logged in the Activity log.</p>
-          </section>
         </div>
         <footer class="df"><fvdr-btn label="Done" (clicked)="closeRead()" /></footer>
+      </ng-container>
+
+      <!-- Edit a request while checking what AI read -->
+      <ng-container *ngIf="!readOpen && editOpen && editVm as e">
+        <header class="dh">
+          <fvdr-chip [label]="e.pill.label" [variant]="e.pill.variant" size="s" />
+          <span class="dh__ref">{{ e.label }}</span>
+          <span class="spacer"></span>
+          <span class="dh__pos">{{ e.pos }}</span>
+          <span class="dh__nav">
+            <fvdr-btn variant="ghost" size="s" iconName="chevron-up" [iconOnly]="true" ariaLabel="Previous (K)" (clicked)="stepEdit(-1)" />
+            <fvdr-btn variant="ghost" size="s" iconName="chevron-down" [iconOnly]="true" ariaLabel="Next (J)" (clicked)="stepEdit(1)" />
+          </span>
+          <fvdr-btn variant="ghost" size="s" iconName="close" [iconOnly]="true" ariaLabel="Close (Esc)" (clicked)="cancelRowEdit()" />
+        </header>
+        <div class="db">
+          <section class="ds ds--req">
+            <p class="req">{{ e.text }}</p>
+            <ul class="meta">
+              <li><span class="meta__k">Row</span><fvdr-chip [label]="'' + e.row" variant="grey" size="s" [clickable]="true" [fvdrTooltip]="'Open row ' + e.row + ' in the source file'" (clicked)="openSrc(e.row, e.id)" /></li>
+              <li *ngIf="e.priority"><span class="meta__k">Priority</span>{{ e.priority }}</li>
+              <li *ngIf="e.asAt"><span class="meta__k">As at</span>{{ e.asAt }}</li>
+            </ul>
+          </section>
+          <section class="ds">
+            <fvdr-dropdown label="Type" [options]="clsOptions" [value]="editCls" (valueChange)="editCls = $any(asString($event))" />
+            <p class="ds__p ds__p--hint">{{ clsHint[editCls] }}</p>
+          </section>
+          <section class="ds">
+            <fvdr-textarea [(ngModel)]="editRowText" label="Request text" [rows]="4" [maxlength]="500" helperText="Changes what AI matches against. The text in your file isn't changed." />
+          </section>
+          <section class="ds">
+            <h3 class="ds__h">In your file</h3>
+            <figure class="quote">
+              <blockquote>{{ e.original }}</blockquote>
+              <figcaption>{{ e.where }}</figcaption>
+            </figure>
+          </section>
+        </div>
+        <footer class="df">
+          <fvdr-btn label="Save" (clicked)="saveRowEdit()" />
+          <fvdr-btn label="Cancel" variant="secondary" (clicked)="cancelRowEdit()" />
+        </footer>
       </ng-container>
 
       <!-- A request -->
@@ -486,15 +494,17 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
           <span class="dh__ref">{{ s.label }}</span>
           <span class="spacer"></span>
           <span class="dh__pos" *ngIf="s.queue">{{ s.queue }}</span>
-          <fvdr-btn variant="ghost" size="s" iconName="chevron-up" [iconOnly]="true" ariaLabel="Previous (K)" (clicked)="stepAny(-1)" />
-          <fvdr-btn variant="ghost" size="s" iconName="chevron-down" [iconOnly]="true" ariaLabel="Next (J)" (clicked)="stepAny(1)" />
+          <span class="dh__nav">
+            <fvdr-btn variant="ghost" size="s" iconName="chevron-up" [iconOnly]="true" ariaLabel="Previous (K)" (clicked)="stepAny(-1)" />
+            <fvdr-btn variant="ghost" size="s" iconName="chevron-down" [iconOnly]="true" ariaLabel="Next (J)" (clicked)="stepAny(1)" />
+          </span>
           <fvdr-btn variant="ghost" size="s" iconName="close" [iconOnly]="true" ariaLabel="Close (Esc)" (clicked)="clearSel()" />
         </header>
         <div class="db">
           <section class="ds ds--req">
             <p class="req">{{ s.text }}</p>
             <ul class="meta">
-              <li><span class="meta__k">Row</span><button class="lnk" (click)="openSrc(s.row, s.id)" [fvdrTooltip]="'Open row ' + s.row + ' in the source file'">{{ s.row }}</button></li>
+              <li><span class="meta__k">Row</span><fvdr-chip [label]="'' + s.row" variant="grey" size="s" [clickable]="true" [fvdrTooltip]="'Open row ' + s.row + ' in the source file'" (clicked)="openSrc(s.row, s.id)" /></li>
               <li *ngIf="s.priority"><span class="meta__k">Priority</span>{{ s.priority }}</li>
               <li *ngIf="s.asAt"><span class="meta__k">As at</span>{{ s.asAt }}</li>
             </ul>
@@ -509,13 +519,9 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
               <fvdr-file-icon [type]="fileType(s.docName)" />
               <div class="doc__b">
                 <button class="doc__name" (click)="openPreview(s.docName)">{{ s.docLabel }}</button>
-                <button class="doc__path doc__path--btn" (click)="openFolder(s.docName)">{{ s.docPath }}</button>
+                <button class="doc__path doc__path--link" (click)="openFolder(s.docName)">{{ s.docPath }}</button>
               </div>
             </div>
-            <figure class="quote" *ngIf="s.evidence">
-              <blockquote>{{ s.evidence.quote }}</blockquote>
-              <figcaption>{{ s.evidence.page }}</figcaption>
-            </figure>
           </section>
 
           <section class="ds" *ngIf="s.isCovered">
@@ -552,9 +558,9 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
           </section>
 
           <section class="ds" *ngIf="s.issues.length">
-            <h3 class="ds__h">Needs attention</h3>
+            <h3 class="ds__h ds__h--ai"><fvdr-icon name="ai-sparkle" />Needs attention</h3>
             <ul class="issues">
-              <li *ngFor="let i of s.issues"><fvdr-icon [name]="i.icon" /><span><b>{{ i.title }}</b> {{ i.text }}</span></li>
+              <li *ngFor="let i of s.issues"><span><b>{{ i.title }}</b> {{ i.text }}</span></li>
             </ul>
           </section>
 
@@ -564,22 +570,24 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
             <p class="ds__p">Goes to {{ isBidder ? 'Q&A' : 'the seller team' }} only when you click Send. You can edit it first.</p>
           </section>
 
-          <section class="ds" *ngIf="s.writes">
-            <h3 class="ds__h">{{ s.isReview ? 'If you accept, your file gets' : 'In your file' }}</h3>
+          <section class="ds" *ngIf="s.isReview">
+            <fvdr-dropdown label="Status" [options]="statusOptions" [value]="reviewStatus" (valueChange)="reviewStatus = $any(asString($event))" />
+          </section>
+
+          <section class="ds" *ngIf="s.writes && !s.isReview">
+            <h3 class="ds__h">In your file</h3>
             <dl class="kvs">
               <div *ngFor="let w of s.writes"><dt>{{ w.col }}</dt><dd [class.kv__empty]="!w.val">{{ w.val || 'Empty' }}</dd></div>
             </dl>
           </section>
 
-          <details class="ds ds--quiet hist" *ngIf="s.history.length">
-            <summary class="ds__h">History <span class="ds__sub">{{ s.history.length }}</span></summary>
-            <ol><li *ngFor="let h of s.history"><span>{{ h.what }}</span><span class="hist__who">{{ h.who }} · {{ h.at }}</span></li></ol>
-          </details>
         </div>
         <footer class="df">
-          <ng-container *ngIf="s.isReview">
-            <fvdr-btn [label]="s.verdict === 'Partial' ? 'Accept as partial' : 'Accept'" fvdrTooltip="A" (clicked)="accept()" />
+          <ng-container *ngIf="s.isReview && !composeOpen">
+            <fvdr-btn label="Save" fvdrTooltip="A" (clicked)="saveReview()" />
             <fvdr-btn label="Reject" variant="secondary" fvdrTooltip="R" (clicked)="reject()" />
+            <span class="spacer"></span>
+            <fvdr-btn label="Ask Seller" variant="secondary" (clicked)="openCompose()" />
           </ng-container>
           <ng-container *ngIf="composeOpen">
             <fvdr-btn [label]="isBidder ? 'Send to Q&A' : 'Send request'" (clicked)="sendCompose()" />
@@ -621,17 +629,6 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
       </ng-container>
     </aside>
 
-    <fvdr-modal [visible]="bulkOpen" size="m" [title]="isBidder ? 'Ask the seller about ' + bulkItems.length + ' gaps' : 'Request ' + bulkItems.length + ' missing documents'"
-                [confirmLabel]="'Send ' + bulkSelected + (bulkSelected === 1 ? ' question' : ' questions')" cancelLabel="Cancel" [confirmDisabled]="!bulkSelected"
-                (confirmed)="sendBulk()" (cancelled)="bulkOpen = false" (closed)="bulkOpen = false">
-      <p class="muted">Each gap becomes its own {{ isBidder ? 'Q&A question' : 'upload request' }}, linked to its request. Edit the wording before sending.</p>
-      <div class="bulk">
-        <div class="bulk__item" *ngFor="let b of bulkItems">
-          <fvdr-checkbox [checked]="b.on" (checkedChange)="b.on = $event; countBulk()" [label]="b.ref + ' · ' + b.title" />
-          <fvdr-textarea *ngIf="b.on" [(ngModel)]="b.text" [rows]="3" />
-        </div>
-      </div>
-    </fvdr-modal>
 
     <fvdr-modal [visible]="howOpen" size="m" title="How matching works" confirmLabel="Got it" (confirmed)="howOpen = false" (closed)="howOpen = false">
       <ul class="how">
@@ -655,7 +652,7 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
       padding: var(--space-3) var(--space-6) calc(var(--space-16) + var(--space-4)); display: flex; flex-direction: column; gap: var(--space-4); }
     .spacer { flex: 1; }
     .muted { color: var(--color-text-secondary); font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); }
-    b { font-weight: var(--font-weight-semi); }
+    b { font-weight: var(--text-label-s-weight); }
 
     .tone--default { color: var(--color-text-primary); }
     .tone--muted { color: var(--color-text-secondary); }
@@ -664,22 +661,25 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
     .tone--success { color: var(--color-primary-600); }
 
     /* Upload */
-    .upload { display: flex; flex-direction: column; }
+    .upload { flex: 1; min-height: 0; display: flex; flex-direction: column; }
     .drop { border: 1px dashed var(--color-stone-500); border-radius: var(--radius-lg); padding: var(--space-16) var(--space-6);
       display: flex; flex-direction: column; align-items: center; gap: var(--space-3); text-align: center; }
     .drop--uploading { padding: var(--space-8) var(--space-6); }
-    .drop__icon { width: var(--space-12); height: var(--space-12); border-radius: var(--radius-full); background: var(--color-primary-50);
-      color: var(--color-primary-500); display: inline-flex; align-items: center; justify-content: center; font-size: var(--font-size-2xl); }
+    .drop--empty { flex: 1; justify-content: center; gap: var(--space-4); transition: border-color 0.15s, background-color 0.15s; }
+    /* A file is dragged over the zone */
+    .drop--over { border-color: var(--color-primary-500); background: var(--color-primary-50); }
+    .drop--over > * { pointer-events: none; }
+    .drop__art { display: block; }
+    .drop__off { margin: 0; color: var(--color-text-secondary); }
+    .drop--empty .drop__text { max-width: 434px; }
+    .consent ::ng-deep .checkbox-label { font-weight: var(--text-label-s-weight); }
     .drop__title { margin: 0; font-size: var(--text-sub2-size); line-height: var(--text-sub2-lh); font-weight: var(--text-sub2-weight); }
     .drop__text { margin: 0; max-width: 560px; color: var(--color-text-secondary); }
     .drop__caption { font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); color: var(--color-text-secondary); }
-    .consent { display: flex; flex-direction: column; gap: var(--space-1); text-align: left; max-width: 560px; margin: var(--space-2) 0; }
-    .consent--off { flex-direction: row; gap: var(--space-2); color: var(--color-text-secondary); }
-    .consent__hint { margin: 0 0 0 calc(var(--space-6) + var(--space-1)); font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); color: var(--color-text-secondary); }
-    .consent--off .consent__hint { margin: 0; }
+    .consent { display: flex; flex-direction: column; gap: var(--space-1); text-align: left; max-width: 560px; }
     .up-file { display: flex; align-items: center; gap: var(--space-3); width: min(420px, 100%); text-align: left; }
     .up-file__body { flex: 1; display: flex; flex-direction: column; gap: var(--space-1); }
-    .up-file__name { font-weight: var(--font-weight-semi); }
+    .up-file__name { font-weight: var(--text-label-s-weight); }
     .up-file__meta { font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); color: var(--color-text-secondary); }
 
     .bar { height: var(--space-1); border-radius: var(--radius-full); background: var(--color-stone-300); overflow: hidden; width: 100%; }
@@ -696,7 +696,7 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
       border-radius: var(--radius-md); box-shadow: var(--shadow-popup); padding: var(--space-1); display: flex; flex-direction: column; }
     .menu__item { all: unset; cursor: pointer; display: flex; flex-direction: column; gap: var(--space-1); padding: var(--space-2) var(--space-3); border-radius: var(--radius-sm); }
     .menu__item:hover, .menu__item:focus-visible { background: var(--color-hover-bg); }
-    .menu__title { font-weight: var(--font-weight-semi); }
+    .menu__title { font-weight: var(--text-label-s-weight); }
     .menu__sub { font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); color: var(--color-text-secondary); }
     .menu__foot { padding: var(--space-2) var(--space-3); border-top: 1px solid var(--color-divider); font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); color: var(--color-text-secondary); }
 
@@ -715,8 +715,8 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
     .sheet__grid { min-width: 1100px; font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); }
     .sr { display: grid; border-bottom: 1px solid var(--color-divider); }
     .sr--cols { background: var(--color-stone-200); color: var(--color-text-secondary); text-align: center; }
-    .sr--header { background: var(--color-text-primary); color: var(--color-stone-0); font-weight: var(--font-weight-semi); }
-    .sr--section { background: var(--color-stone-400); font-weight: var(--font-weight-semi); }
+    .sr--header { background: var(--color-text-primary); color: var(--color-stone-0); font-weight: var(--text-label-s-weight); }
+    .sr--section { background: var(--color-stone-400); font-weight: var(--text-label-s-weight); }
     .sr--title .sc--span { font-size: var(--text-label-l-size); line-height: var(--text-label-l-lh); font-weight: var(--text-label-l-weight); }
     .sr--meta .sc--span { font-style: italic; }
     .sr--legend .sc--span { font-weight: var(--text-label-s-weight); }
@@ -732,12 +732,12 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
     .sc--filled { background: var(--color-primary-50); box-shadow: inset 0 0 0 1px var(--color-primary-100); }
     .sheet__tabs { display: flex; align-items: center; gap: var(--space-1); padding: var(--space-1) var(--space-2); border-top: 1px solid var(--color-divider); background: var(--color-stone-100); font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); }
     .sheet__tab { padding: var(--space-1) var(--space-3); border-radius: var(--radius-sm); color: var(--color-text-secondary); }
-    .sheet__tab--on { background: var(--color-stone-0); color: var(--color-primary-600); font-weight: var(--font-weight-semi); box-shadow: var(--shadow-card); }
+    .sheet__tab--on { background: var(--color-stone-0); color: var(--color-primary-600); font-weight: var(--text-label-s-weight); box-shadow: var(--shadow-card); }
     .sheet__zoom { color: var(--color-text-secondary); }
 
     /* Delta */
     .delta { flex: none; display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; padding: var(--space-3) 0; border-bottom: 1px solid var(--color-divider); }
-    .delta__title { display: inline-flex; align-items: center; gap: var(--space-2); font-weight: var(--font-weight-semi); }
+    .delta__title { display: inline-flex; align-items: center; gap: var(--space-2); font-weight: var(--text-label-s-weight); }
     .delta__title fvdr-icon { color: var(--color-primary-500); }
 
     /* Empty states */
@@ -770,8 +770,8 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
     .tr--group { display: flex; align-items: center; gap: var(--space-3); padding: 0 var(--space-4); background: var(--color-stone-100); border-radius: var(--radius-sm);
       color: var(--color-text-secondary); font-weight: var(--text-label-s-weight); }
     .tr--group .muted { font-weight: var(--text-body3-weight); }
-    .g-label { color: var(--color-text-secondary); font-weight: var(--font-weight-semi); }
-    .g-name { font-weight: var(--font-weight-semi); }
+    .g-label { color: var(--color-text-secondary); font-weight: var(--text-label-s-weight); }
+    .g-name { font-weight: var(--text-label-s-weight); }
     .tr--item { cursor: pointer; }
     .tr--item:hover { background: var(--color-hover-bg); }
     .tr--sel, .tr--sel:hover { background: var(--color-primary-50); }
@@ -786,7 +786,7 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
     .t-muted { color: var(--color-text-secondary); }
     .t-note { font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); }
     .tbl-empty { padding: var(--space-8); text-align: center; color: var(--color-text-secondary); }
-    .doc-list { display: flex; flex-direction: column; width: 100%; }
+    .doc-list { display: flex; flex-direction: column; gap: var(--space-1); width: 100%; min-width: 0; }
     .doc { display: flex; align-items: center; gap: var(--space-2); min-width: 0; }
     .doc + .doc { border-top: 1px solid var(--color-stone-300); }
     .doc__name { flex: 1; min-width: 0; overflow: hidden; font-size: var(--text-body3-size); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow-wrap: anywhere; }
@@ -800,7 +800,7 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
 
     /* Side panel */
     /* Sticks to the bottom of the visible area while the panel is taller than it. Offset clears the prototype switcher. */
-    .strength { display: inline-flex; align-items: center; gap: 2px; font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); font-weight: var(--font-weight-semi); color: var(--color-text-secondary); }
+    .strength { display: inline-flex; align-items: center; gap: 2px; font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); font-weight: var(--text-label-s-weight); color: var(--color-text-secondary); }
     .strength i { width: 4px; height: var(--space-3); border-radius: 1px; background: var(--color-stone-400); }
     .strength i:last-of-type { margin-right: var(--space-1); }
     .strength--strong i { background: var(--color-primary-500); }
@@ -809,7 +809,7 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
     .bulk { display: flex; flex-direction: column; gap: var(--space-3); max-height: 50vh; overflow-y: auto; padding-right: var(--space-1); }
     .bulk__item { display: flex; flex-direction: column; gap: var(--space-2); padding-bottom: var(--space-3); border-bottom: 1px solid var(--color-divider); }
     .how { margin: 0; padding-left: var(--space-5); display: flex; flex-direction: column; gap: var(--space-3); font-size: var(--text-body3-size); line-height: var(--text-body3-lh); }
-    .lnk { all: unset; cursor: pointer; color: var(--color-primary-600); font-weight: var(--font-weight-semi); }
+    .lnk { all: unset; cursor: pointer; color: var(--color-primary-600); font-weight: var(--text-label-s-weight); }
     .lnk:hover { text-decoration: underline; }
     .lnk:focus-visible { outline: 2px solid var(--color-primary-500); outline-offset: 1px; border-radius: var(--radius-sm); }
     .menu__warn { display: flex; gap: var(--space-2); padding: var(--space-2) var(--space-3); margin-bottom: var(--space-1); background: var(--color-warning-bg); border-radius: var(--radius-sm); font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); }
@@ -825,7 +825,7 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
     .folders { flex: 1; display: grid; grid-template-columns: 340px 1fr; gap: var(--space-6); min-width: 0; }
     .folders__reqs { border-right: 1px solid var(--color-divider); padding-right: var(--space-4); }
     .folders__head { display: flex; justify-content: space-between; align-items: center; padding: var(--space-2) 0; border-bottom: 1px solid var(--color-divider); }
-    .h-sec { font-weight: var(--font-weight-semi); }
+    .h-sec { font-weight: var(--text-label-s-weight); }
     .fgroup__name { font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); color: var(--color-text-secondary); padding: var(--space-3) 0 var(--space-1); }
     .freq { all: unset; box-sizing: border-box; cursor: pointer; width: 100%; display: grid; grid-template-columns: 8px 36px minmax(0, 1fr) auto; gap: var(--space-2);
       align-items: center; padding: var(--space-1) var(--space-2); border-radius: var(--radius-sm); font-size: var(--text-body3-size); }
@@ -872,49 +872,66 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
     .aibar { flex: none; display: flex; align-items: center; gap: var(--space-4); flex-wrap: wrap; min-height: var(--space-10);
       padding: var(--space-4); border-radius: var(--radius-md); background: var(--color-stone-300); }
     .aibar__text { font-size: var(--text-body3-size); line-height: var(--text-body3-lh); }
-    .aibar__text b { font-weight: var(--font-weight-semi); }
+    .aibar__text b { font-weight: var(--text-label-s-weight); }
     .aibar__grow { flex: 1; min-width: 0; }
-    .aibar .scope { width: 320px; }
+    .aicard .scope { width: 320px; }
+    .aicard__fact { display: inline-flex; align-items: center; gap: var(--space-2); font-size: var(--text-body3-size); line-height: var(--text-body3-lh); }
+    .aicard__fact fvdr-icon { color: var(--color-text-secondary); font-size: var(--text-body1-size); }
+    .aicard.aicard--wide { align-self: stretch; display: flex; }
     .rbar { flex: none; display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); flex-wrap: wrap; min-height: var(--space-10); }
-    .rbar__r { display: flex; align-items: center; gap: var(--space-4); }
+    .rbar__l { display: flex; align-items: center; gap: var(--space-4); flex-wrap: wrap; }
+    .lnk--icon { display: inline-flex; align-items: center; gap: var(--space-1); }
     .covp { display: inline-flex; align-items: center; gap: var(--space-6); height: var(--space-10); padding: 0 var(--space-4) 0 var(--space-3); box-sizing: border-box;
       background: var(--color-stone-0); border: 1px solid var(--color-divider); border-radius: var(--radius-full); font-size: var(--text-body3-size); }
     .covp__val { display: inline-flex; align-items: center; gap: var(--space-2); }
-    .covp b { font-weight: var(--font-weight-semi); }
+    .covp b { font-weight: var(--text-label-s-weight); }
+    /* Source file: compact AI card — orb, one line, small action */
+    .aicard { flex: none; align-self: flex-start; max-width: 100%; box-sizing: border-box; display: inline-flex; align-items: center; gap: var(--space-4);
+      padding: var(--space-3) var(--space-4); background: var(--color-stone-100); border: 1px solid var(--color-divider); border-radius: var(--radius-md); }
     /* Donut for coverage and AI progress */
     .ring { width: 20px; height: 20px; border-radius: var(--radius-full); flex: none;
       background: conic-gradient(var(--color-primary-500) calc(var(--p, 0) * 1%), var(--ring-track, var(--color-stone-300)) 0);
       -webkit-mask: radial-gradient(circle, transparent 5.5px, var(--color-text-primary) 6px); mask: radial-gradient(circle, transparent 5.5px, var(--color-text-primary) 6px); }
     .ring--bar { --ring-track: var(--color-stone-400); }
-    .tdoc { display: flex; align-items: flex-start; gap: var(--space-2); }
+    .tdoc { display: flex; align-items: center; gap: var(--space-2); min-width: 0; max-width: 100%; }
     .tdoc > fvdr-file-icon { flex: none; display: flex; align-items: center; height: var(--text-body3-lh); }
-    .tdoc__name { overflow-wrap: anywhere; }
+    /* One line per file; long names are cut with an ellipsis and get a tooltip */
+    .tdoc__name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
     /* ── Drawer, same anatomy as v3 ── */
     .drawer { flex: none; width: 440px; height: 100%; display: flex; flex-direction: column; background: var(--color-stone-0); border-left: 1px solid var(--color-divider);
       font-size: var(--text-body3-size); line-height: var(--text-body3-lh); color: var(--color-text-primary); }
     .drawer .dh { flex: none; display: flex; align-items: center; gap: var(--space-2); height: var(--space-16); box-sizing: border-box; padding: 0 var(--space-4) 0 var(--space-6); border-bottom: 1px solid var(--color-divider); }
     .drawer .dh__title { font-size: var(--text-label-l-size); line-height: var(--text-label-l-lh); font-weight: var(--text-label-l-weight); }
-    .drawer .dh__ref { font-weight: var(--font-weight-semi); color: var(--color-text-secondary); }
+    .drawer .dh__ref { font-weight: var(--text-label-s-weight); color: var(--color-text-secondary); }
     .drawer .dh__pos { font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); color: var(--color-text-secondary); margin-right: var(--space-1); }
     .drawer .db { flex: 1; overflow-y: auto; padding: var(--space-6); display: flex; flex-direction: column; gap: var(--space-8); }
     .drawer .ds { display: flex; flex-direction: column; gap: var(--space-3); }
-    .drawer .ds__h { margin: 0; font-size: var(--text-body3-size); line-height: var(--text-body3-lh); font-weight: var(--font-weight-semi); }
+    .drawer .ds__h { margin: 0; font-size: var(--text-label-m-size); line-height: var(--text-label-m-lh); font-weight: var(--text-label-m-weight); }
+    .drawer .ds__h--ai { display: inline-flex; align-items: center; gap: var(--space-2); }
+    .drawer .ds__h--ai fvdr-icon { color: var(--color-primary-500); font-size: var(--text-body1-size); }
+    .drawer .dh__nav { display: inline-flex; }
+    .drawer .doc__path.doc__path--link { cursor: pointer; font-size: var(--text-body3-size); line-height: var(--text-body3-lh); color: var(--color-primary-500); }
+    .drawer .doc__path.doc__path--link:hover { text-decoration: underline; }
     .drawer .ds__sub { margin-left: var(--space-1); font-weight: var(--text-body3-weight); color: var(--color-text-secondary); }
     .drawer .ds__row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
     .drawer .ds__p { margin: 0; color: var(--color-text-secondary); }
     .drawer .ds__p--strong { color: var(--color-text-primary); }
+    .drawer .ds__p--hint { font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); }
+    .tr--click { cursor: pointer; }
+    .tr--click:hover { background: var(--color-hover-bg); }
     .drawer .ds--quiet .ds__h { color: var(--color-text-secondary); }
     .drawer .ds--req { gap: var(--space-4); }
-    .drawer .req { margin: 0; font-size: var(--text-label-l-size); line-height: var(--text-label-l-lh); font-weight: var(--text-label-l-weight); }
+    .drawer .req { margin: 0; font-size: var(--text-sub2-size); line-height: var(--text-sub2-lh); font-weight: var(--text-sub2-weight); }
+    .drawer .ds__meta { font-size: var(--text-body3-size); line-height: var(--text-body3-lh); color: var(--color-text-secondary); }
     .drawer .meta { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-6); }
-    .drawer .meta li { display: flex; flex-direction: column; gap: 2px; align-items: flex-start; }
-    .drawer .meta__k { font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); color: var(--color-text-secondary); }
+    .drawer .meta li { display: flex; flex-direction: column; gap: 2px; align-items: flex-start; font-size: var(--text-body2-size); line-height: var(--text-body2-lh); }
+    .drawer .meta__k { font-size: var(--text-label-s-size); line-height: var(--text-label-s-lh); font-weight: var(--text-label-s-weight); color: var(--color-text-primary); }
     .drawer .doc { display: flex; align-items: flex-start; gap: var(--space-3); }
     .drawer .doc > fvdr-file-icon { flex: none; display: flex; align-items: center; height: var(--text-body3-lh); }
     .drawer .doc > fvdr-btn { flex: none; }
     .drawer .doc__b { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; align-items: flex-start; }
-    .drawer .doc__name { all: unset; cursor: pointer; font-weight: var(--font-weight-semi); overflow-wrap: anywhere; }
+    .drawer .doc__name { all: unset; cursor: pointer; overflow-wrap: anywhere; }
     .drawer .doc__name:hover { color: var(--color-primary-600); text-decoration: underline; }
     .drawer .doc__name:focus-visible, .drawer .doc__path--btn:focus-visible { outline: 2px solid var(--color-primary-500); outline-offset: 1px; }
     .drawer .doc__path { all: unset; font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); color: var(--color-text-secondary); }
@@ -929,13 +946,13 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
       background: var(--color-warning-bg); border-radius: var(--radius-md); }
     .drawer .issues li { display: flex; gap: var(--space-2); }
     .drawer .issues fvdr-icon { color: var(--color-warning-icon); flex: none; margin-top: 2px; }
-    .drawer .issues b { font-weight: var(--font-weight-semi); }
+    .drawer .issues b { font-weight: var(--text-label-s-weight); }
     .drawer .kv { display: grid; grid-template-columns: 130px minmax(0, 1fr); gap: var(--space-3) var(--space-4); margin: 0; }
     .drawer .kv dt { color: var(--color-text-secondary); }
     .drawer .kv dd { margin: 0; overflow-wrap: anywhere; }
     .drawer .kvs { margin: 0; display: flex; flex-direction: column; gap: var(--space-3); }
     .drawer .kvs > div { display: flex; flex-direction: column; gap: var(--space-1); }
-    .drawer .kvs dt { font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); font-weight: var(--font-weight-semi); }
+    .drawer .kvs dt { font-size: var(--text-label-s-size); line-height: var(--text-label-s-lh); font-weight: var(--text-label-s-weight); }
     .drawer .kvs dd { margin: 0; white-space: pre-line; overflow-wrap: anywhere; }
     .drawer .kv__empty { color: var(--color-text-placeholder); }
     .drawer .hist summary { cursor: pointer; list-style: none; }
@@ -981,8 +998,10 @@ export class ChecklistMatchingComponent implements OnDestroy {
     { value: 'note', label: 'Note' },
   ];
   clsHint: Record<ReqCls, string> = {
-    document_request: 'Matched to documents', question: 'Answered in writing, not matched',
-    instruction: 'Kept for reference, not matched', note: 'Kept for reference, not matched',
+    document_request: 'Document requests are matched to documents in the room.',
+    question: 'Questions need a written answer. They stay in the list but aren’t matched.',
+    instruction: 'Instructions explain how to respond. They stay in the list but aren’t matched.',
+    note: 'Notes, links and legends stay in the list but aren’t matched.',
   };
   sheetCols = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
   colIdx = [0, 1, 2, 3, 4, 5, 6, 7];
@@ -1052,13 +1071,46 @@ export class ChecklistMatchingComponent implements OnDestroy {
   sel: any = null;
   filterItems: SegmentItem[] = [];
   readOpen = false;
-  get drawerOpen() { return (this.readOpen && this.view === 'requests') || this.showPanel; }
+  /** Status the user picks for a suggestion before Save (Figma: the drawer's Status dropdown). */
+  reviewStatus: 'covered' | 'partial' | 'gap' | 'na' = 'covered';
+  private statusFor = '';
+  statusOptions: DropdownOption[] = [{ value: 'covered', label: 'Covered' }, { value: 'partial', label: 'Partial' }, { value: 'gap', label: 'Gap' }, { value: 'na', label: 'Not applicable' }];
+  saveReview() {
+    if (this.reviewStatus === 'gap') { this.reject(); return; }
+    if (this.reviewStatus === 'na') { this.markNa(); return; }
+    this.accept(this.reviewStatus);
+  }
+  /** File names that don't fit their cell (checked on hover) — only these get a tooltip. */
+  trunc = new Set<string>();
+  checkTrunc(ev: MouseEvent, key: string) {
+    const el = (ev.currentTarget as HTMLElement).querySelector('.tdoc__name') as HTMLElement | null;
+    if (el && el.scrollWidth > el.clientWidth) this.trunc.add(key); else this.trunc.delete(key);
+  }
+  get drawerOpen() { return (this.readOpen && this.view === 'requests') || this.showPanel || this.editOpen; }
+  get editOpen() { return this.view === 'requests' && this.phase === 'structure' && !!this.editRowId; }
+  /** What the editing drawer shows for the open row. */
+  get editVm() {
+    const id = this.editRowId; if (!id) return null;
+    const r = this.getReqs().find(x => x.id === id); const base = this.sc.reqs.find(x => x.id === id); if (!r || !base) return null;
+    const ids = this.groups.flatMap(g => g.items.map(i => i.id));
+    return { id, label: this.lbl(r), row: r.row, priority: r.priority || '', asAt: r.asAt && r.asAt !== 'Current' ? r.asAt : '',
+      text: r.readAs || r.text, pill: this.pill(r.cls), original: base.text, pos: `${ids.indexOf(id) + 1} of ${ids.length}`,
+      where: `${this.sc.sheets[0].name}, row ${r.row}` };
+  }
+  cancelRowEdit() { this.editRowId = null; this.recompute(); }
+  stepEdit(dir: 1 | -1) {
+    const ids = this.groups.flatMap(g => g.items.map(i => i.id)); if (!ids.length) return;
+    const i = this.editRowId ? ids.indexOf(this.editRowId) : -1;
+    this.startRowEdit(ids[(i + dir + ids.length) % ids.length]);
+  }
+  /** The scope the user matches against, as named in the dropdown (without the count). */
+  get scopeLabel() { const o = this.scopeOptions.find(x => x.value === this.scope); return (o?.label || '').replace(/\s*\(.*\)$/, '').replace(/…$/, ''); }
   get structLine() {
     const t = this.typeChips; if (!t) return '';
     const parts = [t.doc, t.qCount ? t.q : '', t.iCount ? t.i : '', t.nCount ? t.n : ''].filter(Boolean);
     return `${parts.join(', ')} in ${this.sc.sections.length} sections`;
   }
-  openRead() { this.readOpen = true; this.exportOpen = false; this.recompute(); }
+  openRead() { this.readOpen = true; this.exportOpen = false; this.editRowId = null; this.recompute(); }
   closeRead() { this.readOpen = false; this.recompute(); }
   /** Drawer arrows: through the review queue while reviewing, otherwise through the rows on screen. */
   stepAny(dir: 1 | -1) {
@@ -1203,6 +1255,7 @@ export class ChecklistMatchingComponent implements OnDestroy {
 
   goScreen(screen: Screen) {
     this.stopTimers();
+    this.dragDepth = 0; this.droppedName = ''; this.willFail = false;
     this.screen = screen;
     this.contentEl?.nativeElement.scrollTo({ top: 0 });
     Object.assign(this, {
@@ -1235,7 +1288,8 @@ export class ChecklistMatchingComponent implements OnDestroy {
 
   /** Toast with an Undo link that restores the state captured before the action. */
   private toastUndo(message: string, prev: Record<string, Rec>, focus?: string | null) {
-    this.toastSvc.show({ variant: 'success', message, duration: 6000, actions: [{ label: 'Undo', onClick: () => {
+    const m = message.match(/^(.+?)\.\s+(.+)$/);
+    this.toastSvc.show({ variant: 'info', title: m ? m[1] : undefined, message: m ? m[2] : message, duration: 6000, actions: [{ label: 'Undo', onClick: () => {
       this.st = prev;
       if (focus) { this.selected = focus; this.panel = 'item'; }
       this.recompute();
@@ -1254,12 +1308,29 @@ export class ChecklistMatchingComponent implements OnDestroy {
     if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
     if (e.metaKey || e.ctrlKey || e.altKey) return;
     const k = e.key.toLowerCase();
-    if (k === 'escape') { if (this.readOpen) this.closeRead(); else this.clearSel(); }
+    if (k === 'escape') { if (this.readOpen) this.closeRead(); else if (this.editOpen) this.cancelRowEdit(); else this.clearSel(); }
+    else if (this.editOpen && !this.readOpen) { if (k === 'j') this.stepEdit(1); else if (k === 'k') this.stepEdit(-1); return; }
     else if (this.readOpen) return;
     else if (k === 'j') { e.preventDefault(); this.stepAny(1); }
     else if (k === 'k') { e.preventDefault(); this.stepAny(-1); }
     else if (this.sel?.isReview && k === 'a') { e.preventDefault(); this.accept(); }
     else if (this.sel?.isReview && k === 'r') { e.preventDefault(); this.reject(); }
+  }
+
+  // ── Drag & drop on the empty state ──
+  dragDepth = 0; droppedName = ''; private willFail = false;
+  private hasFiles(e: DragEvent) { return !!e.dataTransfer && Array.from(e.dataTransfer.types || []).includes('Files'); }
+  onDragEnter(e: DragEvent) { if (!this.hasFiles(e)) return; e.preventDefault(); this.dragDepth++; }
+  onDragOver(e: DragEvent) { if (!this.hasFiles(e)) return; e.preventDefault(); if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy'; }
+  onDragLeave() { this.dragDepth = Math.max(0, this.dragDepth - 1); }
+  onDrop(e: DragEvent) {
+    e.preventDefault(); this.dragDepth = 0;
+    const f = e.dataTransfer?.files?.[0]; if (!f) return;
+    if (!/\.xlsx?$/i.test(f.name)) { this.toastSvc.show({ variant: 'error', message: `${f.name} isn't an Excel file. Drop an .xlsx checklist.` }); return; }
+    this.droppedName = f.name;
+    // Prototype: AI knows only the sample checklist; any other Excel file shows the "couldn't read" state
+    this.willFail = f.name !== this.sc.fileName;
+    this.upload();
   }
 
   upload() {
@@ -1281,9 +1352,11 @@ export class ChecklistMatchingComponent implements OnDestroy {
     this.st = this.baseMap(() => 'pending');
     this.recompute();
     const total = this.totalRows;
+    const fail = this.willFail; this.willFail = false;
     const step = Math.max(1, Math.round(total / 30));
     this.rt = setInterval(() => {
       const n = this.readRow + step;
+      if (n >= total && fail) { clearInterval(this.rt); Object.assign(this, { readRow: total, phase: 'failed', view: 'requests', headerRow: 1 }); this.recompute(); return; }
       if (n >= total) { clearInterval(this.rt); this.readRow = total; this.phase = 'structure'; this.isBidder = this.sc.side === 'buy'; this.recompute(); return; }
       this.readRow = n;
     }, 60);
@@ -1419,9 +1492,9 @@ export class ChecklistMatchingComponent implements OnDestroy {
     else { Object.assign(this, { selected: null, panel: 'none', filter: 'all' }); this.toastUndo(msg + ' All suggestions reviewed.', prev, id); }
     this.recompute();
   }
-  accept() {
+  accept(as?: 'covered' | 'partial') {
     const id = this.selected!; const r = this.findReq(id)!; const cur = this.st[id] || {} as Rec;
-    const partial = r.cand!.verdict === 'Partial';
+    const partial = as ? as === 'partial' : r.cand!.verdict === 'Partial';
     const next = this.hist({ ...cur, s: partial ? 'partial' : 'covered', docs: [r.cand!.name], missing: r.cand!.missing }, partial ? 'Accepted as partial' : 'Accepted');
     this.advance({ ...this.st, [id]: next }, id, partial ? `${id} accepted as partial. The missing part stays in the gap report.` : `${id} accepted.`);
   }
@@ -1566,20 +1639,21 @@ export class ChecklistMatchingComponent implements OnDestroy {
     ];
     this.viewItems = [
       { id: 'source', label: 'Source file' },
-      { id: 'requests', label: 'Requests', count: isResults && counts['review'] ? counts['review'] : undefined },
+      { id: 'requests', label: 'Requests' },
     ];
 
     // Grid templates
     const w = (x: number | 'fill') => x === 'fill' ? 'minmax(260px, 1fr)' : x + 'px';
     this.gridCols = '40px ' + sc.source.widths.map(w).join(' ');
     const prio = sc.hasPriority ? ' 72px' : '';
-    this.listCols = `136px 56px${prio} minmax(0, 1fr) 88px`;
+    this.listCols = `136px 56px${phase === 'structure' ? '' : prio} minmax(0, 1fr) 96px`;
 
     // Filters
     const inFolders = this.layout === 'folders';
     const fdef: [Filter, string, number][] = [
       ['all', 'All', inFolders ? reqs.filter(r => this.isDoc(r)).length : reqs.length],
-      ['covered', 'Covered', (counts['covered'] || 0) + (counts['partial'] || 0)],
+      ['covered', 'Covered', counts['covered'] || 0],
+      ['partial', 'Partial', counts['partial'] || 0],
       ['review', 'To review', counts['review'] || 0],
       ['gap', 'Gaps', counts['gap'] || 0],
     ];
@@ -1603,7 +1677,7 @@ export class ChecklistMatchingComponent implements OnDestroy {
       if (isResults && this.highOnly && r.priority !== 'High') return false;
       if (isResults && this.changeFilter) { const ch = rec?.change; return !!ch && (this.changeFilter === 'all' || ch.kind === this.changeFilter); }
       if (!isResults || this.filter === 'all') return true;
-      if (this.filter === 'covered') return s === 'covered' || s === 'partial';
+      if (this.filter === 'covered') return s === 'covered';
       if (this.filter === 'other') return s === 'question' || s === 'instruction' || s === 'note';
       return s === this.filter;
     };
@@ -1631,9 +1705,11 @@ export class ChecklistMatchingComponent implements OnDestroy {
 
     // Selected
     this.sel = this.selVm(reqs);
+    if (this.sel?.isReview && this.sel.id !== this.statusFor) { this.statusFor = this.sel.id; this.reviewStatus = this.sel.verdict === 'Partial' ? 'partial' : 'covered'; }
     this.showPanel = isResults && this.view === 'requests' && this.layout !== 'folders' && ((this.panel === 'item' && !!this.sel) || this.panel === 'diff');
     // With the drawer open, Priority lives in the drawer; the table keeps room for documents
-    this.tblCols = this.drawerOpen ? `112px 48px minmax(200px, 1fr) minmax(180px, 260px)` : `112px 56px${prio} minmax(240px, 1fr) minmax(220px, 340px)`;
+    // Request and Documents share the remaining width equally
+    this.tblCols = this.drawerOpen ? `112px 48px minmax(0, 1fr) minmax(0, 1fr)` : `112px 56px${prio} minmax(0, 1fr) minmax(0, 1fr)`;
 
     this.buildSource();
     if (isResults && this.layout === 'folders') this.fv = this.foldersView(reqs);
@@ -1707,7 +1783,9 @@ export class ChecklistMatchingComponent implements OnDestroy {
     if (ch) tag = { label: ch.kind === 'reopened' ? 'Changed' : 'New', variant: CHANGE_VARIANT[ch.kind] };
     else if (rec.isNew) tag = { label: 'New', variant: 'green' };
     else if (r.edited) tag = { label: 'Edited', variant: 'grey' };
-    const reason = isResults && ch ? ch.reason : (r.edited && !isEditing ? `Edited by you. Original in your file: “${r.origText || srcOrig}”` : '');
+    const last = isResults && !ch ? rec.history?.[rec.history.length - 1] : undefined;
+    const decided = last ? `${last.what.replace('Rejected the suggestion', 'Rejected').replace('Asked the seller in Q&A', 'Asked in Q&A')} by you · ${last.at}` : '';
+    const reason = isResults && ch ? ch.reason : decided || (r.edited && !isEditing ? `Edited by you. Original in your file: “${r.origText || srcOrig}”` : '');
 
     return {
       id: r.id, label: this.lbl(r), row: r.row, text: (showReadAs ? r.readAs : r.text) as string, pill: this.pill(s),
@@ -1718,7 +1796,7 @@ export class ChecklistMatchingComponent implements OnDestroy {
       ...this.lineFor(r, rec),
       actionHint: action === 'Review' ? 'Open the suggestion to accept or reject it' : this.sideHint,
       flagOpen: !!(r.flag && phase === 'structure' && !this.flagResolved), isEditing, canEdit: phase === 'structure' && !isEditing,
-      isEdited: !!r.edited, tag, reason, reasonTone: isResults && ch ? CHANGE_TONE[ch.kind] : 'muted',
+      isEdited: !!r.edited, tag, reason, reasonTone: isResults && ch ? CHANGE_TONE[ch.kind] : (decided ? 'success' : 'muted'),
       selected: isResults && this.selected === r.id, muted: s === 'na' || s === 'note' || s === 'instruction',
       changeOrder: ch ? ({ reopened: 0, closed: 1, suggested: 2 })[ch.kind] : 9,
       noFilesText: s === 'question' ? 'Answered in writing' : (s === 'instruction' || s === 'note' ? 'Not matched' : '—'),
@@ -1767,7 +1845,7 @@ export class ChecklistMatchingComponent implements OnDestroy {
       coverWhy: rec.why || r.why || r.cand?.why || '',
       partialMissing: rec.missing || r.cand?.missing || '',
       exportStatus: statusOut,
-      gapTitle: rec.reopened ? 'Reopened: the linked file was deleted' : rec.rejected ? 'Suggestion rejected' : r.near ? 'Nothing above the match threshold' : 'Nothing found',
+      gapTitle: rec.reopened ? 'Reopened: the linked file was deleted' : rec.rejected ? 'Suggestion rejected' : 'Nothing found',
       gapText: rec.reopened ? `${ro.file} was deleted by ${ro.by} on ${ro.on} and is in the recycle bin. Restore it, or ask the seller for a current version.`
         : rec.rejected ? 'The suggested document was rejected. Ask the seller for it, link another document, or mark the request not applicable.' : (r.note || ''),
       hasNear: !!(r.near && !rec.rejected), nearName: r.near?.name || '', nearPath: nd.path, nearWhy: r.near?.why || '',
@@ -1781,7 +1859,7 @@ export class ChecklistMatchingComponent implements OnDestroy {
         ...(rec.s === 'review' && r.cand?.draft ? [{ icon: 'warning', title: 'Draft, not executed.', text: 'At least one document in the suggestion is an unsigned draft.' }] : []),
         ...((rec.s === 'review' || rec.s === 'partial') && (rec.missing || r.cand?.missing) ? [{ icon: 'info', title: 'Missing:', text: rec.missing || r.cand!.missing }] : []),
       ],
-      writes: this.writesFor(r, rec),
+      writes: this.writesFor(r, rec)?.slice(0, 1) || null,
     };
   }
 
@@ -1815,7 +1893,7 @@ export class ChecklistMatchingComponent implements OnDestroy {
     const fpass = (s?: string) => {
       const f = this.filter;
       if (f === 'all' || f === 'other') return true;
-      if (f === 'covered') return s === 'covered' || s === 'partial';
+      if (f === 'covered') return s === 'covered';
       return s === f;
     };
     const allDocReqs = reqs.filter(r => this.isDoc(r));

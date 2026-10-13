@@ -359,14 +359,14 @@ const PILL: Record<string, { label: string; variant: ChipVariant }> = {
     .work { display: flex; flex-direction: column; gap: var(--space-4); }
     .content--drawer { padding-right: var(--space-6); }
     .spacer { flex: 1; }
-    .b { font-weight: var(--font-weight-semi); }
+    .b { font-weight: var(--text-label-s-weight); }
     .muted { color: var(--color-text-secondary); font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); }
     .muted-strong { color: var(--color-text-secondary); }
     .muted-i { color: var(--color-text-secondary); }
     .tone-err { color: var(--color-error-600); }
     .tone-ok { color: var(--color-primary-600); font-size: var(--text-body3-size); }
     .p { margin: 0; font-size: var(--text-body3-size); }
-    .lnk { all: unset; cursor: pointer; color: var(--color-primary-600); font-weight: var(--font-weight-semi); font-size: var(--text-body3-size); }
+    .lnk { all: unset; cursor: pointer; color: var(--color-primary-600); font-weight: var(--text-label-s-weight); font-size: var(--text-body3-size); }
     .lnk:hover { text-decoration: underline; }
     .lnk:focus-visible { outline: 2px solid var(--color-primary-500); outline-offset: 1px; }
 
@@ -398,12 +398,12 @@ const PILL: Record<string, { label: string; variant: ChipVariant }> = {
     .aibar__mark { color: var(--color-primary-500); display: inline-flex; font-size: var(--font-size-lg); }
     .aibar--busy .aibar__mark { animation: pulse 1.4s ease-in-out infinite; }
     .aibar__text { font-size: var(--text-body3-size); }
-    .aibar__text b, .aibar__cov b { font-weight: var(--font-weight-semi); }
+    .aibar__text b, .aibar__cov b { font-weight: var(--text-label-s-weight); }
     .aibar__cov { font-size: var(--text-body3-size); }
     .cov { display: inline-flex; align-items: center; gap: var(--space-6); height: var(--space-10); padding: 0 var(--space-4) 0 var(--space-3); box-sizing: border-box;
       background: var(--color-stone-0); border: 1px solid var(--color-divider); border-radius: var(--radius-full); font-size: var(--text-body3-size); }
     .cov__val { display: inline-flex; align-items: center; gap: var(--space-2); }
-    .cov b { font-weight: var(--font-weight-semi); }
+    .cov b { font-weight: var(--text-label-s-weight); }
     /* Donut (coverage and AI progress): conic fill for the share, inner circle cut out with a radial mask */
     .ring { width: 20px; height: 20px; border-radius: var(--radius-full); flex: none;
       background: conic-gradient(var(--color-primary-500) calc(var(--p, 0) * 1%), var(--ring-track, var(--color-stone-300)) 0);
@@ -412,7 +412,7 @@ const PILL: Record<string, { label: string; variant: ChipVariant }> = {
     .aibar__chips { display: flex; gap: var(--space-1); }
     .fchip { all: unset; cursor: pointer; display: inline-flex; align-items: center; gap: var(--space-1); padding: 2px var(--space-2); border-radius: var(--radius-full); font-size: var(--text-body3-size); border: 1px solid transparent; }
     .fchip:hover { background: var(--color-stone-0); }
-    .fchip--on { background: var(--color-stone-0); border-color: var(--color-primary-500); font-weight: var(--font-weight-semi); }
+    .fchip--on { background: var(--color-stone-0); border-color: var(--color-primary-500); font-weight: var(--text-label-s-weight); }
     .fchip:focus-visible { outline: 2px solid var(--color-primary-500); }
     .dot { width: 8px; height: 8px; border-radius: var(--radius-full); background: var(--color-stone-500); }
     .dot--covered { background: var(--color-primary-500); } .dot--review { background: var(--color-warning-icon); } .dot--gap { background: var(--color-error-600); } .dot--all { background: var(--color-text-secondary); }
@@ -435,8 +435,8 @@ const PILL: Record<string, { label: string; variant: ChipVariant }> = {
     .sheet__grid { min-width: 1180px; font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); }
     .sr { display: grid; border-bottom: 1px solid var(--color-divider); transition: opacity var(--transition-fast, 0.15s); }
     .sr--cols { background: var(--color-stone-200); color: var(--color-text-secondary); text-align: center; }
-    .sr--header { background: var(--color-text-primary); color: var(--color-stone-0); font-weight: var(--font-weight-semi); }
-    .sr--section { background: var(--color-stone-400); font-weight: var(--font-weight-semi); }
+    .sr--header { background: var(--color-text-primary); color: var(--color-stone-0); font-weight: var(--text-label-s-weight); }
+    .sr--section { background: var(--color-stone-400); font-weight: var(--text-label-s-weight); }
     .sr--title .sc--span { font-size: var(--text-label-l-size); line-height: var(--text-label-l-lh); font-weight: var(--text-label-l-weight); }
     .sr--meta .sc--span { font-style: italic; }
     .sr--legend .sc--span { font-weight: var(--text-caption2-weight); }
@@ -447,7 +447,7 @@ const PILL: Record<string, { label: string; variant: ChipVariant }> = {
     .sc { padding: var(--space-2); border-right: 1px solid var(--color-divider); min-width: 0; overflow-wrap: anywhere; white-space: pre-line; }
     .sc--n { background: var(--color-stone-200); color: var(--color-text-secondary); text-align: center; font-style: normal; font-weight: var(--text-body3-weight); }
     .sc--ai { display: flex; align-items: flex-start; gap: var(--space-1); background: var(--color-stone-100); color: var(--color-primary-600); font-style: normal; font-weight: var(--text-body3-weight); }
-    .sr--cols .sc--ai { justify-content: center; align-items: center; background: var(--color-primary-50); font-weight: var(--font-weight-semi); }
+    .sr--cols .sc--ai { justify-content: center; align-items: center; background: var(--color-primary-50); font-weight: var(--text-label-s-weight); }
     .sr--header .sc--ai { background: var(--color-text-primary); }
     .sc--span { grid-column: 3 / -1; }
     .sheet--noai .sc--span { grid-column: 2 / -1; }
@@ -460,7 +460,7 @@ const PILL: Record<string, { label: string; variant: ChipVariant }> = {
     .chg--closed { background: var(--color-primary-500); } .chg--suggested { background: var(--color-warning-icon); } .chg--reopened { background: var(--color-error-600); }
     .sheet__tabs { display: flex; align-items: center; gap: var(--space-1); padding: var(--space-1) var(--space-2); border-top: 1px solid var(--color-divider); background: var(--color-stone-100); font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); }
     .sheet__tab { padding: var(--space-1) var(--space-3); border-radius: var(--radius-sm); color: var(--color-text-secondary); }
-    .sheet__tab--on { background: var(--color-stone-0); color: var(--color-primary-600); font-weight: var(--font-weight-semi); box-shadow: var(--shadow-card); }
+    .sheet__tab--on { background: var(--color-stone-0); color: var(--color-primary-600); font-weight: var(--text-label-s-weight); box-shadow: var(--shadow-card); }
 
     /* Drawer — header · sections · footer. Sections share one rhythm: 24px apart, divider between, 12px inside. */
     .drawer { flex: none; width: 440px; height: 100%; background: var(--color-stone-0); border-left: 1px solid var(--color-divider);
@@ -468,12 +468,12 @@ const PILL: Record<string, { label: string; variant: ChipVariant }> = {
     @keyframes slide { from { transform: translateX(var(--space-6)); opacity: 0; } to { transform: none; opacity: 1; } }
     .dh { flex: none; display: flex; align-items: center; gap: var(--space-2); height: var(--space-16); box-sizing: border-box; padding: 0 var(--space-4) 0 var(--space-6); border-bottom: 1px solid var(--color-divider); }
     .dh__title { font-size: var(--text-label-l-size); line-height: var(--text-label-l-lh); font-weight: var(--text-label-l-weight); }
-    .dh__ref { font-weight: var(--font-weight-semi); color: var(--color-text-secondary); }
+    .dh__ref { font-weight: var(--text-label-s-weight); color: var(--color-text-secondary); }
     .dh__pos { font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); color: var(--color-text-secondary); margin-right: var(--space-1); }
     /* Groups are separated by space, not dividers */
     .db { flex: 1; overflow-y: auto; padding: var(--space-6); display: flex; flex-direction: column; gap: var(--space-8); }
     .ds { display: flex; flex-direction: column; gap: var(--space-3); }
-    .ds__h { margin: 0; font-size: var(--text-body3-size); line-height: var(--text-body3-lh); font-weight: var(--font-weight-semi); color: var(--color-text-primary); }
+    .ds__h { margin: 0; font-size: var(--text-body3-size); line-height: var(--text-body3-lh); font-weight: var(--text-label-s-weight); color: var(--color-text-primary); }
     .ds__sub { margin-left: var(--space-1); font-weight: var(--text-body3-weight); color: var(--color-text-secondary); font-size: var(--text-body3-size); }
     .ds__row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
     .ds__p { margin: 0; font-size: var(--text-body3-size); line-height: var(--text-body3-lh); color: var(--color-text-secondary); }
@@ -487,7 +487,7 @@ const PILL: Record<string, { label: string; variant: ChipVariant }> = {
     .doc > fvdr-file-icon { flex: none; display: flex; align-items: center; height: var(--text-body3-lh); }
     .doc > fvdr-btn { flex: none; }
     .doc__b { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-    .doc__name { all: unset; cursor: pointer; font-weight: var(--font-weight-semi); overflow-wrap: anywhere; }
+    .doc__name { all: unset; cursor: pointer; font-weight: var(--text-label-s-weight); overflow-wrap: anywhere; }
     .doc__name:hover { color: var(--color-primary-600); text-decoration: underline; }
     .doc__name:focus-visible { outline: 2px solid var(--color-primary-500); outline-offset: 1px; }
     .doc__path { font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); color: var(--color-text-secondary); }
@@ -499,7 +499,7 @@ const PILL: Record<string, { label: string; variant: ChipVariant }> = {
       background: var(--color-warning-bg); border-radius: var(--radius-md); font-size: var(--text-body3-size); line-height: var(--text-body3-lh); }
     .issues li { display: flex; gap: var(--space-2); }
     .issues fvdr-icon { color: var(--color-warning-icon); flex: none; margin-top: 2px; }
-    .issues b { font-weight: var(--font-weight-semi); }
+    .issues b { font-weight: var(--text-label-s-weight); }
     .strength { display: inline-flex; align-items: center; gap: 2px; font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); color: var(--color-text-secondary); white-space: nowrap; }
     .strength i { width: 4px; height: var(--space-3); border-radius: 1px; background: var(--color-stone-400); }
     .strength i:last-of-type { margin-right: var(--space-1); }
@@ -512,7 +512,7 @@ const PILL: Record<string, { label: string; variant: ChipVariant }> = {
     /* Stacked pairs — label above value, for long values and controls */
     .kvs { margin: 0; display: flex; flex-direction: column; gap: var(--space-3); font-size: var(--text-body3-size); line-height: var(--text-body3-lh); }
     .kvs > div { display: flex; flex-direction: column; gap: var(--space-1); }
-    .kvs dt { font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); font-weight: var(--font-weight-semi); color: var(--color-text-primary); }
+    .kvs dt { font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); font-weight: var(--text-label-s-weight); color: var(--color-text-primary); }
     .kvs dd { margin: 0; white-space: pre-line; overflow-wrap: anywhere; }
     .hist summary { cursor: pointer; list-style: none; }
     .hist summary::-webkit-details-marker { display: none; }
