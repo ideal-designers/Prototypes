@@ -21,7 +21,7 @@ type PubState = 'published' | 'partial' | 'unpublished';
 
 const STATE_LABEL: Record<PubState, string> = {
   published:   'Published',
-  partial:     'Unpublished documents inside',
+  partial:     'Partially published',
   unpublished: 'Unpublished',
 };
 
@@ -38,7 +38,7 @@ interface TreeItem {
   docsUnpublished?: number; // …and how many of them are still unpublished
 }
 
-type PartialVariant = 'menu' | 'split' | 'choice';
+type PartialVariant = 'menu' | 'choice';
 type PublishMode = 'publish' | 'unpublish';
 
 interface GroupUser {
@@ -494,10 +494,10 @@ const GROUPS: Group[] = [
       <span class="file-icon-slot">
       <span class="file-icon-wrap"
             [ngClass]="'file-icon-wrap--' + pubState(item)"
-            [attr.role]="isSplit(item) ? 'group' : 'button'"
+            role="button"
             tabindex="0"
             data-track="permission-chip"
-            [attr.aria-label]="stateLabel(item) + (isSplit(item) ? '' : ' — click to toggle')"
+            [attr.aria-label]="stateLabel(item) + ' — click to toggle'"
             (click)="onChipClick(item, $event)">
         <fvdr-file-icon [type]="fileType(item.type)" />
         <span class="pub-check-icon">
@@ -505,21 +505,11 @@ const GROUPS: Group[] = [
         </span>
         <span class="pub-check-label">
           <span class="pub-check-label-in">
-            <span class="pub-check-text pub-split" *ngIf="isSplit(item); else plainLabel">
-              <button type="button" class="pub-split-btn pub-split-btn--publish" data-track="partial-publish"
-                      (click)="$event.stopPropagation(); requestPublishToggle(item, 'publish')">
-                <fvdr-icon name="check" /> Publish
-              </button>
-              <button type="button" class="pub-split-btn pub-split-btn--unpublish" data-track="partial-unpublish"
-                      (click)="$event.stopPropagation(); requestPublishToggle(item, 'unpublish')">
-                <fvdr-icon name="close" /> Unpublish
-              </button>
-            </span>
-            <ng-template #plainLabel><span class="pub-check-text">{{ stateLabel(item) }}</span></ng-template>
+            <span class="pub-check-text">{{ stateLabel(item) }}</span>
           </span>
         </span>
       </span>
-      <!-- Variant A: two-option popover under the chip -->
+      <!-- Variant 1: two-option popover under the chip -->
       <div class="publish-menu partial-menu" *ngIf="partialMenuFor === item.id" (click)="$event.stopPropagation()">
         <div class="partial-menu-hint">{{ docsHint(item) }}</div>
         <button class="publish-menu-item" data-track="partial-publish" (click)="requestPublishToggle(item, 'publish')">
@@ -607,7 +597,7 @@ const GROUPS: Group[] = [
       </div>
     </fvdr-modal>
 
-    <!-- Variant C: choose Publish or Unpublish for a folder with mixed content -->
+    <!-- Variant 3: choose Publish or Unpublish for a folder with mixed content -->
     <fvdr-modal
       [visible]="!!partialChoiceItem"
       title="Publishing"
@@ -626,7 +616,7 @@ const GROUPS: Group[] = [
       </div>
     </fvdr-modal>
 
-    <!-- Prototype-only: compare the three ways to act on a mixed folder -->
+    <!-- Prototype-only: compare the two ways to act on a mixed folder -->
     <div class="variant-switch">
       <span class="variant-switch-label">Mixed folder — click behaviour</span>
       <fvdr-segment size="sm" [items]="partialVariantItems" [activeId]="partialVariant"
@@ -918,8 +908,8 @@ const GROUPS: Group[] = [
        ease-out): the slot keeps the collapsed 47px footprint, so the chip grows over
        the index/name that follow it instead of pushing them. The 0fr → 1fr grid on
        .pub-check-label animates to the label's own natural width (nothing hard-coded),
-       which matters here since "Unpublished documents inside" is much longer than
-       "Published" / "Unpublished". The slot is a plain width box rather than an
+       which keeps working for labels of different lengths ("Published" vs
+       "Partially published"). The slot is a plain width box rather than an
        absolutely positioned chip: an abspos shrink-to-fit box resolves 1fr to 0. */
     .file-icon-slot {
       display: inline-flex;
@@ -993,26 +983,7 @@ const GROUPS: Group[] = [
       color: var(--color-text-primary);
     }
 
-    /* Keyboard users tabbing into the inline Publish / Unpublish buttons keep the chip open. */
-    .file-icon-wrap:focus-within .pub-check-label { grid-template-columns: 1fr; opacity: 1; }
-
-    /* Variant B — the expanded label becomes two actions */
-    .pub-check-text.pub-split { display: inline-flex; align-items: center; gap: var(--space-1); padding-right: 0; }
-    .pub-split-btn {
-      display: inline-flex; align-items: center; gap: var(--space-1);
-      height: 22px; padding: 0 var(--space-2);
-      border: 0; border-radius: var(--radius-sm);
-      background: transparent;
-      font: inherit; font-size: 12px; white-space: nowrap;
-      color: var(--color-text-primary);
-      cursor: pointer;
-    }
-    .pub-split-btn:hover, .pub-split-btn:focus-visible { background: var(--color-stone-0); outline: none; }
-    .file-icon-wrap .pub-split-btn fvdr-icon { font-size: 12px; }
-    .pub-split-btn--publish fvdr-icon   { color: var(--color-primary-500); }
-    .pub-split-btn--unpublish fvdr-icon { color: var(--color-text-secondary); }
-
-    /* Variant A — popover under the chip */
+    /* Variant 1 — popover under the chip */
     .publish-menu.partial-menu { width: 300px; z-index: 300; }
     .partial-menu-hint {
       padding: var(--space-2) var(--space-4) var(--space-3);
@@ -1520,13 +1491,11 @@ export class PermissionsLegendV3Component implements OnInit, AfterViewInit, OnDe
   partialChoice: PublishMode | '' = '';
   partialChoiceOpts: { value: string; label: string }[] = [];
   readonly partialVariantItems: SegmentItem[] = [
-    { id: 'menu',   label: 'A · Popover' },
-    { id: 'split',  label: 'B · Inline' },
-    { id: 'choice', label: 'C · Dialog' },
+    { id: 'menu',   label: '1 · Popover' },
+    { id: 'choice', label: '3 · Dialog' },
   ];
   private static readonly VARIANT_NOTES: Record<PartialVariant, string> = {
     menu:   'Click the chip: a small menu opens under it with Publish all / Unpublish all.',
-    split:  'Hover the chip: its label turns into two buttons, Publish and Unpublish.',
     choice: 'Click the chip: one dialog asks which way to go, with the document counts.',
   };
   get partialVariantNote(): string { return PermissionsLegendV3Component.VARIANT_NOTES[this.partialVariant]; }
@@ -1764,10 +1733,6 @@ export class PermissionsLegendV3Component implements OnInit, AfterViewInit, OnDe
       variant: 'success',
       message: published ? `“${item.name}”${inside} published` : `“${item.name}”${inside} unpublished`,
     });
-  }
-
-  isSplit(item: TreeItem): boolean {
-    return !!item.partial && this.partialVariant === 'split';
   }
 
   docsHint(item: TreeItem): string {
