@@ -596,7 +596,7 @@ const GROUPS: Group[] = [
       </div>
     </fvdr-modal>
 
-    <!-- Variant 3: choose Publish or Unpublish for a folder with mixed content -->
+    <!-- Variant 2: choose Publish or Unpublish for a folder with mixed content -->
     <fvdr-modal
       [visible]="!!partialChoiceItem"
       title="Publishing"
@@ -1493,7 +1493,7 @@ export class PermissionsLegendV3Component implements OnInit, AfterViewInit, OnDe
   partialChoiceOpts: { value: string; label: string }[] = [];
   readonly partialVariantItems: SegmentItem[] = [
     { id: 'menu',   label: '1 · Popover' },
-    { id: 'choice', label: '3 · Dialog' },
+    { id: 'choice', label: '2 · Dialog' },
   ];
   private static readonly VARIANT_NOTES: Record<PartialVariant, string> = {
     menu:   'Click the chip: a small menu opens under it with Publish all / Unpublish all.',
