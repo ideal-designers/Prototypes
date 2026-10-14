@@ -28,6 +28,16 @@ interface RowVm {
   tag: { label: string; variant: ChipVariant } | null; reason: string; reasonTone: Tone;
   selected: boolean; muted: boolean; changeOrder: number; noFilesText: string;
 }
+interface CovSeg { k: string; label: string; count: number; pct: number; color: string; dash: string; offset: number; }
+interface CovBar { id: string; name: string; meta: string; gaps: number; segs: { k: string; color: string; count: number }[]; }
+interface CovVm {
+  total: number; pct: number; segs: CovSeg[]; note: string; review: number; gaps: number; prio: CovBar[]; secs: CovBar[];
+  since: { date: string; was: number; delta: number; changes: { label: string; color: string }[] } | null;
+}
+const COV_KEYS: [string, string][] = [['covered', 'Covered'], ['partial', 'Partial'], ['review', 'To review'], ['gap', 'Gaps']];
+const DONUT_R = 62;
+const DONUT_C = 2 * Math.PI * DONUT_R;
+const CHANGE_DOT: Record<ChangeKind, string> = { closed: FILTER_DOT['covered'], suggested: FILTER_DOT['review'], reopened: FILTER_DOT['gap'] };
 interface GroupVm { id: string; label: string; name: string; meta: string; items: RowVm[]; hasSrc: boolean; row: number; pct: number; hasBar: boolean; }
 
 interface FolderRowVm {
@@ -268,10 +278,11 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
                 <fvdr-btn *ngIf="filter !== 'gap' && (counts['review'] || 0) > 0 && !showPanel" [label]="'Review ' + counts['review'] + ' suggestions'" variant="secondary" (clicked)="startReview()" />
               </div>
               <div class="covp">
-                <span class="covp__val" [attr.aria-label]="pct + '% of document requests covered'">
+                <button class="covp__val" [class.covp__val--open]="panel === 'coverage'" [attr.aria-expanded]="panel === 'coverage'"
+                  [attr.aria-label]="pct + '% of document requests covered. Show coverage details'" (click)="openCoverage()">
                   <span class="ring" [style.--p]="pct" aria-hidden="true"></span>
                   <span><b>{{ pct }}%</b> covered</span>
-                </span>
+                </button>
                 <button class="lnk lnk--icon" (click)="openRead()"><fvdr-icon name="help" />Info</button>
               </div>
             </div>
@@ -339,7 +350,7 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
                     </div>
                     <div *ngIf="!groups.length" class="tbl-empty">Nothing here. Try another filter.</div>
                     <ng-container *ngFor="let g of groups; trackBy: byId">
-                      <div class="tr tr--group" role="row">
+                      <div class="tr tr--group" role="row" [attr.id]="'grp-' + g.id">
                         <span class="g-label">{{ g.label }}</span>
                         <span class="g-name">{{ g.name }}</span>
                         <span class="spacer"></span>
@@ -378,7 +389,7 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
                       <span role="columnheader" class="c-right">{{ phase === 'structure' ? 'Source file' : 'Row' }}</span>
                     </div>
                     <ng-container *ngFor="let g of groups; trackBy: byId">
-                      <div class="tr tr--group" role="row">
+                      <div class="tr tr--group" role="row" [attr.id]="'grp-' + g.id">
                         <span class="g-label">{{ g.label }}</span>
                         <span class="g-name">{{ g.name }}</span>
                         <span class="spacer"></span>
@@ -612,6 +623,76 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
       </ng-container>
 
       <!-- Changes in the source file -->
+      <!-- Coverage: what the % is made of, where the gaps are, what to do next -->
+      <ng-container *ngIf="!readOpen && panel === 'coverage' && cov as c">
+        <header class="dh">
+          <span class="dh__title">Coverage</span>
+          <span class="spacer"></span>
+          <fvdr-btn variant="ghost" size="s" iconName="close" [iconOnly]="true" ariaLabel="Close" (clicked)="clearSel()" />
+        </header>
+        <div class="db db--cov">
+          <section class="ds">
+            <div class="cov">
+              <div class="donut" (mouseleave)="covHover = null">
+                <svg viewBox="0 0 144 144" role="img" [attr.aria-label]="c.pct + '% covered'">
+                  <circle class="donut__track" cx="72" cy="72" [attr.r]="donutR" />
+                  <circle *ngFor="let g of c.segs" class="donut__seg" cx="72" cy="72" [attr.r]="donutR"
+                    [style.stroke]="g.color" [attr.stroke-dasharray]="g.dash" [attr.stroke-dashoffset]="g.offset"
+                    [class.donut__seg--dim]="covHover && covHover !== g.k" (mouseenter)="covHover = g.k" />
+                </svg>
+                <span class="donut__c"><b>{{ c.pct }}%</b><span>covered</span></span>
+              </div>
+              <ul class="legend-l">
+                <li *ngFor="let g of c.segs">
+                  <button class="legend-l__row" [class.legend-l__row--on]="filter === g.k" [attr.aria-pressed]="filter === g.k"
+                    (mouseenter)="covHover = g.k" (mouseleave)="covHover = null" (click)="pickFilter($any(filter === g.k ? 'all' : g.k))">
+                    <span class="sq" [style.background]="g.color"></span>
+                    <span class="legend-l__label">{{ g.label }}</span>
+                    <b>{{ g.count }}</b>
+                    <span class="legend-l__pct">{{ g.pct }}%</span>
+                  </button>
+                </li>
+              </ul>
+            </div>
+            <p class="ds__p ds__p--b3">{{ c.note }}</p>
+          </section>
+          <section class="ds" *ngIf="c.since as v">
+            <div class="ds__row"><h3 class="ds__h">Since your last visit</h3><span class="ds__meta">{{ v.date }}</span></div>
+            <div class="prog">
+              <span class="prog__was">{{ v.was }}%</span><span class="prog__was" aria-hidden="true">→</span>
+              <b>{{ c.pct }}% covered</b>
+              <span class="prog__delta" *ngIf="v.delta">{{ v.delta > 0 ? '+' : '' }}{{ v.delta }} pts</span>
+            </div>
+            <div class="chg-l" *ngIf="v.changes.length">
+              <span *ngFor="let x of v.changes"><span class="sq" [style.background]="x.color"></span>{{ x.label }}</span>
+            </div>
+          </section>
+          <section class="ds" *ngIf="c.prio.length > 1">
+            <h3 class="ds__h">By priority</h3>
+            <div class="bars">
+              <div class="bar-r" *ngFor="let b of c.prio">
+                <div class="bar-r__top"><span class="bar-r__name">{{ b.name }}</span><span class="ds__meta">{{ b.meta }}</span><span class="bar-r__gaps" *ngIf="b.gaps">· {{ b.gaps }} {{ b.gaps === 1 ? 'gap' : 'gaps' }}</span></div>
+                <div class="sbar"><span *ngFor="let x of b.segs" [style.background]="x.color" [style.flex-grow]="x.count"></span></div>
+              </div>
+            </div>
+          </section>
+          <section class="ds" *ngIf="c.secs.length">
+            <h3 class="ds__h">By section</h3>
+            <div class="bars">
+              <button class="bar-r bar-r--btn" *ngFor="let b of c.secs" (click)="jumpToSection(b.id)" [attr.aria-label]="'Show section ' + b.name">
+                <div class="bar-r__top"><span class="bar-r__name">{{ b.name }}</span><span class="ds__meta">{{ b.meta }}</span></div>
+                <div class="sbar"><span *ngFor="let x of b.segs" [style.background]="x.color" [style.flex-grow]="x.count"></span></div>
+              </button>
+            </div>
+          </section>
+        </div>
+        <footer class="df">
+          <fvdr-btn *ngIf="c.review" [label]="'Review ' + c.review + (c.review === 1 ? ' suggestion' : ' suggestions')" (clicked)="startReview()" />
+          <fvdr-btn *ngIf="c.gaps" [label]="'Show ' + c.gaps + (c.gaps === 1 ? ' gap' : ' gaps')" [variant]="c.review ? 'secondary' : 'primary'" (clicked)="showGaps()" />
+          <fvdr-btn *ngIf="!c.review && !c.gaps" label="Done" (clicked)="clearSel()" />
+        </footer>
+      </ng-container>
+
       <ng-container *ngIf="!readOpen && panel === 'diff' && sc.edits as e">
         <header class="dh">
           <span class="dh__title">Changes in {{ sc.sheets[0].name }}</span>
@@ -898,7 +979,9 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
     .lnk--icon { display: inline-flex; align-items: center; gap: var(--space-1); }
     .covp { display: inline-flex; align-items: center; gap: var(--space-6); height: var(--space-10); padding: 0 var(--space-4) 0 var(--space-3); box-sizing: border-box;
       background: var(--color-stone-0); border: 1px solid var(--color-divider); border-radius: var(--radius-full); font-size: var(--text-body3-size); }
-    .covp__val { display: inline-flex; align-items: center; gap: var(--space-2); }
+    .covp__val { all: unset; box-sizing: border-box; display: inline-flex; align-items: center; gap: var(--space-2); cursor: pointer; padding: var(--space-1) var(--space-2); margin: 0 calc(-1 * var(--space-2)); border-radius: var(--radius-sm); }
+    .covp__val:hover, .covp__val--open { background: var(--color-hover-bg); }
+    .covp__val:focus-visible { outline: 2px solid var(--color-primary-500); }
     .covp b { font-weight: var(--text-label-s-weight); }
     /* Source file: compact AI card — orb, one line, small action */
     .aicard { flex: none; align-self: flex-start; max-width: 100%; box-sizing: border-box; display: inline-flex; align-items: center; gap: var(--space-4);
@@ -975,6 +1058,43 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
     .drawer .hist ol { margin: 0; padding-left: var(--space-5); display: flex; flex-direction: column; gap: var(--space-3); }
     .drawer .hist li { display: flex; flex-direction: column; gap: 2px; }
     .drawer .hist__who { font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); color: var(--color-text-secondary); }
+    .drawer .db--cov { gap: var(--space-6); }
+    .drawer .ds__p--b3 { font-size: var(--text-body3-size); line-height: var(--text-body3-lh); }
+    .drawer .cov { display: flex; align-items: center; gap: var(--space-6); }
+    .drawer .donut { position: relative; flex: none; width: 144px; height: 144px; }
+    .drawer .donut svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+    .drawer .donut circle { fill: none; stroke-width: 20; }
+    .drawer .donut__track { stroke: var(--color-stone-200); }
+    .drawer .donut__seg { transition: opacity 0.15s; }
+    .drawer .donut__seg--dim { opacity: 0.25; }
+    .drawer .donut__c { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none;
+      font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); color: var(--color-text-secondary); }
+    .drawer .donut__c b { font-size: var(--text-sub2-size); line-height: var(--text-sub2-lh); font-weight: var(--text-sub2-weight); color: var(--color-text-primary); }
+    .drawer .legend-l { list-style: none; margin: 0; padding: 0; flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--space-1); }
+    .drawer .legend-l__row { all: unset; box-sizing: border-box; width: 100%; display: flex; align-items: center; gap: var(--space-2); padding: var(--space-1) var(--space-2); margin: 0 calc(-1 * var(--space-2));
+      border-radius: var(--radius-sm); cursor: pointer; font-size: var(--text-body2-size); line-height: var(--text-body2-lh); }
+    .drawer .legend-l__row:hover, .drawer .legend-l__row--on { background: var(--color-hover-bg); }
+    .drawer .legend-l__row:focus-visible { outline: 2px solid var(--color-primary-500); }
+    .drawer .legend-l__row b { font-size: var(--text-label-s-size); font-weight: var(--text-label-s-weight); }
+    .drawer .legend-l__label { flex: 1; min-width: 0; }
+    .drawer .legend-l__pct { width: 36px; text-align: right; font-size: var(--text-body3-size); color: var(--color-text-secondary); }
+    .drawer .sq { flex: none; display: inline-block; width: 8px; height: 8px; border-radius: 2px; }
+    .drawer .prog { display: flex; align-items: center; gap: var(--space-2); font-size: var(--text-body2-size); line-height: var(--text-body2-lh); }
+    .drawer .prog__was { color: var(--color-text-secondary); }
+    .drawer .prog b { font-size: var(--text-label-m-size); font-weight: var(--text-label-m-weight); }
+    .drawer .prog__delta { font-size: var(--text-label-s-size); font-weight: var(--text-label-s-weight); color: var(--color-primary-500); }
+    .drawer .chg-l { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-4); font-size: var(--text-body3-size); line-height: var(--text-body3-lh); color: var(--color-text-secondary); }
+    .drawer .chg-l > span { display: inline-flex; align-items: center; gap: 6px; }
+    .drawer .bars { display: flex; flex-direction: column; gap: var(--space-3); }
+    .drawer .bar-r { display: flex; flex-direction: column; gap: var(--space-2); }
+    .drawer .bar-r--btn { all: unset; box-sizing: border-box; display: flex; flex-direction: column; gap: var(--space-2); cursor: pointer; border-radius: var(--radius-sm); }
+    .drawer .bar-r--btn:hover .bar-r__name { color: var(--color-primary-600); text-decoration: underline; }
+    .drawer .bar-r--btn:focus-visible { outline: 2px solid var(--color-primary-500); outline-offset: 2px; }
+    .drawer .bar-r__top { display: flex; align-items: baseline; gap: var(--space-2); }
+    .drawer .bar-r__name { flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: var(--text-body2-size); line-height: var(--text-body2-lh); }
+    .drawer .bar-r__gaps { font-size: var(--text-body3-size); line-height: var(--text-body3-lh); color: var(--color-alert-error); }
+    .drawer .sbar { display: flex; gap: 2px; height: var(--space-2); border-radius: var(--radius-sm); overflow: hidden; background: var(--color-stone-200); }
+    .drawer .sbar > span { flex-basis: 0; min-width: 2px; }
     .drawer .df { flex: none; display: flex; align-items: center; gap: var(--space-3); padding: var(--space-4) var(--space-6); border-top: 1px solid var(--color-divider); }
     .drawer .df__done { color: var(--color-primary-600); }
   `],
@@ -1039,7 +1159,11 @@ export class ChecklistMatchingComponent implements OnDestroy {
   highOnly = false;
   layout: Layout = 'table';
   selected: string | null = null;
-  panel: 'none' | 'item' | 'diff' = 'none';
+  panel: 'none' | 'item' | 'diff' | 'coverage' = 'none';
+  cov: CovVm | null = null;
+  covHover: string | null = null;
+  lastPct: number | null = null;
+  readonly donutR = DONUT_R;
   exportOpen = false;
   stale = false;
   delta = false;
@@ -1278,7 +1402,7 @@ export class ChecklistMatchingComponent implements OnDestroy {
       selected: null, panel: 'none', exportOpen: false, stale: false, delta: false, sourceEdited: false, applied: false,
       returningCands: false, deletedFiles: [], highlightRow: null, backTo: null, expanded: {}, changeFilter: null,
       overrides: {}, editRowId: null, editId: null, fSelReq: null, fSelFile: null, fOpen: {}, fHideUnused: false, upPct: 0, previewResults: true,
-      hdrEdit: false, composeOpen: false, bulkOpen: false, howOpen: false,
+      hdrEdit: false, composeOpen: false, bulkOpen: false, howOpen: false, lastPct: null, covHover: null,
     });
     this.headerRow = this.sc.details?.headerRow || 1;
     const pending = () => this.baseMap(() => 'pending');
@@ -1290,7 +1414,7 @@ export class ChecklistMatchingComponent implements OnDestroy {
     else if (screen === 'triage') { this.st = this.mapFinal(); }
     else if (screen === 'gaps') { this.st = this.mapFinal(); this.filter = 'gap'; this.selected = this.sc.gapsFocus; this.panel = 'item'; }
     else if (screen === 'returning') {
-      this.returningCands = true; this.st = this.mapReturning(); this.delta = true;
+      this.returningCands = true; this.lastPct = this.pctOf(this.mapFinal()); this.st = this.mapReturning(); this.delta = true;
       this.stale = !!this.sc.edits; this.sourceEdited = !!this.sc.edits;
       this.deletedFiles = [...this.sc.returning.deleted];
     }
@@ -1325,7 +1449,7 @@ export class ChecklistMatchingComponent implements OnDestroy {
     const k = e.key.toLowerCase();
     if (k === 'escape') { if (this.readOpen) this.closeRead(); else if (this.editOpen) this.cancelRowEdit(); else this.clearSel(); }
     else if (this.editOpen && !this.readOpen) { if (k === 'j') this.stepEdit(1); else if (k === 'k') this.stepEdit(-1); return; }
-    else if (this.readOpen) return;
+    else if (this.readOpen || this.panel === 'coverage') return;
     else if (k === 'j') { e.preventDefault(); this.stepAny(1); }
     else if (k === 'k') { e.preventDefault(); this.stepAny(-1); }
     else if (this.sel?.isReview && k === 'a') { e.preventDefault(); this.accept(); }
@@ -1485,6 +1609,59 @@ export class ChecklistMatchingComponent implements OnDestroy {
     Object.assign(this, { selected: ids[0], panel: 'item', filter: 'review', changeFilter: null });
     if (this.layout === 'folders') this.layout = 'table';
     this.recompute();
+  }
+  openCoverage() {
+    if (this.panel === 'coverage') { this.clearSel(); return; }
+    Object.assign(this, { panel: 'coverage', selected: null, editId: null, composeOpen: false, readOpen: false, exportOpen: false, covHover: null });
+    if (this.layout === 'folders') this.layout = 'table';
+    this.recompute();
+  }
+  jumpToSection(id: string) {
+    if (this.filter !== 'all' || this.changeFilter || this.highOnly) { Object.assign(this, { filter: 'all', changeFilter: null, highOnly: false }); this.recompute(); }
+    setTimeout(() => document.getElementById('grp-' + id)?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+  }
+  private pctOf(st: Record<string, Rec>) {
+    const reqs = this.getReqs().filter(r => this.isDoc(r) && st[r.id]?.s !== 'na');
+    const cov = reqs.filter(r => st[r.id]?.s === 'covered' || st[r.id]?.s === 'partial').length;
+    return reqs.length ? Math.round(100 * cov / reqs.length) : 0;
+  }
+  private covVm(reqs: Req[]): CovVm {
+    const st = this.st;
+    const docs = reqs.filter(r => this.isDoc(r) && st[r.id]?.s !== 'na');
+    const total = docs.length;
+    const cnt = (list: Req[], k: string) => list.filter(r => st[r.id]?.s === k).length;
+    const live = COV_KEYS.filter(([k]) => cnt(docs, k) > 0);
+    const gap = live.length > 1 ? 3 : 0;
+    let acc = 0;
+    const segs: CovSeg[] = live.map(([k, label]) => {
+      const count = cnt(docs, k); const len = total ? DONUT_C * count / total : 0;
+      const seg = { k, label, count, pct: total ? Math.round(100 * count / total) : 0, color: FILTER_DOT[k],
+        dash: `${Math.max(len - gap, 0.1)} ${DONUT_C}`, offset: -(acc + gap / 2) };
+      acc += len; return seg;
+    });
+    const barOf = (id: string, name: string, list: Req[], withGaps: boolean): CovBar => {
+      const cov = cnt(list, 'covered') + cnt(list, 'partial');
+      return { id, name, gaps: withGaps ? cnt(list, 'gap') : 0,
+        meta: withGaps ? `${cov} of ${list.length} covered` : `${cov} of ${list.length}`,
+        segs: COV_KEYS.map(([k]) => ({ k, color: FILTER_DOT[k], count: cnt(list, k) })).filter(x => x.count) };
+    };
+    const prio = (['High', 'Medium', 'Low'] as const).map(p => [p, docs.filter(r => r.priority === p)] as const)
+      .filter(([, l]) => l.length).map(([p, l]) => barOf(p, p, l, true));
+    const secs = this.sc.sections.map(sec => [sec, docs.filter(r => r.sec === sec.id)] as const)
+      .filter(([, l]) => l.length).map(([sec, l]) => barOf(sec.id, `${sec.id} ${sec.name}`, l, false));
+    const pl = (k: number, one: string, many: string) => `${k} ${k === 1 ? one : many}`;
+    const n = (c: ReqCls) => reqs.filter(r => r.cls === c).length;
+    const na = reqs.filter(r => this.isDoc(r) && st[r.id]?.s === 'na').length;
+    const out = [n('question') && pl(n('question'), 'question', 'questions'), n('instruction') && pl(n('instruction'), 'instruction', 'instructions'),
+      n('note') && pl(n('note'), 'note', 'notes'), na && `${na} marked not applicable`].filter(Boolean) as string[];
+    const outCount = n('question') + n('instruction') + n('note') + na;
+    const list = out.length > 1 ? `${out.slice(0, -1).join(', ')} and ${out[out.length - 1]}` : out[0];
+    const note = `Of ${pl(total, 'document request', 'document requests')}. Partial counts as covered.` + (list ? ` ${list} ${outCount === 1 ? "isn't" : "aren't"} counted.` : '');
+    const since = this.screen === 'returning' && this.lastPct !== null && this.sc.returning ? {
+      date: this.sc.returning.since, was: this.lastPct, delta: this.pct - this.lastPct,
+      changes: this.changeChips.map(x => ({ label: x.label, color: CHANGE_DOT[x.kind] })),
+    } : null;
+    return { total, pct: this.pct, segs, note, review: cnt(docs, 'review'), gaps: cnt(docs, 'gap'), prio, secs, since };
   }
   showGaps() {
     const g = this.getReqs().find(q => this.st[q.id]?.s === 'gap');
@@ -1720,8 +1897,9 @@ export class ChecklistMatchingComponent implements OnDestroy {
 
     // Selected
     this.sel = this.selVm(reqs);
+    this.cov = this.panel === 'coverage' && isResults ? this.covVm(reqs) : null;
     if (this.sel?.isReview && this.sel.id !== this.statusFor) { this.statusFor = this.sel.id; this.reviewStatus = this.sel.verdict === 'Partial' ? 'partial' : 'covered'; }
-    this.showPanel = isResults && this.view === 'requests' && this.layout !== 'folders' && ((this.panel === 'item' && !!this.sel) || this.panel === 'diff');
+    this.showPanel = isResults && this.view === 'requests' && this.layout !== 'folders' && ((this.panel === 'item' && !!this.sel) || this.panel === 'diff' || this.panel === 'coverage');
     // With the drawer open, Priority lives in the drawer; the table keeps room for documents
     // Request and Documents share the remaining width equally
     this.tblCols = this.drawerOpen ? `112px 48px minmax(0, 1fr) minmax(0, 1fr)` : `112px 56px${prio} minmax(0, 1fr) minmax(0, 1fr)`;
