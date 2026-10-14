@@ -252,3 +252,12 @@ export const DIAMOND: Scenario = {
     },
   },
 };
+
+/** Results filters: a status dot per filter, as in Figma (Filter button · Status) */
+export interface StatusFilterItem { id: string; label: string; count: number; dot?: string; }
+export const FILTER_DOT: Record<string, string> = {
+  covered: 'var(--color-malachite-400)',
+  partial: 'var(--color-info-500)',
+  review: 'var(--color-warning-icon)',
+  gap: 'var(--color-alert-error)',
+};

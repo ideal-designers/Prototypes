@@ -26,7 +26,7 @@ import type { FvdrIconName } from '../../icons/icons';
  *
  * ── Optional parts ───────────────────────────────────────────
  *   [showIcon]    → leading icon ([icon] DS name, or [iconPath] SVG path)
- *   [showStatus]  → 8×8 colored dot (color depends on [color])
+ *   [showStatus]  → 8×8 colored dot (color depends on [color], or [statusColor])
  *   [showCounter] → secondary text badge (e.g. "10")
  *   [showArrow]   → chevron-down arrow
  *   [clearable]   → trailing ✕ that emits (cleared) — an applied, removable filter
@@ -102,7 +102,7 @@ const ARROW_PATH =
       <!-- Status color dot -->
       <span *ngIf="showStatus"
             class="fb-dot"
-            [style.background]="colorTokens.dot">
+            [style.background]="statusColor || colorTokens.dot">
       </span>
 
       <!-- Label -->
@@ -273,6 +273,10 @@ export class FilterBtnComponent {
 
   /** Show color status dot (8×8, color from [color] variant) */
   @Input() showStatus = false;
+
+  /** Overrides the status dot colour, e.g. 'var(--color-alert-error)' — for status filters
+   *  whose dots carry meaning while the selected state stays the default green */
+  @Input() statusColor = '';
 
   /** Show counter badge */
   @Input() showCounter = false;

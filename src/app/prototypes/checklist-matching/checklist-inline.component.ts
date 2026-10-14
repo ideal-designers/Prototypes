@@ -5,7 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { DS_COMPONENTS, ToastService } from '../../shared/ds';
 import type { SidebarNavItem, HeaderAction, BreadcrumbItem, TabItem, DropdownOption, ChipVariant, FvdrFileType, SegmentItem } from '../../shared/ds';
 import { VdrProtoSwitcherComponent, ProtoGroup } from '../_shared/proto-switcher.component';
-import { DIAMOND, Req, DocInfo, Rec, ChangeKind, SrcRow, Scenario, MatchState } from './checklist-matching.data';
+import { DIAMOND, Req, DocInfo, Rec, ChangeKind, SrcRow, Scenario, MatchState, StatusFilterItem, FILTER_DOT } from './checklist-matching.data';
 import { LIGHTHOUSE } from './lighthouse.data';
 
 type Phase = 'empty' | 'uploading' | 'none' | 'reading' | 'structure' | 'matching' | 'results';
@@ -95,7 +95,11 @@ const PILL: Record<string, { label: string; variant: ChipVariant }> = {
                 <span class="aibar__text"><b>Matching…</b> {{ docsRead }} of {{ totalDocsLabel }} documents · {{ eta }}</span>
               </ng-container>
               <ng-container *ngIf="phase === 'results' && !complete">
-                <fvdr-segment variant="table" size="md" [items]="filterItems" [activeId]="filter" (activeIdChange)="setFilter($any($event))" />
+                <div class="fbar" role="group" aria-label="Filter requests">
+                  <fvdr-filter-btn *ngFor="let f of filterItems; trackBy: byId" [label]="f.label" [showIcon]="false"
+                    [showCounter]="true" [counter]="'' + f.count" [showStatus]="!!f.dot" [statusColor]="f.dot || ''"
+                    [selected]="filter === f.id" (clicked)="setFilter($any(f.id))" />
+                </div>
                 <span class="muted" *ngIf="delta">since {{ sc.returning.since }}: {{ deltaText }}</span>
               </ng-container>
               <!-- 100%: nothing left to filter or review, so the filters give way to the outcome -->
@@ -389,6 +393,7 @@ const PILL: Record<string, { label: string; variant: ChipVariant }> = {
       padding: var(--space-4); border-radius: var(--radius-md); background: var(--color-stone-300); }
     /* Once results and filters are in, the block dissolves: no background, no side padding */
     .aibar--results { background: none; padding: 0; border-radius: 0; }
+    .fbar { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; }
     .done { display: inline-flex; align-items: center; gap: var(--space-2); font-size: var(--text-body3-size); line-height: var(--text-body3-lh); }
     .done fvdr-icon { color: var(--color-primary-500); font-size: var(--text-body1-size); flex: none; }
     .done b { font-weight: var(--text-label-s-weight); }
@@ -574,7 +579,8 @@ export class ChecklistInlineComponent implements OnDestroy {
   scopeOptions: DropdownOption[] = [];
   headerRowOptions: DropdownOption[] = [];
   filters: { id: Filter; label: string; count: number }[] = [];
-  filterItems: SegmentItem[] = [];
+  filterItems: StatusFilterItem[] = [];
+  byId = (_: number, x: { id: string }) => x.id;
   reviewIds: string[] = [];
   pct = 0; docCount = 0; otherCount = 0;
   complete = false; partialCount = 0; private doneShown = false;
@@ -848,9 +854,9 @@ export class ChecklistInlineComponent implements OnDestroy {
     if (!this.complete) this.doneShown = false;
     this.filterItems = [
       { id: 'all', label: 'All', count: docs.length },
-      { id: 'covered', label: 'Covered', count: this.filters[0].count },
-      { id: 'review', label: 'To review', count: this.filters[1].count },
-      { id: 'gap', label: 'Gaps', count: this.filters[2].count },
+      { id: 'covered', label: 'Covered', count: this.filters[0].count, dot: FILTER_DOT['covered'] },
+      { id: 'review', label: 'To review', count: this.filters[1].count, dot: FILTER_DOT['review'] },
+      { id: 'gap', label: 'Gaps', count: this.filters[2].count, dot: FILTER_DOT['gap'] },
     ];
     const chg: Record<ChangeKind, number> = { closed: 0, suggested: 0, reopened: 0 };
     reqs.forEach(r => { const k = st[r.id]?.change?.kind; if (k) chg[k]++; });

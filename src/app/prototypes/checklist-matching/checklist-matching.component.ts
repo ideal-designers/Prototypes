@@ -7,7 +7,7 @@ import type {
   SidebarNavItem, HeaderAction, BreadcrumbItem, SegmentItem, TabItem, DropdownOption, ChipVariant, FvdrFileType,
 } from '../../shared/ds';
 import { VdrProtoSwitcherComponent, ProtoGroup } from '../_shared/proto-switcher.component';
-import { DIAMOND, Req, ReqCls, MatchState, DocInfo, FolderNode, Rec, ChangeKind, SrcRow, Scenario } from './checklist-matching.data';
+import { DIAMOND, Req, ReqCls, MatchState, DocInfo, FolderNode, Rec, ChangeKind, SrcRow, Scenario, StatusFilterItem, FILTER_DOT } from './checklist-matching.data';
 import { LIGHTHOUSE } from './lighthouse.data';
 
 type Phase = 'empty' | 'uploading' | 'none' | 'reading' | 'failed' | 'structure' | 'matching' | 'results';
@@ -256,7 +256,11 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
             <!-- Results: filters, coverage, next step — no background -->
             <div class="rbar" *ngIf="phase === 'results'">
               <div class="rbar__l">
-                <fvdr-segment variant="table" size="md" [items]="filterItems" [activeId]="changeFilter ? '' : filter" (activeIdChange)="pickFilter($any($event))" />
+                <div class="fbar" role="group" aria-label="Filter requests">
+                  <fvdr-filter-btn *ngFor="let f of filterItems; trackBy: byId" [label]="f.label" [showIcon]="false"
+                    [showCounter]="true" [counter]="'' + f.count" [showStatus]="!!f.dot" [statusColor]="f.dot || ''"
+                    [selected]="!changeFilter && filter === f.id" (clicked)="pickFilter($any(f.id))" />
+                </div>
                 <fvdr-btn *ngIf="filter !== 'gap' && (counts['review'] || 0) > 0 && !showPanel" [label]="'Review ' + counts['review'] + ' suggestions'" variant="secondary" (clicked)="startReview()" />
               </div>
               <div class="covp">
@@ -880,6 +884,7 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
     .aicard.aicard--wide { align-self: stretch; display: flex; }
     .rbar { flex: none; display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); flex-wrap: wrap; min-height: var(--space-10); }
     .rbar__l { display: flex; align-items: center; gap: var(--space-4); flex-wrap: wrap; }
+    .fbar { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; }
     .lnk--icon { display: inline-flex; align-items: center; gap: var(--space-1); }
     .covp { display: inline-flex; align-items: center; gap: var(--space-6); height: var(--space-10); padding: 0 var(--space-4) 0 var(--space-3); box-sizing: border-box;
       background: var(--color-stone-0); border: 1px solid var(--color-divider); border-radius: var(--radius-full); font-size: var(--text-body3-size); }
@@ -1069,7 +1074,7 @@ export class ChecklistMatchingComponent implements OnDestroy {
   pct = 0;
   highCount = 0;
   sel: any = null;
-  filterItems: SegmentItem[] = [];
+  filterItems: StatusFilterItem[] = [];
   readOpen = false;
   /** Status the user picks for a suggestion before Save (Figma: the drawer's Status dropdown). */
   reviewStatus: 'covered' | 'partial' | 'gap' | 'na' = 'covered';
@@ -1660,7 +1665,7 @@ export class ChecklistMatchingComponent implements OnDestroy {
     this.filters = fdef.filter(f => !(inFolders && f[0] === 'other')).map(([id, label, count]) => ({
       id, label, count, active: (this.filter === id || (inFolders && id === 'all' && this.filter === 'other')) && !this.changeFilter,
     }));
-    this.filterItems = this.filters.map(f => ({ id: f.id, label: f.label, count: f.count }));
+    this.filterItems = this.filters.map(f => ({ id: f.id, label: f.label, count: f.count, dot: FILTER_DOT[f.id] }));
 
     // Change chips
     const chg: Record<ChangeKind, number> = { reopened: 0, closed: 0, suggested: 0 };
