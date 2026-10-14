@@ -40,7 +40,7 @@ interface Section { key: string; label: string; count: number; groups: MarkGroup
           <fvdr-ghost-btn size="small" [iconPath]="ICON_CLOSE" tooltip="Close" [arrow]="false" (clicked)="closed.emit()"></fvdr-ghost-btn>
           <div class="rv-file">
             <button type="button" class="rv-file__dir" (click)="openFolder.emit(node.parent || '')" fvdrTooltip="Open folder">
-              <fvdr-icon name="folder" class="rv-file__folder"></fvdr-icon><span class="rv-file__path">{{ folderPath }} /</span>
+              <fvdr-icon name="folder-outline" class="rv-file__folder"></fvdr-icon><span class="rv-file__path">{{ folderPath }} /</span>
             </button>
             <fvdr-file-icon [type]="fileIcon"></fvdr-file-icon>
             <b class="rv-file__name">{{ node.name }}</b>
@@ -180,7 +180,8 @@ interface Section { key: string; label: string; count: number; groups: MarkGroup
     .rv-file__dir { display: inline-flex; align-items: center; gap: var(--space-2); border: none; background: transparent; padding: 0; cursor: pointer; font-family: inherit; font-size: inherit; }
     .rv-file__dir:hover .rv-file__path { color: var(--color-text-primary); text-decoration: underline; }
     .rv-file__folder, .rv-file__path { color: var(--color-text-secondary); }
-    .rv-file__name { font-size: var(--font-size-lg); font-weight: var(--font-weight-semi); }
+    .rv-file__name { font-size: var(--font-size-base); font-weight: var(--font-weight-semi); }
+    .rv-file__folder { font-size: 20px; }
     .rv-mode { display: inline-flex; align-items: center; gap: var(--space-2); height: 28px; padding: 0 var(--space-3); border-radius: var(--radius-sm);
       background: var(--color-hover-bg); color: var(--color-text-primary); }
     .rv-mode fvdr-icon { color: var(--color-text-secondary); }

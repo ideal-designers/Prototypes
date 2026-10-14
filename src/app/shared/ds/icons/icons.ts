@@ -190,6 +190,7 @@ export type FvdrIconName =
   | 'enter'
   | 'qna'
   | 'copy-link'
+  | 'folder-outline'
   | 'delete-mark'
   | 'delete-all-pages'
   | 'publish'
@@ -428,4 +429,6 @@ export const FVDR_ICONS: Record<FvdrIconName, string> = {
   // Viewer: delete a redaction mark / delete it from all pages (Bulk redaction, concept 2)
   'delete-mark': `<svg viewBox="0 0 16 16" fill="none"><path d="M3 4.2002L4.24867 12.6912C4.39303 13.6728 5.23522 14.4002 6.22739 14.4002H9.77261C10.7648 14.4002 11.607 13.6728 11.7513 12.6912L13 4.2002" stroke="currentColor" stroke-width="1.2"/><path d="M2.09961 4.20011H5.59957M13.8996 4.20011H10.3996M5.59957 4.20011H10.3996M5.59957 4.20011C5.59957 4.20011 5.59957 3.44684 5.59957 2.90011C5.59957 2.2345 6.22637 1.60011 6.99957 1.6001C7.75116 1.60009 8.28777 1.6001 8.99957 1.6001C9.77277 1.6001 10.3996 2.20767 10.3996 2.90011C10.3996 3.44684 10.3996 4.20011 10.3996 4.20011" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>`,
   'delete-all-pages': `<svg viewBox="0 0 16 16" fill="none"><path d="M1.91421 14.0807L3.32843 12.6665M4.74264 11.2523L3.32843 12.6665M3.32843 12.6665L1.91421 11.2523M3.32843 12.6665L4.74264 14.0807" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4.66699 1.3335L11.0003 1.3335L14.0003 4.3335V12.6668" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M7.33333 14.6668H11C11.5523 14.6668 12 14.2191 12 13.6668V5.83251C12 5.72643 11.9579 5.62469 11.8828 5.54967L9.78382 3.45065C9.70881 3.37564 9.60707 3.3335 9.50098 3.3335H3C2.44771 3.3335 2 3.78121 2 4.3335V8.66683" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M9.33301 3.3335V5.60016C9.33301 5.82108 9.51209 6.00016 9.73301 6.00016H11.9997" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  // Folder for the viewer breadcrumb (Figma QA fixes / PDF viewer / File icon) — 20×20, keeps its own two greys
+  'folder-outline': `<svg viewBox="0 0 20 20" fill="none"><path d="M6 2H1V18H19V7V4H8.5L6 2Z" fill="#F7F7F7"/><path fill-rule="evenodd" clip-rule="evenodd" d="M0 1H6.35078L8.85078 3H20V19H0V1ZM8.5 4L6 2H1V18H19V4H8.5Z" fill="#9C9EA8"/><path d="M19 7H1V18H19V7Z" fill="#F7F7F7"/><path fill-rule="evenodd" clip-rule="evenodd" d="M0 6H20V19H0V6ZM19 7V18H1V7H19Z" fill="#9C9EA8"/></svg>`,
 };

@@ -108,6 +108,7 @@ interface Row { node: DocNode; level: number; hasKids: boolean }
             <fvdr-btn *ngIf="!drafting && reviewable.length" label="Apply" variant="secondary" iconName="check" (clicked)="bulkApply()"></fvdr-btn>
             <fvdr-btn *ngIf="appliedSel.length" label="Unredact" variant="secondary" (clicked)="bulkUnredact()"></fvdr-btn>
             <fvdr-btn *ngIf="allReady && checkedWithMarks.length" label="Review marks" variant="secondary" iconName="eye" (clicked)="reviewSelected()"></fvdr-btn>
+            <fvdr-btn *ngIf="!checkedWithMarks.length && !drafting && noMarksSel.length" label="Redact" variant="secondary" iconName="redact" (clicked)="startWizard()"></fvdr-btn>
             <span class="chg" *ngIf="!drafting && reviewable.length" (click)="$event.stopPropagation()">
               <fvdr-btn label="Change status" variant="secondary" (clicked)="statusOpen = !statusOpen"></fvdr-btn>
               <!-- same dropdown as the status chip in the table: dot + label -->
@@ -137,7 +138,8 @@ interface Row { node: DocNode; level: number; hasKids: boolean }
             Name</span>
           <span class="h">Redaction marks</span><span class="h">Updated on</span><span></span>
         </div>
-        <div class="grid grid--row" *ngFor="let r of tableRows; trackBy: trackRow" [class.grid--sel]="checked.has(r.node.id)">
+        <div class="grid grid--row" *ngFor="let r of tableRows; trackBy: trackRow" [class.grid--sel]="checked.has(r.node.id)"
+             (click)="onRowClick(r.node, $event)">
           <span><fvdr-checkbox [checked]="checked.has(r.node.id)" (checkedChange)="toggleCheck(r.node.id, $event)"></fvdr-checkbox></span>
           <span class="name" [style.padding-left.px]="r.level * 24">
             <button type="button" class="tchev tchev--btn" *ngIf="r.hasKids" (click)="toggleOpen(r.node.id)"
@@ -235,7 +237,7 @@ interface Row { node: DocNode; level: number; hasKids: boolean }
     .h { display: inline-flex; align-items: center; gap: var(--space-2); }
     .exp { display: inline-flex; border: none; background: transparent; cursor: pointer; padding: var(--space-1); border-radius: var(--radius-sm); color: var(--color-text-secondary); }
     .exp:hover { background: var(--color-hover-bg); }
-    .grid--row { min-height: 40px; font-size: var(--font-size-base); border-radius: var(--radius-sm); }
+    .grid--row { cursor: pointer; min-height: 40px; font-size: var(--font-size-base); border-radius: var(--radius-sm); }
     .grid--row:hover { background: var(--color-hover-bg); }
     .grid--sel { background: var(--color-selected-row); }
     .grid--on { background: var(--color-hover-bg); }
@@ -436,10 +438,12 @@ export class BrRedactionPageComponent implements OnInit {
     const reviewable = files.some(i => this.store.canSetStatus(i));
     const applied = files.some(i => this.store.status(i) === 'applied');
     const review = this.allReady && files.some(i => this.store.hasMarks(i));
-    return this.menus.get(`row|${drafting}|${reviewable}|${applied}|${review}`, () => [
+    const redact = !drafting && files.length > 0 && !files.some(i => this.store.hasMarks(i));
+    return this.menus.get(`row|${drafting}|${reviewable}|${applied}|${review}|${redact}`, () => [
       ...(!drafting && reviewable ? [{ id: 'apply', label: 'Apply', icon: 'check' as const }] : []),
       ...(applied ? [{ id: 'unredact', label: 'Unredact', icon: 'undo' as const }] : []),
       ...(review ? [{ id: 'review', label: 'Review marks', icon: 'eye' as const }] : []),
+      ...(redact ? [{ id: 'redact', label: 'Redact', icon: 'redact' as const }] : []),
       ...(!drafting && reviewable ? [{ id: 'status', label: 'Change status', icon: 'edit' as const, children: this.statusMenu }] : []),
     ]);
   }
@@ -452,9 +456,11 @@ export class BrRedactionPageComponent implements OnInit {
       case 'unredact': { const c = this.store.unredact(files);
         this.toast.show({ variant: 'success', message: `Redaction removed from ${c} file${c === 1 ? '' : 's'}`, duration: 3000 }); break; }
       case 'review': this.openRow(n); break;
+      case 'redact': this.checked = new Set([n.id]); this.startWizard(); break;
       default: if (['draft', 'ready', 'reviewed'].includes(item.id)) this.rowStatus(n, item.id as StatusChipPick);
     }
   }
+  get noMarksSel(): string[] { return this.checkedFiles().filter(i => !this.store.hasMarks(i) && this.store.status(i) !== 'detecting'); }
   get drafting(): boolean { return this.checkedFiles().some(i => this.store.status(i) === 'detecting'); }
   get reviewable(): string[] { return this.checkedFiles().filter(i => this.store.canSetStatus(i)); }
   get appliedSel(): string[] { return this.checkedFiles().filter(i => this.store.status(i) === 'applied'); }
@@ -479,11 +485,17 @@ export class BrRedactionPageComponent implements OnInit {
 
   // Viewer
   private rowFiles(n: DocNode): string[] { return this.tracked(n).filter(i => this.store.hasMarks(i)); }
+  /** Opens the viewer on this row's files only (a file → just that file, a folder → the files with marks inside it). */
   openRow(n: DocNode): void {
     const f = this.rowFiles(n);
     if (!f.length) { this.toast.show({ variant: 'info', message: 'No marks to review yet', duration: 3000 }); return; }
-    // review runs through every file that has marks (#7), starting at the one that was clicked
-    this.openViewer(this.withMarks, Math.max(0, this.withMarks.indexOf(f[0])));
+    this.openViewer(f, 0);
+  }
+  /** Click anywhere on a file row opens the viewer; folders expand. Controls inside the row keep their own click. */
+  onRowClick(n: DocNode, e: MouseEvent): void {
+    if ((e.target as HTMLElement).closest('fvdr-checkbox, button, fvdr-status-chip, .acts, fvdr-droplist')) return;
+    if (n.kind === 'folder') { this.toggleOpen(n.id); return; }
+    if (this.allReady && this.store.hasMarks(n.id)) this.openRow(n);
   }
   /** Expands the table down to a folder (used when the viewer's folder breadcrumb is clicked). */
   reveal(id: string): void {

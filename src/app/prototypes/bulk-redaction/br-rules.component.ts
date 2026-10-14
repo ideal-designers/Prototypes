@@ -55,7 +55,7 @@ import { PII_CATEGORIES, PiiCategory, RuleSet, RuleTemplate, cloneRules, emptyRu
       <label class="tpl__label" *ngIf="label">{{ label }}</label>
       <button type="button" class="tpl__btn" [class.tpl__btn--open]="open" aria-haspopup="listbox" [attr.aria-expanded]="open"
               (click)="open = !open">
-        <span class="tpl__val">{{ selectedTemplate?.name || 'From the scratch' }}</span>
+        <span class="tpl__val">{{ selectedTemplate?.name || 'From scratch' }}</span>
         <span class="tpl__end">
           <span *ngIf="modified" class="tpl__reset" role="button" tabindex="0" fvdrTooltip="Reset to default" tooltipPosition="bottom"
                 (click)="$event.stopPropagation(); reset()" (keydown.enter)="$event.stopPropagation(); reset()"><fvdr-icon name="refresh"></fvdr-icon></span>
@@ -64,7 +64,7 @@ import { PII_CATEGORIES, PiiCategory, RuleSet, RuleTemplate, cloneRules, emptyRu
       </button>
       <div class="tpl__panel" *ngIf="open" role="listbox">
         <div class="tpl__opt" [class.tpl__opt--on]="!templateId" role="option" tabindex="0"
-             (click)="pick(null); open = false" (keydown.enter)="pick(null); open = false">From the scratch</div>
+             (click)="pick(null); open = false" (keydown.enter)="pick(null); open = false">From scratch</div>
         <div class="tpl__opt" *ngFor="let t of store.templates" [class.tpl__opt--on]="t.id === templateId" role="option"
              tabindex="0" (click)="selectTemplate(t.id)">
           <span class="tpl__oname" *ngIf="renamingId !== t.id">{{ t.name }}</span>
