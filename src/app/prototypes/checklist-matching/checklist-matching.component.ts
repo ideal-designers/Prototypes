@@ -218,15 +218,19 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
               <span class="aibar__text"><b>The file was edited after extraction.</b> 1 request added, 1 changed.</span>
             </div>
 
-            <!-- Before results: the same AI card as in Source file (Figma) -->
-            <div class="aicard" *ngIf="phase === 'none' || phase === 'reading'">
-              <fvdr-ai-orb [size]="20" [thinking]="phase === 'reading'" [showLabel]="false" />
-              <ng-container *ngIf="phase === 'none'">
-                <span class="aibar__text" *ngIf="roomAiOn"><b>Turn this checklist into requests.</b> AI lists every request in the file, linked to its row. The file isn't changed.</span>
-                <span class="aibar__text" *ngIf="!roomAiOn">AI is off for this room. A project admin can turn it on in Settings.</span>
-                <fvdr-btn *ngIf="roomAiOn" label="Extract requests" size="s" iconName="matching-items" (clicked)="extract()" />
-              </ng-container>
-              <span class="aibar__text" *ngIf="phase === 'reading'"><b>Reading the checklist…</b> {{ readSheet }} · row {{ readRowInSheet }} of {{ readSheetRows }}</span>
+            <!-- Not extracted yet: empty state with the one next step (Figma "Requests / empty state") -->
+            <div class="empty empty--start" *ngIf="phase === 'none'">
+              <fvdr-ai-orb [size]="48" [showLabel]="false" />
+              <div class="empty__body">
+                <h2 class="empty__title">Turn this checklist into requests</h2>
+                <p class="empty__text" *ngIf="roomAiOn">AI lists every request in the file, linked to its row, and finds documents for the document requests. Your file isn't changed.</p>
+                <p class="empty__text" *ngIf="!roomAiOn">AI is off for this room. A project admin can turn it on in Settings.</p>
+              </div>
+              <fvdr-btn *ngIf="roomAiOn" label="Extract requests" (clicked)="extract()" />
+            </div>
+            <div class="aicard" *ngIf="phase === 'reading'">
+              <fvdr-ai-orb [size]="20" [thinking]="true" [showLabel]="false" />
+              <span class="aibar__text"><b>Reading the checklist…</b> {{ readSheet }} · row {{ readRowInSheet }} of {{ readSheetRows }}</span>
             </div>
             <!-- Check what was read: full-width card, small controls first, summary, What AI read on the right -->
             <div class="aicard aicard--wide" *ngIf="phase === 'structure'">
@@ -752,6 +756,8 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
     .empty { display: flex; flex-direction: column; align-items: center; gap: var(--space-3); padding: var(--space-16) var(--space-6); text-align: center; }
     .empty__title { margin: 0; font-size: var(--text-sub2-size); line-height: var(--text-sub2-lh); font-weight: var(--text-sub2-weight); }
     .empty__text { margin: 0; max-width: 560px; color: var(--color-text-secondary); }
+    .empty--start { gap: var(--space-6); }
+    .empty__body { display: flex; flex-direction: column; align-items: center; gap: var(--space-2); }
 
     /* Summary blocks */
 
