@@ -112,7 +112,7 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
           </div>
 
           <div class="toolbar">
-            <fvdr-segment [items]="viewItems" [activeId]="view" (activeIdChange)="setView($event)" />
+            <fvdr-segment class="viewseg" [items]="viewItems" [activeId]="view" (activeIdChange)="setView($event)" />
             <span class="spacer"></span>
             <span class="owner" fvdrTooltip="Only people who can edit this checklist see the requests and AI results" tooltipPosition="bottom"><fvdr-avatar initials="VO" size="sm" /> Only you</span>
             <fvdr-btn label="Share" iconName="share" variant="secondary" size="m" />
@@ -694,6 +694,10 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
     .tabs-row fvdr-tabs { flex: 1; }
     .toolbar { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; }
     .toolbar__actions { display: flex; gap: var(--space-4); flex-wrap: wrap; }
+    /* Source file / Requests: one fixed 200px block, two equal halves (Figma View toggle) */
+    .viewseg { width: 200px; flex: none; }
+    .viewseg ::ng-deep .seg-primary { display: flex; width: 100%; }
+    .viewseg ::ng-deep .seg-primary__item { flex: 1 1 0; min-width: 0; padding-left: 0; padding-right: 0; }
     .owner { display: inline-flex; align-items: center; gap: var(--space-2); font-size: var(--text-body3-size); color: var(--color-text-secondary); }
     .export { position: relative; }
     .menu { position: absolute; right: 0; top: calc(100% + var(--space-1)); z-index: 30; width: 360px; background: var(--color-stone-0);
