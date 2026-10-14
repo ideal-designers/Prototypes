@@ -36,7 +36,7 @@ interface CovVm {
 }
 const COV_KEYS: [string, string][] = [['covered', 'Covered'], ['partial', 'Partial'], ['review', 'To review'], ['gap', 'Gaps']];
 const DONUT_R = 62;
-const DONUT_C = 2 * Math.PI * DONUT_R;
+const PIE_R = 7.5;
 const CHANGE_DOT: Record<ChangeKind, string> = { closed: FILTER_DOT['covered'], suggested: FILTER_DOT['review'], reopened: FILTER_DOT['gap'] };
 interface GroupVm { id: string; label: string; name: string; meta: string; items: RowVm[]; hasSrc: boolean; row: number; pct: number; hasBar: boolean; }
 
@@ -280,7 +280,10 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
               <div class="covp">
                 <button class="covp__val" [class.covp__val--open]="panel === 'coverage'" [attr.aria-expanded]="panel === 'coverage'"
                   [attr.aria-label]="pct + '% of document requests covered. Show coverage details'" (click)="openCoverage()">
-                  <span class="ring" [style.--p]="pct" aria-hidden="true"></span>
+                  <svg class="pie" viewBox="0 0 20 20" aria-hidden="true">
+                    <circle class="pie__track" cx="10" cy="10" [attr.r]="pieR" />
+                    <circle *ngFor="let g of pie" cx="10" cy="10" [attr.r]="pieR" [style.stroke]="g.color" [attr.stroke-dasharray]="g.dash" [attr.stroke-dashoffset]="g.offset" />
+                  </svg>
                   <span><b>{{ pct }}%</b> covered</span>
                 </button>
                 <button class="lnk lnk--icon" (click)="openRead()"><fvdr-icon name="help" />Info</button>
@@ -990,6 +993,9 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
     .ring { width: 20px; height: 20px; border-radius: var(--radius-full); flex: none;
       background: conic-gradient(var(--color-primary-500) calc(var(--p, 0) * 1%), var(--ring-track, var(--color-stone-300)) 0);
       -webkit-mask: radial-gradient(circle, transparent 5.5px, var(--color-text-primary) 6px); mask: radial-gradient(circle, transparent 5.5px, var(--color-text-primary) 6px); }
+    .pie { width: 20px; height: 20px; flex: none; transform: rotate(-90deg); }
+    .pie circle { fill: none; stroke-width: 5; }
+    .pie__track { stroke: var(--color-stone-200); }
     .ring--bar { --ring-track: var(--color-stone-400); }
     .tdoc { display: flex; align-items: center; gap: var(--space-2); min-width: 0; max-width: 100%; }
     .tdoc > fvdr-file-icon { flex: none; display: flex; align-items: center; height: var(--text-body3-lh); }
@@ -1164,6 +1170,8 @@ export class ChecklistMatchingComponent implements OnDestroy {
   covHover: string | null = null;
   lastPct: number | null = null;
   readonly donutR = DONUT_R;
+  readonly pieR = PIE_R;
+  pie: CovSeg[] = [];
   exportOpen = false;
   stale = false;
   delta = false;
@@ -1620,6 +1628,18 @@ export class ChecklistMatchingComponent implements OnDestroy {
     if (this.filter !== 'all' || this.changeFilter || this.highOnly) { Object.assign(this, { filter: 'all', changeFilter: null, highOnly: false }); this.recompute(); }
     setTimeout(() => document.getElementById('grp-' + id)?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
   }
+  /** Donut segments by status for document requests: a circle of radius r, `gap` px between segments. */
+  private segsOf(docs: Req[], r: number, gap: number): CovSeg[] {
+    const st = this.st; const total = docs.length; const C = 2 * Math.PI * r;
+    const live = COV_KEYS.map(([k, label]) => [k, label, docs.filter(x => st[x.id]?.s === k).length] as const).filter(([, , n]) => n > 0);
+    const g = live.length > 1 ? gap : 0;
+    let acc = 0;
+    return live.map(([k, label, count]) => {
+      const len = total ? C * count / total : 0;
+      const seg = { k, label, count, pct: total ? Math.round(100 * count / total) : 0, color: FILTER_DOT[k], dash: `${Math.max(len - g, 0.1)} ${C}`, offset: -(acc + g / 2) };
+      acc += len; return seg;
+    });
+  }
   private pctOf(st: Record<string, Rec>) {
     const reqs = this.getReqs().filter(r => this.isDoc(r) && st[r.id]?.s !== 'na');
     const cov = reqs.filter(r => st[r.id]?.s === 'covered' || st[r.id]?.s === 'partial').length;
@@ -1630,15 +1650,7 @@ export class ChecklistMatchingComponent implements OnDestroy {
     const docs = reqs.filter(r => this.isDoc(r) && st[r.id]?.s !== 'na');
     const total = docs.length;
     const cnt = (list: Req[], k: string) => list.filter(r => st[r.id]?.s === k).length;
-    const live = COV_KEYS.filter(([k]) => cnt(docs, k) > 0);
-    const gap = live.length > 1 ? 3 : 0;
-    let acc = 0;
-    const segs: CovSeg[] = live.map(([k, label]) => {
-      const count = cnt(docs, k); const len = total ? DONUT_C * count / total : 0;
-      const seg = { k, label, count, pct: total ? Math.round(100 * count / total) : 0, color: FILTER_DOT[k],
-        dash: `${Math.max(len - gap, 0.1)} ${DONUT_C}`, offset: -(acc + gap / 2) };
-      acc += len; return seg;
-    });
+    const segs = this.segsOf(docs, DONUT_R, 3);
     const barOf = (id: string, name: string, list: Req[], withGaps: boolean): CovBar => {
       const cov = cnt(list, 'covered') + cnt(list, 'partial');
       return { id, name, gaps: withGaps ? cnt(list, 'gap') : 0,
@@ -1898,6 +1910,7 @@ export class ChecklistMatchingComponent implements OnDestroy {
     // Selected
     this.sel = this.selVm(reqs);
     this.cov = this.panel === 'coverage' && isResults ? this.covVm(reqs) : null;
+    this.pie = isResults ? this.segsOf(reqs.filter(r => this.isDoc(r) && st[r.id]?.s !== 'na'), PIE_R, 1.2) : [];
     if (this.sel?.isReview && this.sel.id !== this.statusFor) { this.statusFor = this.sel.id; this.reviewStatus = this.sel.verdict === 'Partial' ? 'partial' : 'covered'; }
     this.showPanel = isResults && this.view === 'requests' && this.layout !== 'folders' && ((this.panel === 'item' && !!this.sel) || this.panel === 'diff' || this.panel === 'coverage');
     // With the drawer open, Priority lives in the drawer; the table keeps room for documents
