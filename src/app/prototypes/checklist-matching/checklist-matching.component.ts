@@ -980,9 +980,9 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
     .rbar__l { display: flex; align-items: center; gap: var(--space-4); flex-wrap: wrap; }
     .fbar { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; }
     .lnk--icon { display: inline-flex; align-items: center; gap: var(--space-1); }
-    .covp { display: inline-flex; align-items: center; gap: var(--space-6); height: var(--space-10); padding: 0 var(--space-4) 0 var(--space-3); box-sizing: border-box;
+    .covp { display: inline-flex; align-items: center; gap: var(--space-6); height: var(--space-10); padding: 0 var(--space-4) 0 var(--space-2); box-sizing: border-box;
       background: var(--color-stone-0); border: 1px solid var(--color-divider); border-radius: var(--radius-full); font-size: var(--text-body3-size); }
-    .covp__val { all: unset; box-sizing: border-box; display: inline-flex; align-items: center; gap: var(--space-2); cursor: pointer; padding: var(--space-1) var(--space-2); margin: 0 calc(-1 * var(--space-2)); border-radius: var(--radius-sm); }
+    .covp__val { all: unset; box-sizing: border-box; display: inline-flex; align-items: center; gap: var(--space-2); cursor: pointer; padding: var(--space-1) var(--space-2) var(--space-1) var(--space-1); margin: 0 calc(-1 * var(--space-2)) 0 calc(-1 * var(--space-1)); border-radius: var(--radius-full); }
     .covp__val:hover, .covp__val--open { background: var(--color-hover-bg); }
     .covp__val:focus-visible { outline: 2px solid var(--color-primary-500); }
     .covp b { font-weight: var(--text-label-s-weight); }
