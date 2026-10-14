@@ -176,7 +176,7 @@ export const PROTO_META: Record<string, ProtoMetaInfo> = {
     "author": "Dmitriy Siniehin"
   },
   "bulk-redaction": {
-    "updated": "2026-10-13T13:24:14+02:00",
+    "updated": "2026-10-14T11:40:03+02:00",
     "author": "Nikita Tonkonozhenko"
   }
 };
