@@ -36,7 +36,7 @@ interface CovVm {
 }
 const COV_KEYS: [string, string][] = [['covered', 'Covered'], ['partial', 'Partial'], ['review', 'To review'], ['gap', 'Gaps']];
 const DONUT_R = 62;
-const PIE_R = 7.5;
+const PIE_R = 9;
 const CHANGE_DOT: Record<ChangeKind, string> = { closed: FILTER_DOT['covered'], suggested: FILTER_DOT['review'], reopened: FILTER_DOT['gap'] };
 interface GroupVm { id: string; label: string; name: string; meta: string; items: RowVm[]; hasSrc: boolean; row: number; pct: number; hasBar: boolean; }
 
@@ -280,9 +280,9 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
               <div class="covp">
                 <button class="covp__val" [class.covp__val--open]="panel === 'coverage'" [attr.aria-expanded]="panel === 'coverage'"
                   [attr.aria-label]="pct + '% of document requests covered. Show coverage details'" (click)="openCoverage()">
-                  <svg class="pie" viewBox="0 0 20 20" aria-hidden="true">
-                    <circle class="pie__track" cx="10" cy="10" [attr.r]="pieR" />
-                    <circle *ngFor="let g of pie" cx="10" cy="10" [attr.r]="pieR" [style.stroke]="g.color" [attr.stroke-dasharray]="g.dash" [attr.stroke-dashoffset]="g.offset" />
+                  <svg class="pie" viewBox="0 0 24 24" aria-hidden="true">
+                    <circle class="pie__track" cx="12" cy="12" [attr.r]="pieR" />
+                    <circle *ngFor="let g of pie" cx="12" cy="12" [attr.r]="pieR" [style.stroke]="g.color" [attr.stroke-dasharray]="g.dash" [attr.stroke-dashoffset]="g.offset" />
                   </svg>
                   <span><b>{{ pct }}%</b> covered</span>
                 </button>
@@ -993,8 +993,8 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
     .ring { width: 20px; height: 20px; border-radius: var(--radius-full); flex: none;
       background: conic-gradient(var(--color-primary-500) calc(var(--p, 0) * 1%), var(--ring-track, var(--color-stone-300)) 0);
       -webkit-mask: radial-gradient(circle, transparent 5.5px, var(--color-text-primary) 6px); mask: radial-gradient(circle, transparent 5.5px, var(--color-text-primary) 6px); }
-    .pie { width: 20px; height: 20px; flex: none; transform: rotate(-90deg); }
-    .pie circle { fill: none; stroke-width: 5; }
+    .pie { width: 24px; height: 24px; flex: none; transform: rotate(-90deg); }
+    .pie circle { fill: none; stroke-width: 6; }
     .pie__track { stroke: var(--color-stone-200); }
     .ring--bar { --ring-track: var(--color-stone-400); }
     .tdoc { display: flex; align-items: center; gap: var(--space-2); min-width: 0; max-width: 100%; }
@@ -1910,7 +1910,7 @@ export class ChecklistMatchingComponent implements OnDestroy {
     // Selected
     this.sel = this.selVm(reqs);
     this.cov = this.panel === 'coverage' && isResults ? this.covVm(reqs) : null;
-    this.pie = isResults ? this.segsOf(reqs.filter(r => this.isDoc(r) && st[r.id]?.s !== 'na'), PIE_R, 1.2) : [];
+    this.pie = isResults ? this.segsOf(reqs.filter(r => this.isDoc(r) && st[r.id]?.s !== 'na'), PIE_R, 1.4) : [];
     if (this.sel?.isReview && this.sel.id !== this.statusFor) { this.statusFor = this.sel.id; this.reviewStatus = this.sel.verdict === 'Partial' ? 'partial' : 'covered'; }
     this.showPanel = isResults && this.view === 'requests' && this.layout !== 'folders' && ((this.panel === 'item' && !!this.sel) || this.panel === 'diff' || this.panel === 'coverage');
     // With the drawer open, Priority lives in the drawer; the table keeps room for documents
