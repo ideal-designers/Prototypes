@@ -62,7 +62,7 @@ const PILL: Record<string, { label: string; variant: ChipVariant }> = {
             <fvdr-btn variant="ghost" size="s" iconName="plus" [iconOnly]="true" ariaLabel="Add checklist" />
           </div>
           <div class="toolbar">
-            <fvdr-btn label="Edit" iconName="edit" />
+            <fvdr-btn label="Edit" iconName="edit" [variant]="(phase === 'none' && roomAiOn) || phase === 'structure' ? 'secondary' : 'primary'" />
             <fvdr-btn label="Upload new version" iconName="refresh" variant="secondary" />
             <fvdr-btn label="Download" iconName="download" variant="secondary" />
             <fvdr-btn label="Delete" iconName="trash" variant="danger-secondary" />
@@ -81,20 +81,22 @@ const PILL: Record<string, { label: string; variant: ChipVariant }> = {
 
           <div class="work">
           <!-- ── AI panels, as in v2: a compact card before results, a plain row after ── -->
-          <div class="aicard" *ngIf="phase === 'none' || phase === 'reading'">
-            <fvdr-ai-orb [size]="20" [thinking]="phase === 'reading'" [showLabel]="false" />
-            <ng-container *ngIf="phase === 'none'">
-              <span class="aibar__text" *ngIf="roomAiOn"><b>Turn this checklist into requests.</b> AI lists every request in the file, linked to its row. The file isn't changed.</span>
-              <span class="aibar__text" *ngIf="!roomAiOn">AI is off for this room. A project admin can turn it on in Settings.</span>
-              <fvdr-btn *ngIf="roomAiOn" label="Extract requests" size="s" iconName="matching-items" (clicked)="read()" />
-            </ng-container>
-            <span class="aibar__text" *ngIf="phase === 'reading'"><b>Reading the checklist…</b> {{ sc.sheets[0].name }} · row {{ readRow }} of {{ sc.sheets[0].rows }}</span>
+          <div class="aistart" *ngIf="phase === 'none' || phase === 'reading'">
+            <div class="aicard">
+              <fvdr-ai-orb [size]="20" [thinking]="phase === 'reading'" [showLabel]="false" />
+              <ng-container *ngIf="phase === 'none'">
+                <span class="aibar__text" *ngIf="roomAiOn"><b>Turn this checklist into requests.</b> AI lists every request in the file, linked to its row. The file isn't changed.</span>
+                <span class="aibar__text" *ngIf="!roomAiOn">AI is off for this room. A project admin can turn it on in Settings.</span>
+              </ng-container>
+              <span class="aibar__text" *ngIf="phase === 'reading'"><b>Reading the checklist…</b> {{ sc.sheets[0].name }} · row {{ readRow }} of {{ sc.sheets[0].rows }}</span>
+            </div>
+            <fvdr-btn *ngIf="phase === 'none' && roomAiOn" label="Extract requests" (clicked)="read()" />
           </div>
           <!-- Check what was read: small controls first, summary, What AI read on the right -->
           <div class="aicard aicard--wide" *ngIf="phase === 'structure'">
             <fvdr-dropdown class="scope" size="s" [options]="scopeOptions" [value]="scope" (valueChange)="scope = asString($event)" />
             <fvdr-btn [label]="'Match ' + docCount + ' requests'" size="s" (clicked)="startMatching()" />
-            <span class="aibar__text aibar__grow">{{ docCount }} requests marked in the file. Click a row to check it.</span>
+            <span class="aibar__text aibar__grow">{{ structLine }}</span>
             <button class="lnk" *ngIf="drawer === 'none'" (click)="openRead()">What AI read</button>
           </div>
           <div class="aicard" *ngIf="phase === 'matching'">
@@ -117,10 +119,7 @@ const PILL: Record<string, { label: string; variant: ChipVariant }> = {
                 <span class="muted" *ngIf="delta">Since {{ sc.returning.since }}: {{ deltaText }}</span>
               </ng-container>
               <!-- 100%: nothing left to filter or review, so the filters give way to the outcome -->
-              <span class="done" *ngIf="complete">
-                <fvdr-icon name="finished" />
-                <span><b>Every request has a document.</b> {{ doneText }}</span>
-              </span>
+              <span class="done" *ngIf="complete"><b>Every request has a document.</b> {{ doneText }}</span>
             </div>
             <div class="covp">
               <span class="covp__val" [attr.aria-label]="pct + '% of document requests covered'">
@@ -368,6 +367,8 @@ const PILL: Record<string, { label: string; variant: ChipVariant }> = {
     .aicard { flex: none; align-self: flex-start; max-width: 100%; box-sizing: border-box; display: inline-flex; align-items: center; gap: var(--space-4);
       padding: var(--space-3) var(--space-4); background: var(--color-stone-100); border: 1px solid var(--color-divider); border-radius: var(--radius-md); }
     .aicard.aicard--wide { align-self: stretch; display: flex; }
+    .aistart { flex: none; display: flex; align-items: center; gap: var(--space-4); flex-wrap: wrap; }
+    .aistart .aicard { align-self: auto; }
     .aicard .scope { width: 320px; }
     .aicard__fact { display: inline-flex; align-items: center; gap: var(--space-2); font-size: var(--text-body3-size); line-height: var(--text-body3-lh); }
     .aicard__fact fvdr-icon { color: var(--color-text-secondary); font-size: var(--text-body1-size); }
@@ -377,8 +378,7 @@ const PILL: Record<string, { label: string; variant: ChipVariant }> = {
     .rbar { flex: none; display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); flex-wrap: wrap; min-height: var(--space-10); }
     .rbar__l { display: flex; align-items: center; gap: var(--space-4); flex-wrap: wrap; }
     .fbar { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; }
-    .done { display: inline-flex; align-items: center; gap: var(--space-2); font-size: var(--text-body3-size); line-height: var(--text-body3-lh); }
-    .done fvdr-icon { color: var(--color-primary-500); font-size: var(--text-body1-size); flex: none; }
+    .done { font-size: var(--text-body3-size); line-height: var(--text-body3-lh); }
     .done b { font-weight: var(--text-label-s-weight); }
     .covp { display: inline-flex; align-items: center; gap: var(--space-6); height: var(--space-10); padding: 0 var(--space-4) 0 var(--space-2); box-sizing: border-box;
       background: var(--color-stone-0); border: 1px solid var(--color-divider); border-radius: var(--radius-full); font-size: var(--text-body3-size); }
@@ -577,6 +577,13 @@ export class ChecklistInlineComponent implements OnDestroy {
     const g = live.length > 1 ? 1.4 : 0;
     let acc = 0;
     return live.map(([k, n]) => { const len = total ? C * n / total : 0; const seg = { color: FILTER_DOT[k], dash: `${Math.max(len - g, 0.1)} ${C}`, offset: -(acc + g / 2) }; acc += len; return seg; });
+  }
+  get structLine() {
+    const reqs = this.reqs(); const n = (c: string) => reqs.filter(r => r.cls === c).length;
+    const pl = (k: number, one: string, many: string) => `${k} ${k === 1 ? one : many}`;
+    const parts = [pl(n('document_request'), 'document request', 'document requests'), n('question') ? pl(n('question'), 'question', 'questions') : '',
+      n('instruction') ? pl(n('instruction'), 'instruction', 'instructions') : '', n('note') ? pl(n('note'), 'note', 'notes') : ''].filter(Boolean);
+    return `${parts.join(', ')} in ${this.sc.sections.length} sections`;
   }
   get eta() { const m = Math.ceil((1 - this.progress) * 3); return m <= 0 ? 'finishing' : `about ${m} min left`; }
   get selRow() { return this.selected ? this.sourceRows.find(r => r.reqId === this.selected) : undefined; }
