@@ -625,7 +625,6 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
         </footer>
       </ng-container>
 
-      <!-- Changes in the source file -->
       <!-- Coverage: what the % is made of, where the gaps are, what to do next -->
       <ng-container *ngIf="!readOpen && panel === 'coverage' && cov as c">
         <header class="dh">
@@ -696,6 +695,7 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
         </footer>
       </ng-container>
 
+      <!-- Changes in the source file -->
       <ng-container *ngIf="!readOpen && panel === 'diff' && sc.edits as e">
         <header class="dh">
           <span class="dh__title">Changes in {{ sc.sheets[0].name }}</span>
