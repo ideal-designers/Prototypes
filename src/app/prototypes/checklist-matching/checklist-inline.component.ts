@@ -233,12 +233,10 @@ const PILL: Record<string, { label: string; variant: ChipVariant }> = {
 
         <div class="db">
           <!-- 1 · The request -->
+          <!-- The request itself is the highlighted row in the file; the drawer keeps only its place -->
           <section class="ds ds--req">
-            <p class="req">{{ s.text }}</p>
             <ul class="meta">
-              <li><span class="meta__k">Row</span><fvdr-chip [label]="'' + s.row" variant="grey" size="s" /></li>
-              <li *ngIf="s.priority"><span class="meta__k">Priority</span>{{ s.priority }}</li>
-              <li *ngIf="s.asAt"><span class="meta__k">As at</span>{{ s.asAt }}</li>
+              <li class="meta__row"><span class="meta__k">Row</span><fvdr-chip [label]="'' + s.row" variant="grey" size="s" /></li>
             </ul>
           </section>
 
@@ -249,10 +247,7 @@ const PILL: Record<string, { label: string; variant: ChipVariant }> = {
           </section>
 
           <section class="ds" *ngIf="s.isReview">
-            <div class="ds__row">
-              <h3 class="ds__h">Suggested document</h3>
-              <span class="strength" [ngClass]="'strength--' + s.strength.toLowerCase()" [fvdrTooltip]="s.strength + ' match'"><i></i><i></i><i></i>{{ s.strength }} match</span>
-            </div>
+            <h3 class="ds__h">Suggested document</h3>
             <div class="doc">
               <fvdr-file-icon [type]="s.candType" />
               <div class="doc__b">
@@ -318,7 +313,6 @@ const PILL: Record<string, { label: string; variant: ChipVariant }> = {
         <footer class="df">
           <ng-container *ngIf="s.isReview && !composeOpen">
             <fvdr-btn label="Save" fvdrTooltip="A" (clicked)="saveReview()" />
-            <fvdr-btn label="Reject" variant="secondary" fvdrTooltip="R" (clicked)="reject()" />
             <span class="spacer"></span>
             <fvdr-btn label="Ask Seller" variant="secondary" (clicked)="openCompose()" />
           </ng-container>
@@ -480,6 +474,7 @@ const PILL: Record<string, { label: string; variant: ChipVariant }> = {
     .req { margin: 0; font-size: var(--text-sub2-size); line-height: var(--text-sub2-lh); font-weight: var(--text-sub2-weight); }
     .meta { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-6); }
     .meta li { display: flex; flex-direction: column; gap: 2px; align-items: flex-start; font-size: var(--text-body2-size); line-height: var(--text-body2-lh); }
+    .meta li.meta__row { flex-direction: row; align-items: center; gap: var(--space-2); }
     .meta__k { font-size: var(--text-label-s-size); line-height: var(--text-label-s-lh); font-weight: var(--text-label-s-weight); color: var(--color-text-primary); }
     .doc { display: flex; align-items: flex-start; gap: var(--space-3); }
     .doc > fvdr-file-icon { flex: none; display: flex; align-items: center; height: var(--text-body3-lh); }
@@ -497,11 +492,6 @@ const PILL: Record<string, { label: string; variant: ChipVariant }> = {
       background: var(--color-warning-bg); border-radius: var(--radius-md); font-size: var(--text-body3-size); line-height: var(--text-body3-lh); }
     .issues li { display: flex; gap: var(--space-2); }
     .issues b { font-weight: var(--text-label-s-weight); }
-    .strength { display: inline-flex; align-items: center; gap: 2px; font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); color: var(--color-text-secondary); white-space: nowrap; }
-    .strength i { width: 4px; height: var(--space-3); border-radius: 1px; background: var(--color-stone-400); }
-    .strength i:last-of-type { margin-right: var(--space-1); }
-    .strength--strong i { background: var(--color-primary-500); }
-    .strength--medium i:nth-of-type(-n+2) { background: var(--color-warning-icon); }
     .kv { display: grid; grid-template-columns: 130px minmax(0, 1fr); gap: var(--space-3) var(--space-4); margin: 0; font-size: var(--text-body3-size); line-height: var(--text-body3-lh); }
     .kv dt { color: var(--color-text-secondary); }
     .kv dd { margin: 0; white-space: pre-line; overflow-wrap: anywhere; }
@@ -878,7 +868,7 @@ export class ChecklistInlineComponent implements OnDestroy {
       pos: reviewPos >= 0 ? `${reviewPos + 1} of ${this.reviewIds.length} to review` : `${ids.indexOf(r.id) + 1} of ${ids.length}`,
       isPending: s === 'pending', isReview: s === 'review', isCovered: s === 'covered' || s === 'partial', isPartial: s === 'partial', isGap: s === 'gap',
       candName: cand?.name || '', candLabel: cd?.label || cand?.name || '', candPath: cd?.path || '', candType: cand ? this.fileType(cand.name) : 'pdf',
-      strength: cand?.verdict === 'Likely match' ? 'Strong' : 'Medium', verdict: cand?.verdict || '',
+      verdict: cand?.verdict || '',
       period: cand?.period || null, draft: !!cand?.draft,
       missing: rec.missing || cand?.missing || '',
       docs: (rec.docs || r.docs || []).map(n => ({ name: n, label: this.doc(n).label || n, path: this.doc(n).path, type: this.fileType(n) })),

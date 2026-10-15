@@ -523,20 +523,15 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
           <fvdr-btn variant="ghost" size="s" iconName="close" [iconOnly]="true" ariaLabel="Close (Esc)" (clicked)="clearSel()" />
         </header>
         <div class="db">
+          <!-- The request itself is in the selected table row; the drawer keeps only its place in the file -->
           <section class="ds ds--req">
-            <p class="req">{{ s.text }}</p>
             <ul class="meta">
-              <li><span class="meta__k">Row</span><fvdr-chip [label]="'' + s.row" variant="grey" size="s" [clickable]="true" [fvdrTooltip]="'Open row ' + s.row + ' in the source file'" (clicked)="openSrc(s.row, s.id)" /></li>
-              <li *ngIf="s.priority"><span class="meta__k">Priority</span>{{ s.priority }}</li>
-              <li *ngIf="s.asAt"><span class="meta__k">As at</span>{{ s.asAt }}</li>
+              <li class="meta__row"><span class="meta__k">Row</span><fvdr-chip [label]="'' + s.row" variant="grey" size="s" [clickable]="true" [fvdrTooltip]="'Open row ' + s.row + ' in the source file'" (clicked)="openSrc(s.row, s.id)" /></li>
             </ul>
           </section>
 
           <section class="ds" *ngIf="s.isReview">
-            <div class="ds__row">
-              <h3 class="ds__h">Suggested document</h3>
-              <span class="strength" [ngClass]="'strength--' + s.strength.toLowerCase()" [fvdrTooltip]="strengthHint[s.strength]"><i></i><i></i><i></i>{{ s.strength }} match</span>
-            </div>
+            <h3 class="ds__h">Suggested document</h3>
             <div class="doc">
               <fvdr-file-icon [type]="fileType(s.docName)" />
               <div class="doc__b">
@@ -607,7 +602,6 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
         <footer class="df">
           <ng-container *ngIf="s.isReview && !composeOpen">
             <fvdr-btn label="Save" fvdrTooltip="A" (clicked)="saveReview()" />
-            <fvdr-btn label="Reject" variant="secondary" fvdrTooltip="R" (clicked)="reject()" />
             <span class="spacer"></span>
             <fvdr-btn label="Ask Seller" variant="secondary" (clicked)="openCompose()" />
           </ng-container>
@@ -898,12 +892,6 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
 
     /* Side panel */
     /* Sticks to the bottom of the visible area while the panel is taller than it. Offset clears the prototype switcher. */
-    .strength { display: inline-flex; align-items: center; gap: 2px; font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); font-weight: var(--text-label-s-weight); color: var(--color-text-secondary); }
-    .strength i { width: 4px; height: var(--space-3); border-radius: 1px; background: var(--color-stone-400); }
-    .strength i:last-of-type { margin-right: var(--space-1); }
-    .strength--strong i { background: var(--color-primary-500); }
-    .strength--medium i:nth-of-type(-n+2) { background: var(--color-warning-icon); }
-    .strength--weak i:first-of-type { background: var(--color-stone-600); }
     .bulk { display: flex; flex-direction: column; gap: var(--space-3); max-height: 50vh; overflow-y: auto; padding-right: var(--space-1); }
     .bulk__item { display: flex; flex-direction: column; gap: var(--space-2); padding-bottom: var(--space-3); border-bottom: 1px solid var(--color-divider); }
     .how { margin: 0; padding-left: var(--space-5); display: flex; flex-direction: column; gap: var(--space-3); font-size: var(--text-body3-size); line-height: var(--text-body3-lh); }
@@ -1030,6 +1018,7 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
     .drawer .ds__meta { font-size: var(--text-body3-size); line-height: var(--text-body3-lh); color: var(--color-text-secondary); }
     .drawer .meta { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-6); }
     .drawer .meta li { display: flex; flex-direction: column; gap: 2px; align-items: flex-start; font-size: var(--text-body2-size); line-height: var(--text-body2-lh); }
+    .drawer .meta li.meta__row { flex-direction: row; align-items: center; gap: var(--space-2); }
     .drawer .meta__k { font-size: var(--text-label-s-size); line-height: var(--text-label-s-lh); font-weight: var(--text-label-s-weight); color: var(--color-text-primary); }
     .drawer .doc { display: flex; align-items: flex-start; gap: var(--space-3); }
     .drawer .doc > fvdr-file-icon { flex: none; display: flex; align-items: center; height: var(--text-body3-lh); }
@@ -1203,11 +1192,6 @@ export class ChecklistMatchingComponent implements OnDestroy {
   bulkOpen = false;
   bulkItems: { id: string; ref: string; title: string; text: string; on: boolean }[] = [];
   bulkSelected = 0;
-  strengthHint: Record<string, string> = {
-    Strong: 'The document covers the request, including the requested period.',
-    Medium: 'The document covers part of the request, or a different period.',
-    Weak: 'Related, but below the match threshold. Shown so you can link it anyway.',
-  };
 
   // ── View model (recomputed after every change) ──
   groups: GroupVm[] = [];
@@ -2031,7 +2015,6 @@ export class ChecklistMatchingComponent implements OnDestroy {
       docFiles: (cd.files || []).map(f => ({ name: f, draft: /draft/i.test(f) })),
       period: r.cand?.period || null,
       evidence: r.cand?.evidence || null, nearEvidence: r.near?.evidence || null,
-      strength: r.cand?.verdict === 'Likely match' ? 'Strong' : 'Medium',
       ifAccepted: this.sc.statusMap && rec.s === 'review' ? (r.cand?.verdict === 'Partial' ? this.sc.statusMap.partial : this.sc.statusMap.covered) : '',
       history: [
         ...(rec.s === 'question' || rec.s === 'instruction' || rec.s === 'note' ? [] : [{ what: r.cand ? `AI suggested ${this.doc(r.cand.name).label || r.cand.name}` : (r.docs ? 'AI matched ' + r.docs.length + (r.docs.length === 1 ? ' document' : ' documents') : 'AI found nothing above the threshold'), who: 'AI matching', at: this.sc.matchedAt }]),
