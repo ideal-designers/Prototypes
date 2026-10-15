@@ -203,6 +203,13 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
     description: 'Same interactions as Version2, with a Figma-matched Publishing treatment: a tinted icon background plus a check/cross glyph',
   },
     {
+    slug: 'permissions-draft',
+    title: 'Permissions — Draft & bulk save · Variant 1',
+    module: 'Permissions',
+    status: 'wip',
+    description: 'Edit permissions across many documents and groups as one draft: changed cells are highlighted against their saved level, a Changes panel lists every edit plus the history of past saves, and one review step saves the whole batch',
+  },
+    {
     slug: 'added-column-hover',
     title: 'Documents — Added column hover',
     module: 'Documents',
