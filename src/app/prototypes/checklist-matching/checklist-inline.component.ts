@@ -10,7 +10,7 @@ import { LIGHTHOUSE } from './lighthouse.data';
 
 type Phase = 'empty' | 'uploading' | 'none' | 'reading' | 'structure' | 'matching' | 'results';
 type Screen = 'upload' | 'source' | 'structure' | 'matching' | 'results' | 'complete' | 'returning';
-type Filter = 'all' | 'review' | 'gap' | 'covered';
+type Filter = 'all' | 'review' | 'gap' | 'covered' | 'partial';
 type DrawerMode = 'none' | 'row' | 'read';
 
 const SCENARIOS: Record<string, Scenario> = { lighthouse: LIGHTHOUSE, diamond: DIAMOND };
@@ -69,76 +69,68 @@ const PILL: Record<string, { label: string; variant: ChipVariant }> = {
             <span class="spacer"></span>
             <span class="owner" fvdrTooltip="Only people who can edit this checklist see it and its AI results" tooltipPosition="bottom"><fvdr-avatar initials="VO" size="sm" /> Only you</span>
             <fvdr-btn label="Share" iconName="share" variant="secondary" />
+            <div class="export" *ngIf="phase === 'results'">
+              <fvdr-btn label="Export" iconName="download" [variant]="complete ? 'primary' : 'secondary'" (clicked)="exportOpen = !exportOpen" />
+              <div class="menu" *ngIf="exportOpen">
+                <span class="menu__warn" *ngIf="reviewIds.length"><fvdr-icon name="warning" />{{ reviewIds.length }} suggestions not reviewed are exported as notes.</span>
+                <button class="menu__item" (click)="doExport('file')"><b>{{ sc.tabLabel }} with results</b><span class="muted">{{ hasResultCols ? 'Exactly what you see in the file now.' : 'Adds Status, Documents and Missing columns.' }}</span></button>
+                <button class="menu__item" *ngIf="!complete || partialCount" (click)="doExport('gap')"><b>Gap report</b><span class="muted">Only gaps and partial requests.</span></button>
+              </div>
+            </div>
           </div>
 
           <div class="work">
-          <!-- ── AI bar: message group on the left, controls on the right ── -->
-          <div class="aibar" [class.aibar--busy]="phase === 'reading' || phase === 'matching'" [class.aibar--start]="phase === 'none'" [class.aibar--results]="phase === 'results'">
-            <!-- Analyze checklist leads the bar, like primary actions elsewhere in the product -->
-            <fvdr-btn *ngIf="phase === 'none' && roomAiOn" label="Analyze checklist" (clicked)="read()" />
-            <div class="aibar__l">
-              <span class="aibar__mark" *ngIf="phase === 'none' || phase === 'structure'"><fvdr-icon name="sparkle" /></span>
-              <!-- While AI is working, a progress ring takes the icon's place -->
-              <span class="ring" *ngIf="phase === 'reading' || phase === 'matching'" role="progressbar" aria-valuemin="0" aria-valuemax="100"
-                [attr.aria-valuenow]="busyPct" [style.--p]="busyPct"></span>
-              <ng-container *ngIf="phase === 'none'">
-                <span class="aibar__text"><b>Find documents for this checklist.</b> AI marks every request in the file, then matches it to documents in {{ sc.room }}. The file isn't changed.</span>
-              </ng-container>
-              <ng-container *ngIf="phase === 'reading'">
-                <span class="aibar__text"><b>Reading the checklist…</b> {{ sc.sheets[0].name }} · row {{ readRow }} of {{ sc.sheets[0].rows }}</span>
-              </ng-container>
-              <ng-container *ngIf="phase === 'structure'">
-                <span class="aibar__text"><b>{{ docCount }} requests marked in the file.</b> Click a row to check it.</span>
-                <button class="lnk" (click)="openRead()">What AI read</button>
-              </ng-container>
-              <ng-container *ngIf="phase === 'matching'">
-                <span class="aibar__text"><b>Matching…</b> {{ docsRead }} of {{ totalDocsLabel }} documents · {{ eta }}</span>
-              </ng-container>
-              <ng-container *ngIf="phase === 'results' && !complete">
+          <!-- ── AI panels, as in v2: a compact card before results, a plain row after ── -->
+          <div class="aicard" *ngIf="phase === 'none' || phase === 'reading'">
+            <fvdr-ai-orb [size]="20" [thinking]="phase === 'reading'" [showLabel]="false" />
+            <ng-container *ngIf="phase === 'none'">
+              <span class="aibar__text" *ngIf="roomAiOn"><b>Turn this checklist into requests.</b> AI lists every request in the file, linked to its row. The file isn't changed.</span>
+              <span class="aibar__text" *ngIf="!roomAiOn">AI is off for this room. A project admin can turn it on in Settings.</span>
+              <fvdr-btn *ngIf="roomAiOn" label="Extract requests" size="s" iconName="matching-items" (clicked)="read()" />
+            </ng-container>
+            <span class="aibar__text" *ngIf="phase === 'reading'"><b>Reading the checklist…</b> {{ sc.sheets[0].name }} · row {{ readRow }} of {{ sc.sheets[0].rows }}</span>
+          </div>
+          <!-- Check what was read: small controls first, summary, What AI read on the right -->
+          <div class="aicard aicard--wide" *ngIf="phase === 'structure'">
+            <fvdr-dropdown class="scope" size="s" [options]="scopeOptions" [value]="scope" (valueChange)="scope = asString($event)" />
+            <fvdr-btn [label]="'Match ' + docCount + ' requests'" size="s" (clicked)="startMatching()" />
+            <span class="aibar__text aibar__grow">{{ docCount }} requests marked in the file. Click a row to check it.</span>
+            <button class="lnk" *ngIf="drawer === 'none'" (click)="openRead()">What AI read</button>
+          </div>
+          <div class="aicard" *ngIf="phase === 'matching'">
+            <span class="ring ring--bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" [attr.aria-valuenow]="busyPct" [style.--p]="busyPct"></span>
+            <span class="aibar__text"><b>Matching “{{ scopeLabel }}”</b></span>
+            <span class="aicard__fact"><fvdr-icon name="matching-items" />{{ docsRead }} of {{ totalDocsLabel }} documents</span>
+            <span class="aicard__fact"><fvdr-icon name="time" />{{ eta }}</span>
+          </div>
+
+          <!-- Results: filters, next step, coverage — no background -->
+          <div class="rbar" *ngIf="phase === 'results'">
+            <div class="rbar__l">
+              <ng-container *ngIf="!complete">
                 <div class="fbar" role="group" aria-label="Filter requests">
                   <fvdr-filter-btn *ngFor="let f of filterItems; trackBy: byId" [label]="f.label" [showIcon]="false"
                     [showCounter]="true" [counter]="'' + f.count" [showStatus]="!!f.dot" [statusColor]="f.dot || ''"
                     [selected]="filter === f.id" (clicked)="setFilter($any(f.id))" />
                 </div>
-                <span class="muted" *ngIf="delta">since {{ sc.returning.since }}: {{ deltaText }}</span>
+                <fvdr-btn *ngIf="reviewIds.length && drawer === 'none' && filter !== 'gap'" [label]="'Review ' + reviewIds.length + (reviewIds.length === 1 ? ' suggestion' : ' suggestions')" variant="secondary" (clicked)="reviewNext()" />
+                <span class="muted" *ngIf="delta">Since {{ sc.returning.since }}: {{ deltaText }}</span>
               </ng-container>
               <!-- 100%: nothing left to filter or review, so the filters give way to the outcome -->
-              <span class="done" *ngIf="phase === 'results' && complete">
+              <span class="done" *ngIf="complete">
                 <fvdr-icon name="finished" />
                 <span><b>Every request has a document.</b> {{ doneText }}</span>
               </span>
             </div>
-
-            <!-- Results: coverage pill sits between the filters and the actions -->
-            <div class="cov" *ngIf="phase === 'results'">
-              <span class="cov__val" [attr.aria-label]="pct + '% of document requests covered'">
-                <span class="ring" [style.--p]="pct" aria-hidden="true"></span>
+            <div class="covp">
+              <span class="covp__val" [attr.aria-label]="pct + '% of document requests covered'">
+                <svg class="pie" viewBox="0 0 24 24" aria-hidden="true">
+                  <circle class="pie__track" cx="12" cy="12" r="9" />
+                  <circle *ngFor="let g of pie" cx="12" cy="12" r="9" [style.stroke]="g.color" [attr.stroke-dasharray]="g.dash" [attr.stroke-dashoffset]="g.offset" />
+                </svg>
                 <span><b>{{ pct }}%</b> covered</span>
               </span>
-              <button class="lnk" (click)="openRead()">What AI read</button>
-            </div>
-
-            <div class="aibar__r">
-              <ng-container *ngIf="phase === 'none'">
-                <span *ngIf="!roomAiOn" class="muted">AI is off for this room. A project admin can turn it on in Settings.</span>
-              </ng-container>
-              <ng-container *ngIf="phase === 'structure'">
-                <fvdr-dropdown class="scope" [options]="scopeOptions" [value]="scope" (valueChange)="scope = asString($event)" />
-                <fvdr-btn label="Match documents" (clicked)="startMatching()" />
-              </ng-container>
-              <fvdr-btn *ngIf="phase === 'matching'" label="Stop" variant="ghost" (clicked)="stopMatching()" />
-              <ng-container *ngIf="phase === 'results'">
-                <!-- With the drawer open, its own ↑↓ "n of N to review" replaces Review next -->
-                <fvdr-btn *ngIf="reviewIds.length && drawer === 'none'" [label]="'Review next (' + reviewIds.length + ')'" (clicked)="reviewNext()" />
-                <div class="export">
-                  <fvdr-btn label="Export" iconName="download" [variant]="complete ? 'primary' : 'secondary'" (clicked)="exportOpen = !exportOpen" />
-                  <div class="menu" *ngIf="exportOpen">
-                    <span class="menu__warn" *ngIf="reviewIds.length"><fvdr-icon name="warning" />{{ reviewIds.length }} suggestions not reviewed are exported as notes.</span>
-                    <button class="menu__item" (click)="doExport('file')"><b>{{ sc.tabLabel }} with results</b><span class="muted">{{ hasResultCols ? 'Exactly what you see in the file now.' : 'Adds Status, Documents and Missing columns.' }}</span></button>
-                    <button class="menu__item" *ngIf="!complete || partialCount" (click)="doExport('gap')"><b>Gap report</b><span class="muted">Only gaps and partial requests.</span></button>
-                  </div>
-                </div>
-              </ng-container>
+              <button class="lnk lnk--icon" (click)="openRead()"><fvdr-icon name="help" />Info</button>
             </div>
           </div>
 
@@ -372,39 +364,35 @@ const PILL: Record<string, { label: string; variant: ChipVariant }> = {
     .owner { display: inline-flex; align-items: center; gap: var(--space-2); font-size: var(--text-body3-size); color: var(--color-text-secondary); margin-right: var(--space-2); }
 
     /* AI bar */
-    .aibar { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); min-height: var(--space-10); flex-wrap: wrap;
-      padding: var(--space-4); border-radius: var(--radius-md); background: var(--color-stone-300); }
-    /* Once results and filters are in, the block dissolves: no background, no side padding */
-    .aibar--results { background: none; padding: 0; border-radius: 0; }
+    /* AI panels, as in v2: compact card before results, a plain row after */
+    .aicard { flex: none; align-self: flex-start; max-width: 100%; box-sizing: border-box; display: inline-flex; align-items: center; gap: var(--space-4);
+      padding: var(--space-3) var(--space-4); background: var(--color-stone-100); border: 1px solid var(--color-divider); border-radius: var(--radius-md); }
+    .aicard.aicard--wide { align-self: stretch; display: flex; }
+    .aicard .scope { width: 320px; }
+    .aicard__fact { display: inline-flex; align-items: center; gap: var(--space-2); font-size: var(--text-body3-size); line-height: var(--text-body3-lh); }
+    .aicard__fact fvdr-icon { color: var(--color-text-secondary); font-size: var(--text-body1-size); }
+    .aibar__text { font-size: var(--text-body3-size); line-height: var(--text-body3-lh); }
+    .aibar__text b { font-weight: var(--text-label-s-weight); }
+    .aibar__grow { flex: 1; min-width: 0; }
+    .rbar { flex: none; display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); flex-wrap: wrap; min-height: var(--space-10); }
+    .rbar__l { display: flex; align-items: center; gap: var(--space-4); flex-wrap: wrap; }
     .fbar { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; }
     .done { display: inline-flex; align-items: center; gap: var(--space-2); font-size: var(--text-body3-size); line-height: var(--text-body3-lh); }
     .done fvdr-icon { color: var(--color-primary-500); font-size: var(--text-body1-size); flex: none; }
     .done b { font-weight: var(--text-label-s-weight); }
-    .aibar--start { justify-content: flex-start; gap: var(--space-4); }
-    .aibar__l { display: flex; align-items: center; gap: var(--space-4); min-width: 0; flex-wrap: wrap; }
-    .aibar__r { display: flex; align-items: center; gap: var(--space-4); }
-    .aibar__mark { color: var(--color-primary-500); display: inline-flex; font-size: var(--font-size-lg); }
-    .aibar--busy .aibar__mark { animation: pulse 1.4s ease-in-out infinite; }
-    .aibar__text { font-size: var(--text-body3-size); }
-    .aibar__text b, .aibar__cov b { font-weight: var(--text-label-s-weight); }
-    .aibar__cov { font-size: var(--text-body3-size); }
-    .cov { display: inline-flex; align-items: center; gap: var(--space-6); height: var(--space-10); padding: 0 var(--space-4) 0 var(--space-3); box-sizing: border-box;
+    .covp { display: inline-flex; align-items: center; gap: var(--space-6); height: var(--space-10); padding: 0 var(--space-4) 0 var(--space-2); box-sizing: border-box;
       background: var(--color-stone-0); border: 1px solid var(--color-divider); border-radius: var(--radius-full); font-size: var(--text-body3-size); }
-    .cov__val { display: inline-flex; align-items: center; gap: var(--space-2); }
-    .cov b { font-weight: var(--text-label-s-weight); }
-    /* Donut (coverage and AI progress): conic fill for the share, inner circle cut out with a radial mask */
+    .covp__val { display: inline-flex; align-items: center; gap: var(--space-2); }
+    .covp b { font-weight: var(--text-label-s-weight); }
+    .lnk--icon { display: inline-flex; align-items: center; gap: var(--space-1); }
+    .pie { width: 24px; height: 24px; flex: none; transform: rotate(-90deg); }
+    .pie circle { fill: none; stroke-width: 6; }
+    .pie__track { stroke: var(--color-stone-200); }
+    /* Progress ring while matching: conic fill, inner circle cut out with a radial mask */
     .ring { width: 20px; height: 20px; border-radius: var(--radius-full); flex: none;
       background: conic-gradient(var(--color-primary-500) calc(var(--p, 0) * 1%), var(--ring-track, var(--color-stone-300)) 0);
       -webkit-mask: radial-gradient(circle, transparent 5.5px, var(--color-text-primary) 6px); mask: radial-gradient(circle, transparent 5.5px, var(--color-text-primary) 6px); }
-    .aibar > .aibar__l > .ring { --ring-track: var(--color-stone-400); }
-    .aibar__chips { display: flex; gap: var(--space-1); }
-    .fchip { all: unset; cursor: pointer; display: inline-flex; align-items: center; gap: var(--space-1); padding: 2px var(--space-2); border-radius: var(--radius-full); font-size: var(--text-body3-size); border: 1px solid transparent; }
-    .fchip:hover { background: var(--color-stone-0); }
-    .fchip--on { background: var(--color-stone-0); border-color: var(--color-primary-500); font-weight: var(--text-label-s-weight); }
-    .fchip:focus-visible { outline: 2px solid var(--color-primary-500); }
-    .dot { width: 8px; height: 8px; border-radius: var(--radius-full); background: var(--color-stone-500); }
-    .dot--covered { background: var(--color-primary-500); } .dot--review { background: var(--color-warning-icon); } .dot--gap { background: var(--color-error-600); } .dot--all { background: var(--color-text-secondary); }
-    .scope { width: 370px; }
+    .ring--bar { --ring-track: var(--color-stone-400); }
     @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .45; } }
     .pulse { animation: pulse 1.4s ease-in-out infinite; }
     .export { position: relative; }
@@ -579,6 +567,17 @@ export class ChecklistInlineComponent implements OnDestroy {
   get hasResultCols() { return !!this.sc.details?.resultCols; }
   get totalDocsLabel() { return this.sc.totalDocs.toLocaleString('en-US'); }
   get docsRead() { return Math.round(this.progress * this.sc.totalDocs).toLocaleString('en-US'); }
+  get scopeLabel() { const o = this.scopeOptions.find(x => x.value === this.scope); return (o?.label || '').replace(/\s*\(.*\)$/, '').replace(/…$/, ''); }
+  pie: { color: string; dash: string; offset: number }[] = [];
+  /** Mini pie on the coverage pill: one segment per status of the document requests (as in v2). */
+  private pieOf(docs: Req[]) {
+    const keys = ['covered', 'partial', 'review', 'gap'];
+    const r = 9, C = 2 * Math.PI * r, total = docs.length;
+    const live = keys.map(k => [k, docs.filter(d => this.st[d.id]?.s === k).length] as const).filter(([, n]) => n > 0);
+    const g = live.length > 1 ? 1.4 : 0;
+    let acc = 0;
+    return live.map(([k, n]) => { const len = total ? C * n / total : 0; const seg = { color: FILTER_DOT[k], dash: `${Math.max(len - g, 0.1)} ${C}`, offset: -(acc + g / 2) }; acc += len; return seg; });
+  }
   get eta() { const m = Math.ceil((1 - this.progress) * 3); return m <= 0 ? 'finishing' : `about ${m} min left`; }
   get selRow() { return this.selected ? this.sourceRows.find(r => r.reqId === this.selected) : undefined; }
   /** The prototype panel only switches between the two concept versions. */
@@ -642,7 +641,6 @@ export class ChecklistInlineComponent implements OnDestroy {
     if (this.phase !== 'results' || this.filter === 'all') return false;
     if (!r.reqId) return r.kind !== 'header';
     const s = this.st[r.reqId]?.s;
-    if (this.filter === 'covered') return !(s === 'covered' || s === 'partial');
     return s !== this.filter;
   }
 
@@ -719,7 +717,6 @@ export class ChecklistInlineComponent implements OnDestroy {
       this.progress = p; this.st = st; this.recompute();
     }, 100);
   }
-  stopMatching() { clearInterval(this.timer); this.go('structure'); this.toast('Matching stopped. Nothing was saved.'); }
   changeHeaderRow(v: string) { this.headerRow = +v; this.toast(`Read again from row ${v}.`); }
   setFilter(f: Filter) { this.filter = f; this.recompute(); }
   doExport(k: 'file' | 'gap') { this.exportOpen = false; this.toast(k === 'gap' ? 'Gap report downloaded' : `${this.sc.tabLabel} with results downloaded. The file in the room is unchanged.`); }
@@ -823,12 +820,13 @@ export class ChecklistInlineComponent implements OnDestroy {
     this.gridCols = '40px ' + (this.showAiCol ? '112px ' : '') + sc.source.widths.map(w).join(' ');
     const docs = reqs.filter(r => this.isDoc(r));
     this.docCount = docs.length; this.otherCount = reqs.length - docs.length;
+    this.pie = this.phase === 'results' ? this.pieOf(docs.filter(d => this.st[d.id]?.s !== 'na')) : [];
     const c = (fn: (s: string) => boolean) => docs.filter(r => fn((st[r.id] || { s: '' }).s as string)).length;
     const covered = c(s => s === 'covered' || s === 'partial');
     const matchable = docs.filter(r => st[r.id]?.s !== 'na').length;
     this.pct = matchable ? Math.round(100 * covered / matchable) : 0;
     this.filters = [
-      { id: 'covered', label: 'covered', count: covered },
+      { id: 'covered', label: 'covered', count: c(s => s === 'covered') },
       { id: 'review', label: 'to review', count: c(s => s === 'review') },
       { id: 'gap', label: 'gaps', count: c(s => s === 'gap') },
     ];
@@ -839,6 +837,7 @@ export class ChecklistInlineComponent implements OnDestroy {
     this.filterItems = [
       { id: 'all', label: 'All', count: docs.length },
       { id: 'covered', label: 'Covered', count: this.filters[0].count, dot: FILTER_DOT['covered'] },
+      { id: 'partial', label: 'Partial', count: c(s => s === 'partial'), dot: FILTER_DOT['partial'] },
       { id: 'review', label: 'To review', count: this.filters[1].count, dot: FILTER_DOT['review'] },
       { id: 'gap', label: 'Gaps', count: this.filters[2].count, dot: FILTER_DOT['gap'] },
     ];
