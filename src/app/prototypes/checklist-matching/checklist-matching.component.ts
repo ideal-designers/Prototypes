@@ -152,9 +152,37 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
             </div>
           </div>
 
-          <!-- File actions belong to the Source file mode, so they sit under the mode switch -->
-          <div class="toolbar__actions" *ngIf="view === 'source'">
-            <fvdr-btn label="Edit" iconName="edit" size="m" [variant]="(phase === 'none' && roomAiOn) || phase === 'structure' ? 'secondary' : 'primary'" />
+          <!-- File actions belong to the Source file mode, so they sit under the mode switch.
+               Before results the row is split (Figma): Edit + "…" on the left, the AI card and its next step on the right. -->
+          <div class="toolbar__actions toolbar__actions--split" *ngIf="view === 'source' && srcAiStep">
+            <div class="factions">
+              <fvdr-btn label="Edit" iconName="edit" size="m" [variant]="(phase === 'none' && roomAiOn) || phase === 'structure' ? 'secondary' : 'primary'" />
+              <div class="fmore">
+                <fvdr-btn iconName="more" [iconOnly]="true" variant="secondary" size="m" ariaLabel="More actions" (clicked)="moreOpen = !moreOpen" />
+                <div class="menu menu--left menu--compact" *ngIf="moreOpen" role="menu">
+                  <button class="menu__item menu__item--row" role="menuitem" (click)="fileAction('A new version of the file is uploaded here')"><fvdr-icon name="refresh" />Upload new version</button>
+                  <button class="menu__item menu__item--row" role="menuitem" (click)="fileAction('The file downloads as it is in the room')"><fvdr-icon name="download" />Download</button>
+                  <button class="menu__item menu__item--row menu__item--danger" role="menuitem" (click)="fileAction('Deleting the checklist asks for confirmation first')"><fvdr-icon name="trash" />Delete</button>
+                </div>
+              </div>
+            </div>
+            <div class="aistart">
+              <div class="aicard">
+                <fvdr-ai-orb [size]="20" [thinking]="phase === 'reading' || phase === 'matching'" [showLabel]="false" />
+                <ng-container *ngIf="phase === 'none'">
+                  <span class="aibar__text" *ngIf="roomAiOn"><b>Turn this checklist into requests.</b> AI lists every request in the file, linked to its row. The file isn't changed.</span>
+                  <span class="aibar__text" *ngIf="!roomAiOn">AI is off for this room. A project admin can turn it on in Settings.</span>
+                </ng-container>
+                <span class="aibar__text" *ngIf="phase === 'reading'"><b>Reading the checklist…</b> {{ readSheet }} · row {{ readRowInSheet }} of {{ readSheetRows }}</span>
+                <span class="aibar__text" *ngIf="phase === 'structure'"><b>{{ foundLine }}.</b> Check what AI read, then match them to documents.</span>
+                <span class="aibar__text" *ngIf="phase === 'matching'"><b>Matching…</b> {{ docsRead }} of {{ totalDocsLabel }} documents · {{ etaLabel }}</span>
+              </div>
+              <fvdr-btn *ngIf="phase === 'none' && roomAiOn" label="Extract requests" size="m" (clicked)="extract('source')" />
+              <fvdr-btn *ngIf="phase === 'structure'" label="Review requests" size="m" (clicked)="setView('requests')" />
+            </div>
+          </div>
+          <div class="toolbar__actions" *ngIf="view === 'source' && !srcAiStep">
+            <fvdr-btn label="Edit" iconName="edit" size="m" />
             <fvdr-btn label="Upload new version" iconName="refresh" variant="secondary" size="m" />
             <fvdr-btn label="Download" iconName="download" variant="secondary" size="m" />
             <fvdr-btn label="Delete" iconName="trash" variant="danger-secondary" size="m" />
@@ -162,20 +190,6 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
 
           <!-- ─── Source file ─── -->
           <ng-container *ngIf="view === 'source'">
-            <div class="aicard" *ngIf="highlightRow === null && (phase === 'none' || phase === 'reading' || phase === 'structure' || phase === 'matching')">
-              <fvdr-ai-orb [size]="20" [thinking]="phase === 'reading' || phase === 'matching'" [showLabel]="false" />
-              <ng-container *ngIf="phase === 'none'">
-                <span class="aibar__text" *ngIf="roomAiOn"><b>Turn this checklist into requests.</b> AI lists every request in the file, linked to its row. The file isn't changed.</span>
-                <span class="aibar__text" *ngIf="!roomAiOn">AI is off for this room. A project admin can turn it on in Settings.</span>
-                <fvdr-btn *ngIf="roomAiOn" label="Extract requests" size="s" iconName="matching-items" (clicked)="extract('source')" />
-              </ng-container>
-              <span class="aibar__text" *ngIf="phase === 'reading'"><b>Reading the checklist…</b> {{ readSheet }} · row {{ readRowInSheet }} of {{ readSheetRows }}</span>
-              <ng-container *ngIf="phase === 'structure'">
-                <span class="aibar__text"><b>{{ foundLine }}.</b> Check what AI read, then match them to documents.</span>
-                <fvdr-btn label="Review requests" size="s" iconName="matching-items" (clicked)="setView('requests')" />
-              </ng-container>
-              <span class="aibar__text" *ngIf="phase === 'matching'"><b>Matching…</b> {{ docsRead }} of {{ totalDocsLabel }} documents · {{ etaLabel }}</span>
-            </div>
             <div class="aibar" *ngIf="highlightRow === null && phase === 'results'">
               <span class="aibar__text aibar__grow">{{ srcInfoText }}</span>
               <fvdr-toggle *ngIf="hasResultCols" [(checked)]="previewResults" label="Show results in the file" (checkedChange)="recompute()" />
@@ -776,6 +790,11 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
     .tabs-row fvdr-tabs { flex: 1; }
     .toolbar { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; }
     .toolbar__actions { display: flex; gap: var(--space-4); flex-wrap: wrap; }
+    .toolbar__actions--split { justify-content: space-between; align-items: center; }
+    .factions { display: flex; align-items: center; gap: var(--space-4); }
+    .fmore { position: relative; }
+    .aistart { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; min-width: 0; }
+    .aistart .aicard { align-self: auto; }
     /* Source file / Requests: one fixed 200px block, two equal halves (Figma View toggle) */
     .viewseg { width: 200px; flex: none; }
     .viewseg ::ng-deep .seg-primary { display: flex; width: 100%; }
@@ -787,6 +806,11 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
     .menu__item { all: unset; cursor: pointer; display: flex; flex-direction: column; gap: var(--space-1); padding: var(--space-2) var(--space-3); border-radius: var(--radius-sm); }
     .menu__item:hover, .menu__item:focus-visible { background: var(--color-hover-bg); }
     .menu__title { font-weight: var(--text-label-s-weight); }
+    .menu.menu--left { left: 0; right: auto; }
+    .menu.menu--compact { width: 220px; }
+    .menu__item.menu__item--row { flex-direction: row; align-items: center; gap: var(--space-2); }
+    .menu__item--row fvdr-icon { font-size: var(--text-body1-size); color: var(--color-text-secondary); }
+    .menu__item--danger, .menu__item--danger fvdr-icon { color: var(--color-error-600); }
     .menu__sub { font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); color: var(--color-text-secondary); }
     .menu__foot { padding: var(--space-2) var(--space-3); border-top: 1px solid var(--color-divider); font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); color: var(--color-text-secondary); }
 
@@ -1162,6 +1186,10 @@ export class ChecklistMatchingComponent implements OnDestroy {
   readonly pieR = PIE_R;
   pie: CovSeg[] = [];
   exportOpen = false;
+  moreOpen = false;
+  /** Source file before results: the AI card offers the next step next to the file actions. */
+  get srcAiStep() { return this.highlightRow === null && (this.phase === 'none' || this.phase === 'reading' || this.phase === 'structure' || this.phase === 'matching'); }
+  fileAction(msg: string) { this.moreOpen = false; this.toast(msg); }
   stale = false;
   delta = false;
   sourceEdited = false;
@@ -1394,7 +1422,7 @@ export class ChecklistMatchingComponent implements OnDestroy {
       selected: null, panel: 'none', exportOpen: false, stale: false, delta: false, sourceEdited: false, applied: false,
       returningCands: false, deletedFiles: [], highlightRow: null, backTo: null, expanded: {}, changeFilter: null,
       overrides: {}, editRowId: null, editId: null, fSelReq: null, fSelFile: null, fOpen: {}, fHideUnused: false, upPct: 0, previewResults: true,
-      hdrEdit: false, composeOpen: false, bulkOpen: false, howOpen: false, lastPct: null, covHover: null,
+      hdrEdit: false, composeOpen: false, bulkOpen: false, howOpen: false, lastPct: null, covHover: null, moreOpen: false,
     });
     this.headerRow = this.sc.details?.headerRow || 1;
     const pending = () => this.baseMap(() => 'pending');
