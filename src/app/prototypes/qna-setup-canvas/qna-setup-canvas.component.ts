@@ -27,6 +27,8 @@ interface FlowNode {
   id: string; roleKey: string; name: string; side: Side; icon: FvdrIconName;
   x: number; y: number; members: Membership[]; perms: Record<string, boolean>;
   custom: boolean; assignMode: 'manual' | 'auto';
+  /** approver by category: which categories this approver signs off */
+  approveCategories?: string[];
   /** avatar colour; falls back to the side/custom default */
   color?: AvatarColor;
 }
@@ -55,16 +57,38 @@ const Q_PERMS: PermDef[] = [
   { key: 'followUp',    label: 'Ask follow-up questions',            hint: 'Continue a thread after an answer' },
   { key: 'otherTeams',  label: "See other teams' questions",         hint: 'Cross-team visibility on the question side' },
 ];
+/** Answer-side permissions, grouped per role:
+ *  fixed — always on for the role, shown for transparency
+ *  config — the admin can switch them
+ *  open — still being validated with customers */
+interface RolePerms { fixed: PermDef[]; config: PermDef[]; open: PermDef[]; }
+const AP = {
+  seeAll:          { key: 'seeAll',          label: 'See all questions',                       hint: 'Not only the questions assigned to them' },
+  assign:          { key: 'assign',          label: 'Assign questions to experts',             hint: 'Route incoming questions to experts' },
+  draftCoord:      { key: 'draftA',          label: 'Draft and edit answers',                  hint: 'Write an answer or change a proposed one' },
+  assignCoord:     { key: 'assignCoord',     label: 'Assign to other coordinators',            hint: 'Hand a question to another coordinator, not only to experts' },
+  finalCoord:      { key: 'finalSignoff',    label: 'Final sign-off & answer directly at any step',
+                     hint: 'Approved answers come back to coordinators, who send them to the bidder. They can also take a question back at any step to answer or re-assign it.' },
+  draftExpert:     { key: 'draftA',          label: 'Draft answers to assigned questions',     hint: 'Propose an answer for review' },
+  seeFinal:        { key: 'seeFinal',        label: 'See final answers',                       hint: 'See what was sent to the question side' },
+  reassignExperts: { key: 'reassignExperts', label: 'Re-assign to other experts',              hint: 'Pass a question to a colleague who knows the topic better' },
+  seeTeam:         { key: 'seeTeam',         label: 'See question team name',                  hint: 'Show which question team asked' },
+  answerDirect:    { key: 'answerDirect',    label: 'Answer directly to the question side',    hint: 'Skip review and send the answer to the bidder' },
+  approve:         { key: 'approve',         label: 'Approve or reject answers, propose own',  hint: 'Sign off, send back, or write a better answer' },
+  finalApprover:   { key: 'finalSignoff',    label: 'Answer directly at any step',
+                     hint: 'CFO case: re-assign, answer directly and give final sign-off. The final answer goes from this approver to the bidder.' },
+  approvalOnly:    { key: 'seeApprovalOnly', label: 'See only questions sent for approval',    hint: "Replaces 'See all questions'" },
+  approveByCat:    { key: 'approveByCat',    label: 'Approve specific categories only',        hint: 'Approvers by category — other answers skip this approver' },
+} satisfies Record<string, PermDef>;
+const ROLE_PERMS: Record<string, RolePerms> = {
+  coordinator: { fixed: [AP.seeAll, AP.assign, AP.draftCoord], config: [AP.assignCoord, AP.finalCoord], open: [] },
+  expert:      { fixed: [AP.draftExpert], config: [AP.seeFinal, AP.reassignExperts, AP.seeTeam], open: [AP.seeAll, AP.answerDirect] },
+  approver:    { fixed: [AP.seeAll, AP.approve], config: [AP.finalApprover], open: [AP.approvalOnly, AP.approveByCat] },
+};
+/** custom answer-side roles can switch anything */
 const A_PERMS: PermDef[] = [
-  { key: 'seeAll',      label: 'See all questions',                  hint: 'Off — only questions assigned to them' },
-  { key: 'assign',      label: 'Assign questions',                   hint: 'Route questions to other people in the flow' },
-  { key: 'draftA',      label: 'Draft answers',                      hint: 'Write or propose an answer' },
-  { key: 'editA',       label: "Edit others' answers",               hint: 'Change answers proposed by others' },
-  { key: 'approve',     label: 'Approve or reject answers',          hint: 'Sign-off step before release' },
-  { key: 'sendFinal',   label: 'Send final answer to question side', hint: 'Release the answer to the bidder' },
-  { key: 'seeFinal',    label: 'See final answer',                   hint: 'See what was sent to the question side' },
-  { key: 'seeAuthor',   label: 'See who asked the question',         hint: 'Show author and team of the question' },
-  { key: 'takeBack',    label: 'Answer directly at any step',        hint: 'Take a question back from any role and send the answer straight to the submitter — or reassign it' },
+  AP.seeAll, AP.assign, AP.assignCoord, AP.draftCoord, AP.approve, AP.finalCoord,
+  AP.seeFinal, AP.reassignExperts, AP.seeTeam, AP.answerDirect,
 ];
 
 const STANDARD_ROLES: RoleDef[] = [
@@ -76,13 +100,13 @@ const STANDARD_ROLES: RoleDef[] = [
     perms: { draftQ: true, submitQ: true, followUp: true, otherTeams: false } },
   { key: 'coordinator', name: 'Answer coordinator', side: 'answer',   icon: 'comment',
     description: 'Manages incoming questions and assigns them',
-    perms: { seeAll: true, assign: true, draftA: true, editA: true, approve: false, sendFinal: true, seeFinal: true, seeAuthor: true } },
+    perms: { seeAll: true, assign: true, draftA: true, assignCoord: false, finalSignoff: false, seeFinal: true, seeTeam: true } },
   { key: 'expert',      name: 'Expert',             side: 'answer',   icon: 'user-check',
     description: 'Answers questions assigned to them',
-    perms: { seeAll: false, assign: false, draftA: true, editA: false, approve: false, sendFinal: false, seeFinal: false, seeAuthor: false } },
+    perms: { seeAll: false, assign: false, draftA: true, seeFinal: false, reassignExperts: false, seeTeam: true, answerDirect: false } },
   { key: 'approver',    name: 'Answer approver',    side: 'answer',   icon: 'finished',
     description: 'Approves answers before they are released',
-    perms: { seeAll: true, assign: false, draftA: false, editA: true, approve: true, sendFinal: true, seeFinal: true, seeAuthor: true } },
+    perms: { seeAll: true, approve: true, draftA: true, finalSignoff: false, seeApprovalOnly: false, approveByCat: false, seeFinal: true, seeTeam: true } },
 ];
 
 const PEOPLE: Person[] = [
@@ -267,8 +291,8 @@ const TONES = [
                     <span class="members-count">{{ n.members.length }} {{ n.members.length === 1 ? 'person' : 'people' }}</span>
                   </div>
                 </ng-template>
-                <span class="node-note node-note--power" *ngIf="n.perms['takeBack']">
-                  <fvdr-icon name="lock-open"></fvdr-icon> Can answer directly at any step
+                <span class="node-note node-note--power" *ngIf="n.perms['finalSignoff']">
+                  <fvdr-icon name="lock-open"></fvdr-icon> Final sign-off · can answer at any step
                 </span>
                 <span class="node-note" *ngIf="dualCount(n) as d">
                   {{ d }} {{ d === 1 ? 'person also has' : 'people also have' }} another role
@@ -425,13 +449,36 @@ const TONES = [
 
             <!-- Permissions -->
             <ng-container *ngIf="nodeTab === 'permissions'">
-              <div class="perm" *ngFor="let p of permsFor(n)">
-                <div class="perm-text">
-                  <span class="perm-label">{{ p.label }}</span>
-                  <span class="perm-hint">{{ p.hint }}</span>
-                </div>
-                <fvdr-toggle size="s" [checked]="!!n.perms[p.key]" (checkedChange)="n.perms[p.key] = $event"></fvdr-toggle>
-              </div>
+              <ng-container *ngIf="rolePerms(n) as rp; else flatPerms">
+                <ng-container *ngIf="rp.fixed.length">
+                  <span class="field-label">Always included</span>
+                  <div class="perm perm--fixed" *ngFor="let p of rp.fixed">
+                    <div class="perm-text">
+                      <span class="perm-label">{{ p.label }}</span>
+                      <span class="perm-hint">{{ fixedLimited(n, p) ? 'Limited — only questions sent for approval' : p.hint }}</span>
+                    </div>
+                    <fvdr-icon class="perm-fixed-ic" [class.perm-fixed-ic--off]="fixedLimited(n, p)" [name]="fixedLimited(n, p) ? 'minus' : 'check'"></fvdr-icon>
+                  </div>
+                </ng-container>
+                <ng-container *ngIf="rp.config.length">
+                  <span class="field-label field-label--gap">Configurable</span>
+                  <ng-container *ngFor="let p of rp.config">
+                    <ng-container *ngTemplateOutlet="permRow; context: { n: n, p: p }"></ng-container>
+                  </ng-container>
+                </ng-container>
+                <ng-container *ngIf="rp.open.length">
+                  <span class="field-label field-label--gap perm-open-head">To validate <fvdr-badge label="Open question" variant="warning"></fvdr-badge></span>
+                  <ng-container *ngFor="let p of rp.open">
+                    <ng-container *ngTemplateOutlet="permRow; context: { n: n, p: p }"></ng-container>
+                  </ng-container>
+                </ng-container>
+                <p class="hint perm-route" *ngIf="routeHint(n) as h"><fvdr-icon name="info"></fvdr-icon>{{ h }}</p>
+              </ng-container>
+              <ng-template #flatPerms>
+                <ng-container *ngFor="let p of permsFor(n)">
+                  <ng-container *ngTemplateOutlet="permRow; context: { n: n, p: p }"></ng-container>
+                </ng-container>
+              </ng-template>
               <button class="link-btn" *ngIf="!n.custom && isCustomized(n)" (click)="resetPerms(n)">Reset to {{ roleDef(n.roleKey)?.name }} defaults</button>
             </ng-container>
 
@@ -669,6 +716,19 @@ const TONES = [
     </div>
   </div>
 </fvdr-modal>
+
+<ng-template #permRow let-n="n" let-p="p">
+  <div class="perm">
+    <div class="perm-text">
+      <span class="perm-label">{{ p.label }}</span>
+      <span class="perm-hint">{{ p.hint }}</span>
+    </div>
+    <fvdr-toggle size="s" [checked]="!!n.perms[p.key]" (checkedChange)="setPerm(n, p.key, $event)"></fvdr-toggle>
+  </div>
+  <div class="perm-sub" *ngIf="p.key === 'approveByCat' && n.perms[p.key]">
+    <fvdr-multiselect [options]="categoryOptions()" [(values)]="n.approveCategories" placeholder="Pick categories" [showChips]="true"></fvdr-multiselect>
+  </div>
+</ng-template>
 
 <fvdr-toast-host></fvdr-toast-host>
   `,
@@ -927,6 +987,13 @@ const TONES = [
     .perm-text { flex: 1; display: flex; flex-direction: column; min-width: 0; }
     .perm-label { font-size: var(--font-size-base); }
     .perm-hint { font-size: var(--text-caption1-size); color: var(--color-text-secondary); }
+    .perm--fixed .perm-label { color: var(--color-text-secondary); }
+    .perm-fixed-ic { font-size: var(--space-4); color: var(--color-primary-500); }
+    .perm-fixed-ic--off { color: var(--color-stone-600); }
+    .perm-open-head { display: flex; align-items: center; gap: var(--space-2); }
+    .perm-sub { padding: var(--space-2) 0 var(--space-3); border-bottom: 1px solid var(--color-divider); }
+    .perm-route { display: flex; gap: var(--space-2); align-items: flex-start; margin-top: var(--space-3); }
+    .perm-route fvdr-icon { flex: none; margin-top: 2px; color: var(--color-info-500); }
     .link-btn { align-self: flex-start; border: 0; background: none; padding: var(--space-2) 0; color: var(--color-primary-600); cursor: pointer; font-size: var(--text-caption1-size); }
 
     .route { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-1) 0; }
@@ -1135,7 +1202,93 @@ export class QnaSetupCanvasComponent {
   roleDef(key: string) { return this.allRoles.find(r => r.key === key); }
   get errorNodes(): FlowNode[] { return this.nodes.filter(n => !n.members.length); }
   get errorNamesLabel(): string { return this.errorNodes.map(n => n.name).join(', '); }
-  permsFor(n: FlowNode): PermDef[] { return n.side === 'question' ? Q_PERMS : A_PERMS; }
+  permsFor(n: FlowNode): PermDef[] {
+    if (n.side === 'question') return Q_PERMS;
+    const rp = this.rolePerms(n);
+    return rp ? [...rp.config, ...rp.open] : A_PERMS;
+  }
+  rolePerms(n: FlowNode): RolePerms | null { return n.custom ? null : ROLE_PERMS[n.roleKey] ?? null; }
+  fixedLimited(n: FlowNode, p: PermDef) { return p.key === 'seeAll' && n.roleKey === 'approver' && !!n.perms['seeApprovalOnly']; }
+  categoryOptions() {
+    return this.stable('catOpts', this.categories.map(c => c.name).join('|'), () => this.categories.map(c => ({ value: c.name, label: c.name })));
+  }
+  /** Who gives final sign-off — decides how the answer travels. */
+  private finalOwner(): FlowNode | undefined { return this.nodes.find(x => x.side === 'answer' && x.perms['finalSignoff']); }
+  routeHint(n: FlowNode): string {
+    if (n.roleKey !== 'coordinator' && n.roleKey !== 'approver') return '';
+    const f = this.finalOwner();
+    if (!f) return 'Route now: expert → coordinator → approvers → bidder.';
+    if (f.roleKey === 'coordinator') return `Route now: expert → approvers → ${f.name} → bidder. Final sign-off: ${f.name}.`;
+    return `Route now: expert → coordinator → approvers → ${f.name} → bidder. Final sign-off: ${f.name}.`;
+  }
+  setPerm(n: FlowNode, key: string, on: boolean) {
+    n.perms[key] = on;
+    if (key === 'approveByCat' && on && !n.approveCategories) n.approveCategories = [];
+    if (key !== 'finalSignoff') return;
+    if (on) {
+      // only one role can give final sign-off
+      this.nodes.filter(x => x !== n && x.perms['finalSignoff']).forEach(x => {
+        x.perms['finalSignoff'] = false;
+        this.toast.show({ variant: 'info', message: `Final sign-off moved from ${x.name} to ${n.name}` });
+      });
+    }
+    if (this.rebuildAnswerRoute()) this.toast.show({ variant: 'success', message: this.routeHint(n).replace('Route now: ', 'Routing updated: ') });
+  }
+
+  /**
+   * Re-draws the answer side from who has final sign-off:
+   *   coordinator signs off → expert → approvers → coordinator → bidder
+   *   otherwise             → expert → coordinator → approvers → bidder (sign-off approver last)
+   * Only for the standard chain (one coordinator, one expert role, approvers); returns false otherwise.
+   */
+  private rebuildAnswerRoute(): boolean {
+    const a = this.nodes.filter(x => x.side === 'answer');
+    const cs = a.filter(x => x.roleKey === 'coordinator'), xs = a.filter(x => x.roleKey === 'expert');
+    const order = this.stepMap();
+    const first = (x: FlowNode) => order.get(x.id)?.[0] ?? 99;
+    let aps = a.filter(x => x.roleKey === 'approver').sort((p, q) => first(p) - first(q));
+    const s = this.nodes.find(x => x.side === 'question' && this.edges.some(e => e.from === x.id && e.to === cs[0]?.id));
+    if (cs.length !== 1 || xs.length !== 1 || !aps.length || !s || a.length !== 2 + aps.length) {
+      this.toast.show({ variant: 'warning', message: 'This flow has extra roles — update the connections on the canvas by hand' });
+      return false;
+    }
+    const c = cs[0], x = xs[0];
+    const fin = this.finalOwner();
+    if (fin?.roleKey === 'approver') aps = [...aps.filter(p => p !== fin), fin];
+    const coordFinal = fin === c;
+    const N = aps.length;
+    const col = (k: number) => c.x + k * COL_W, row = (r: number) => 90 + r * ROW_H;
+    const ed = (from: FlowNode, to: FlowNode, fs: Port, ts: Port, label: string, kind: EdgeKind = 'main'): FlowEdge =>
+      ({ id: 'e' + this.seq++, from: from.id, to: to.id, fs, ts, label, kind });
+    const keep = this.edges.filter(e => this.nodeById(e.from)?.side === 'question' && this.nodeById(e.to)?.side === 'question' || (e.to === c.id && e.from === s.id));
+    const out: FlowEdge[] = [ed(c, x, 't', 'l', x.assignMode === 'auto' ? 'Auto-assigns by category' : 'Assigns')];
+    c.y = row(1); x.x = col(1); x.y = row(0);
+    if (coordFinal) {
+      // approvers on the top row after the expert, the last one drops below and hands back to the coordinator
+      aps.forEach((p, i) => {
+        const last = i === N - 1;
+        p.x = N === 1 ? col(1) : col(last ? N : i + 2); p.y = last ? row(2) : row(0);
+      });
+      out.push(N === 1 ? ed(x, aps[0], 'b', 't', 'Suggests draft') : ed(x, aps[0], 'r', 'l', 'Suggests draft'));
+      aps.slice(1).forEach((p, i) => out.push(i + 1 === N - 1 ? ed(aps[i], p, 'b', 't', `Approved · level ${i + 1}`) : ed(aps[i], p, 'r', 'l', `Approved · level ${i + 1}`)));
+      out.push(ed(aps[N - 1], c, 'l', 'r', N > 1 ? `Approved · level ${N}` : 'Approved'));
+      out.push(N === 1 ? ed(aps[0], x, 'r', 'r', 'Rejects', 'reject') : ed(aps[0], x, 't', 't', 'Rejects', 'reject'));
+      aps.slice(1).forEach((p, i) => out.push(ed(p, aps[i], 'r', 'r', 'Rejects', 'reject')));
+      out.push(ed(c, s, 'b', 'b', 'Submits final answer', 'return'));
+    } else {
+      // expert hands back to the coordinator, approvers run along the bottom row, the last one releases
+      aps.forEach((p, i) => { p.x = col(i + 1); p.y = row(2); });
+      out.push(ed(x, c, 'b', 'r', 'Proposes answer', 'return'));
+      out.push(ed(c, aps[0], 'b', 'l', 'Sends for approval'));
+      aps.slice(1).forEach((p, i) => out.push(ed(aps[i], p, 'r', 'l', `Approved · level ${i + 1}`)));
+      out.push(ed(aps[0], c, 't', 'r', 'Rejects', 'reject'));
+      aps.slice(1).forEach((p, i) => out.push(ed(p, aps[i], 't', 'b', 'Rejects', 'reject')));
+      out.push(ed(aps[N - 1], s, 'b', 'b', fin ? 'Final sign-off · sends answer' : 'Final answer', 'return'));
+    }
+    this.edges = [...keep, ...out];
+    setTimeout(() => this.fit(), 0);
+    return true;
+  }
   rolesOf(personId: string): FlowNode[] { return this.nodes.filter(n => n.members.some(m => m.personId === personId)); }
   rolesLabel(personId: string): string { return this.rolesOf(personId).map(n => n.name).join(' · '); }
   otherRoles(personId: string, n: FlowNode): string {
@@ -1152,7 +1305,13 @@ export class QnaSetupCanvasComponent {
     if (!def || n.custom) return false;
     return this.permsFor(n).some(p => !!def.perms[p.key] !== !!n.perms[p.key]);
   }
-  resetPerms(n: FlowNode) { const def = this.roleDef(n.roleKey); if (def) n.perms = { ...def.perms }; }
+  resetPerms(n: FlowNode) {
+    const def = this.roleDef(n.roleKey);
+    if (!def) return;
+    const hadFinal = !!n.perms['finalSignoff'];
+    n.perms = { ...def.perms };
+    if (hadFinal !== !!n.perms['finalSignoff']) this.rebuildAnswerRoute();
+  }
 
   teamsOf(n: FlowNode): { team: QuestionTeam; members: Membership[] }[] {
     return this.teams.map(team => ({ team, members: n.members.filter(m => m.teamId === team.id) })).filter(t => t.members.length);
@@ -1363,7 +1522,7 @@ export class QnaSetupCanvasComponent {
         this.customRoles.push({
           key: 'final-signoff', name: 'Final sign-off', side: 'answer', icon: 'user-edit', custom: true,
           description: 'Advisors release the approved answer',
-          perms: { seeAll: true, assign: true, draftA: true, editA: true, approve: false, sendFinal: true, seeFinal: true, seeAuthor: true },
+          perms: { seeAll: true, assign: true, draftA: true, assignCoord: false, approve: false, finalSignoff: false, seeFinal: true, seeTeam: true },
         });
       }
       const s = mk('submitter', 0, 1, ['p9', 'p11']);
@@ -1382,40 +1541,21 @@ export class QnaSetupCanvasComponent {
         ed(f, s, 't', 't', 'Sends final answer', 'return'),
       ];
     } else if (id === 'coordinator-final') {
-      // One flow for both cases — only who sits in each role changes:
-      //   advisory: the advisors assign, and the same advisors give final sign-off
-      //   CFO: the CFO and other coordinators assign; every answer ends with the CFO
-      // The lead can answer the submitter directly from any step.
-      if (!this.customRoles.some(r => r.key === 'lead')) {
-        this.customRoles.push({
-          key: 'lead', name: 'Lead coordinator', side: 'answer', icon: 'star', custom: true,
-          description: 'Final review, sends answers, can step in anytime',
-          perms: { seeAll: true, assign: true, draftA: true, editA: true, approve: true, sendFinal: true, seeFinal: true, seeAuthor: true, takeBack: true },
-        });
-      }
+      // One flow, two staffing examples — the route follows whoever has final sign-off:
+      //   advisory: coordinators sign off → expert → approver 1 → approver 2 → coordinators → bidder
+      //   CFO: the CFO is the last approver and signs off → expert → coordinators → approver → CFO → bidder
       const cfo = this.leadCase === 'cfo';
       const s = mk('submitter', 0, 1, ['p9', 'p11']);
-      const c = mk('coordinator', 1, 1, cfo ? ['p13', 'p4', 'p5'] : ['p2', 'p3'], {
-        name: cfo ? 'Coordinators' : 'Advisory coordinators',
-        perms: { seeAll: true, assign: true, draftA: true, editA: true, approve: false, sendFinal: false, seeFinal: true, seeAuthor: true, takeBack: false },
-      });
+      const c = mk('coordinator', 1, 1, cfo ? ['p13', 'p4', 'p5'] : ['p2', 'p3'], { name: cfo ? 'Coordinators' : 'Coordinator (advisory)' });
+      c.perms['assignCoord'] = true;
+      c.perms['finalSignoff'] = !cfo;
       const x = expertMembers(mk('expert', 2, 0, []));
-      const reviewer = { seeAll: false, assign: false, draftA: false, editA: true, approve: true, sendFinal: false, seeFinal: true, seeAuthor: true, takeBack: false };
-      const a1 = mk('approver', 3, 0, ['p14'], { name: 'Approver 1', perms: { ...reviewer } });
-      const a2 = mk('approver', 3, 2, ['p15'], { name: 'Approver 2', perms: { ...reviewer } });
-      const l = mk('lead', 2, 2, cfo ? ['p13'] : ['p2', 'p3'], { name: cfo ? 'CFO' : 'Advisory lead' });
-      this.nodes = [s, c, x, a1, a2, l];
-      this.edges = [
-        ed(s, c, 'r', 'l', 'Submits question'),
-        ed(c, x, 't', 'l', 'Assigns'),
-        ed(x, a1, 'r', 'l', 'Suggests draft'),
-        ed(a1, a2, 'b', 't', 'Approved · level 1'),
-        ed(a2, l, 'l', 'r', 'Approved · level 2'),
-        ed(a1, x, 't', 't', 'Rejects', 'reject'),
-        ed(a2, a1, 'r', 'r', 'Rejects', 'reject'),
-        ed(l, x, 't', 'b', 'Rejects', 'reject'),
-        ed(l, s, 'b', 'b', 'Submits final answer', 'return'),
-      ];
+      const a1 = mk('approver', 3, 0, ['p14'], { name: 'Approver 1' });
+      const a2 = mk('approver', 3, 2, cfo ? ['p13'] : ['p15'], { name: cfo ? 'CFO' : 'Approver 2' });
+      if (cfo) a2.perms['finalSignoff'] = true;
+      this.nodes = [s, c, x, a1, a2];
+      this.edges = [ed(s, c, 'r', 'l', 'Submits question'), ed(c, x, 't', 'l', 'Assigns'), ed(x, a1, 'r', 'l', ''), ed(a1, a2, 'b', 't', '')];
+      this.rebuildAnswerRoute();
     } else {
       const s = mk('submitter', 0, 1, ['p9', 'p11']);
       const c = mk('coordinator', 1, 1, ['p1']);
