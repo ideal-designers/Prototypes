@@ -249,6 +249,11 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./prototypes/bulk-redaction/bulk-redaction.component').then(m => m.BulkRedactionComponent),
   },
+  {
+    path: 'project-index-menu',
+    loadComponent: () =>
+      import('./prototypes/project-index-menu/project-index-menu.component').then(m => m.ProjectIndexMenuComponent),
+  },
   // PROTO_ROUTES_PLACEHOLDER
   {
     path: '**',
