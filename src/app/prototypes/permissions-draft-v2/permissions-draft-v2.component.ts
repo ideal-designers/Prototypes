@@ -20,8 +20,8 @@ const SLUG = 'permissions-draft-v2';
  * Same draft model as Version 1, but the right panel opens by itself on the first
  * edit and works like an AI assistant's activity log: every change is recorded as
  * it happens ("not saved yet"), cascades and reverts show up as steps, and the
- * panel adds hints when an edit deserves a second look. Save / Discard live in the
- * panel footer.
+ * panel adds hints when an edit deserves a second look. Save / Discard stay in the
+ * full-width bar at the bottom of the page, as in Version 1.
  *
  * Today an admin edits one document (or one group), has to Save, and only then
  * moves on. Here every edit lands in a draft that survives switching documents,
@@ -546,29 +546,13 @@ function minutesAgo(m: number): Date { return new Date(Date.now() - m * 60_000);
                   </div>
                 </div>
               </div>
-              <div class="drawer-foot" *ngIf="changeCount && panelTab !== 'history'">
-                <div class="foot-sum">
-                  <strong>{{ changeCount }} unsaved {{ changeCount === 1 ? 'change' : 'changes' }}</strong>
-                  <span>{{ draftSummary }}</span>
-                </div>
-                <!-- Save first and left-aligned: the right corner is taken by the platform's floating buttons -->
-                <div class="foot-actions">
-                  <fvdr-btn variant="primary" [label]="'Save ' + changeCount + (changeCount === 1 ? ' change' : ' changes')"
-                            dataTrack="open-save-review" (clicked)="openSaveReview()" />
-                  <fvdr-btn variant="secondary" label="Discard" (clicked)="discardOpen = true" />
-                  <fvdr-btn variant="ghost" [iconOnly]="true" iconName="undo"
-                            ariaLabel="Undo last change (⌘Z)"
-                            [disabled]="!undoStack.length"
-                            (clicked)="undo()" />
-                </div>
-              </div>
             </aside>
 
           </div>
         </div>
 
         <!-- ── DRAFT BAR ─────────────────────────────────────── -->
-        <div class="draft-bar" *ngIf="changeCount && !panelOpen">
+        <div class="draft-bar" *ngIf="changeCount">
           <div class="draft-actions">
             <fvdr-btn variant="ghost" [iconOnly]="true" iconName="undo"
                       ariaLabel="Undo last change (⌘Z)"
@@ -585,7 +569,7 @@ function minutesAgo(m: number): Date { return new Date(Date.now() - m * 60_000);
               <span>{{ changedDocIds.length }} {{ changedDocIds.length === 1 ? 'document' : 'documents' }}
                 · {{ changedGroupIds.length }} {{ changedGroupIds.length === 1 ? 'group' : 'groups' }}</span>
             </div>
-            <button class="tool-link" data-track="review-changes" (click)="openPanel('activity')">Open activity</button>
+            <button *ngIf="!panelOpen" class="tool-link" data-track="review-changes" (click)="openPanel('activity')">Open activity</button>
           </div>
         </div>
       </div>
@@ -1472,17 +1456,6 @@ function minutesAgo(m: number): Date { return new Date(Date.now() - m * 60_000);
     .typing i:nth-child(2) { animation-delay: 0.15s; }
     .typing i:nth-child(3) { animation-delay: 0.3s; }
     @keyframes typing { 0%, 60%, 100% { opacity: 0.25; transform: none; } 30% { opacity: 1; transform: translateY(-2px); } }
-
-    .drawer-foot {
-      display: flex; flex-direction: column; gap: var(--space-3);
-      padding: var(--space-3) var(--space-4);
-      border-top: 1px solid var(--color-divider);
-      background: var(--color-stone-0);
-    }
-    .foot-sum { display: flex; align-items: baseline; gap: var(--space-2); }
-    .foot-sum strong { font-size: 13px; color: var(--color-text-primary); }
-    .foot-sum span { font-size: 12px; color: var(--color-text-secondary); }
-    .foot-actions { display: flex; align-items: center; gap: var(--space-2); }
 
     /* ── Draft bar ── */
     .draft-bar {
