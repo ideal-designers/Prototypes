@@ -204,10 +204,17 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
   },
     {
     slug: 'permissions-draft',
-    title: 'Permissions — Draft & bulk save · Variant 1',
+    title: 'Permissions — Draft & bulk save · Version 1',
     module: 'Permissions',
     status: 'wip',
     description: 'Edit permissions across many documents and groups as one draft: changed cells are highlighted against their saved level, a Changes panel lists every edit plus the history of past saves, and one review step saves the whole batch',
+  },
+    {
+    slug: 'permissions-draft-v2',
+    title: 'Permissions — Draft & bulk save · Version 2',
+    module: 'Permissions',
+    status: 'wip',
+    description: 'Version 1’s draft model with an assistant-style Activity panel that opens on the first edit: every change is logged as “not saved yet”, folder cascades and reverts appear as steps, and hints flag risky edits with one-click fixes',
   },
     {
     slug: 'added-column-hover',
