@@ -62,10 +62,22 @@ const PILL: Record<string, { label: string; variant: ChipVariant }> = {
             <fvdr-btn variant="ghost" size="s" iconName="plus" [iconOnly]="true" ariaLabel="Add checklist" />
           </div>
           <div class="toolbar">
-            <fvdr-btn label="Edit" iconName="edit" [variant]="(phase === 'none' && roomAiOn) || phase === 'structure' ? 'secondary' : 'primary'" />
-            <fvdr-btn label="Upload new version" iconName="refresh" variant="secondary" />
-            <fvdr-btn label="Download" iconName="download" variant="secondary" />
-            <fvdr-btn label="Delete" iconName="trash" variant="danger-secondary" />
+            <!-- Edit steps back only while the AI card offers "Match N requests" -->
+            <fvdr-btn label="Edit" iconName="edit" [variant]="phase === 'structure' ? 'secondary' : 'primary'" />
+            <ng-container *ngIf="drawer === 'none'">
+              <fvdr-btn label="Upload new version" iconName="refresh" variant="secondary" />
+              <fvdr-btn label="Download" iconName="download" variant="secondary" />
+              <fvdr-btn label="Delete" iconName="trash" variant="danger-secondary" />
+            </ng-container>
+            <!-- With a drawer open there's less room: the other file actions fold into "…" (Figma) -->
+            <div class="fmore" *ngIf="drawer !== 'none'">
+              <fvdr-btn iconName="more" [iconOnly]="true" variant="secondary" ariaLabel="More actions" (clicked)="moreOpen = !moreOpen" />
+              <div class="menu menu--left menu--compact" *ngIf="moreOpen" role="menu">
+                <button class="menu__item menu__item--row" role="menuitem" (click)="fileAction('A new version of the file is uploaded here')"><fvdr-icon name="refresh" />Upload new version</button>
+                <button class="menu__item menu__item--row" role="menuitem" (click)="fileAction('The file downloads as it is in the room')"><fvdr-icon name="download" />Download</button>
+                <button class="menu__item menu__item--row menu__item--danger" role="menuitem" (click)="fileAction('Deleting the checklist asks for confirmation first')"><fvdr-icon name="trash" />Delete</button>
+              </div>
+            </div>
             <span class="spacer"></span>
             <span class="owner" fvdrTooltip="Only people who can edit this checklist see it and its AI results" tooltipPosition="bottom"><fvdr-avatar initials="VO" size="sm" /> Only you</span>
             <fvdr-btn label="Share" iconName="share" variant="secondary" />
@@ -396,6 +408,12 @@ const PILL: Record<string, { label: string; variant: ChipVariant }> = {
     @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .45; } }
     .pulse { animation: pulse 1.4s ease-in-out infinite; }
     .export { position: relative; }
+    .fmore { position: relative; }
+    .menu.menu--left { left: 0; right: auto; }
+    .menu.menu--compact { width: 220px; }
+    .menu__item.menu__item--row { flex-direction: row; align-items: center; gap: var(--space-2); }
+    .menu__item--row fvdr-icon { font-size: var(--text-body1-size); color: var(--color-text-secondary); }
+    .menu__item--danger, .menu__item--danger fvdr-icon { color: var(--color-error-600); }
     .menu { position: absolute; right: 0; top: calc(100% + var(--space-1)); z-index: 30; width: 320px; background: var(--color-stone-0); border-radius: var(--radius-md); box-shadow: var(--shadow-popup); padding: var(--space-1); display: flex; flex-direction: column; }
     .menu__item { all: unset; cursor: pointer; display: flex; flex-direction: column; gap: 2px; padding: var(--space-2) var(--space-3); border-radius: var(--radius-sm); }
     .menu__item:hover { background: var(--color-hover-bg); }
@@ -532,6 +550,8 @@ export class ChecklistInlineComponent implements OnDestroy {
   selected: string | null = null;
   scope = 'all';
   exportOpen = false;
+  moreOpen = false;
+  fileAction(msg: string) { this.moreOpen = false; this.toast(msg); }
   composeOpen = false; composeText = '';
   delta = false; returning = false;
   headerRow = 5;
@@ -731,7 +751,7 @@ export class ChecklistInlineComponent implements OnDestroy {
 
   // ── drawer ──
   openRead() { this.drawer = 'read'; this.selected = null; this.recompute(); }
-  closeDrawer() { this.drawer = 'none'; this.selected = null; this.composeOpen = false; this.recompute(); }
+  closeDrawer() { this.drawer = 'none'; this.selected = null; this.composeOpen = false; this.moreOpen = false; this.recompute(); }
   openRow(id: string) {
     this.selected = id; this.drawer = 'row'; this.composeOpen = false; this.exportOpen = false; this.recompute();
     setTimeout(() => document.getElementById('row-' + this.req(id)?.row)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }));
