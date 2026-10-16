@@ -320,7 +320,8 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
   },
   {
     slug: 'project-index-menu',
-    title: 'Project Index Menu — 2 options',
+    title: 'Documents — Project index menu (2 options)',
+    module: 'Documents',
     figma: 'https://www.figma.com/design/fChBFcd7WAfqxq73sduKrn/%E2%9C%A8-Insights?node-id=39183-441168',
     status: 'wip',
     description: 'Project index droplist: option 1 (divide into groups) vs option 2 (change copy), with permission',
