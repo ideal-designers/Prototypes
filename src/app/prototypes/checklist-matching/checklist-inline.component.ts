@@ -127,8 +127,6 @@ const PILL: Record<string, { label: string; variant: ChipVariant }> = {
                     [showCounter]="true" [counter]="'' + f.count" [showStatus]="!!f.dot" [statusColor]="f.dot || ''"
                     [selected]="filter === f.id" (clicked)="setFilter($any(f.id))" />
                 </div>
-                <fvdr-btn *ngIf="reviewIds.length && drawer === 'none' && filter !== 'gap'" [label]="'Review ' + reviewIds.length + (reviewIds.length === 1 ? ' suggestion' : ' suggestions')" variant="secondary" (clicked)="reviewNext()" />
-                <span class="muted" *ngIf="delta">Since {{ sc.returning.since }}: {{ deltaText }}</span>
               </ng-container>
               <!-- 100%: nothing left to filter or review, so the filters give way to the outcome -->
               <span class="done" *ngIf="complete"><b>Every request has a document.</b> {{ doneText }}</span>
@@ -575,7 +573,6 @@ export class ChecklistInlineComponent implements OnDestroy {
     return this.isBidder ? `${part}, so ask the seller for what's missing.` : `${part}, and the file notes what's missing.`;
   }
   d: any = null;
-  deltaText = '';
 
   private timer: any;
 
@@ -868,9 +865,6 @@ export class ChecklistInlineComponent implements OnDestroy {
       { id: 'review', label: 'To review', count: this.filters[1].count, dot: FILTER_DOT['review'] },
       { id: 'gap', label: 'Gaps', count: this.filters[2].count, dot: FILTER_DOT['gap'] },
     ];
-    const chg: Record<ChangeKind, number> = { closed: 0, suggested: 0, reopened: 0 };
-    reqs.forEach(r => { const k = st[r.id]?.change?.kind; if (k) chg[k]++; });
-    this.deltaText = [chg.closed && `${chg.closed} gap closed`, chg.suggested && `${chg.suggested} new suggestion`, chg.reopened && `${chg.reopened} reopened`].filter(Boolean).join(', ');
     this.d = this.drawerVm();
     if (this.d?.isReview && this.selected !== this.statusFor) { this.statusFor = this.selected!; this.reviewStatus = this.d.verdict === 'Partial' ? 'partial' : 'covered'; }
   }
