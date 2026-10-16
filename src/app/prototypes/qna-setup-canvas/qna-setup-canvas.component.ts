@@ -14,7 +14,7 @@ import type { FvdrIconName } from '../../shared/ds/icons/icons';
 type Side = 'question' | 'answer';
 type Port = 'l' | 'r' | 't' | 'b';
 type EdgeKind = 'main' | 'return' | 'reject';
-type TemplateId = 'basic' | 'advanced' | 'advisory' | 'multilevel';
+type TemplateId = 'basic' | 'advanced' | 'advisory' | 'multilevel' | 'coordinator-final';
 
 interface Person { id: string; name: string; initials: string; email: string; group: string; tone: number; /** invited by email, not a project participant yet */ external?: boolean; }
 interface Membership { personId: string; categories: string[]; /** question side: which question team this person acts for */ teamId?: string; }
@@ -64,6 +64,7 @@ const A_PERMS: PermDef[] = [
   { key: 'sendFinal',   label: 'Send final answer to question side', hint: 'Release the answer to the bidder' },
   { key: 'seeFinal',    label: 'See final answer',                   hint: 'See what was sent to the question side' },
   { key: 'seeAuthor',   label: 'See who asked the question',         hint: 'Show author and team of the question' },
+  { key: 'takeBack',    label: 'Answer directly at any step',        hint: 'Take a question back from any role and send the answer straight to the submitter — or reassign it' },
 ];
 
 const STANDARD_ROLES: RoleDef[] = [
@@ -97,6 +98,9 @@ const PEOPLE: Person[] = [
   { id: 'p10', name: 'Mia Patel',        initials: 'MP', email: 'mia@alphacap.com',       group: 'Bidder A',          tone: 4 },
   { id: 'p11', name: 'Noah Kim',         initials: 'NK', email: 'noah@betapartners.com',  group: 'Bidder B',          tone: 5 },
   { id: 'p12', name: 'Ava Laurent',      initials: 'AL', email: 'ava@betapartners.com',   group: 'Bidder B',          tone: 5 },
+  { id: 'p13', name: 'Robert Hale',      initials: 'RH', email: 'robert.hale@target.com', group: 'Target management', tone: 2 },
+  { id: 'p14', name: 'Grace Liu',        initials: 'GL', email: 'grace@target.com',       group: 'Target finance',    tone: 0 },
+  { id: 'p15', name: 'Nadia Farouk',     initials: 'NF', email: 'nadia@lexlaw.com',       group: 'Legal counsel',     tone: 5 },
 ];
 
 
@@ -151,6 +155,12 @@ const TONES = [
             <span class="tpl-label">Start from</span>
             <div class="tpl-segment">
               <fvdr-segment variant="table" size="sm" [items]="templateItems" [activeId]="templateId" (activeIdChange)="loadTemplate($any($event))"></fvdr-segment>
+            </div>
+          </div>
+          <div class="tpl" *ngIf="templateId === 'coordinator-final'">
+            <span class="tpl-label">Example</span>
+            <div class="tpl-segment">
+              <fvdr-segment variant="table" size="sm" [items]="leadCaseItems" [activeId]="leadCase" (activeIdChange)="setLeadCase($any($event))"></fvdr-segment>
             </div>
           </div>
           <!-- shown only when something needs attention -->
@@ -257,6 +267,9 @@ const TONES = [
                     <span class="members-count">{{ n.members.length }} {{ n.members.length === 1 ? 'person' : 'people' }}</span>
                   </div>
                 </ng-template>
+                <span class="node-note node-note--power" *ngIf="n.perms['takeBack']">
+                  <fvdr-icon name="lock-open"></fvdr-icon> Can answer directly at any step
+                </span>
                 <span class="node-note" *ngIf="dualCount(n) as d">
                   {{ d }} {{ d === 1 ? 'person also has' : 'people also have' }} another role
                 </span>
@@ -759,6 +772,7 @@ const TONES = [
     .node-step { align-self: flex-start; font-size: var(--text-caption2-size); color: var(--color-text-secondary); background: var(--color-stone-200); border-radius: var(--radius-sm); padding: 0 var(--space-1); white-space: nowrap; }
     .node-body { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; gap: var(--space-1); min-height: 0; }
     .node-note { display: flex; align-items: center; gap: var(--space-1); font-size: var(--text-caption2-size); color: var(--color-text-secondary); }
+    .node-note--power { color: var(--color-primary-600); font-weight: 500; }
     .drop-empty {
       display: flex; align-items: center; justify-content: center; gap: var(--space-1); height: 40px;
       border: 1px dashed var(--color-error-300); border-radius: var(--radius-md);
@@ -817,8 +831,9 @@ const TONES = [
     }
 
     /* canvas chrome */
-    .canvas-top { position: absolute; left: var(--space-4); right: var(--space-4); top: var(--space-4); display: flex; justify-content: space-between; align-items: center; z-index: 10; pointer-events: none; }
+    .canvas-top { position: absolute; left: var(--space-4); right: var(--space-4); top: var(--space-4); display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; z-index: 10; pointer-events: none; }
     .canvas-top > * { pointer-events: auto; }
+    .canvas-top > .health { margin-left: auto; }
     .tpl { display: flex; white-space: nowrap; align-items: center; gap: var(--space-2); background: var(--color-stone-0); border-radius: var(--radius-md); padding: var(--space-2) var(--space-2) var(--space-2) var(--space-3); box-shadow: var(--shadow-card); }
     .tpl-label { font-size: var(--text-caption1-size); color: var(--color-text-secondary); }
     .health { display: inline-flex; white-space: nowrap; flex-shrink: 0; align-items: center; gap: var(--space-2); border: 1px solid var(--color-success-border); background: var(--color-success-bg); color: var(--color-success-text); border-radius: var(--radius-full); padding: var(--space-1) var(--space-3); font-size: var(--text-caption1-size); cursor: pointer; }
@@ -990,7 +1005,18 @@ export class QnaSetupCanvasComponent {
     { id: 'advanced', label: 'Advanced' },
     { id: 'advisory', label: 'Advisory' },
     { id: 'multilevel', label: 'Multi-level approval' },
+    { id: 'coordinator-final', label: 'Lead sign-off' },
   ];
+  /** Lead sign-off: same flow, two staffing examples */
+  leadCase: 'advisory' | 'cfo' = 'advisory';
+  leadCaseItems: SegmentItem[] = [
+    { id: 'advisory', label: 'Advisory leads' },
+    { id: 'cfo', label: 'CFO leads' },
+  ];
+  setLeadCase(id: 'advisory' | 'cfo') {
+    this.leadCase = id;
+    this.loadTemplate('coordinator-final');
+  }
   templateId: TemplateId = 'advanced';
   assignItems: SegmentItem[] = [
     { id: 'manual', label: 'Manual', icon: 'edit' },
@@ -1354,6 +1380,41 @@ export class QnaSetupCanvasComponent {
         ed(a, c, 't', 'r', 'Rejects', 'reject'),
         ed(a, f, 'r', 'b', 'Approved'),
         ed(f, s, 't', 't', 'Sends final answer', 'return'),
+      ];
+    } else if (id === 'coordinator-final') {
+      // One flow for both cases — only who sits in each role changes:
+      //   advisory: the advisors assign, and the same advisors give final sign-off
+      //   CFO: the CFO and other coordinators assign; every answer ends with the CFO
+      // The lead can answer the submitter directly from any step.
+      if (!this.customRoles.some(r => r.key === 'lead')) {
+        this.customRoles.push({
+          key: 'lead', name: 'Lead coordinator', side: 'answer', icon: 'star', custom: true,
+          description: 'Final review, sends answers, can step in anytime',
+          perms: { seeAll: true, assign: true, draftA: true, editA: true, approve: true, sendFinal: true, seeFinal: true, seeAuthor: true, takeBack: true },
+        });
+      }
+      const cfo = this.leadCase === 'cfo';
+      const s = mk('submitter', 0, 1, ['p9', 'p11']);
+      const c = mk('coordinator', 1, 1, cfo ? ['p13', 'p4', 'p5'] : ['p2', 'p3'], {
+        name: cfo ? 'Coordinators' : 'Advisory coordinators',
+        perms: { seeAll: true, assign: true, draftA: true, editA: true, approve: false, sendFinal: false, seeFinal: true, seeAuthor: true, takeBack: false },
+      });
+      const x = expertMembers(mk('expert', 2, 0, []));
+      const reviewer = { seeAll: false, assign: false, draftA: false, editA: true, approve: true, sendFinal: false, seeFinal: true, seeAuthor: true, takeBack: false };
+      const a1 = mk('approver', 3, 0, ['p14'], { name: 'Approver 1', perms: { ...reviewer } });
+      const a2 = mk('approver', 3, 2, ['p15'], { name: 'Approver 2', perms: { ...reviewer } });
+      const l = mk('lead', 2, 2, cfo ? ['p13'] : ['p2', 'p3'], { name: cfo ? 'CFO' : 'Advisory lead' });
+      this.nodes = [s, c, x, a1, a2, l];
+      this.edges = [
+        ed(s, c, 'r', 'l', 'Submits question'),
+        ed(c, x, 't', 'l', 'Assigns'),
+        ed(x, a1, 'r', 'l', 'Suggests draft'),
+        ed(a1, a2, 'b', 't', 'Approved · level 1'),
+        ed(a2, l, 'l', 'r', 'Approved · level 2'),
+        ed(a1, x, 't', 't', 'Rejects', 'reject'),
+        ed(a2, a1, 'r', 'r', 'Rejects', 'reject'),
+        ed(l, x, 't', 'b', 'Rejects', 'reject'),
+        ed(l, s, 'b', 'b', 'Submits final answer', 'return'),
       ];
     } else {
       const s = mk('submitter', 0, 1, ['p9', 'p11']);
