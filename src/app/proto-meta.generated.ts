@@ -186,5 +186,9 @@ export const PROTO_META: Record<string, ProtoMetaInfo> = {
   "bulk-redaction": {
     "updated": "2026-10-14T11:40:03+02:00",
     "author": "Nikita Tonkonozhenko"
+  },
+  "project-index-menu": {
+    "updated": "2026-10-16T16:48:27+03:00",
+    "author": "Maryna Pinchuk"
   }
 };
