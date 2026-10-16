@@ -32,6 +32,7 @@ interface TreeItem {
   perms: number[];       // saved levels, index = group id (0–5), value = level 0–7
   restricted?: number[]; // levels (1–7) not offered for this file type
   published?: boolean;
+  parentId?: number;     // folder this item sits in (top level when absent)
 }
 
 interface GroupUser { id: number; name: string; initials: string; }
@@ -57,6 +58,7 @@ interface Change {
   from: number;  // saved level
   to: number;    // draft level
   at: Date;
+  via?: number;  // folder id when the change cascaded down from a folder edit
 }
 
 /** A saved batch, as it appears in the History tab. */
@@ -224,8 +226,10 @@ function minutesAgo(m: number): Date { return new Date(Date.now() - m * 60_000);
                 <div *ngFor="let item of leftDocs"
                      class="tree-item"
                      [class.tree-item--selected]="item.id === selectedDocId"
-                     [class.tree-item--changed]="docChangeCount(item.id) > 0"
+                     [class.tree-item--changed]="subtreeChangeCount(item.id) > 0"
+                     [style.padding-left]="indent(item)"
                      (click)="selectedDocId = item.id">
+                  <ng-container *ngTemplateOutlet="folderToggle; context: { $implicit: item }"></ng-container>
                   <ng-container *ngTemplateOutlet="fileChip; context: { $implicit: item }"></ng-container>
                   <span class="item-idx">{{ item.index }}</span>
                   <span class="item-name" [innerHTML]="highlight(item.name)"></span>
@@ -233,6 +237,9 @@ function minutesAgo(m: number): Date { return new Date(Date.now() - m * 60_000);
                         class="change-pill"
                         [fvdrTooltip]="n + ' unsaved ' + (n === 1 ? 'change' : 'changes')"
                         tooltipPosition="right">{{ n }}</span>
+                  <span *ngIf="!docChangeCount(item.id) && subtreeChangeCount(item.id)"
+                        class="change-dot"
+                        fvdrTooltip="Items inside have unsaved changes" tooltipPosition="right"></span>
                 </div>
                 <div class="tree-empty" *ngIf="!leftDocs.length">No matches found</div>
               </div>
@@ -330,7 +337,7 @@ function minutesAgo(m: number): Date { return new Date(Date.now() - m * 60_000);
 
                 <!-- By documents: one row per document, for the selected group -->
                 <ng-container *ngIf="viewMode === 'by-documents'">
-                  <ng-container *ngFor="let item of treeItems">
+                  <ng-container *ngFor="let item of visibleDocs">
                     <ng-container *ngTemplateOutlet="permRow; context: {
                       docId: item.id, groupId: selectedGroupId, item: item, group: selectedGroup, kind: 'doc'
                     }"></ng-container>
@@ -367,14 +374,14 @@ function minutesAgo(m: number): Date { return new Date(Date.now() - m * 60_000);
                   </div>
 
                   <div class="drawer-list">
-                    <div class="cg" *ngFor="let section of draftSections">
+                    <div class="cg" *ngFor="let section of draftSections; trackBy: trackSection">
                       <div class="cg-hdr">
                         <ng-container *ngTemplateOutlet="sectionTitle; context: { $implicit: section }"></ng-container>
                         <button class="cg-revert" data-track="revert-section"
                                 (click)="revertMany(section.changes)">Revert</button>
                       </div>
-                      <ng-container *ngFor="let c of section.changes">
-                        <ng-container *ngTemplateOutlet="changeLine; context: { $implicit: c, editable: true }"></ng-container>
+                      <ng-container *ngFor="let c of section.changes; trackBy: trackChange">
+                        <ng-container *ngTemplateOutlet="changeLine; context: { $implicit: c, editable: true, list: changes }"></ng-container>
                       </ng-container>
                     </div>
                   </div>
@@ -388,7 +395,7 @@ function minutesAgo(m: number): Date { return new Date(Date.now() - m * 60_000);
                     <fvdr-avatar [initials]="b.initials" size="sm" />
                     <div class="batch-meta">
                       <span class="batch-title">
-                        {{ b.changes.length }} {{ b.changes.length === 1 ? 'change' : 'changes' }}
+                        {{ topOf(b.changes).length }} {{ topOf(b.changes).length === 1 ? 'change' : 'changes' }}
                         · {{ docsIn(b.changes) }} {{ docsIn(b.changes) === 1 ? 'document' : 'documents' }}
                       </span>
                       <span class="batch-sub">{{ b.author }} · {{ when(b.at) }}</span>
@@ -397,8 +404,8 @@ function minutesAgo(m: number): Date { return new Date(Date.now() - m * 60_000);
                   </button>
                   <div class="batch-note" *ngIf="b.note">“{{ b.note }}”</div>
                   <div class="batch-body" *ngIf="openBatchId === b.id">
-                    <ng-container *ngFor="let c of b.changes">
-                      <ng-container *ngTemplateOutlet="changeLine; context: { $implicit: c, editable: false, showDoc: true }"></ng-container>
+                    <ng-container *ngFor="let c of topOf(b.changes); trackBy: trackChange">
+                      <ng-container *ngTemplateOutlet="changeLine; context: { $implicit: c, editable: false, showDoc: true, list: b.changes }"></ng-container>
                     </ng-container>
                     <button class="batch-revert" data-track="revert-batch" (click)="revertBatch(b)">
                       <fvdr-icon name="undo" />
@@ -443,6 +450,8 @@ function minutesAgo(m: number): Date { return new Date(Date.now() - m * 60_000);
     <ng-template #permRow let-docId="docId" let-groupId="groupId" let-item="item" let-group="group" let-kind="kind">
       <div class="pt-row"
            [class.pt-row--changed]="isChanged(docId, groupId)"
+           [class.pt-row--inherited]="changeAt(docId, groupId)?.via != null"
+           [class.pt-row--child-changed]="kind === 'doc' && !isChanged(docId, groupId) && !isFolderExpanded(docId) && innerChangeCount(docId, groupId) > 0"
            [class.pt-row--flash]="flashKey === key(docId, groupId)">
         <div class="pt-expand-cell">
           <button *ngIf="kind === 'group' && group.users.length"
@@ -459,13 +468,21 @@ function minutesAgo(m: number): Date { return new Date(Date.now() - m * 60_000);
             <span class="pt-entity-name">{{ group.name }}</span>
           </ng-container>
           <ng-container *ngIf="kind === 'doc'">
+            <span class="indent" [style.width]="indent(item, 0)"></span>
+            <ng-container *ngTemplateOutlet="folderToggle; context: { $implicit: item }"></ng-container>
             <ng-container *ngTemplateOutlet="fileChip; context: { $implicit: item }"></ng-container>
             <span class="item-idx">{{ item.index }}</span>
             <span class="pt-entity-name">{{ item.name }}</span>
+            <span *ngIf="!isChanged(docId, groupId) && !isFolderExpanded(docId) && innerChangeCount(docId, groupId) as n"
+                  class="inside-tag" (click)="toggleFolder(docId)">{{ n }} changed inside</span>
           </ng-container>
 
           <ng-container *ngIf="changeAt(docId, groupId) as c">
-            <span class="was-tag" [fvdrTooltip]="'Saved level: ' + permLevels[c.from].label">
+            <span class="was-tag"
+                  [fvdrTooltip]="c.via != null
+                    ? 'Changed together with folder ' + doc(c.via).index + ' ' + doc(c.via).name + ' · saved level: ' + permLevels[c.from].label
+                    : 'Saved level: ' + permLevels[c.from].label">
+              <fvdr-icon *ngIf="c.via != null" name="folder" class="was-via" />
               was <fvdr-icon [name]="permLevels[c.from].icon" /> {{ permLevels[c.from].label }}
             </span>
             <button class="row-revert" fvdrTooltip="Revert to saved" aria-label="Revert to saved"
@@ -502,6 +519,18 @@ function minutesAgo(m: number): Date { return new Date(Date.now() - m * 60_000);
       </div>
     </ng-template>
 
+    <!-- Folder expand arrow (or an equal-width gap for files, so names stay aligned) -->
+    <ng-template #folderToggle let-item>
+      <button *ngIf="hasChildren(item.id); else toggleGap"
+              class="expand-btn"
+              [attr.aria-label]="isFolderExpanded(item.id) ? 'Collapse folder' : 'Expand folder'"
+              data-track="toggle-folder"
+              (click)="$event.stopPropagation(); toggleFolder(item.id)">
+        <fvdr-icon name="chevron-right" [class.chevron-open]="isFolderExpanded(item.id)" />
+      </button>
+      <ng-template #toggleGap><span class="expand-gap"></span></ng-template>
+    </ng-template>
+
     <!-- File icon chip (static here — publishing is out of scope for this prototype) -->
     <ng-template #fileChip let-item>
       <span class="file-chip" [class.file-chip--off]="!item.published">
@@ -524,7 +553,7 @@ function minutesAgo(m: number): Date { return new Date(Date.now() - m * 60_000);
     </ng-template>
 
     <!-- A single change line: "<who/what>  View → PDF  [revert]" -->
-    <ng-template #changeLine let-c let-editable="editable" let-showDoc="showDoc">
+    <ng-template #changeLine let-c let-editable="editable" let-showDoc="showDoc" let-list="list">
       <div class="cl" [class.cl--clickable]="editable" (click)="editable && jumpTo(c)">
         <div class="cl-subject">
           <ng-container *ngIf="showDoc || (editable && grouping === 'group'); else groupSubject">
@@ -552,6 +581,23 @@ function minutesAgo(m: number): Date { return new Date(Date.now() - m * 60_000);
             <fvdr-icon name="undo" />
           </button>
         </div>
+        <ng-container *ngIf="insideOf(c, list ?? changes) as inner">
+          <button *ngIf="inner.length" class="cl-inside"
+                  data-track="toggle-inside-changes"
+                  (click)="$event.stopPropagation(); toggleInside(c)">
+            <fvdr-icon name="chevron-right" [class.chevron-open]="isInsideOpen(c)" />
+            + {{ inner.length }} {{ inner.length === 1 ? 'item' : 'items' }} inside
+          </button>
+          <div class="cl-children" *ngIf="isInsideOpen(c) && inner.length">
+            <div class="cl-child" *ngFor="let ch of inner; trackBy: trackChange">
+              <fvdr-file-icon [type]="fileType(doc(ch.docId).type)" />
+              <span class="cl-name">{{ doc(ch.docId).index }} {{ doc(ch.docId).name }}</span>
+              <span class="lvl lvl--from"><fvdr-icon [name]="permLevels[ch.from].icon" />{{ permLevels[ch.from].label }}</span>
+              <fvdr-icon name="chevron-right" class="cl-arrow" />
+              <span class="lvl" [class.lvl--up]="ch.to > ch.from" [class.lvl--down]="ch.to < ch.from">{{ permLevels[ch.to].label }}</span>
+            </div>
+          </div>
+        </ng-container>
       </div>
     </ng-template>
 
@@ -581,12 +627,12 @@ function minutesAgo(m: number): Date { return new Date(Date.now() - m * 60_000);
           [message]="lostAccessCount + (lostAccessCount === 1 ? ' group will lose' : ' groups will lose') + ' access to a document completely.'" />
 
         <div class="save-list">
-          <div class="cg" *ngFor="let section of sectionsBy('doc')">
+          <div class="cg" *ngFor="let section of sectionsBy('doc'); trackBy: trackSection">
             <div class="cg-hdr">
               <ng-container *ngTemplateOutlet="sectionTitle; context: { $implicit: section }"></ng-container>
             </div>
-            <ng-container *ngFor="let c of section.changes">
-              <ng-container *ngTemplateOutlet="changeLine; context: { $implicit: c, editable: false }"></ng-container>
+            <ng-container *ngFor="let c of section.changes; trackBy: trackChange">
+              <ng-container *ngTemplateOutlet="changeLine; context: { $implicit: c, editable: false, list: changes }"></ng-container>
             </ng-container>
           </div>
         </div>
@@ -778,6 +824,22 @@ function minutesAgo(m: number): Date { return new Date(Date.now() - m * 60_000);
       background: var(--color-primary-50); color: var(--color-primary-600);
       border-radius: 2px; padding: 0 1px;
     }
+    .change-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--changed-bar);
+      flex-shrink: 0;
+    }
+    .indent { flex-shrink: 0; }
+    .inside-tag {
+      display: inline-flex; align-items: center;
+      height: 20px; padding: 0 var(--space-2);
+      border-radius: var(--radius-sm);
+      background: var(--chip-bg-yellow);
+      color: var(--primitive-yellow-800);
+      font-size: 12px; white-space: nowrap; flex-shrink: 0;
+      cursor: pointer;
+    }
+    .was-via { color: var(--color-text-secondary); margin-right: 2px; }
     .change-pill {
       display: inline-flex; align-items: center; justify-content: center;
       min-width: 20px; height: 18px; padding: 0 var(--space-1);
@@ -838,6 +900,15 @@ function minutesAgo(m: number): Date { return new Date(Date.now() - m * 60_000);
       content: '';
       position: absolute; left: 0; top: 0; bottom: 0;
       width: 3px;
+      background: var(--changed-bar);
+    }
+    /* Cascaded from a folder — same wash, lighter bar, so the edited folder still reads as the source */
+    .pt-row--inherited::before { opacity: 0.45; }
+    /* Collapsed folder whose children changed — only the bar */
+    .pt-row--child-changed::before {
+      content: '';
+      position: absolute; left: 0; top: 8px; bottom: 8px;
+      width: 3px; border-radius: 2px;
       background: var(--changed-bar);
     }
     .pt-row--flash { animation: row-flash 1.2s ease-out; }
@@ -1060,6 +1131,26 @@ function minutesAgo(m: number): Date { return new Date(Date.now() - m * 60_000);
     .lvl--up { background: var(--color-primary-50); color: var(--color-primary-700); font-weight: 600; }
     .lvl--down { background: var(--color-stone-300); color: var(--color-text-primary); font-weight: 600; }
     .cl-flag { display: inline-flex; font-size: 14px; color: var(--color-warning-700); }
+    .cl-inside {
+      display: inline-flex; align-items: center; gap: var(--space-1);
+      align-self: flex-start;
+      margin-top: 2px;
+      padding: 0;
+      background: none; border: none; cursor: pointer;
+      font-family: var(--font-family); font-size: 12px;
+      color: var(--primitive-yellow-800);
+    }
+    .cl-inside fvdr-icon { font-size: 12px; transition: transform 0.18s ease; }
+    .cl-inside fvdr-icon.chevron-open { transform: rotate(90deg); }
+    .cl-children {
+      display: flex; flex-direction: column; gap: var(--space-1);
+      margin-top: var(--space-1);
+      padding-left: var(--space-3);
+      border-left: 2px solid var(--color-warning-border);
+    }
+    .cl-child { display: flex; align-items: center; gap: var(--space-1); min-width: 0; }
+    .cl-child fvdr-file-icon { flex-shrink: 0; }
+    .cl-child .cl-name { flex: 1 1 auto; font-size: 12px; }
     .cl-time { margin-left: auto; font-size: 11px; color: var(--color-text-placeholder); }
     .cl:not(.cl--clickable) .cl-flag { margin-left: auto; }
 
@@ -1201,15 +1292,25 @@ export class PermissionsDraftComponent implements OnInit, OnDestroy {
   ];
 
   readonly treeItems: TreeItem[] = [
-    { id: 1, index: '1',   name: 'Stage folder',                        type: 'folder', perms: [6,6,5,4,3,6], published: true },
-    { id: 2, index: '2',   name: 'Organizational chart and manage',     type: 'folder', perms: [7,7,6,5,4,5], published: true },
-    { id: 3, index: '3.1', name: 'Corporate DD — Product and Services', type: 'folder', perms: [5,6,4,2,3,5], published: true },
-    { id: 4, index: '4',   name: 'Financial DD — Accounts Receivables', type: 'folder', perms: [6,6,5,3,4,6], published: true },
-    { id: 5, index: '5',   name: 'Key contacts by function',            type: 'xlsx',   perms: [4,5,3,1,2,4], published: true },
-    { id: 6, index: '6',   name: 'Tax accounting.xlsx',                 type: 'xlsx',   perms: [5,5,4,2,3,5], published: true },
-    { id: 7, index: '7',   name: 'Tax returns.pdf',                     type: 'pdf',    perms: [3,4,3,1,0,3] },
-    { id: 8, index: '8',   name: 'Registration with tax authorities',   type: 'doc',    perms: [6,7,5,4,3,6] },
-    { id: 9, index: '9',   name: 'Site walkthrough recording.mp4',      type: 'video',  perms: [0,2,7,5,0,7], restricted: [1,3,4,6] },
+    { id: 1,  index: '1',     name: 'Stage folder',                        type: 'folder', perms: [6,6,5,4,3,6], published: true },
+    { id: 11, index: '1.1',   name: 'Term sheet.pdf',                      type: 'pdf',    perms: [6,6,5,4,3,6], published: true, parentId: 1 },
+    { id: 12, index: '1.2',   name: 'Board approval.docx',                 type: 'doc',    perms: [6,5,4,4,2,6], published: true, parentId: 1 },
+    { id: 2,  index: '2',     name: 'Organizational chart and manage',     type: 'folder', perms: [7,7,6,5,4,5], published: true },
+    { id: 21, index: '2.1',   name: 'Org chart.pdf',                       type: 'pdf',    perms: [7,7,6,5,4,5], published: true, parentId: 2 },
+    { id: 22, index: '2.2',   name: 'Management bios',                     type: 'folder', perms: [7,6,6,4,4,5], published: true, parentId: 2 },
+    { id: 23, index: '2.2.1', name: 'CEO bio.docx',                        type: 'doc',    perms: [7,6,6,4,4,5], published: true, parentId: 22 },
+    { id: 24, index: '2.2.2', name: 'CFO interview.mp4',                   type: 'video',  perms: [7,5,5,2,2,5], published: true, parentId: 22, restricted: [1,3,4,6] },
+    { id: 3,  index: '3.1',   name: 'Corporate DD — Product and Services', type: 'folder', perms: [5,6,4,2,3,5], published: true },
+    { id: 31, index: '3.1.1', name: 'Product overview.pdf',                type: 'pdf',    perms: [5,6,4,2,3,5], published: true, parentId: 3 },
+    { id: 32, index: '3.1.2', name: 'Services catalogue.xlsx',             type: 'xlsx',   perms: [5,5,4,2,3,5], parentId: 3 },
+    { id: 4,  index: '4',     name: 'Financial DD — Accounts Receivables', type: 'folder', perms: [6,6,5,3,4,6], published: true },
+    { id: 41, index: '4.1',   name: 'AR aging report.xlsx',                type: 'xlsx',   perms: [6,6,5,3,4,6], published: true, parentId: 4 },
+    { id: 42, index: '4.2',   name: 'Customer contracts.pdf',              type: 'pdf',    perms: [6,5,5,3,2,6], published: true, parentId: 4 },
+    { id: 5,  index: '5',     name: 'Key contacts by function',            type: 'xlsx',   perms: [4,5,3,1,2,4], published: true },
+    { id: 6,  index: '6',     name: 'Tax accounting.xlsx',                 type: 'xlsx',   perms: [5,5,4,2,3,5], published: true },
+    { id: 7,  index: '7',     name: 'Tax returns.pdf',                     type: 'pdf',    perms: [3,4,3,1,0,3] },
+    { id: 8,  index: '8',     name: 'Registration with tax authorities',   type: 'doc',    perms: [6,7,5,4,3,6] },
+    { id: 9,  index: '9',     name: 'Site walkthrough recording.mp4',      type: 'video',  perms: [0,2,7,5,0,7], restricted: [1,3,4,6] },
   ];
 
   history: SavedBatch[] = [
@@ -1239,13 +1340,24 @@ export class PermissionsDraftComponent implements OnInit, OnDestroy {
   get changes(): Change[] {
     return Object.values(this.draft).sort((a, b) => b.at.getTime() - a.at.getTime());
   }
-  get changeCount(): number { return Object.keys(this.draft).length; }
+  /** Changes the admin made directly; cascaded children ride along with their folder's change. */
+  get topChanges(): Change[] { return this.topOf(this.changes); }
+  get changeCount(): number { return this.topChanges.length; }
   get changedDocIds(): number[] { return [...new Set(this.changes.map(c => c.docId))]; }
   get changedGroupIds(): number[] { return [...new Set(this.changes.map(c => c.groupId))]; }
-  get upCount(): number { return this.changes.filter(c => c.to > c.from).length; }
-  get downCount(): number { return this.changes.filter(c => c.to < c.from).length; }
+  get upCount(): number { return this.topChanges.filter(c => c.to > c.from).length; }
+  get downCount(): number { return this.topChanges.filter(c => c.to < c.from).length; }
   get originalCount(): number { return this.changes.filter(c => this.grantsOriginal(c)).length; }
-  get lostAccessCount(): number { return this.changes.filter(c => c.to === 0).length; }
+  get lostAccessCount(): number { return this.topChanges.filter(c => c.to === 0).length; }
+
+  /** A cascaded change counts as top-level once its folder's own change is gone from the list. */
+  topOf(list: Change[]): Change[] {
+    return list.filter(c => c.via == null || !list.some(p => p.docId === c.via && p.groupId === c.groupId));
+  }
+  /** Cascaded changes that came from folder change c. */
+  insideOf(c: Change, list: Change[]): Change[] {
+    return list.filter(x => x.via === c.docId && x.groupId === c.groupId);
+  }
 
   get draftSummary(): string {
     const d = this.changedDocIds.length, g = this.changedGroupIds.length;
@@ -1269,7 +1381,7 @@ export class PermissionsDraftComponent implements OnInit, OnDestroy {
 
   sectionsBy(by: ChangesGrouping): { doc?: TreeItem; group?: Group; changes: Change[] }[] {
     const map = new Map<number, Change[]>();
-    for (const c of this.changes) {
+    for (const c of this.topChanges) {
       const id = by === 'doc' ? c.docId : c.groupId;
       map.set(id, [...(map.get(id) ?? []), c]);
     }
@@ -1291,11 +1403,70 @@ export class PermissionsDraftComponent implements OnInit, OnDestroy {
     ];
   }
 
+  /** Tree rows honouring folder expansion; search and the changed-only filter list matches flat. */
   get leftDocs(): TreeItem[] {
     const q = this.searchQuery.trim().toLowerCase();
+    if (!q && !this.changedOnly) return this.visibleDocs;
     return this.treeItems.filter(item =>
       (!this.changedOnly || this.docChangeCount(item.id) > 0) &&
       (!q || item.name.toLowerCase().includes(q) || item.index.includes(q)));
+  }
+
+  get visibleDocs(): TreeItem[] {
+    return this.treeItems.filter(item => this.ancestors(item.id).every(a => this.expandedFolders.has(a)));
+  }
+
+  // ── Folder tree ───────────────────────────────────────────
+
+  private expandedFolders = new Set<number>();
+
+  hasChildren(id: number): boolean { return this.treeItems.some(t => t.parentId === id); }
+  descendants(id: number): TreeItem[] {
+    const kids = this.treeItems.filter(t => t.parentId === id);
+    return kids.flatMap(k => [k, ...this.descendants(k.id)]);
+  }
+  ancestors(id: number): number[] {
+    const out: number[] = [];
+    for (let p = this.doc(id).parentId; p != null; p = this.doc(p).parentId) out.push(p);
+    return out;
+  }
+  /** Left padding for a tree row: 20px per nesting level on top of the base. */
+  indent(item: TreeItem, base = 16): string { return `${base + this.ancestors(item.id).length * 20}px`; }
+  isFolderExpanded(id: number): boolean { return this.expandedFolders.has(id); }
+  toggleFolder(id: number): void {
+    const s = new Set(this.expandedFolders);
+    s.has(id) ? s.delete(id) : s.add(id);
+    this.expandedFolders = s;
+  }
+  private expandPath(id: number, includeSelf = false): void {
+    const s = new Set(this.expandedFolders);
+    this.ancestors(id).forEach(a => s.add(a));
+    // includeSelf opens the folder and every subfolder, so all cascaded rows are in view
+    if (includeSelf) [id, ...this.descendants(id).map(d => d.id)].filter(x => this.hasChildren(x)).forEach(x => s.add(x));
+    this.expandedFolders = s;
+  }
+
+  /** Changed cells of a folder's descendants for one group. */
+  innerChangeCount(docId: number, groupId: number): number {
+    return this.descendants(docId).filter(d => this.isChanged(d.id, groupId)).length;
+  }
+  /** Any group: changes on the item itself or anywhere inside it. */
+  subtreeChangeCount(docId: number): number {
+    const ids = new Set([docId, ...this.descendants(docId).map(d => d.id)]);
+    return this.changes.filter(c => ids.has(c.docId)).length;
+  }
+
+  // Lists below are rebuilt from fresh arrays on every pass — trackBy keeps their DOM (and clicks) alive.
+  trackChange = (_: number, c: Change) => this.key(c.docId, c.groupId);
+  trackSection = (_: number, sec: { doc?: TreeItem; group?: Group }) => sec.doc ? 'd' + sec.doc.id : 'g' + sec.group!.id;
+
+  // ── "+N inside" toggles in the change lists ──
+  private openInside = new Set<string>();
+  isInsideOpen(c: Change): boolean { return this.openInside.has(this.key(c.docId, c.groupId)); }
+  toggleInside(c: Change): void {
+    const k = this.key(c.docId, c.groupId), s = new Set(this.openInside);
+    s.has(k) ? s.delete(k) : s.add(k);
+    this.openInside = s;
   }
 
   get leftGroups(): Group[] {
@@ -1353,27 +1524,52 @@ export class PermissionsDraftComponent implements OnInit, OnDestroy {
   // ── Editing the draft ─────────────────────────────────────
 
   /** Writes one cell into the draft and returns the undo record. A cell set back to its saved level leaves the draft. */
-  private write(docId: number, groupId: number, to: number): { key: string; prev: Change | undefined } {
+  private write(docId: number, groupId: number, to: number, via?: number): { key: string; prev: Change | undefined } {
     const k = this.key(docId, groupId);
     const prev = this.draft[k];
     const from = this.savedLevel(docId, groupId);
     const next = { ...this.draft };
     if (to === from) delete next[k];
-    else next[k] = { docId, groupId, from, to, at: new Date() };
+    else next[k] = { docId, groupId, from, to, at: new Date(), ...(via != null ? { via } : {}) };
     this.draft = next;
     return { key: k, prev };
   }
 
+  /** Highest level ≤ `to` that the item offers (video etc. skip some levels). */
+  private allowedLevel(item: TreeItem, to: number): number {
+    let l = to;
+    while (l > 0 && item.restricted?.includes(l)) l--;
+    return l;
+  }
+
+  /** Setting a folder's level cascades the same level to everything inside it, for that group. */
   setLevel(docId: number, groupId: number, to: number): void {
     if (this.doc(docId).restricted?.includes(to)) return;
     if (this.level(docId, groupId) === to) return;
-    this.undoStack = [...this.undoStack, [this.write(docId, groupId, to)]];
+    const inner = this.descendants(docId);
+    const step = [
+      this.write(docId, groupId, to),
+      ...inner.map(d => this.write(d.id, groupId, this.allowedLevel(d, to), docId)),
+    ];
+    this.undoStack = [...this.undoStack, step];
+    if (inner.length) {
+      this.expandPath(docId, true);
+      if (!this.cascadeHintShown) {
+        this.cascadeHintShown = true;
+        const n = inner.length;
+        this.toast.show({ variant: 'info', message: `Also applied to ${n} ${n === 1 ? 'item' : 'items'} inside “${this.doc(docId).name}”` });
+      }
+    }
   }
+  private cascadeHintShown = false;
 
   revert(c: Change): void { this.revertMany([c]); }
 
+  /** Reverting a folder change also reverts what cascaded from it. */
   revertMany(changes: Change[]): void {
-    const step = changes.map(c => this.write(c.docId, c.groupId, c.from));
+    const all = changes.flatMap(c => [c, ...this.insideOf(c, this.changes)]);
+    const step = [...new Map(all.map(c => [this.key(c.docId, c.groupId), c])).values()]
+      .map(c => this.write(c.docId, c.groupId, c.from));
     this.undoStack = [...this.undoStack, step];
   }
 
@@ -1390,10 +1586,10 @@ export class PermissionsDraftComponent implements OnInit, OnDestroy {
 
   /** Puts a saved batch's previous levels back into the draft (not saved yet). */
   revertBatch(b: SavedBatch): void {
-    const step = b.changes.map(c => this.write(c.docId, c.groupId, c.from));
+    const step = b.changes.map(c => this.write(c.docId, c.groupId, c.from, c.via));
     this.undoStack = [...this.undoStack, step];
     this.panelTab = 'draft';
-    const n = step.length;
+    const n = this.topOf(b.changes).length;
     this.toast.show({ variant: 'info', message: `${n} ${n === 1 ? 'change' : 'changes'} added to your draft — review and save to apply` });
   }
 
@@ -1422,10 +1618,10 @@ export class PermissionsDraftComponent implements OnInit, OnDestroy {
     this.undoStack = [];
     this.saveOpen = false;
     this.changedOnly = false;
-    const d = this.docsIn(changes);
+    const d = this.docsIn(changes), n = this.topOf(changes).length;
     this.toast.show({
       variant: 'success',
-      message: `${changes.length} ${changes.length === 1 ? 'permission' : 'permissions'} saved across ${d} ${d === 1 ? 'document' : 'documents'}`,
+      message: `${n} ${n === 1 ? 'change' : 'changes'} saved across ${d} ${d === 1 ? 'document' : 'documents'}`,
     });
   }
 
@@ -1435,6 +1631,7 @@ export class PermissionsDraftComponent implements OnInit, OnDestroy {
   jumpTo(c: Change): void {
     if (this.viewMode === 'by-documents') this.selectedGroupId = c.groupId;
     else this.selectedDocId = c.docId;
+    this.expandPath(c.docId);
     this.flashKey = this.key(c.docId, c.groupId);
     clearTimeout(this.flashTimer);
     this.flashTimer = setTimeout(() => (this.flashKey = null), 1200);
