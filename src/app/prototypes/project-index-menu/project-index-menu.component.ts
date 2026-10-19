@@ -43,7 +43,7 @@ const VIEW_LABEL: Record<ViewId, string> = {
   <div class="proto-bar">
     <span class="proto-bar__label">Project index menu · with permission</span>
     <fvdr-segment [items]="optionItems" [activeId]="option" (activeIdChange)="setOption($event)"></fvdr-segment>
-    <span class="proto-bar__hint">{{ option === 'o1' ? 'Divide into groups (Project / context)' : 'Change copy (Export / Manage)' }}</span>
+    <span class="proto-bar__hint">{{ option === 'o1' ? 'Divide into groups (context / Project)' : 'Change copy (Export / Manage)' }}</span>
   </div>
 
   <div class="app">
@@ -170,7 +170,7 @@ const VIEW_LABEL: Record<ViewId, string> = {
               <span class="c-cols"><fvdr-icon name="table-view"></fvdr-icon></span>
             </div>
             <div class="table__body">
-              <div class="table__row" *ngFor="let r of visibleRows" [class.table__row--sel]="selected.has(r.id)"
+              <div class="table__row" *ngFor="let r of visibleRows; trackBy: trackRow" [class.table__row--sel]="selected.has(r.id)"
                    (click)="toggleRow(r.id)" (dblclick)="!folder && openFolder(r)">
                 <span class="c-check"><fvdr-checkbox [checked]="selected.has(r.id)"></fvdr-checkbox></span>
                 <span class="c-index"><fvdr-icon name="folder-colored" class="tree__folder"></fvdr-icon>{{ r.index }}</span>
@@ -404,6 +404,8 @@ export class ProjectIndexMenuComponent implements OnInit, OnDestroy {
   selected = new Set<number>();
   /** Folder opened from the left tree; null = project root (Nike). */
   folder: DocRow | null = null;
+  /** Mock contents of the opened folder (built once per open so row identity is stable). */
+  folderRows: DocRow[] = [];
 
   ngOnInit(): void {
     this.tracker.trackPageView('project-index-menu');
@@ -446,9 +448,7 @@ export class ProjectIndexMenuComponent implements OnInit, OnDestroy {
 
   get visibleRows(): DocRow[] {
     const q = this.query.trim().toLowerCase();
-    let rows = this.folder
-      ? SUBFOLDERS.map((name, i) => ({ id: this.folder!.id * 100 + i + 1, index: `${this.folder!.index}.${i + 1}`, name }))
-      : this.rows;
+    let rows = this.folder ? this.folderRows : this.rows;
     if (this.view === 'recent') rows = rows.filter(r => r.id !== 4);
     if (q) rows = rows.filter(r => r.name.toLowerCase().includes(q));
     return rows;
@@ -479,11 +479,12 @@ export class ProjectIndexMenuComponent implements OnInit, OnDestroy {
     ];
   }
 
-  /** Option 1 — divide into groups: “Project” + current context. */
+  /** Option 1 — divide into groups: current scope (folder / selection / context) first, then “Project”. */
   private menuOption1(): MenuGroup[] {
     const ctx = this.contextLabel;
     if (ctx) {
       return [
+        { title: ctx, items: [{ label: 'Export', icon: 'export' }] },
         { title: 'Project', items: [
           { label: 'Export full index', icon: 'export' },
           { label: 'Export custom index', icon: 'settings-h' },
@@ -491,19 +492,24 @@ export class ProjectIndexMenuComponent implements OnInit, OnDestroy {
           { label: 'Rebuild index', icon: 'index-list' },
           { label: 'Index summary', icon: 'ai-search' },
         ] },
-        { title: ctx, items: [{ label: 'Export', icon: 'export' }] },
       ];
     }
+    const scope: MenuGroup = this.hasSelection
+      ? { title: 'Selected', items: [
+          { label: 'Export items', icon: 'export' },
+          { label: 'Rebuild index', icon: 'index-list' },
+        ] }
+      : { title: 'This folder', items: [
+          { label: 'Export', icon: 'download-folder' },
+          { label: 'Rebuild index', icon: 'index-list' },
+        ] };
     return [
+      scope,
       { title: 'Project', items: [
         { label: 'Export full index', icon: 'export' },
         { label: 'Export custom index', icon: 'settings-h' },
         { label: 'Bulk rename', icon: 'bulk-rename' },
         { label: 'Index summary', icon: 'ai-search' },
-      ] },
-      { title: 'This folder', items: [
-        { label: this.hasSelection ? 'Export selected items' : 'Export', icon: this.hasSelection ? 'export' : 'download-folder' },
-        { label: 'Rebuild index', icon: 'index-list' },
       ] },
     ];
   }
@@ -514,7 +520,7 @@ export class ProjectIndexMenuComponent implements OnInit, OnDestroy {
       ? { label: this.contextLabel, icon: this.contextIcon }
       : this.hasSelection
         ? { label: 'Selected items', icon: 'export' }
-        : { label: 'Current folder', icon: 'folder' };
+        : { label: 'Current folder index', icon: 'folder' };
     return [
       { title: 'Export', items: [
         first,
@@ -557,6 +563,7 @@ export class ProjectIndexMenuComponent implements OnInit, OnDestroy {
 
   openFolder(r: DocRow): void {
     this.folder = r;
+    this.folderRows = SUBFOLDERS.map((name, i) => ({ id: r.id * 100 + i + 1, index: `${r.index}.${i + 1}`, name }));
     this.view = 'folder';
     this.query = '';
     this.filterOn = false;
@@ -582,6 +589,8 @@ export class ProjectIndexMenuComponent implements OnInit, OnDestroy {
     this.selected.clear();
     this.menuOpen = false;
   }
+
+  trackRow(_: number, r: DocRow): number { return r.id; }
 
   toggleAll(): void {
     if (this.allSelected) this.selected.clear();
