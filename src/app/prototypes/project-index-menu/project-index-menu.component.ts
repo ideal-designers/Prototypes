@@ -484,7 +484,7 @@ export class ProjectIndexMenuComponent implements OnInit, OnDestroy {
     const ctx = this.contextLabel;
     if (ctx) {
       return [
-        { title: ctx, items: [{ label: 'Export', icon: 'export' }] },
+        { title: ctx, items: [{ label: 'Export index', icon: 'export' }] },
         { title: 'Project', items: [
           { label: 'Export full index', icon: 'export' },
           { label: 'Export custom index', icon: 'settings-h' },
@@ -500,7 +500,7 @@ export class ProjectIndexMenuComponent implements OnInit, OnDestroy {
           { label: 'Rebuild index', icon: 'index-list' },
         ] }
       : { title: 'This folder', items: [
-          { label: 'Export', icon: 'download-folder' },
+          { label: 'Export index', icon: 'download-folder' },
           { label: 'Rebuild index', icon: 'index-list' },
         ] };
     return [
