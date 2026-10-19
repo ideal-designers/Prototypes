@@ -471,6 +471,7 @@ export class ProjectIndexMenuComponent implements OnInit, OnDestroy {
       { title: 'Export', items: [
         { label: 'Full project index', icon: 'export' },
         { label: 'Custom project index', icon: 'settings-h' },
+        { label: 'Index summary', icon: 'index-summary' },
       ] },
       { title: 'Manage', items: [
         { label: 'Rebuild index', icon: 'index-list' },
@@ -490,7 +491,7 @@ export class ProjectIndexMenuComponent implements OnInit, OnDestroy {
           { label: 'Export custom index', icon: 'settings-h' },
           { label: 'Bulk rename', icon: 'bulk-rename' },
           { label: 'Rebuild index', icon: 'index-list' },
-          { label: 'Index summary', icon: 'ai-search' },
+          { label: 'Index summary', icon: 'index-summary' },
         ] },
       ];
     }
@@ -515,7 +516,7 @@ export class ProjectIndexMenuComponent implements OnInit, OnDestroy {
         { label: 'Export full index', icon: 'export' },
         { label: 'Export custom index', icon: 'settings-h' },
         { label: 'Bulk rename', icon: 'bulk-rename' },
-        { label: 'Index summary', icon: 'ai-search' },
+        { label: 'Index summary', icon: 'index-summary' },
       ] },
     ];
   }
@@ -532,7 +533,7 @@ export class ProjectIndexMenuComponent implements OnInit, OnDestroy {
         first,
         { label: 'Full project index', icon: 'export' },
         { label: 'Custom project index', icon: 'settings-h' },
-        { label: 'Index summary across project', icon: 'ai-search' },
+        { label: 'Index summary across project', icon: 'index-summary' },
       ] },
       { title: 'Manage', items: [
         { label: 'Rebuild index in this folder', icon: 'index-list' },
