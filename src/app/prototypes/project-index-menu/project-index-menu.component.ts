@@ -494,9 +494,15 @@ export class ProjectIndexMenuComponent implements OnInit, OnDestroy {
         ] },
       ];
     }
-    const scope: MenuGroup = this.hasSelection
+    // Selection at project root (Figma 39185:449973) vs inside an opened folder (Figma 39183:448953)
+    const scope: MenuGroup = this.hasSelection && !this.folder
       ? { title: 'Selected', items: [
           { label: 'Export items', icon: 'export' },
+          { label: 'Rebuild index', icon: 'index-list' },
+        ] }
+      : this.hasSelection
+      ? { title: 'This folder', items: [
+          { label: 'Export selected items', icon: 'export' },
           { label: 'Rebuild index', icon: 'index-list' },
         ] }
       : { title: 'This folder', items: [
