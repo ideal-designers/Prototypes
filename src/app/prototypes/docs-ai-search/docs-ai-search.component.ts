@@ -478,7 +478,7 @@ export class DocsAiSearchComponent implements OnInit, OnDestroy {
   v1Layout: V1Layout = 'rail';
   v2View: V2View = 'list';
   /** Thinking animation to compare: the current orb renders, or the outline logo (ai-motion Flow / Orbit). */
-  thinking: 'orb' | 'flow' | 'orbit' | 'mandala' = 'orb';
+  thinking: 'orb' | 'flow' | 'orbit' = 'orb';
   /** Cached — rebuilt only when an option changes, so the switcher's buttons stay put under the pointer. */
   switcherGroups: ProtoGroup[] = [];
   /** The only group on screen — the V1/V2 solution switch was retired (c367cdc), the thinking comparison wasn't. */
@@ -486,8 +486,7 @@ export class DocsAiSearchComponent implements OnInit, OnDestroy {
   private syncSwitcher(): void {
     this.switcherGroups = [
       { id: 'thinking', label: 'Thinking', value: this.thinking, options: [
-        { id: 'orb', label: 'Current' }, { id: 'flow', label: 'Outline Flow' }, { id: 'orbit', label: 'Outline Orbit' },
-        { id: 'mandala', label: 'Outline Mandala' } ] },
+        { id: 'orb', label: 'Current' }, { id: 'flow', label: 'Outline Flow' }, { id: 'orbit', label: 'Outline Orbit' } ] },
       { id: 'solution', label: 'Solution', value: this.solution, options: [
         { id: 'v12', label: 'V1.2 · Small input' },
         { id: 'v1', label: 'V1 · Overview + table' }, { id: 'v2', label: 'V2 · Overview with docs' } ] },
@@ -504,7 +503,7 @@ export class DocsAiSearchComponent implements OnInit, OnDestroy {
     if (e.group === 'solution') this.setSolution(e.value);
     if (e.group === 'v1Layout') this.v1Layout = e.value as V1Layout;
     if (e.group === 'v2View') this.v2View = e.value as V2View;
-    if (e.group === 'thinking') this.thinking = e.value as 'orb' | 'flow' | 'orbit' | 'mandala';
+    if (e.group === 'thinking') this.thinking = e.value as 'orb' | 'flow' | 'orbit';
     this.syncSwitcher();
   }
 
