@@ -192,7 +192,7 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
           <ng-container *ngIf="view === 'source'">
             <div class="aibar" *ngIf="highlightRow === null && phase === 'results'">
               <span class="aibar__text aibar__grow">{{ srcInfoText }}</span>
-              <fvdr-toggle *ngIf="hasResultCols" [(checked)]="previewResults" label="Show results in the file" (checkedChange)="recompute()" />
+              <fvdr-btn *ngIf="!stale && (!published || pubChanges)" [label]="published ? 'Publish changes' : 'Publish to source file'" variant="secondary" (clicked)="publish()" />
             </div>
             <div class="aibar" *ngIf="highlightRow !== null">
               <fvdr-btn label="Back to request" variant="secondary" (clicked)="backToRequest()" />
@@ -206,14 +206,18 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
                 <span class="sheet__val">{{ hlCell || sourceRows[0]?.cells?.[0] }}</span>
               </div>
               <div class="sheet__scroll">
-                <div class="sheet__grid">
+                <div class="sheet__grid" [class.sheet__grid--ai]="showAiCol">
                   <div class="sr sr--cols" [style.grid-template-columns]="gridCols">
                     <span class="sc sc--n"></span>
+                    <span class="sc sc--ai" *ngIf="showAiCol"><fvdr-icon name="sparkle" /> AI</span>
                     <span class="sc" *ngFor="let c of sheetCols">{{ c }}</span>
                   </div>
                   <div *ngFor="let r of sourceRows" class="sr" [ngClass]="'sr--' + r.kind" [class.sr--hl]="highlightRow === r.n"
                        [style.grid-template-columns]="gridCols">
                     <span class="sc sc--n">{{ r.n }}</span>
+                    <span class="sc sc--ai" *ngIf="showAiCol">
+                      <fvdr-chip *ngIf="r.reqId && pubPill(r.reqId) as p" [label]="p.label" [variant]="p.variant" size="xs" />
+                    </span>
                     <span class="sc sc--span" *ngIf="isSpanRow(r)">{{ r.cells[0] }}</span>
                     <ng-container *ngIf="!isSpanRow(r)">
                       <span class="sc" *ngFor="let i of colIdx" [class.sc--sel]="r.kind === 'item' && sc.source.selectCols.includes(i)"
@@ -289,6 +293,7 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
                     [showCounter]="true" [counter]="'' + f.count" [showStatus]="!!f.dot" [statusColor]="f.dot || ''"
                     [selected]="!changeFilter && filter === f.id" (clicked)="pickFilter($any(f.id))" />
                 </div>
+                <fvdr-btn *ngIf="!drawerOpen && (!published || pubChanges)" [label]="published ? 'Publish changes' : 'Publish to source file'" variant="secondary" (clicked)="publish()" />
                 <fvdr-btn *ngIf="filter !== 'gap' && (counts['review'] || 0) > 0 && !showPanel" [label]="'Review ' + counts['review'] + ' suggestions'" variant="secondary" (clicked)="startReview()" />
               </div>
               <div class="covp">
@@ -837,6 +842,11 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
     .sr--hl { background: var(--color-primary-50); outline: 2px solid var(--color-primary-500); outline-offset: -2px; }
     .sc { padding: var(--space-2); border-right: 1px solid var(--color-divider); min-width: 0; overflow-wrap: anywhere; white-space: pre-line; }
     .sc--span { grid-column: 2 / -1; }
+    .sheet__grid--ai .sc--span { grid-column: 3 / -1; }
+    /* AI column, added to the file once results are published (as in v3) */
+    .sc--ai { display: flex; align-items: flex-start; gap: var(--space-1); background: var(--color-stone-100); color: var(--color-primary-600); font-style: normal; font-weight: var(--text-body3-weight); }
+    .sr--cols .sc--ai { justify-content: center; align-items: center; background: var(--color-primary-50); font-weight: var(--text-label-s-weight); }
+    .sr--header .sc--ai { background: var(--color-text-primary); }
     .sc--n { background: var(--color-stone-200); color: var(--color-text-secondary); text-align: center; font-weight: var(--text-body3-weight); font-style: normal; }
     .sr--header .sc--n { color: var(--color-text-secondary); }
     .sc--right { text-align: right; }
@@ -1199,7 +1209,27 @@ export class ChecklistMatchingComponent implements OnDestroy {
   highlightRow: number | null = null;
   backTo: string | null = null;
   scope = 'all';
-  previewResults = true;
+  /** Results published into the source file: a snapshot of the statuses at that moment. */
+  published: { at: string; st: Record<string, Rec> } | null = null;
+  /** Document requests whose status changed since the last publish. */
+  pubChanges = 0;
+  get showAiCol() { return this.phase === 'results' && !!this.published; }
+  pubPill(id: string): Pill | null {
+    const r = this.findReq(id); const rec = this.published?.st[id]; if (!r || !rec) return null;
+    if (!this.isDoc(r) && r.cls !== 'question') return null;
+    return this.pill(rec.s);
+  }
+  private andList(xs: string[]) { return xs.length > 1 ? `${xs.slice(0, -1).join(', ')} and ${xs[xs.length - 1]}` : xs[0] || ''; }
+  publish() {
+    const first = !this.published;
+    this.published = { at: 'just now', st: { ...this.st } };
+    this.recompute();
+    this.toastSvc.show({
+      variant: 'success', title: first ? `Published to ${this.sc.tabLabel}` : 'Changes published',
+      message: 'The AI column and the result columns in the file are up to date.', duration: 6000,
+      actions: this.view === 'requests' ? [{ label: 'Open source file', onClick: () => this.setView('source') }] : [],
+    });
+  }
   expanded: Record<string, boolean> = {};
   changeFilter: ChangeKind | 'all' | null = null;
   overrides: Record<string, { text: string; cls: ReqCls }> = {};
@@ -1327,7 +1357,12 @@ export class ChecklistMatchingComponent implements OnDestroy {
   get srcInfoText() {
     if (this.stale) return 'This file changed after the requests were extracted. Review the changes in Requests.';
     if (this.phase === 'results') {
-      return this.hasResultCols && this.previewResults ? 'Results are shown in the file\'s own columns. The file in the room changes only when you export.' : `Requests extracted on ${this.sc.extractedOn}.`;
+      if (!this.published) return this.hasResultCols
+        ? `Results aren't in the file yet. Publishing adds an AI column with each request's status and fills ${this.andList(this.sc.details!.resultCols!)}.`
+        : `Results aren't in the file yet. Publishing adds an AI column with each request's status.`;
+      const n = this.pubChanges;
+      return n ? `Published by you · ${this.published.at}. ${n} ${n === 1 ? "change isn't" : "changes aren't"} in the file yet.`
+        : `Published by you · ${this.published.at}. The AI column and the file's own result columns are up to date.`;
     }
     return `Matching ${this.matchable} document requests from this file against ${this.totalDocsLabel} documents.`;
   }
@@ -1383,8 +1418,8 @@ export class ChecklistMatchingComponent implements OnDestroy {
   private mapReturning() { const m = this.mapFinal(); this.sc.returning.apply(m); return m; }
 
   /** What the export writes into the file's own result columns for one request. */
-  private resultCells(r: Req): [string, string, string] {
-    const rec = this.st[r.id] || { s: 'pending' } as Rec;
+  private resultCells(r: Req, at?: Rec): [string, string, string] {
+    const rec = at || this.st[r.id] || { s: 'pending' } as Rec;
     const map = this.sc.statusMap; if (!map) return ['', '', ''];
     const s = rec.s;
     if (s === 'covered') return [map.covered, (rec.docs || r.docs || []).join('\n'), ''];
@@ -1396,8 +1431,8 @@ export class ChecklistMatchingComponent implements OnDestroy {
   }
 
   cellText(row: SrcRow, i: number): string {
-    if (row.kind === 'item' && this.phase === 'results' && this.previewResults && this.sc.source.resultCols.includes(i) && row.reqId) {
-      const r = this.findReq(row.reqId); if (r) return this.resultCells(r)[this.sc.source.resultCols.indexOf(i)];
+    if (row.kind === 'item' && this.phase === 'results' && this.published && this.sc.source.resultCols.includes(i) && row.reqId) {
+      const r = this.findReq(row.reqId); if (r) return this.resultCells(r, this.published.st[r.id])[this.sc.source.resultCols.indexOf(i)];
     }
     return row.cells[i] || '';
   }
@@ -1421,7 +1456,7 @@ export class ChecklistMatchingComponent implements OnDestroy {
       view: 'requests', phase: 'results', readRow: 0, progress: 0, flagResolved: true, filter: 'all', highOnly: false, layout: 'table',
       selected: null, panel: 'none', exportOpen: false, stale: false, delta: false, sourceEdited: false, applied: false,
       returningCands: false, deletedFiles: [], highlightRow: null, backTo: null, expanded: {}, changeFilter: null,
-      overrides: {}, editRowId: null, editId: null, fSelReq: null, fSelFile: null, fOpen: {}, fHideUnused: false, upPct: 0, previewResults: true,
+      overrides: {}, editRowId: null, editId: null, fSelReq: null, fSelFile: null, fOpen: {}, fHideUnused: false, upPct: 0, published: null,
       hdrEdit: false, composeOpen: false, bulkOpen: false, howOpen: false, lastPct: null, covHover: null, moreOpen: false,
     });
     this.headerRow = this.sc.details?.headerRow || 1;
@@ -1434,7 +1469,8 @@ export class ChecklistMatchingComponent implements OnDestroy {
     else if (screen === 'triage') { this.st = this.mapFinal(); }
     else if (screen === 'gaps') { this.st = this.mapFinal(); this.filter = 'gap'; this.selected = this.sc.gapsFocus; this.panel = 'item'; }
     else if (screen === 'returning') {
-      this.returningCands = true; this.lastPct = this.pctOf(this.mapFinal()); this.st = this.mapReturning(); this.delta = true;
+      this.returningCands = true; this.lastPct = this.pctOf(this.mapFinal()); this.published = { at: this.sc.returning.since, st: this.mapFinal() };
+      this.st = this.mapReturning(); this.delta = true;
       this.stale = !!this.sc.edits; this.sourceEdited = !!this.sc.edits;
       this.deletedFiles = [...this.sc.returning.deleted];
     }
@@ -1827,6 +1863,8 @@ export class ChecklistMatchingComponent implements OnDestroy {
     const st = this.st;
     const sc = this.sc;
 
+    const pub = this.published;
+    this.pubChanges = pub ? reqs.filter(r => this.isDoc(r) && pub.st[r.id]?.s !== st[r.id]?.s).length : 0;
     const counts: Record<string, number> = {};
     reqs.forEach(r => { const s = (st[r.id] || { s: 'pending' }).s; counts[s] = (counts[s] || 0) + 1; });
     this.counts = counts;
@@ -1860,7 +1898,7 @@ export class ChecklistMatchingComponent implements OnDestroy {
 
     // Grid templates
     const w = (x: number | 'fill') => x === 'fill' ? 'minmax(260px, 1fr)' : x + 'px';
-    this.gridCols = '40px ' + sc.source.widths.map(w).join(' ');
+    this.gridCols = '40px ' + (this.showAiCol ? '112px ' : '') + sc.source.widths.map(w).join(' ');
     const prio = sc.hasPriority ? ' 72px' : '';
     this.listCols = `136px 56px${phase === 'structure' ? '' : prio} minmax(0, 1fr) 96px`;
 
