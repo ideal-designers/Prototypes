@@ -99,7 +99,7 @@ export const PROTO_META: Record<string, ProtoMetaInfo> = {
     "preview": true
   },
   "ai-assistant": {
-    "updated": "2026-09-02T16:17:57+03:00",
+    "updated": "2026-10-20T16:30:37+03:00",
     "author": "Dmitriy Siniehin",
     "preview": true
   },
@@ -147,7 +147,7 @@ export const PROTO_META: Record<string, ProtoMetaInfo> = {
     "preview": true
   },
   "docs-ai-search": {
-    "updated": "2026-10-05T17:51:29+03:00",
+    "updated": "2026-10-20T16:30:37+03:00",
     "author": "Dmitriy Siniehin",
     "preview": true
   },
