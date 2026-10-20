@@ -254,6 +254,16 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./prototypes/project-index-menu/project-index-menu.component').then(m => m.ProjectIndexMenuComponent),
   },
+    {
+    path: 'ai-motion',
+    loadComponent: () =>
+      import('./prototypes/ai-motion/ai-motion.component').then(m => m.AiMotionComponent),
+  },
+    {
+    path: 'ai-loader-lab',
+    loadComponent: () =>
+      import('./prototypes/ai-loader-lab/ai-loader-lab.component').then(m => m.AiLoaderLabComponent),
+  },
   // PROTO_ROUTES_PLACEHOLDER
   {
     path: '**',

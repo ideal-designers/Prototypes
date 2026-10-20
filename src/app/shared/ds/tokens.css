@@ -776,3 +776,30 @@
 /* ── Document viewer chrome (Figma 720:132217 / 720:132257) ──────────────────── */
 :root { --shadow-viewer: 0 0 4px rgba(52, 58, 64, 0.08); }
 :root { --shadow-ai-field: 0 0.5px 1.75px rgba(0, 0, 0, 0.08); }
+
+/* ── AI mark motion (ai-motion / ai-loader-lab prototypes) ────────────────────
+   The ideals. sphere (sidebar logo, DS Figma 15032:7628): a dark-green disc with
+   three lighter ellipses nested against its left edge. Brand ink stays the same
+   in dark; only the line and glow lift. */
+:root {
+  --ai-mark-base:   #1D8269;
+  --ai-mark-shade:  #022E34;
+  --ai-mark-top:    #2C9C74;
+  --ai-mark-low-1:  #3FB67D;
+  --ai-mark-low-2:  #57D188;
+  --ai-mark-low-3:  #70EB94;
+  --ai-mark-line:   var(--color-primary-500, #2C9C74);
+  --ai-mark-glow:   rgba(63, 182, 125, 0.32);
+  --ai-mark-shimmer: var(--color-primary-500, #2C9C74);
+  /* Iridescent skin: the light AI edge pastels, kept in dark too (the dark edge set reads muddy on a sphere) */
+  --ai-mark-iris-1: #93F6A4;
+  --ai-mark-iris-2: #F8EB81;
+  --ai-mark-iris-3: #D8D8F1;
+  --ai-mark-iris-4: #C3C4E8;
+  --ai-mark-iris-line: #FFFFFF;
+}
+.dark-theme {
+  --ai-mark-line:   #57D188;
+  --ai-mark-glow:   rgba(87, 209, 136, 0.28);
+  --ai-mark-shimmer: #70EB94;
+}

@@ -326,5 +326,21 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
     status: 'wip',
     description: 'Project index droplist: option 1 (divide into groups) vs option 2 (change copy), with permission',
   },
+    {
+    slug: 'ai-motion',
+    title: 'AI Motion — working symbol & placeholder',
+    module: 'General Exploration',
+    figma: 'https://www.figma.com/design/Vhy3jLaJ9nasbzTtqbu3qB/AI-Assistant?node-id=1-4',
+    status: 'wip',
+    description: 'Logo-based animations for the AI: the small symbol that shows the assistant is working and the big placeholder on the empty / loading screen. Candidates side by side, a map of where each one goes in the AI Assistant (from Figma), and the motion rules.',
+  },
+    {
+    slug: 'ai-loader-lab',
+    title: 'AI Loader Lab — spinners & thinking states',
+    module: 'General Exploration',
+    figma: 'https://www.figma.com/design/liyNDiFf1piO8SQmHNKoeU/FVDR---Design-System?node-id=15032-7628',
+    status: 'wip',
+    description: 'Claude-style experiments with our logo and colours: a live thinking status line with rotating verbs and shimmer, spinner variants built from the ideals. sphere, composer stop states and skeletons. Tune speed, size, palette and theme.',
+  },
   // REGISTRY_PLACEHOLDER
 ];
