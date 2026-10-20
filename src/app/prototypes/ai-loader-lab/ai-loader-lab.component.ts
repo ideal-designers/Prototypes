@@ -71,7 +71,7 @@ const ANSWER = 'Revenue grew 18% in FY2025, to $412M. Most of it came from the E
             <span class="meta" *ngIf="timer && busy">{{ elapsed }}s</span>
             <fvdr-icon name="chevron-right" class="dim" *ngIf="phase === 'done'"></fvdr-icon>
           </div>
-          <p class="chat__a" *ngIf="streamed">{{ streamed }}<ai-motion-mark *ngIf="phase === 'streaming'" class="caret" mode="wave" [skin]="skin" [size]="11" [speed]="speed"></ai-motion-mark></p>
+          <p class="chat__a" *ngIf="streamed">{{ streamed }}<ai-motion-mark *ngIf="phase === 'streaming'" class="caret" [mode]="mode" [skin]="skin" [size]="11" [speed]="speed"></ai-motion-mark></p>
           <div class="composer">
             <span class="composer__ph">Ask about this project or describe a task</span>
             <button class="sendbtn" type="button" (click)="toggleRun()"
@@ -116,11 +116,11 @@ const ANSWER = 'Revenue grew 18% in FY2025, to $412M. Most of it came from the E
             <ai-motion-mark *ngSwitchCase="'iris'" mode="orbit" skin="iris" [size]="56" [speed]="speed * 0.6"></ai-motion-mark>
             <span *ngSwitchCase="'eye'" class="eyes">
               <ai-motion-mark mode="eye" skin="outline" [size]="56" [speed]="speed"></ai-motion-mark>
-              <ai-motion-mark mode="eye" [size]="56" [speed]="speed"></ai-motion-mark>
+              <ai-motion-mark mode="eye" skin="iris" [size]="56" [speed]="speed"></ai-motion-mark>
             </span>
             <span *ngSwitchCase="'mandala'" class="eyes">
               <ai-motion-mark mode="mandala" skin="outline" [size]="56" [speed]="speed"></ai-motion-mark>
-              <ai-motion-mark mode="mandala" [size]="56" [speed]="speed"></ai-motion-mark>
+              <ai-motion-mark mode="mandala" skin="iris" [size]="56" [speed]="speed"></ai-motion-mark>
             </span>
             <ai-motion-mark *ngSwitchCase="'sonar'" mode="sonar" [skin]="skin" [size]="36" [speed]="speed"></ai-motion-mark>
 
@@ -138,14 +138,14 @@ const ANSWER = 'Revenue grew 18% in FY2025, to $412M. Most of it came from the E
             </span>
 
             <span *ngSwitchCase="'comet'" class="comet" [style.--sp]="speed">
-              <ai-motion-mark mode="wave" [skin]="skin" [size]="40" [speed]="speed"></ai-motion-mark>
+              <ai-motion-mark [mode]="mode" [skin]="skin" [size]="40" [speed]="speed"></ai-motion-mark>
               <i class="comet__sat"></i>
             </span>
 
             <span *ngSwitchCase="'shimmer'" class="big-shimmer shimmer">{{ verb }}…</span>
 
             <span *ngSwitchCase="'skeleton'" class="skel">
-              <span class="skel__head"><ai-motion-mark mode="turn" [skin]="skin" [size]="16" [speed]="speed"></ai-motion-mark><i></i></span>
+              <span class="skel__head"><ai-motion-mark [mode]="mode" [skin]="skin" [size]="16" [speed]="speed"></ai-motion-mark><i></i></span>
               <i></i><i></i><i class="short"></i>
             </span>
 
@@ -305,8 +305,8 @@ const ANSWER = 'Revenue grew 18% in FY2025, to $412M. Most of it came from the E
 export class AiLoaderLabComponent implements OnInit, OnDestroy {
   private tracker = inject(TrackerService);
 
-  mode: AiMarkMode = 'turn';
-  skin: AiMarkSkin = 'brand';
+  mode: AiMarkMode = 'flow';
+  skin: AiMarkSkin = 'outline';
   speed = 1;
   theme: 'light' | 'dark' = 'light';
   verbSet: VerbSet = 'vdr';
@@ -326,10 +326,10 @@ export class AiLoaderLabComponent implements OnInit, OnDestroy {
 
   readonly sizes = [12, 14, 16, 20, 24, 32, 48, 64, 120];
   readonly modeItems: SegmentItem[] = [
-    { id: 'turn', label: 'Turn' }, { id: 'morph', label: 'Spark' }, { id: 'flow', label: 'Flow' }, { id: 'cascade', label: 'Cascade' },
-    { id: 'wave', label: 'Wave' }, { id: 'orbit', label: 'Orbit' }, { id: 'liquid', label: 'Liquid' }, { id: 'spin', label: 'Ring' }, { id: 'eye', label: 'Eye' }, { id: 'mandala', label: 'Mandala' },
+    { id: 'flow', label: 'Flow' }, { id: 'morph', label: 'Spark' }, { id: 'cascade', label: 'Cascade' }, { id: 'orbit', label: 'Orbit' },
+    { id: 'spin', label: 'Ring' }, { id: 'eye', label: 'Eye' }, { id: 'mandala', label: 'Mandala' },
   ];
-  readonly skinItems: SegmentItem[] = [{ id: 'brand', label: 'Brand' }, { id: 'outline', label: 'Outline' }, { id: 'iris', label: 'Iris' }, { id: 'mono', label: 'Mono' }];
+  readonly skinItems: SegmentItem[] = [{ id: 'outline', label: 'Outline' }, { id: 'iris', label: 'Iris' }];
   readonly speedItems: SegmentItem[] = [{ id: '0.5', label: '0.5×' }, { id: '1', label: '1×' }, { id: '1.5', label: '1.5×' }, { id: '2', label: '2×' }];
   readonly verbItems: SegmentItem[] = [{ id: 'vdr', label: 'Data room' }, { id: 'playful', label: 'Playful' }, { id: 'literal', label: 'Steps' }];
   readonly themeItems: SegmentItem[] = [{ id: 'light', icon: 'theme-light' }, { id: 'dark', icon: 'theme-dark' }];
@@ -346,7 +346,7 @@ export class AiLoaderLabComponent implements OnInit, OnDestroy {
     { id: 'sonar', name: 'Sonar', note: 'Rings ripple out from a resting logo while we wait on something external, like indexing.' },
     { id: 'dots', name: 'Layer dots', note: 'The three inner layers as typing dots. A familiar chat read in brand colour.' },
     { id: 'progress', name: 'Determinate ring', note: 'When we know how far along we are (report 3 of 5), the ring fills instead of spinning.' },
-    { id: 'comet', name: 'Satellite', note: 'A breathing mark with one layer escaped into orbit. Playful and readable at 24px+.' },
+    { id: 'comet', name: 'Satellite', note: 'The selected mark with one layer escaped into orbit. Playful and readable at 24px+.' },
     { id: 'shimmer', name: 'Shimmer only', note: 'No icon at all, like ChatGPT\'s "Thinking". Quietest for dense UI.' },
     { id: 'skeleton', name: 'Branded skeleton', note: 'Green-tinted shimmer on placeholders while a brief or table assembles.' },
     { id: 'pill', name: 'Floating pill', note: 'Status chip for background work you can leave: "Catching you up…" on Home.' },
