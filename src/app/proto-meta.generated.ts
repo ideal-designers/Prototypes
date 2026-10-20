@@ -147,7 +147,7 @@ export const PROTO_META: Record<string, ProtoMetaInfo> = {
     "preview": true
   },
   "docs-ai-search": {
-    "updated": "2026-10-20T16:30:37+03:00",
+    "updated": "2026-10-20T16:48:00+03:00",
     "author": "Dmitriy Siniehin",
     "preview": true
   },
@@ -192,11 +192,11 @@ export const PROTO_META: Record<string, ProtoMetaInfo> = {
     "author": "Maryna Pinchuk"
   },
   "ai-motion": {
-    "updated": "2026-10-20T16:18:15+03:00",
+    "updated": "2026-10-20T16:48:00+03:00",
     "author": "Dmitriy Siniehin"
   },
   "ai-loader-lab": {
-    "updated": "2026-10-20T16:18:15+03:00",
+    "updated": "2026-10-20T16:48:00+03:00",
     "author": "Dmitriy Siniehin"
   }
 };
