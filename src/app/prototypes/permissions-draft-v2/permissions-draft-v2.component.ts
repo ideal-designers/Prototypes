@@ -377,13 +377,30 @@ function minutesAgo(m: number): Date { return new Date(Date.now() - m * 60_000);
             </div>
 
             <!-- ── CHANGES / HISTORY DRAWER ─────────────────── -->
-            <aside class="drawer" *ngIf="panelOpen">
+            <!-- Drawer: always on the page; collapses to a narrow rail instead of closing -->
+            <aside class="drawer" [class.drawer--collapsed]="!panelOpen">
+
+              <!-- Collapsed rail -->
+              <button *ngIf="!panelOpen" class="rail" data-track="expand-drawer"
+                      fvdrTooltip="Expand activity panel" tooltipPosition="left"
+                      aria-label="Expand activity panel" (click)="openPanel('activity')">
+                <fvdr-icon name="angle-double-left" class="rail-chevron" />
+                <span class="rail-icon">
+                  <fvdr-icon name="history" />
+                  <span class="rail-dot" *ngIf="changeCount"></span>
+                </span>
+                <fvdr-counter *ngIf="changeCount" [value]="changeCount" variant="warning" />
+                <span class="rail-label">{{ changeCount ? 'Activity · not saved' : 'Activity' }}</span>
+              </button>
+
+              <ng-container *ngIf="panelOpen">
               <div class="drawer-hdr">
                 <fvdr-tabs [tabs]="panelTabs" [activeId]="panelTab" size="s"
                            (activeIdChange)="panelTab = $any($event)" />
-                <button class="ic-btn" fvdrTooltip="Close panel" tooltipPosition="left"
-                        aria-label="Close panel" (click)="panelOpen = false">
-                  <fvdr-icon name="close" />
+                <button class="ic-btn" fvdrTooltip="Collapse panel" tooltipPosition="left"
+                        data-track="collapse-drawer"
+                        aria-label="Collapse panel" (click)="panelOpen = false">
+                  <fvdr-icon name="angle-double-right" />
                 </button>
               </div>
 
@@ -546,6 +563,7 @@ function minutesAgo(m: number): Date { return new Date(Date.now() - m * 60_000);
                   </div>
                 </div>
               </div>
+              </ng-container>
             </aside>
 
           </div>
@@ -554,10 +572,6 @@ function minutesAgo(m: number): Date { return new Date(Date.now() - m * 60_000);
         <!-- ── DRAFT BAR ─────────────────────────────────────── -->
         <div class="draft-bar" *ngIf="changeCount">
           <div class="draft-actions">
-            <fvdr-btn variant="ghost" [iconOnly]="true" iconName="undo"
-                      ariaLabel="Undo last change (⌘Z)"
-                      [disabled]="!undoStack.length"
-                      (clicked)="undo()" />
             <fvdr-btn variant="secondary" label="Discard all" (clicked)="discardOpen = true" />
             <fvdr-btn variant="primary" [label]="'Save ' + changeCount + (changeCount === 1 ? ' change' : ' changes')"
                       dataTrack="open-save-review" (clicked)="openSaveReview()" />
@@ -569,8 +583,8 @@ function minutesAgo(m: number): Date { return new Date(Date.now() - m * 60_000);
               <span>{{ changedDocIds.length }} {{ changedDocIds.length === 1 ? 'document' : 'documents' }}
                 · {{ changedGroupIds.length }} {{ changedGroupIds.length === 1 ? 'group' : 'groups' }}</span>
             </div>
-            <button *ngIf="!panelOpen" class="tool-link" data-track="review-changes" (click)="openPanel('activity')">Open activity</button>
           </div>
+          <button *ngIf="!panelOpen" class="tool-link draft-open" data-track="review-changes" (click)="openPanel('activity')">Open activity</button>
         </div>
       </div>
     </div>
@@ -1326,7 +1340,35 @@ function minutesAgo(m: number): Date { return new Date(Date.now() - m * 60_000);
     }
 
     /* ── Activity log ── */
-    .drawer { width: 360px; }
+    .drawer {
+      width: 360px;
+      animation: none;
+      transition: width 0.22s ease;
+    }
+    .drawer--collapsed { width: 48px; }
+    .rail {
+      flex: 1;
+      display: flex; flex-direction: column; align-items: center; gap: var(--space-3);
+      padding: var(--space-3) 0;
+      background: none; border: none; cursor: pointer;
+      font-family: var(--font-family);
+      color: var(--color-text-secondary);
+    }
+    .rail:hover { background: var(--color-stone-100); color: var(--color-text-primary); }
+    .rail-chevron { font-size: 16px; }
+    .rail-icon { position: relative; font-size: 18px; display: flex; }
+    .rail-dot {
+      position: absolute; top: -2px; right: -3px;
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--changed-bar);
+      border: 2px solid var(--color-stone-0);
+      animation: live-pulse 1.6s ease-in-out infinite;
+    }
+    .rail-label {
+      writing-mode: vertical-rl;
+      font-size: 12px; font-weight: 600; letter-spacing: 0.02em;
+      white-space: nowrap;
+    }
     .session-hdr {
       display: flex; align-items: center; gap: var(--space-3);
       padding: var(--space-3) var(--space-4);
@@ -1459,7 +1501,7 @@ function minutesAgo(m: number): Date { return new Date(Date.now() - m * 60_000);
 
     /* ── Draft bar ── */
     .draft-bar {
-      display: flex; align-items: center; justify-content: space-between; gap: var(--space-4);
+      display: flex; align-items: center; gap: var(--space-4);
       /* extra right padding keeps Save clear of the platform's floating feedback buttons */
       padding: var(--space-3) calc(var(--space-10) * 2) var(--space-3) var(--space-6);
       border-top: 1px solid var(--color-divider);
@@ -1470,7 +1512,9 @@ function minutesAgo(m: number): Date { return new Date(Date.now() - m * 60_000);
     }
     @keyframes bar-in { from { transform: translateY(100%); } to { transform: none; } }
     .draft-status { display: flex; align-items: center; gap: var(--space-3); min-width: 0; }
-    .draft-status .tool-link { order: -1; }
+    /* Status sits right after Save, split off by a divider */
+    .draft-status { padding-left: var(--space-4); border-left: 1px solid var(--color-divider); }
+    .draft-open { margin-left: auto; }
     .draft-mark {
       width: 32px; height: 32px; flex-shrink: 0;
       display: flex; align-items: center; justify-content: center;
