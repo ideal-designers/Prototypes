@@ -6,6 +6,7 @@ import { AiEngineService } from '../../services/ai-engine.service';
 import { ChatMessage } from '../../models/ai-message.model';
 import { MockDocument } from '../../models/mock-doc.model';
 import { AiMessageComponent } from '../ai-message/ai-message.component';
+import { AiMarkComponent } from '../../../ai-motion/ai-mark.component';
 
 /**
  * Empty state ↔ active transcript, with the composer docked at the bottom.
@@ -19,13 +20,16 @@ import { AiMessageComponent } from '../ai-message/ai-message.component';
 @Component({
   selector: 'fvdr-vdr-ai-conversation',
   standalone: true,
-  imports: [CommonModule, ...DS_COMPONENTS, AiMessageComponent],
+  imports: [CommonModule, ...DS_COMPONENTS, AiMessageComponent, AiMarkComponent],
   template: `
     <div class="conv">
       <!-- ── Empty state ── -->
       <div class="empty" *ngIf="conv.isEmpty(); else transcript">
         <div class="empty__intro">
-          <span class="empty__mark"><fvdr-icon name="ideon"></fvdr-icon></span>
+          <!-- Waiting for the first question: the line logo opens into an eye that follows the
+               cursor and blinks (ai-motion "Watching eye", outline skin). -->
+          <ai-motion-mark class="empty__mark" mode="eye" skin="outline" [size]="compact ? 44 : 56"
+                          label="AI Assistant"></ai-motion-mark>
           <h1 class="empty__title">How can I help you today?</h1>
         </div>
 
@@ -88,15 +92,7 @@ import { AiMessageComponent } from '../ai-message/ai-message.component';
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       gap: var(--space-4); padding: var(--space-8) 0;
     }
-    /* The Ideon gradient is pastel — only ~1.3-1.7:1 against white, so it needs a
-       dark plate at hero size to read. On the small nav/header placements the mark
-       sits directly on the surface. */
-    .empty__mark {
-      display: inline-flex; align-items: center; justify-content: center;
-      width: 48px; height: 48px; border-radius: var(--radius-full);
-      background: var(--ideon-plate, #1F2129);
-      font-size: 26px;
-    }
+    .empty__mark { display: inline-flex; }
     .empty__title {
       margin: 0;
       font-size: var(--font-size-5xl, 28px);
