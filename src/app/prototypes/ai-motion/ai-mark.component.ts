@@ -26,7 +26,8 @@ export type AiMarkMode =
   | 'liquid'    // slow organic wobble, for the large placeholder
   | 'sonar'     // resting logo, rings ripple out from it
   | 'spin'      // arc spinner around a breathing logo
-  | 'eye';      // inner rings become an eye that follows the pointer and blinks
+  | 'eye'       // inner rings become an eye that follows the pointer and blinks
+  | 'mandala';  // layers bloom into petalled mandalas that morph from one to the next
 
 export type AiMarkSkin = 'brand' | 'outline' | 'iris' | 'mono';
 
@@ -80,6 +81,39 @@ function shapePath(l: Layer): string {
 
 function restLayers(): Layer[] {
   return RX.map((rx, i) => ({ cx: rx, cy: CY, rx, ry: RY[i], pinch: 0, rot: 0, op: 1 }));
+}
+
+/* ── Mandala ────────────────────────────────────────────────────────────────
+   Each layer becomes a concentric petal ring r(θ) = R·(1 − a + a·|cos(kθ/2)|^p).
+   Shapes are sampled on one shared θ grid, so mandala → mandala and logo → mandala
+   are plain point-by-point blends (no seams when the petal count changes). */
+const MANDALA_N = 120;
+const MANDALA_R = [16.4, 12.6, 8.8, 4.6];
+interface Petal { k: number; a: number; p: number; }
+const MANDALAS: Petal[][] = [
+  [{ k: 8,  a: 0.10, p: 1 }, { k: 8,  a: 0.24, p: 2 }, { k: 4, a: 0.34, p: 2 }, { k: 0, a: 0,    p: 1 }],
+  [{ k: 12, a: 0.07, p: 1 }, { k: 6,  a: 0.30, p: 3 }, { k: 6, a: 0.38, p: 1 }, { k: 3, a: 0.32, p: 2 }],
+  [{ k: 16, a: 0.05, p: 1 }, { k: 10, a: 0.20, p: 1 }, { k: 5, a: 0.42, p: 3 }, { k: 5, a: 0.36, p: 1 }],
+];
+function petalR(layer: number, set: number, th: number): number {
+  const { k, a, p } = MANDALAS[set][layer];
+  const f = k ? Math.pow(Math.abs(Math.cos((k * th) / 2)), p) : 1;
+  return MANDALA_R[layer] * (1 - a + a * f);
+}
+/** Logo layer (left-tangent ellipse) blended with mandala layer `i` at time t, weight w. */
+function mandalaPath(i: number, logo: Layer, t: number, w: number): string {
+  const P = 2.6, u = t / P, set = Math.floor(u) % MANDALAS.length, next = (set + 1) % MANDALAS.length;
+  const fr = u - Math.floor(u), m = fr < 0.55 ? 0 : ease((fr - 0.55) / 0.45);
+  const spin = (i % 2 ? -1 : 1) * t * (0.25 + i * 0.12);   // alternate rings turn opposite ways
+  let d = '';
+  for (let j = 0; j < MANDALA_N; j++) {
+    const th = (j / MANDALA_N) * Math.PI * 2;
+    const r = lerp(petalR(i, set, th - spin), petalR(i, next, th - spin), m);
+    const mx = CX + r * Math.cos(th), my = CY + r * Math.sin(th);
+    const lx = logo.cx + logo.rx * Math.cos(th), ly = logo.cy + logo.ry * Math.sin(th);
+    d += `${j ? 'L' : 'M'}${lerp(lx, mx, w).toFixed(3)} ${lerp(ly, my, w).toFixed(3)}`;
+  }
+  return d + 'Z';
 }
 
 let uid = 0;
@@ -388,7 +422,7 @@ export class AiMarkComponent implements AfterViewInit, OnChanges, OnDestroy {
         pinch: lerp(a.pinch, b.pinch, w), rot: b.rot * w, op: lerp(a.op, b.op, w), lens: (b.lens ?? 0) * w,
       };
       blended.push(l);
-      const d = shapePath(l);
+      const d = this.mode === 'mandala' && w > 0 ? mandalaPath(i, a, this.t, w) : shapePath(l);
       const tr = l.rot ? `rotate(${l.rot.toFixed(2)} ${CX} ${CY})` : '';
       const el = fills[i]?.nativeElement;
       const eye = this.mode === 'eye';

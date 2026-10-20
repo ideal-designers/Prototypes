@@ -159,12 +159,19 @@ export interface VdrChatSourceGroup { title: string; items: VdrChatSourceItem[] 
 
                 <div class="a" *ngIf="t.role === 'assistant'">
                   <!-- Thinking, no steps yet -->
-                  <fvdr-ai-orb *ngIf="t.streaming && !t.steps?.length" class="a__think" [thinking]="true" label="Thinking..."></fvdr-ai-orb>
+                  <ng-container *ngIf="t.streaming && !t.steps?.length">
+                    <fvdr-ai-orb *ngIf="thinkingMark === 'orb'" class="a__think" [thinking]="true" label="Thinking..."></fvdr-ai-orb>
+                    <span *ngIf="thinkingMark !== 'orb'" class="a__think think" role="status" aria-label="Thinking...">
+                      <ai-motion-mark [mode]="thinkingMark" skin="outline" [size]="18"></ai-motion-mark>
+                      <span class="think__label">Thinking...</span>
+                    </span>
+                  </ng-container>
 
                   <!-- Live steps -->
                   <ul class="steps" *ngIf="t.streaming && t.steps?.length">
                     <li class="step" *ngFor="let s of t.steps; let last = last" [class.step--live]="!s.done">
-                      <fvdr-ai-orb *ngIf="!s.done" [thinking]="true" [size]="14" [showLabel]="false" label="Working"></fvdr-ai-orb>
+                      <fvdr-ai-orb *ngIf="!s.done && thinkingMark === 'orb'" [thinking]="true" [size]="14" [showLabel]="false" label="Working"></fvdr-ai-orb>
+                      <ai-motion-mark *ngIf="!s.done && thinkingMark !== 'orb'" [mode]="thinkingMark" skin="outline" [size]="16" label="Working"></ai-motion-mark>
                       <fvdr-icon *ngIf="s.done" name="check" class="step__ok"></fvdr-icon>
                       <span class="step__label">{{ s.label }}</span>
                       <span class="step__meta" *ngIf="s.detail">{{ s.detail }}</span>
@@ -347,6 +354,15 @@ export interface VdrChatSourceGroup { title: string; items: VdrChatSourceItem[] 
     .a__think { align-self: flex-start; }
     .empty__orb { position: relative; z-index: 0; margin: var(--space-6) 0 var(--space-2); } /* the render's glow needs air */
     .empty__eye { margin: var(--space-4) 0 0; }
+    /* Outline thinking mark + label with a brand-green shimmer sweep (ai-motion) */
+    .think { display: inline-flex; align-items: center; gap: var(--space-2); }
+    .think__label { font-size: var(--font-size-base, 14px); line-height: 20px;
+      background: linear-gradient(90deg, var(--color-text-secondary) 0%, var(--color-text-secondary) 40%,
+        var(--ai-mark-shimmer) 50%, var(--color-text-secondary) 60%, var(--color-text-secondary) 100%);
+      background-size: 250% 100%; -webkit-background-clip: text; background-clip: text; color: transparent;
+      animation: think-shimmer 2s linear infinite; }
+    @keyframes think-shimmer { from { background-position: 100% 0; } to { background-position: -150% 0; } }
+    @media (prefers-reduced-motion: reduce) { .think__label { animation: none; background: none; color: var(--color-text-secondary); } }
     .empty__txt, .brief, .cats, .examples { position: relative; z-index: 1; } /* text sits over the orb's glow */
     .steps { display: flex; flex-direction: column; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
     .steps--audit { padding-left: var(--space-1); margin-bottom: var(--space-2); }
@@ -445,6 +461,8 @@ export class VdrAssistantChatComponent implements AfterViewChecked {
   @Input() activeThreadId = '';
   /** Empty-state mark: the hero orb render, or the line logo as an eye that follows the cursor (ai-motion). */
   @Input() heroMark: 'orb' | 'eye' = 'orb';
+  /** Thinking / live-step mark: the orb render, or the outline logo animated (ai-motion Flow / Orbit). */
+  @Input() thinkingMark: 'orb' | 'flow' | 'orbit' | 'mandala' = 'orb';
   @Input() greeting = 'Tap into Ideals AI Assistant';
   @Input() subtitle = 'Get instant answers to your most complex work questions without having to dig through the project.';
   @Input() footnote = 'Every answer comes only from files you’re already allowed to see in this project';

@@ -7,12 +7,13 @@ import type {
 } from '../../shared/ds';
 import type { FvdrIconName } from '../../shared/ds/icons/icons';
 import { TrackerService } from '../../services/tracker.service';
+import { AiMarkComponent } from '../ai-motion/ai-mark.component';
 import { VdrAnswerBodyComponent, DocHoverEvent } from './answer-body.component';
 import { VdrDocPreviewComponent } from './doc-preview.component';
 import {
   VdrAssistantChatComponent, VdrChatSourceGroup, VdrChatSourceItem, VdrChatThread, VdrChatTurn,
 } from '../_shared/assistant-chat.component';
-import type { ProtoGroup } from '../_shared/proto-switcher.component';
+import { VdrProtoSwitcherComponent, type ProtoGroup } from '../_shared/proto-switcher.component';
 import { VdrV12AnswerComponent, V12DocOpen } from './v12-answer.component';
 import { VdrV12FieldComponent } from './v12-field.component';
 import {
@@ -39,7 +40,7 @@ type AiState = 'loading' | 'clarify' | 'answer';
 @Component({
   selector: 'fvdr-docs-ai-search',
   standalone: true,
-  imports: [CommonModule, FormsModule, ...DS_COMPONENTS, VdrAnswerBodyComponent, VdrDocPreviewComponent, VdrAssistantChatComponent,
+  imports: [CommonModule, FormsModule, ...DS_COMPONENTS, AiMarkComponent, VdrProtoSwitcherComponent, VdrAnswerBodyComponent, VdrDocPreviewComponent, VdrAssistantChatComponent,
     VdrV12AnswerComponent, VdrV12FieldComponent],
   template: `
     <div class="page">
@@ -129,6 +130,7 @@ type AiState = 'loading' | 'clarify' | 'answer';
               <div class="results">
                 <!-- ── V1.2 · AI Overview with small input field (Figma 720:131529) ── -->
                 <fvdr-ai-overview
+                  [loadingTemplate]="thinking === 'orb' ? null : thinkTpl"
                   *ngIf="mode === 'results' && solution === 'v12'"
                   headerMode="collapse"
                   [(collapsed)]="overviewCollapsed"
@@ -171,6 +173,7 @@ type AiState = 'loading' | 'clarify' | 'answer';
 
                 <!-- ── AI Overview ── -->
                 <fvdr-ai-overview
+                  [loadingTemplate]="thinking === 'orb' ? null : thinkTpl"
                   *ngIf="mode === 'results' && solution !== 'v12' && !overviewDismissed"
                   [headerMode]="solution === 'v1' ? 'collapse' : 'dismiss'"
                   [(collapsed)]="overviewCollapsed"
@@ -258,6 +261,7 @@ type AiState = 'loading' | 'clarify' | 'answer';
           <div class="chat" *ngIf="view === 'chat'">
             <fvdr-vdr-assistant-chat
               heroMark="eye"
+              [thinkingMark]="thinking"
               [turns]="chatMessages"
               [busy]="chatStreaming"
               [answerTemplate]="answerTpl"
@@ -335,8 +339,29 @@ type AiState = 'loading' | 'clarify' | 'answer';
       (mouseleave)="onDocHover(null)"
     ></fvdr-doc-info-card>
 
+
+  <!-- Prototype-only: compare thinking animations in place -->
+  <fvdr-vdr-proto-switcher [groups]="thinkingGroups" [showRestart]="false" (changed)="onOption($event)"></fvdr-vdr-proto-switcher>
+
+  <!-- AI Overview loading row with the outline logo (prototype option "Thinking") -->
+  <ng-template #thinkTpl let-label>
+    <span class="think" role="status" [attr.aria-label]="label">
+      <ai-motion-mark [mode]="thinking === 'orb' ? 'turn' : thinking" skin="outline" [size]="20"></ai-motion-mark>
+      <span class="think__label">{{ label }}</span>
+    </span>
+  </ng-template>
   `,
   styles: [`
+    /* Outline thinking mark + shimmering label (prototype option "Thinking", ai-motion) */
+    .think { display: inline-flex; align-items: center; gap: var(--space-2); }
+    .think__label { font-size: var(--font-size-base, 14px); line-height: 20px;
+      background: linear-gradient(90deg, var(--color-text-secondary) 0%, var(--color-text-secondary) 40%,
+        var(--ai-mark-shimmer) 50%, var(--color-text-secondary) 60%, var(--color-text-secondary) 100%);
+      background-size: 250% 100%; -webkit-background-clip: text; background-clip: text; color: transparent;
+      animation: think-shimmer 2s linear infinite; }
+    @keyframes think-shimmer { from { background-position: 100% 0; } to { background-position: -150% 0; } }
+    @media (prefers-reduced-motion: reduce) { .think__label { animation: none; background: none; color: var(--color-text-secondary); } }
+
     :host { display: block; height: 100vh; overflow: hidden; font-family: var(--font-family);
       font-size: var(--font-size-base, 14px); color: var(--color-text-primary); }
 
@@ -452,10 +477,17 @@ export class DocsAiSearchComponent implements OnInit, OnDestroy {
   solution: Solution = 'v12';
   v1Layout: V1Layout = 'rail';
   v2View: V2View = 'list';
+  /** Thinking animation to compare: the current orb renders, or the outline logo (ai-motion Flow / Orbit). */
+  thinking: 'orb' | 'flow' | 'orbit' | 'mandala' = 'orb';
   /** Cached — rebuilt only when an option changes, so the switcher's buttons stay put under the pointer. */
   switcherGroups: ProtoGroup[] = [];
+  /** The only group on screen — the V1/V2 solution switch was retired (c367cdc), the thinking comparison wasn't. */
+  thinkingGroups: ProtoGroup[] = [];
   private syncSwitcher(): void {
     this.switcherGroups = [
+      { id: 'thinking', label: 'Thinking', value: this.thinking, options: [
+        { id: 'orb', label: 'Current' }, { id: 'flow', label: 'Outline Flow' }, { id: 'orbit', label: 'Outline Orbit' },
+        { id: 'mandala', label: 'Outline Mandala' } ] },
       { id: 'solution', label: 'Solution', value: this.solution, options: [
         { id: 'v12', label: 'V1.2 · Small input' },
         { id: 'v1', label: 'V1 · Overview + table' }, { id: 'v2', label: 'V2 · Overview with docs' } ] },
@@ -465,12 +497,14 @@ export class DocsAiSearchComponent implements OnInit, OnDestroy {
         : { id: 'v2View', label: 'Answer', value: this.v2View, options: [
             { id: 'list', label: 'List' }, { id: 'table', label: 'Table' } ] }]),
     ];
+    this.thinkingGroups = this.switcherGroups.filter(g => g.id === 'thinking');
   }
 
   onOption(e: { group: string; value: string }): void {
     if (e.group === 'solution') this.setSolution(e.value);
     if (e.group === 'v1Layout') this.v1Layout = e.value as V1Layout;
     if (e.group === 'v2View') this.v2View = e.value as V2View;
+    if (e.group === 'thinking') this.thinking = e.value as 'orb' | 'flow' | 'orbit' | 'mandala';
     this.syncSwitcher();
   }
 

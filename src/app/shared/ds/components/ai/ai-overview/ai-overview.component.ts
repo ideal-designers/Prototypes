@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, TemplateRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FvdrIconComponent } from '../../../icons/icon.component';
 import { AiActionsComponent, AiRating } from '../ai-actions/ai-actions.component';
@@ -55,7 +55,9 @@ export type AiOverviewHeaderMode = 'collapse' | 'dismiss';
 
       <div class="ov__body" *ngIf="!collapsed">
         <div *ngIf="loading; else content" class="ov__loading" role="status">
-          <fvdr-thinking-orbs [label]="loadingLabel" [showLabel]="true" [size]="32"></fvdr-thinking-orbs>
+          <ng-container *ngIf="loadingTemplate; else orbs"
+                        [ngTemplateOutlet]="loadingTemplate" [ngTemplateOutletContext]="{ $implicit: loadingLabel }"></ng-container>
+          <ng-template #orbs><fvdr-thinking-orbs [label]="loadingLabel" [showLabel]="true" [size]="32"></fvdr-thinking-orbs></ng-template>
         </div>
 
         <ng-template #content>
@@ -166,6 +168,8 @@ export class AiOverviewComponent {
 
   @Input() loading = false;
   @Input() loadingLabel = 'Reading the documents…';
+  /** Replaces the thinking-orbs row while loading; context `$implicit` is the label. */
+  @Input() loadingTemplate: TemplateRef<{ $implicit: string }> | null = null;
 
   @Input() showActions = true;
   @Input() rating: AiRating = null;

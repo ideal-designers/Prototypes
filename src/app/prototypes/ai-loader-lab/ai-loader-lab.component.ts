@@ -118,6 +118,10 @@ const ANSWER = 'Revenue grew 18% in FY2025, to $412M. Most of it came from the E
               <ai-motion-mark mode="eye" skin="outline" [size]="56" [speed]="speed"></ai-motion-mark>
               <ai-motion-mark mode="eye" [size]="56" [speed]="speed"></ai-motion-mark>
             </span>
+            <span *ngSwitchCase="'mandala'" class="eyes">
+              <ai-motion-mark mode="mandala" skin="outline" [size]="56" [speed]="speed"></ai-motion-mark>
+              <ai-motion-mark mode="mandala" [size]="56" [speed]="speed"></ai-motion-mark>
+            </span>
             <ai-motion-mark *ngSwitchCase="'sonar'" mode="sonar" [skin]="skin" [size]="36" [speed]="speed"></ai-motion-mark>
 
             <span *ngSwitchCase="'dots'" class="dots" [style.--sp]="speed">
@@ -323,7 +327,7 @@ export class AiLoaderLabComponent implements OnInit, OnDestroy {
   readonly sizes = [12, 14, 16, 20, 24, 32, 48, 64, 120];
   readonly modeItems: SegmentItem[] = [
     { id: 'turn', label: 'Turn' }, { id: 'morph', label: 'Spark' }, { id: 'flow', label: 'Flow' }, { id: 'cascade', label: 'Cascade' },
-    { id: 'wave', label: 'Wave' }, { id: 'orbit', label: 'Orbit' }, { id: 'liquid', label: 'Liquid' }, { id: 'spin', label: 'Ring' }, { id: 'eye', label: 'Eye' },
+    { id: 'wave', label: 'Wave' }, { id: 'orbit', label: 'Orbit' }, { id: 'liquid', label: 'Liquid' }, { id: 'spin', label: 'Ring' }, { id: 'eye', label: 'Eye' }, { id: 'mandala', label: 'Mandala' },
   ];
   readonly skinItems: SegmentItem[] = [{ id: 'brand', label: 'Brand' }, { id: 'outline', label: 'Outline' }, { id: 'iris', label: 'Iris' }, { id: 'mono', label: 'Mono' }];
   readonly speedItems: SegmentItem[] = [{ id: '0.5', label: '0.5×' }, { id: '1', label: '1×' }, { id: '1.5', label: '1.5×' }, { id: '2', label: '2×' }];
@@ -338,6 +342,7 @@ export class AiLoaderLabComponent implements OnInit, OnDestroy {
     { id: 'orbit', name: 'Outline orbit', note: 'Single colour, so it fits inside buttons, chips and dark surfaces.' },
     { id: 'iris', name: 'Iridescent', note: 'The AI field edge palette turning behind white contours. For brand moments only.' },
     { id: 'eye', name: 'Watching eye', note: 'The rings inside the line logo become an eye that follows your cursor and blinks. Move the mouse around the page.' },
+    { id: 'mandala', name: 'Mandala morph', note: 'The rings bloom into petal patterns that counter-rotate and morph through three mandalas, then fold back into the logo.' },
     { id: 'sonar', name: 'Sonar', note: 'Rings ripple out from a resting logo while we wait on something external, like indexing.' },
     { id: 'dots', name: 'Layer dots', note: 'The three inner layers as typing dots. A familiar chat read in brand colour.' },
     { id: 'progress', name: 'Determinate ring', note: 'When we know how far along we are (report 3 of 5), the ring fills instead of spinning.' },
