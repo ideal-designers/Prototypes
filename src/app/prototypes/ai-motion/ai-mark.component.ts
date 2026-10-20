@@ -25,7 +25,8 @@ export type AiMarkMode =
   | 'orbit'     // inner layers roll around the inside of the rim (gyroscope)
   | 'liquid'    // slow organic wobble, for the large placeholder
   | 'sonar'     // resting logo, rings ripple out from it
-  | 'spin';     // arc spinner around a breathing logo
+  | 'spin'      // arc spinner around a breathing logo
+  | 'eye';      // inner rings become an eye that follows the pointer and blinks
 
 export type AiMarkSkin = 'brand' | 'outline' | 'iris' | 'mono';
 
@@ -36,7 +37,7 @@ const RY = [16.34, 14.30, 12.25, 8.17];
 const K = 0.5523;          // cubic-bezier circle constant
 const STAR_IN = 0.17;      // how close the spark's edges pull to its centre
 
-interface Layer { cx: number; cy: number; rx: number; ry: number; pinch: number; rot: number; op: number; }
+interface Layer { cx: number; cy: number; rx: number; ry: number; pinch: number; rot: number; op: number; lens?: number; }
 interface Ring { r: number; op: number; }
 
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
@@ -59,11 +60,13 @@ function ryFor(rx: number): number {
  *  Same command list either way, so any two frames interpolate cleanly. */
 function shapePath(l: Layer): string {
   const { cx, cy, rx, ry, pinch: p } = l;
+  const lens = l.lens ?? 0;            // 1 = almond: vertical handles at the side tips collapse
+  const kx = K * (1 + 0.3 * lens), ky = K * (1 - lens);
   const pt = (x: number, y: number) => `${x.toFixed(3)} ${y.toFixed(3)}`;
   const quad = (sx: number, sy: number, from: 'v' | 'h') => {
     // ellipse handles
-    const e1 = from === 'v' ? [cx + sx * K * rx, cy + sy * ry] : [cx + sx * rx, cy + sy * K * ry];
-    const e2 = from === 'v' ? [cx + sx * rx, cy + sy * K * ry] : [cx + sx * K * rx, cy + sy * ry];
+    const e1 = from === 'v' ? [cx + sx * kx * rx, cy + sy * ry] : [cx + sx * rx, cy + sy * ky * ry];
+    const e2 = from === 'v' ? [cx + sx * rx, cy + sy * ky * ry] : [cx + sx * kx * rx, cy + sy * ry];
     const s = [cx + sx * STAR_IN * rx, cy + sy * STAR_IN * ry];
     return [lerp(e1[0], s[0], p), lerp(e1[1], s[1], p), lerp(e2[0], s[0], p), lerp(e2[1], s[1], p)];
   };
@@ -80,6 +83,15 @@ function restLayers(): Layer[] {
 }
 
 let uid = 0;
+
+/** One shared pointer listener for every eye on the page. */
+const pointer = { x: 0, y: 0, at: -1e9, bound: false };
+function watchPointer(): void {
+  if (pointer.bound || typeof document === 'undefined') return;
+  pointer.bound = true;
+  document.addEventListener('pointermove', e => { pointer.x = e.clientX; pointer.y = e.clientY; pointer.at = performance.now(); },
+    { passive: true });
+}
 
 @Component({
   selector: 'ai-motion-mark',
@@ -115,7 +127,7 @@ let uid = 0;
         <circle *ngIf="mode === 'spin'" #arc class="arc" [attr.cx]="CX" [attr.cy]="CY" r="19.5"
                 [attr.stroke]="'url(#' + id + 'arc)'" pathLength="100"></circle>
 
-        <g #layers class="layers" [attr.data-skin]="skin">
+        <g #layers class="layers" [attr.data-skin]="skin" [attr.data-mode]="mode">
           <ng-container *ngFor="let l of slots; let i = index">
             <path #fill class="fill" [attr.data-i]="i"
                   [attr.fill]="skin === 'brand' && (i === 1 || i === 2) ? 'url(#' + id + 'l' + (i - 1) + ')' : null"></path>
@@ -146,6 +158,14 @@ let uid = 0;
     [data-skin='iris'] .fill { stroke: var(--ai-mark-iris-line); stroke-width: 1.6; }
     [data-skin='mono'] .fill { fill: var(--color-text-primary); fill-opacity: 0.28; }
     [data-skin='mono'] .fill[data-i='0'] { fill-opacity: 0.9; }
+    /* Eye: the smallest ring becomes the pupil — filled; its opacity follows the morph (JS) */
+    [data-mode='eye'] .shade[data-i='3'] { fill: var(--ai-mark-shade); }
+    /* Brand eye: the lid fills with the logo's lightest green (eye white), iris keeps its ramp */
+    [data-mode='eye'][data-skin='brand'] .fill[data-i='1'] { fill: var(--ai-mark-low-3); }
+    [data-mode='eye'][data-skin='outline'] .fill[data-i='3'],
+    [data-mode='eye'][data-skin='iris'] .fill[data-i='3'] { fill: var(--ai-mark-line); }
+    [data-mode='eye'][data-skin='iris'] .fill[data-i='3'] { fill: var(--ai-mark-iris-line); }
+    [data-mode='eye'][data-skin='mono'] .fill[data-i='3'] { fill-opacity: 0.9; }
 
     .ring { fill: none; stroke: var(--ai-mark-line); stroke-width: 1; vector-effect: non-scaling-stroke; opacity: 0; }
     .arc  { fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-dasharray: 32 68; vector-effect: non-scaling-stroke;
@@ -200,9 +220,12 @@ export class AiMarkComponent implements AfterViewInit, OnChanges, OnDestroy {
   private w = 0;          // eased "working" weight 0..1
   private visible = true;
   private io?: IntersectionObserver;
+  private gx = 0; private gy = 0;   // eye gaze, -1..1, eased
+  private dt = 0;
   private reduced = typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   ngAfterViewInit(): void {
+    watchPointer();
     this.w = this.active ? 1 : 0;
     this.host.nativeElement.style.setProperty('--mark-size', `${this.size}px`);
     if (typeof IntersectionObserver !== 'undefined') {
@@ -229,6 +252,7 @@ export class AiMarkComponent implements AfterViewInit, OnChanges, OnDestroy {
       const loop = (now: number) => {
         const dt = Math.min(0.1, (now - this.last) / 1000);
         this.last = now;
+        this.dt = dt;
         const target = this.active && !this.reduced ? 1 : 0;
         this.w += (target - this.w) * Math.min(1, dt * 9);
         if (Math.abs(target - this.w) < 0.002) this.w = target;
@@ -316,6 +340,29 @@ export class AiMarkComponent implements AfterViewInit, OnChanges, OnDestroy {
         }
         break;
       }
+      case 'eye': {
+        // Gaze: towards the pointer while it moves; after 2.5 s of stillness (or on touch) look around.
+        let tx: number, ty: number;
+        if (performance.now() - pointer.at < 2500) {
+          const r = this.host.nativeElement.getBoundingClientRect();
+          const dx = pointer.x - (r.left + r.width / 2), dy = pointer.y - (r.top + r.height / 2);
+          const d = Math.hypot(dx, dy) || 1, reach = Math.min(1, d / 180);
+          tx = (dx / d) * reach; ty = (dy / d) * reach;
+        } else {
+          const seg = Math.floor(t / 1.6);                    // hold a glance, then dart to the next one
+          const h = (n: number) => (Math.sin(n * 12.9898) * 43758.5453) % 1;
+          tx = h(seg) * 0.9; ty = h(seg + 7.1) * 0.7;
+        }
+        const k = Math.min(1, this.dt * 12);
+        this.gx += (tx - this.gx) * k; this.gy += (ty - this.gy) * k;
+        // Blink every ~4 s: lids close and open in 180 ms
+        const b = t % 4.2, open = b < 0.18 ? 1 - Math.sin(Math.PI * b / 0.18) * 0.92 : 1;
+        L[1] = { cx: CX, cy: CY, rx: 12.6, ry: 7.4 * open, pinch: 0, rot: 0, op: 1, lens: 1 };
+        const ix = CX + this.gx * 4.6, iy = CY + this.gy * 2.2 * open;
+        L[2] = { cx: ix, cy: iy, rx: 5.6, ry: Math.min(5.6, 7.4 * open), pinch: 0, rot: 0, op: 1 };
+        L[3] = { cx: ix + this.gx * 0.6, cy: iy + this.gy * 0.4, rx: 2.5, ry: Math.min(2.5, 6.6 * open), pinch: 0, rot: 0, op: 1 };
+        break;
+      }
       case 'spin': {
         arc = (t * 360 / 1.1) % 360;
         const k = 1 + 0.04 * Math.sin(t * Math.PI * 2 / 1.6);
@@ -338,16 +385,25 @@ export class AiMarkComponent implements AfterViewInit, OnChanges, OnDestroy {
       const a = rest[i], b = f.layers[i];
       const l: Layer = {
         cx: lerp(a.cx, b.cx, w), cy: lerp(a.cy, b.cy, w), rx: lerp(a.rx, b.rx, w), ry: lerp(a.ry, b.ry, w),
-        pinch: lerp(a.pinch, b.pinch, w), rot: b.rot * w, op: lerp(a.op, b.op, w),
+        pinch: lerp(a.pinch, b.pinch, w), rot: b.rot * w, op: lerp(a.op, b.op, w), lens: (b.lens ?? 0) * w,
       };
       blended.push(l);
       const d = shapePath(l);
       const tr = l.rot ? `rotate(${l.rot.toFixed(2)} ${CX} ${CY})` : '';
       const el = fills[i]?.nativeElement;
-      if (el) { el.setAttribute('d', d); el.setAttribute('transform', tr); el.style.opacity = String(l.op); }
+      const eye = this.mode === 'eye';
+      if (el) {
+        el.setAttribute('d', d); el.setAttribute('transform', tr); el.style.opacity = String(l.op);
+        // the pupil fills in as the ring becomes an eye (outline / iris skins)
+        el.style.fillOpacity = eye && i === 3 && this.skin !== 'brand' ? String(w) : '';
+      }
       const sh = shades[i]?.nativeElement;
-      // the spark is lit flat — shading fades out as it morphs
-      if (sh) { sh.setAttribute('d', d); sh.setAttribute('transform', tr); sh.style.opacity = String(l.op * (1 - 0.85 * l.pinch)); }
+      // the spark is lit flat — shading fades out as it morphs; the eye's pupil darkens in
+      if (sh) {
+        sh.setAttribute('d', d); sh.setAttribute('transform', tr);
+        const lit = eye && (i === 1 || i === 2) ? 1 - 0.9 * w : 1;   // eye: lid and iris lit flat so the pupil reads
+        sh.style.opacity = String(eye && i === 3 ? w : l.op * (1 - 0.85 * l.pinch) * lit);
+      }
     }
 
     // Keep each layer's dark core under the next layer: as the next one slides right

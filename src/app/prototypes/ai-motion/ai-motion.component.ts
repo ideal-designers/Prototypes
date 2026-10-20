@@ -396,6 +396,10 @@ export class AiMotionComponent implements OnInit, OnDestroy {
       what: 'A gradient arc circles a softly breathing logo. The conventional spinner, branded.',
       why: 'The most familiar "loading" read. Matches the ring already on fvdr-ai-orb.',
       use: 'Fallback when the turn is too subtle (e.g. slow network).' },
+    { id: 'eye', name: 'Watching eye', mode: 'eye', skin: 'outline', verdict: 'try',
+      what: 'In the line logo the inner rings fold into an eye: an almond lid, iris and pupil that follow your cursor and blink every few seconds. Without a pointer it glances around.',
+      why: 'Gives the assistant attention and character: "I see what you are pointing at". Morphs back into the logo when it stops.',
+      use: 'Waiting for your input, voice listening, "looking at" a selected file. Use sparingly. It is a character moment, not a loader.' },
   ];
 
   readonly heroes: Candidate[] = [
@@ -408,6 +412,9 @@ export class AiMotionComponent implements OnInit, OnDestroy {
     { id: 'sonar', name: 'Sonar', mode: 'sonar', verdict: 'try', speed: 1,
       what: 'The resting logo with rings rippling out from its rim.',
       why: '', use: 'Waiting on something external: indexing new uploads, a large room.' },
+    { id: 'eyehero', name: 'Watching eye, large', mode: 'eye', verdict: 'try', speed: 1,
+      what: 'The brand sphere opens into an eye that follows the cursor across the page and blinks. Move the mouse around to try it.',
+      why: '', use: 'Empty state that waits for the first question, onboarding "I can look at your room".' },
     { id: 'turnhero', name: 'Turn, large', mode: 'turn', verdict: 'try', speed: 0.7,
       what: 'The inline Turn scaled up, so the small and large marks share one motion.',
       why: '', use: 'If one motion everywhere matters more than a richer hero.' },
