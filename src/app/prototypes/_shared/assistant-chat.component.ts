@@ -4,6 +4,7 @@ import {
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DS_COMPONENTS } from '../../shared/ds';
+import { AiMarkComponent } from '../ai-motion/ai-mark.component';
 import type { AiRating, AiStep } from '../../shared/ds';
 import type { FvdrIconName } from '../../shared/ds/icons/icons';
 import type { FvdrFileType } from '../../shared/ds/components/file-icon/file-icon.component';
@@ -46,7 +47,7 @@ export interface VdrChatSourceGroup { title: string; items: VdrChatSourceItem[] 
 @Component({
   selector: 'fvdr-vdr-assistant-chat',
   standalone: true,
-  imports: [CommonModule, FormsModule, ...DS_COMPONENTS],
+  imports: [CommonModule, FormsModule, ...DS_COMPONENTS, AiMarkComponent],
   template: `
     <div class="ac">
       <!-- History flyout -->
@@ -94,7 +95,9 @@ export interface VdrChatSourceGroup { title: string; items: VdrChatSourceItem[] 
             <!-- ── Empty state ── -->
             <!-- ── Empty state · project brief (Chat V2) ── -->
             <div class="empty empty--brief" *ngIf="!turns.length && brief.length">
-              <fvdr-ai-orb variant="hero" class="empty__orb"></fvdr-ai-orb>
+              <fvdr-ai-orb *ngIf="heroMark === 'orb'" variant="hero" class="empty__orb"></fvdr-ai-orb>
+              <ai-motion-mark *ngIf="heroMark === 'eye'" class="empty__eye" mode="eye" skin="outline" [size]="72"
+                              label="AI Assistant"></ai-motion-mark>
               <div class="empty__txt empty__txt--wide">
                 <h2 class="empty__title">{{ greeting }}</h2>
                 <p class="empty__sub">{{ subtitle }}</p>
@@ -117,7 +120,9 @@ export interface VdrChatSourceGroup { title: string; items: VdrChatSourceItem[] 
             </div>
 
             <div class="empty" *ngIf="!turns.length && !brief.length">
-              <fvdr-ai-orb variant="hero" class="empty__orb"></fvdr-ai-orb>
+              <fvdr-ai-orb *ngIf="heroMark === 'orb'" variant="hero" class="empty__orb"></fvdr-ai-orb>
+              <ai-motion-mark *ngIf="heroMark === 'eye'" class="empty__eye" mode="eye" skin="outline" [size]="72"
+                              label="AI Assistant"></ai-motion-mark>
               <div class="empty__txt">
                 <h2 class="empty__title">{{ greeting }}</h2>
                 <p class="empty__sub">{{ subtitle }}</p>
@@ -341,6 +346,7 @@ export interface VdrChatSourceGroup { title: string; items: VdrChatSourceItem[] 
     .a { display: flex; flex-direction: column; gap: var(--space-2); }
     .a__think { align-self: flex-start; }
     .empty__orb { position: relative; z-index: 0; margin: var(--space-6) 0 var(--space-2); } /* the render's glow needs air */
+    .empty__eye { margin: var(--space-4) 0 0; }
     .empty__txt, .brief, .cats, .examples { position: relative; z-index: 1; } /* text sits over the orb's glow */
     .steps { display: flex; flex-direction: column; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
     .steps--audit { padding-left: var(--space-1); margin-bottom: var(--space-2); }
@@ -437,6 +443,8 @@ export class VdrAssistantChatComponent implements AfterViewChecked {
   @Input() scopeLabel = 'All files and folders';
   @Input() threads: VdrChatThread[] = [];
   @Input() activeThreadId = '';
+  /** Empty-state mark: the hero orb render, or the line logo as an eye that follows the cursor (ai-motion). */
+  @Input() heroMark: 'orb' | 'eye' = 'orb';
   @Input() greeting = 'Tap into Ideals AI Assistant';
   @Input() subtitle = 'Get instant answers to your most complex work questions without having to dig through the project.';
   @Input() footnote = 'Every answer comes only from files you’re already allowed to see in this project';

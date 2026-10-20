@@ -257,6 +257,7 @@ type AiState = 'loading' | 'clarify' | 'answer';
           <!-- ═══════════════ Full AI Assistant ═══════════════ -->
           <div class="chat" *ngIf="view === 'chat'">
             <fvdr-vdr-assistant-chat
+              heroMark="eye"
               [turns]="chatMessages"
               [busy]="chatStreaming"
               [answerTemplate]="answerTpl"
