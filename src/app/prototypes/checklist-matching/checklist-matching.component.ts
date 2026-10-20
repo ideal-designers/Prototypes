@@ -192,7 +192,7 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
           <ng-container *ngIf="view === 'source'">
             <div class="aibar" *ngIf="highlightRow === null && phase === 'results'">
               <span class="aibar__text aibar__grow">{{ srcInfoText }}</span>
-              <fvdr-btn *ngIf="!stale && (!published || pubChanges)" [label]="published ? 'Publish changes' : 'Publish to source file'" variant="secondary" (clicked)="publish()" />
+              <fvdr-btn *ngIf="!stale" [label]="mergeChanges ? 'Merge changes' : 'Merge with source file'" variant="secondary" (clicked)="openMerge()" />
             </div>
             <div class="aibar" *ngIf="highlightRow !== null">
               <fvdr-btn label="Back to request" variant="secondary" (clicked)="backToRequest()" />
@@ -206,24 +206,22 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
                 <span class="sheet__val">{{ hlCell || sourceRows[0]?.cells?.[0] }}</span>
               </div>
               <div class="sheet__scroll">
-                <div class="sheet__grid" [class.sheet__grid--ai]="showAiCol">
+                <div class="sheet__grid">
                   <div class="sr sr--cols" [style.grid-template-columns]="gridCols">
                     <span class="sc sc--n"></span>
-                    <span class="sc sc--ai" *ngIf="showAiCol"><fvdr-icon name="sparkle" /> AI</span>
                     <span class="sc" *ngFor="let c of sheetCols">{{ c }}</span>
+                    <span class="sc" *ngFor="let x of newCols">{{ x.letter }}</span>
                   </div>
                   <div *ngFor="let r of sourceRows" class="sr" [ngClass]="'sr--' + r.kind" [class.sr--hl]="highlightRow === r.n"
                        [style.grid-template-columns]="gridCols">
                     <span class="sc sc--n">{{ r.n }}</span>
-                    <span class="sc sc--ai" *ngIf="showAiCol">
-                      <fvdr-chip *ngIf="r.reqId && pubPill(r.reqId) as p" [label]="p.label" [variant]="p.variant" size="xs" />
-                    </span>
                     <span class="sc sc--span" *ngIf="isSpanRow(r)">{{ r.cells[0] }}</span>
                     <ng-container *ngIf="!isSpanRow(r)">
                       <span class="sc" *ngFor="let i of colIdx" [class.sc--sel]="r.kind === 'item' && sc.source.selectCols.includes(i)"
                             [class.sc--yellow]="r.kind === 'item' && sc.source.resultCols.includes(i)"
                             [class.sc--filled]="r.kind === 'item' && sc.source.resultCols.includes(i) && !!cellText(r, i)"
                             [class.sc--right]="i === 1 && sc.id === 'diamond'">{{ cellText(r, i) }}<fvdr-icon *ngIf="r.kind === 'item' && sc.source.selectCols.includes(i)" name="chevron-down" /></span>
+                      <span class="sc" *ngFor="let x of newCols" [class.sc--yellow]="r.kind === 'item'" [class.sc--filled]="r.kind === 'item' && !!newCellText(r, x.key)">{{ r.kind === 'header' ? x.title : newCellText(r, x.key) }}</span>
                     </ng-container>
                   </div>
                 </div>
@@ -293,7 +291,7 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
                     [showCounter]="true" [counter]="'' + f.count" [showStatus]="!!f.dot" [statusColor]="f.dot || ''"
                     [selected]="!changeFilter && filter === f.id" (clicked)="pickFilter($any(f.id))" />
                 </div>
-                <fvdr-btn *ngIf="!drawerOpen && (!published || pubChanges)" [label]="published ? 'Publish changes' : 'Publish to source file'" variant="secondary" (clicked)="publish()" />
+                <fvdr-btn *ngIf="!drawerOpen" [label]="mergeChanges ? 'Merge changes' : 'Merge with source file'" variant="secondary" (clicked)="openMerge()" />
                 <fvdr-btn *ngIf="filter !== 'gap' && (counts['review'] || 0) > 0 && !showPanel" [label]="'Review ' + counts['review'] + ' suggestions'" variant="secondary" (clicked)="startReview()" />
               </div>
               <div class="covp">
@@ -744,6 +742,34 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
       </ul>
     </fvdr-modal>
 
+    <fvdr-modal [visible]="mergeOpen" title="Merge with source file" size="m" (closed)="mergeOpen = false">
+      <div class="merge">
+        <p class="merge__p">AI writes two values for each document request: its status and the documents it found. Checklists differ, so check where they go.</p>
+        <section class="merge__sec">
+          <h3 class="merge__h">Columns</h3>
+          <fvdr-dropdown label="Status" [options]="colOptions" [value]="mergeStatusCol" (valueChange)="mergeStatusCol = asString($event)" />
+          <fvdr-dropdown label="Documents" [options]="colOptions" [value]="mergeDocsCol" (valueChange)="mergeDocsCol = asString($event)" />
+          <p class="merge__hint merge__hint--err" *ngIf="mergeClash">Pick two different columns, or a new column for one of them.</p>
+          <p class="merge__hint" *ngIf="!mergeClash && (counts['review'] || 0) > 0">{{ counts['review'] }} suggestions aren't reviewed yet. Their rows stay empty until you review them.</p>
+        </section>
+        <section class="merge__sec">
+          <h3 class="merge__h">Result</h3>
+          <div class="merge__opt">
+            <fvdr-radio [options]="[{ value: 'copy', label: 'Download a merged copy' }]" [value]="mergeMode" (valueChange)="mergeMode = $any($event)" />
+            <p class="merge__desc">{{ sc.tabLabel }} (merged).xlsx. The file in the room doesn't change.</p>
+          </div>
+          <div class="merge__opt">
+            <fvdr-radio [options]="[{ value: 'replace', label: 'Replace the file in the room' }]" [value]="mergeMode" (valueChange)="mergeMode = $any($event)" />
+            <p class="merge__desc">Saved as a new version. The current one stays in version history.</p>
+          </div>
+        </section>
+        <div class="merge__foot">
+          <fvdr-btn [label]="mergeMode === 'copy' ? 'Download copy' : 'Replace file'" [disabled]="mergeClash" (clicked)="confirmMerge()" />
+          <fvdr-btn label="Cancel" variant="secondary" (clicked)="mergeOpen = false" />
+        </div>
+      </div>
+    </fvdr-modal>
+
     <fvdr-toast-host />
     <fvdr-vdr-proto-switcher [groups]="protoGroups" (changed)="onProto($event)" [showRestart]="false" />
   </div>
@@ -842,11 +868,16 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
     .sr--hl { background: var(--color-primary-50); outline: 2px solid var(--color-primary-500); outline-offset: -2px; }
     .sc { padding: var(--space-2); border-right: 1px solid var(--color-divider); min-width: 0; overflow-wrap: anywhere; white-space: pre-line; }
     .sc--span { grid-column: 2 / -1; }
-    .sheet__grid--ai .sc--span { grid-column: 3 / -1; }
-    /* AI column, added to the file once results are published (as in v3) */
-    .sc--ai { display: flex; align-items: flex-start; gap: var(--space-1); background: var(--color-stone-100); color: var(--color-primary-600); font-style: normal; font-weight: var(--text-body3-weight); }
-    .sr--cols .sc--ai { justify-content: center; align-items: center; background: var(--color-primary-50); font-weight: var(--text-label-s-weight); }
-    .sr--header .sc--ai { background: var(--color-text-primary); }
+    /* Merge dialog: footer in the body so the primary action leads (DS modal puts Cancel first) */
+    .merge { display: flex; flex-direction: column; gap: var(--space-6); }
+    .merge__sec { display: flex; flex-direction: column; gap: var(--space-3); }
+    .merge__h { margin: 0; font-size: var(--text-label-m-size); line-height: var(--text-label-m-lh); font-weight: var(--text-label-m-weight); }
+    .merge__p { margin: 0; color: var(--color-text-secondary); }
+    .merge__hint { margin: 0; font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); color: var(--color-text-secondary); }
+    .merge__hint--err { color: var(--color-error-600); }
+    .merge__opt { display: flex; flex-direction: column; gap: 2px; }
+    .merge__desc { margin: 0 0 0 calc(18px + var(--space-2)); color: var(--color-text-secondary); }
+    .merge__foot { display: flex; gap: var(--space-3); padding-top: var(--space-2); }
     .sc--n { background: var(--color-stone-200); color: var(--color-text-secondary); text-align: center; font-weight: var(--text-body3-weight); font-style: normal; }
     .sr--header .sc--n { color: var(--color-text-secondary); }
     .sc--right { text-align: right; }
@@ -1209,26 +1240,62 @@ export class ChecklistMatchingComponent implements OnDestroy {
   highlightRow: number | null = null;
   backTo: string | null = null;
   scope = 'all';
-  /** Results published into the source file: a snapshot of the statuses at that moment. */
-  published: { at: string; st: Record<string, Rec> } | null = null;
-  /** Document requests whose status changed since the last publish. */
-  pubChanges = 0;
-  get showAiCol() { return this.phase === 'results' && !!this.published; }
-  pubPill(id: string): Pill | null {
-    const r = this.findReq(id); const rec = this.published?.st[id]; if (!r || !rec) return null;
-    if (!this.isDoc(r) && r.cls !== 'question') return null;
-    return this.pill(rec.s);
+  /** Results merged into the file in the room: a snapshot of the statuses and where they were written. */
+  merged: { at: string; st: Record<string, Rec>; statusCol: string; docsCol: string } | null = null;
+  /** Document requests whose status changed since the last merge. */
+  mergeChanges = 0;
+  mergeOpen = false;
+  mergeMode: 'copy' | 'replace' = 'copy';
+  mergeStatusCol = '';
+  mergeDocsCol = '';
+  get mergeClash() { return this.mergeStatusCol !== 'new' && this.mergeStatusCol === this.mergeDocsCol; }
+  /** Columns of the source file, plus "new column" for checklists without result columns. */
+  get colOptions(): DropdownOption[] {
+    const cols = this.sc.source.cols.map((c, i) => ({ value: '' + i, label: `${this.sheetCols[i]} · ${c}` })).filter((_, i) => !!this.sc.source.cols[i]);
+    return [...cols, { value: 'new', label: 'New column at the end' }];
   }
-  private andList(xs: string[]) { return xs.length > 1 ? `${xs.slice(0, -1).join(', ')} and ${xs[xs.length - 1]}` : xs[0] || ''; }
-  publish() {
-    const first = !this.published;
-    this.published = { at: 'just now', st: { ...this.st } };
+  /** Columns the merge appends to the file (when a value goes to a new column). */
+  newCols: { key: 'status' | 'docs'; title: string; letter: string }[] = [];
+  openMerge() {
+    const rc = this.sc.source.resultCols;
+    const prev = this.merged;
+    this.mergeStatusCol = prev?.statusCol ?? (rc.length ? '' + rc[0] : 'new');
+    this.mergeDocsCol = prev?.docsCol ?? (rc.length > 1 ? '' + rc[1] : 'new');
+    this.mergeMode = 'copy';
+    this.mergeOpen = true;
+  }
+  confirmMerge() {
+    if (this.mergeClash) return;
+    this.mergeOpen = false;
+    if (this.mergeMode === 'copy') {
+      this.toastSvc.show({ variant: 'success', title: 'Merged copy downloaded', message: `${this.sc.tabLabel} (merged).xlsx. The file in the room is unchanged.`, duration: 6000 });
+      return;
+    }
+    this.merged = { at: 'just now', st: { ...this.st }, statusCol: this.mergeStatusCol, docsCol: this.mergeDocsCol };
     this.recompute();
     this.toastSvc.show({
-      variant: 'success', title: first ? `Published to ${this.sc.tabLabel}` : 'Changes published',
-      message: 'The AI column and the result columns in the file are up to date.', duration: 6000,
+      variant: 'success', title: `Merged into ${this.sc.tabLabel}`, message: 'The previous version is in version history.', duration: 6000,
       actions: this.view === 'requests' ? [{ label: 'Open source file', onClick: () => this.setView('source') }] : [],
     });
+  }
+  /** What the merge writes for one request: status in the file's own words, and the linked documents. */
+  private mergedValue(r: Req, key: 'status' | 'docs'): string {
+    const rec = this.merged?.st[r.id]; if (!rec || !this.isDoc(r)) return '';
+    const s = rec.s; const map = this.sc.statusMap;
+    if (key === 'docs') return s === 'covered' || s === 'partial' ? (rec.docs || r.docs || []).join('\n') : '';
+    if (s === 'review' || s === 'pending') return '';
+    if (map && (s === 'covered' || s === 'partial' || s === 'gap' || s === 'na')) return map[s];
+    return this.pill(s).label;
+  }
+  newCellText(row: SrcRow, key: 'status' | 'docs') {
+    if (row.kind !== 'item' || !row.reqId || this.phase !== 'results') return '';
+    const r = this.findReq(row.reqId); return r ? this.mergedValue(r, key) : '';
+  }
+  private get mergedColsLabel() {
+    const m = this.merged!; const L = (c: string) => this.sheetCols[+c];
+    if (m.statusCol !== 'new' && m.docsCol !== 'new') return `columns ${L(m.statusCol)} and ${L(m.docsCol)}`;
+    if (m.statusCol === 'new' && m.docsCol === 'new') return 'two new columns, AI status and AI documents';
+    return m.statusCol === 'new' ? `a new AI status column and column ${L(m.docsCol)}` : `column ${L(m.statusCol)} and a new AI documents column`;
   }
   expanded: Record<string, boolean> = {};
   changeFilter: ChangeKind | 'all' | null = null;
@@ -1357,12 +1424,10 @@ export class ChecklistMatchingComponent implements OnDestroy {
   get srcInfoText() {
     if (this.stale) return 'This file changed after the requests were extracted. Review the changes in Requests.';
     if (this.phase === 'results') {
-      if (!this.published) return this.hasResultCols
-        ? `Results aren't in the file yet. Publishing adds an AI column with each request's status and fills ${this.andList(this.sc.details!.resultCols!)}.`
-        : `Results aren't in the file yet. Publishing adds an AI column with each request's status.`;
-      const n = this.pubChanges;
-      return n ? `Published by you · ${this.published.at}. ${n} ${n === 1 ? "change isn't" : "changes aren't"} in the file yet.`
-        : `Published by you · ${this.published.at}. The AI column and the file's own result columns are up to date.`;
+      if (!this.merged) return `Results aren't in the file yet. Merge them to write each request's status and documents into the file, or download a merged copy.`;
+      const n = this.mergeChanges;
+      return n ? `Merged by you · ${this.merged.at}. ${n} ${n === 1 ? "change isn't" : "changes aren't"} in the file yet.`
+        : `Merged by you · ${this.merged.at}. Status and documents are in ${this.mergedColsLabel}. The previous version is in version history.`;
     }
     return `Matching ${this.matchable} document requests from this file against ${this.totalDocsLabel} documents.`;
   }
@@ -1431,8 +1496,10 @@ export class ChecklistMatchingComponent implements OnDestroy {
   }
 
   cellText(row: SrcRow, i: number): string {
-    if (row.kind === 'item' && this.phase === 'results' && this.published && this.sc.source.resultCols.includes(i) && row.reqId) {
-      const r = this.findReq(row.reqId); if (r) return this.resultCells(r, this.published.st[r.id])[this.sc.source.resultCols.indexOf(i)];
+    if (row.kind === 'item' && this.phase === 'results' && this.merged && row.reqId) {
+      const r = this.findReq(row.reqId);
+      if (r && '' + i === this.merged.statusCol) return this.mergedValue(r, 'status');
+      if (r && '' + i === this.merged.docsCol) return this.mergedValue(r, 'docs');
     }
     return row.cells[i] || '';
   }
@@ -1456,7 +1523,7 @@ export class ChecklistMatchingComponent implements OnDestroy {
       view: 'requests', phase: 'results', readRow: 0, progress: 0, flagResolved: true, filter: 'all', highOnly: false, layout: 'table',
       selected: null, panel: 'none', exportOpen: false, stale: false, delta: false, sourceEdited: false, applied: false,
       returningCands: false, deletedFiles: [], highlightRow: null, backTo: null, expanded: {}, changeFilter: null,
-      overrides: {}, editRowId: null, editId: null, fSelReq: null, fSelFile: null, fOpen: {}, fHideUnused: false, upPct: 0, published: null,
+      overrides: {}, editRowId: null, editId: null, fSelReq: null, fSelFile: null, fOpen: {}, fHideUnused: false, upPct: 0, merged: null, mergeOpen: false,
       hdrEdit: false, composeOpen: false, bulkOpen: false, howOpen: false, lastPct: null, covHover: null, moreOpen: false,
     });
     this.headerRow = this.sc.details?.headerRow || 1;
@@ -1469,7 +1536,8 @@ export class ChecklistMatchingComponent implements OnDestroy {
     else if (screen === 'triage') { this.st = this.mapFinal(); }
     else if (screen === 'gaps') { this.st = this.mapFinal(); this.filter = 'gap'; this.selected = this.sc.gapsFocus; this.panel = 'item'; }
     else if (screen === 'returning') {
-      this.returningCands = true; this.lastPct = this.pctOf(this.mapFinal()); this.published = { at: this.sc.returning.since, st: this.mapFinal() };
+      this.returningCands = true; this.lastPct = this.pctOf(this.mapFinal()); const rc = this.sc.source.resultCols;
+      this.merged = { at: this.sc.returning.since, st: this.mapFinal(), statusCol: rc.length ? '' + rc[0] : 'new', docsCol: rc.length > 1 ? '' + rc[1] : 'new' };
       this.st = this.mapReturning(); this.delta = true;
       this.stale = !!this.sc.edits; this.sourceEdited = !!this.sc.edits;
       this.deletedFiles = [...this.sc.returning.deleted];
@@ -1863,8 +1931,8 @@ export class ChecklistMatchingComponent implements OnDestroy {
     const st = this.st;
     const sc = this.sc;
 
-    const pub = this.published;
-    this.pubChanges = pub ? reqs.filter(r => this.isDoc(r) && pub.st[r.id]?.s !== st[r.id]?.s).length : 0;
+    const mg = this.merged;
+    this.mergeChanges = mg ? reqs.filter(r => this.isDoc(r) && mg.st[r.id]?.s !== st[r.id]?.s).length : 0;
     const counts: Record<string, number> = {};
     reqs.forEach(r => { const s = (st[r.id] || { s: 'pending' }).s; counts[s] = (counts[s] || 0) + 1; });
     this.counts = counts;
@@ -1898,7 +1966,11 @@ export class ChecklistMatchingComponent implements OnDestroy {
 
     // Grid templates
     const w = (x: number | 'fill') => x === 'fill' ? 'minmax(260px, 1fr)' : x + 'px';
-    this.gridCols = '40px ' + (this.showAiCol ? '112px ' : '') + sc.source.widths.map(w).join(' ');
+    const nc: { key: 'status' | 'docs'; title: string }[] = [];
+    if (this.merged && isResults && this.merged.statusCol === 'new') nc.push({ key: 'status', title: 'AI status' });
+    if (this.merged && isResults && this.merged.docsCol === 'new') nc.push({ key: 'docs', title: 'AI documents' });
+    this.newCols = nc.map((x, k) => ({ ...x, letter: String.fromCharCode(65 + this.sheetCols.length + k) }));
+    this.gridCols = '40px ' + sc.source.widths.map(w).join(' ') + this.newCols.map(x => x.key === 'status' ? ' 140px' : ' 240px').join('');
     const prio = sc.hasPriority ? ' 72px' : '';
     this.listCols = `136px 56px${phase === 'structure' ? '' : prio} minmax(0, 1fr) 96px`;
 
