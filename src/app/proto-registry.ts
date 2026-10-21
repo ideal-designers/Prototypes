@@ -342,5 +342,13 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
     status: 'wip',
     description: 'Claude-style experiments with our logo and colours: a live thinking status line with rotating verbs and shimmer, spinner variants built from the ideals. sphere, composer stop states and skeletons. Tune speed, size, palette and theme.',
   },
+    {
+    slug: 'ai-action-morphs',
+    title: 'AI Action Morphs — VDR thematic animations',
+    module: 'General Exploration',
+    figma: 'https://www.figma.com/design/Vhy3jLaJ9nasbzTtqbu3qB/AI-Assistant?node-id=1-4',
+    status: 'wip',
+    description: 'The AI mark morphs into what the assistant is doing in the data room: searching, opening a folder, reading a document, comparing versions, checking permissions, counting activity, drafting a Q&A answer, building a report, redacting. A live thinking line runs the steps in sequence; a library shows each morph on its own.',
+  },
   // REGISTRY_PLACEHOLDER
 ];

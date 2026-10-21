@@ -264,6 +264,11 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./prototypes/ai-loader-lab/ai-loader-lab.component').then(m => m.AiLoaderLabComponent),
   },
+    {
+    path: 'ai-action-morphs',
+    loadComponent: () =>
+      import('./prototypes/ai-action-morphs/ai-action-morphs.component').then(m => m.AiActionMorphsComponent),
+  },
   // PROTO_ROUTES_PLACEHOLDER
   {
     path: '**',
