@@ -198,5 +198,9 @@ export const PROTO_META: Record<string, ProtoMetaInfo> = {
   "ai-loader-lab": {
     "updated": "2026-10-21T12:39:28+03:00",
     "author": "Dmitriy Siniehin"
+  },
+  "ai-action-morphs": {
+    "updated": "2026-10-21T13:16:03+03:00",
+    "author": "Dmitriy Siniehin"
   }
 };
