@@ -192,11 +192,11 @@ export const PROTO_META: Record<string, ProtoMetaInfo> = {
     "author": "Maryna Pinchuk"
   },
   "ai-motion": {
-    "updated": "2026-10-20T16:48:00+03:00",
+    "updated": "2026-10-21T12:39:28+03:00",
     "author": "Dmitriy Siniehin"
   },
   "ai-loader-lab": {
-    "updated": "2026-10-20T17:28:22+03:00",
+    "updated": "2026-10-21T12:39:28+03:00",
     "author": "Dmitriy Siniehin"
   }
 };
