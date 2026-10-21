@@ -462,7 +462,7 @@ export class VdrAssistantChatComponent implements AfterViewChecked {
   /** Empty-state mark: the hero orb render, or the line logo as an eye that follows the cursor (ai-motion). */
   @Input() heroMark: 'orb' | 'eye' = 'orb';
   /** Thinking / live-step mark: the orb render, or the outline logo animated (ai-motion Flow / Orbit). */
-  @Input() thinkingMark: 'orb' | 'flow' | 'orbit' | 'mandala' = 'orb';
+  @Input() thinkingMark: 'orb' | 'flow' | 'orbit' = 'orb';
   @Input() greeting = 'Tap into Ideals AI Assistant';
   @Input() subtitle = 'Get instant answers to your most complex work questions without having to dig through the project.';
   @Input() footnote = 'Every answer comes only from files you’re already allowed to see in this project';
