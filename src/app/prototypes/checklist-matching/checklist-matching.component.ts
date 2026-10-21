@@ -742,7 +742,10 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
       </ul>
     </fvdr-modal>
 
-    <fvdr-modal [visible]="mergeOpen" title="Merge with source file" size="m" (closed)="mergeOpen = false">
+    <!-- Modal = Gutenberg pattern (DS): buttons on the right, Cancel first, Primary last -->
+    <fvdr-modal [visible]="mergeOpen" title="Merge with source file" size="m"
+      [confirmLabel]="mergeMode === 'copy' ? 'Download copy' : 'Replace file'" cancelLabel="Cancel" cancelVariant="secondary"
+      [confirmDisabled]="mergeClash" [closeOnOverlay]="false" (confirmed)="confirmMerge()" (closed)="mergeOpen = false">
       <div class="merge">
         <p class="merge__p">AI writes two values for each document request: its status and the documents it found. Checklists differ, so check where they go.</p>
         <section class="merge__sec">
@@ -763,10 +766,6 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
             <p class="merge__desc">Saved as a new version. The current one stays in version history.</p>
           </div>
         </section>
-        <div class="merge__foot">
-          <fvdr-btn [label]="mergeMode === 'copy' ? 'Download copy' : 'Replace file'" [disabled]="mergeClash" (clicked)="confirmMerge()" />
-          <fvdr-btn label="Cancel" variant="secondary" (clicked)="mergeOpen = false" />
-        </div>
       </div>
     </fvdr-modal>
 
@@ -868,7 +867,7 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
     .sr--hl { background: var(--color-primary-50); outline: 2px solid var(--color-primary-500); outline-offset: -2px; }
     .sc { padding: var(--space-2); border-right: 1px solid var(--color-divider); min-width: 0; overflow-wrap: anywhere; white-space: pre-line; }
     .sc--span { grid-column: 2 / -1; }
-    /* Merge dialog: footer in the body so the primary action leads (DS modal puts Cancel first) */
+    /* Merge dialog body (footer comes from the DS modal) */
     .merge { display: flex; flex-direction: column; gap: var(--space-6); }
     .merge__sec { display: flex; flex-direction: column; gap: var(--space-3); }
     .merge__h { margin: 0; font-size: var(--text-label-m-size); line-height: var(--text-label-m-lh); font-weight: var(--text-label-m-weight); }
@@ -877,7 +876,6 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
     .merge__hint--err { color: var(--color-error-600); }
     .merge__opt { display: flex; flex-direction: column; gap: 2px; }
     .merge__desc { margin: 0 0 0 calc(18px + var(--space-2)); color: var(--color-text-secondary); }
-    .merge__foot { display: flex; gap: var(--space-3); padding-top: var(--space-2); }
     .sc--n { background: var(--color-stone-200); color: var(--color-text-secondary); text-align: center; font-weight: var(--text-body3-weight); font-style: normal; }
     .sr--header .sc--n { color: var(--color-text-secondary); }
     .sc--right { text-align: right; }
