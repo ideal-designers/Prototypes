@@ -16,12 +16,12 @@ import { CommonModule } from '@angular/common';
  * folder → document → logo) with a plain point-by-point blend. Inside a scene each shape
  * moves through its poses (A ⇄ B, or a loop of keyframes) on its own delay — that is the "action".
  * Scenes lean on circles on purpose: the logo is four circles, so the lens, the pie, the
- * Venn pair, the bubbles and the flying dot all read as the mark doing something.
+ * comparing lens, the bubbles and the flying dot all read as the mark doing something.
  */
 export type MorphScene =
-  | 'logo' | 'search' | 'searchEye' | 'folder' | 'read' | 'compare' | 'lock' | 'activity' | 'qa' | 'report' | 'redact';
+  | 'logo' | 'search' | 'searchEye' | 'folder' | 'read' | 'compare' | 'compareStack' | 'lock' | 'activity' | 'qa' | 'report' | 'redact';
 
-type Ink = 'line' | 'mint' | 'ink';
+type Ink = 'line' | 'mint' | 'ink' | 'paper';
 /** `a` alone = still; `a` + `b` = swing A ⇄ B; `keys` = loop through every pose in turn (a circle flying round a lens). */
 interface SlotDef { a: string; b?: string; keys?: string[]; linear?: boolean; fill?: number; stroke?: number; ink?: Ink; delay?: number; }
 interface SceneDef { slots: SlotDef[]; order?: number[]; period?: number; }
@@ -115,12 +115,20 @@ export const SCENES: Record<Exclude<MorphScene, 'logo'>, SceneDef> = {
     { a: rect(17, 17, 16, 2.4, 1.2), fill: 1, stroke: 0, ink: 'mint' },
     { a: rect(17, 25, 13, 2.4, 1.2), fill: 1, stroke: 0, ink: 'mint' },
   ] },
-  // Two versions as a Venn pair: they part and overlap, the changes blink
-  compare: { period: 2.4, slots: [
-    { a: ellipse(18, 24, 12), b: ellipse(15, 24, 12), stroke: 1 },
-    { a: ellipse(30, 24, 12), b: ellipse(33, 24, 12), stroke: 1 },
-    { a: ellipse(24, 20, 2.6), b: ellipse(24, 20, 0.6), fill: 1, stroke: 0, ink: 'mint' },
-    { a: ellipse(24, 28, 0.6), b: ellipse(24, 28, 2.6), fill: 1, stroke: 0, ink: 'mint' },
+  // Side-by-side versions: a round lens hops from a line on v3 to the same line on v4, the change lights up
+  compare: { period: 3.2, slots: [
+    { a: rect(4, 9, 18, 30, 2), stroke: 1 },
+    { a: rect(26, 9, 18, 30, 2), stroke: 1 },
+    { a: rect(8, 19, 10, 2.6, 1.3), keys: [rect(8, 19, 10, 2.6, 1.3), rect(30, 19, 10, 2.6, 1.3), rect(8, 29, 10, 2.6, 1.3), rect(30, 29, 10, 2.6, 1.3)],
+      fill: 1, stroke: 0, ink: 'mint' },
+    { a: ellipse(13, 20.3, 6.5), keys: [ellipse(13, 20.3, 6.5), ellipse(35, 20.3, 6.5), ellipse(13, 30.3, 6.5), ellipse(35, 30.3, 6.5)], stroke: 1 },
+  ] },
+  // A stack of versions: v4 slides aside to show the changed line on v3; a dot on its corner says "changed"
+  compareStack: { period: 2.6, order: [0, 2, 1, 3], slots: [
+    { a: rect(17, 5, 22, 28, 2), stroke: 1 },
+    { a: rect(9, 14, 22, 28, 2), b: rect(4, 19, 22, 28, 2), stroke: 1, fill: 1, ink: 'paper' },
+    { a: rect(22, 11, 13, 2.6, 1.3), fill: 1, stroke: 0, ink: 'mint' },
+    { a: ellipse(31, 14, 2.6), b: ellipse(26, 19, 3.6), fill: 1, stroke: 0, ink: 'mint' },
   ] },
   // A round padlock: the shackle lifts
   lock: { period: 2.2, slots: [
@@ -253,6 +261,7 @@ interface Slot {
     .mm__s { stroke: var(--ai-mark-line); fill: var(--ai-mark-line); stroke-linejoin: round; vector-effect: non-scaling-stroke; }
     .mm__s[data-ink='mint'] { fill: var(--ai-mark-low-2); }
     .mm__s[data-ink='ink']  { fill: var(--color-text-primary); }
+    .mm__s[data-ink='paper'] { fill: var(--color-stone-0); }
   `],
 })
 export class MorphMarkComponent implements AfterViewInit, OnChanges, OnDestroy {
