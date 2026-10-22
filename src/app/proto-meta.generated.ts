@@ -200,7 +200,7 @@ export const PROTO_META: Record<string, ProtoMetaInfo> = {
     "author": "Dmitriy Siniehin"
   },
   "ai-action-morphs": {
-    "updated": "2026-10-22T10:44:25+03:00",
+    "updated": "2026-10-22T11:15:06+03:00",
     "author": "Dmitriy Siniehin"
   }
 };
