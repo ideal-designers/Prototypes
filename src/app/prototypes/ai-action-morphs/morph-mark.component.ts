@@ -14,13 +14,16 @@ import { CommonModule } from '@angular/common';
  * papers, page + three text lines, lens + handle + two found lines… Every shape is a path
  * resampled to the same number of points, so any shape can morph into any other (logo →
  * folder → document → logo) with a plain point-by-point blend. Inside a scene each shape
- * swings between two poses (A ⇄ B) on its own delay — that is the "action".
+ * moves through its poses (A ⇄ B, or a loop of keyframes) on its own delay — that is the "action".
+ * Scenes lean on circles on purpose: the logo is four circles, so the lens, the pie, the
+ * Venn pair, the bubbles and the flying dot all read as the mark doing something.
  */
 export type MorphScene =
-  | 'logo' | 'search' | 'folder' | 'read' | 'compare' | 'lock' | 'activity' | 'qa' | 'report' | 'redact';
+  | 'logo' | 'search' | 'searchEye' | 'folder' | 'read' | 'compare' | 'lock' | 'activity' | 'qa' | 'report' | 'redact';
 
 type Ink = 'line' | 'mint' | 'ink';
-interface SlotDef { a: string; b?: string; fill?: number; stroke?: number; ink?: Ink; delay?: number; }
+/** `a` alone = still; `a` + `b` = swing A ⇄ B; `keys` = loop through every pose in turn (a circle flying round a lens). */
+interface SlotDef { a: string; b?: string; keys?: string[]; linear?: boolean; fill?: number; stroke?: number; ink?: Ink; delay?: number; }
 interface SceneDef { slots: SlotDef[]; order?: number[]; period?: number; }
 
 const N = 84;             // points per shape
@@ -54,6 +57,21 @@ function bar(cx: number, cy: number, len: number, th: number, deg: number): stri
   return poly([p(-len / 2, -th / 2), p(len / 2, -th / 2), p(len / 2, th / 2), p(-len / 2, th / 2)]);
 }
 
+/** Almond eye outline — sharp corners left and right. */
+function almond(cx: number, cy: number, w: number, h: number): string {
+  return `M${f(cx - w)} ${cy}C${f(cx - w / 2)} ${f(cy - h)} ${f(cx + w / 2)} ${f(cy - h)} ${f(cx + w)} ${cy}`
+    + `C${f(cx + w / 2)} ${f(cy + h)} ${f(cx - w / 2)} ${f(cy + h)} ${f(cx - w)} ${cy}Z`;
+}
+/** Point on a circle, angle in degrees clockwise from 12 o'clock. */
+function on(cx: number, cy: number, r: number, deg: number): [number, number] {
+  const a = (deg * Math.PI) / 180;
+  return [cx + r * Math.sin(a), cy - r * Math.cos(a)];
+}
+/** Circles placed round a ring — keyframes for a dot flying an orbit. */
+function orbit(cx: number, cy: number, r: number, dot: number, steps: number, from = 0): string[] {
+  return Array.from({ length: steps }, (_, i) => { const [x, y] = on(cx, cy, r, from + (i * 360) / steps); return ellipse(x, y, dot); });
+}
+
 // Logo: the sidebar sphere's four ellipses, left-tangent, scaled into the 48 box.
 const LOGO: SlotDef[] = [1, 0.75, 0.5, 0.25].map((k, i) => {
   const rx = 20 * k, ry = 20 * [1, 0.875, 0.75, 0.5][i];
@@ -61,71 +79,84 @@ const LOGO: SlotDef[] = [1, 0.75, 0.5, 0.25].map((k, i) => {
 });
 
 const PAGE = poly([[12, 5], [30, 5], [38, 13], [38, 43], [12, 43]]);
+const LENS = ellipse(20, 20, 13);
+const HANDLE = bar(33, 33, 11, 4.4, 45);
+const [tx1, ty1] = on(24, 24, 17, 225), [tx2, ty2] = on(24, 24, 17, 245);
+/** Pie sweep keyframes: 8° → 352° in 12 even steps, then it resets. */
+const PIE_DEG = Array.from({ length: 12 }, (_, i) => 8 + (i * 344) / 11);
+const BUBBLE = `M24 7A17 17 0 1 1 ${f(tx1)} ${f(ty1)}L6 42L${f(tx2)} ${f(ty2)}A17 17 0 0 1 24 7Z`;
 
 export const SCENES: Record<Exclude<MorphScene, 'logo'>, SceneDef> = {
-  // Lens glides over the lines it is reading
-  search: { period: 2.2, slots: [
-    { a: ellipse(20, 20, 11), b: ellipse(25, 22, 11), stroke: 1 },
-    { a: bar(31.5, 31.5, 12, 4, 45), b: bar(36.5, 33.5, 12, 4, 45), fill: 1, stroke: 0 },
-    { a: rect(13.5, 17, 13, 2.6, 1.3), b: rect(18.5, 19, 13, 2.6, 1.3), fill: 1, stroke: 0, ink: 'mint' },
-    { a: rect(13.5, 22, 9, 2.6, 1.3), b: rect(18.5, 24, 9, 2.6, 1.3), fill: 1, stroke: 0 },
+  // A dot flies round inside the lens, a smaller one trails it
+  search: { period: 1.8, slots: [
+    { a: LENS, stroke: 1 },
+    { a: HANDLE, fill: 1, stroke: 0 },
+    { a: ellipse(20, 13.5, 3.4), keys: orbit(20, 20, 6.5, 3.4, 12), linear: true, fill: 1, stroke: 0, ink: 'mint' },
+    { a: ellipse(20, 13.5, 1.8), keys: orbit(20, 20, 6.5, 1.8, 12), linear: true, fill: 1, stroke: 0, delay: 0.07 },
   ] },
-  // Flap tips open, two sheets rise out of the folder
+  // An eye inside the lens looks left, right, up — reading what it finds
+  searchEye: { period: 2.6, slots: [
+    { a: LENS, stroke: 1 },
+    { a: HANDLE, fill: 1, stroke: 0 },
+    { a: almond(20, 20, 8.5, 6.5), keys: [almond(20, 20, 8.5, 6.5), almond(20, 20, 8.5, 6.5), almond(20, 20, 8.5, 0.6), almond(20, 20, 8.5, 6.5)], stroke: 1 },
+    { a: ellipse(20, 20, 2.8), keys: [ellipse(16, 20, 2.8), ellipse(24, 20, 2.8), ellipse(20, 20, 2.8, 0.4), ellipse(20, 18.5, 2.8)], fill: 1, stroke: 0 },
+  ] },
+  // The folder opens and circles bubble up out of it
   folder: { period: 2.4, order: [0, 2, 3, 1], slots: [
-    { a: poly([[5, 12], [17, 12], [21, 16], [43, 16], [43, 40], [5, 40]]), stroke: 1 },
-    { a: poly([[5, 21], [43, 21], [43, 40], [5, 40]]), b: poly([[9, 26], [47, 26], [43, 40], [5, 40]]), stroke: 1, fill: 0.12 },
-    { a: rect(10, 19, 20, 16, 1.5), b: rect(10, 11, 20, 16, 1.5), stroke: 1, delay: 0.05 },
-    { a: rect(17, 21, 20, 14, 1.5), b: rect(17, 14, 20, 14, 1.5), stroke: 1, delay: 0.12 },
+    { a: poly([[5, 14], [17, 14], [21, 18], [43, 18], [43, 41], [5, 41]]), stroke: 1 },
+    { a: poly([[5, 23], [43, 23], [43, 41], [5, 41]]), b: poly([[9, 28], [47, 28], [43, 41], [5, 41]]), stroke: 1, fill: 0.12 },
+    { a: ellipse(18, 28, 5), b: ellipse(18, 12, 5), stroke: 1, delay: 0.05 },
+    { a: ellipse(30, 30, 3.5), b: ellipse(31, 7, 3.5), fill: 1, stroke: 0, ink: 'mint', delay: 0.14 },
   ] },
-  // Lines fill in one after another, like being read
+  // A round reading lens works down the page line by line
   read: { period: 2.4, slots: [
     { a: PAGE, stroke: 1 },
-    { a: rect(17, 18, 3, 2.6, 1.3), b: rect(17, 18, 16, 2.6, 1.3), fill: 1, stroke: 0, ink: 'mint' },
-    { a: rect(17, 24, 3, 2.6, 1.3), b: rect(17, 24, 12, 2.6, 1.3), fill: 1, stroke: 0, ink: 'mint', delay: 0.15 },
-    { a: rect(17, 30, 3, 2.6, 1.3), b: rect(17, 30, 16, 2.6, 1.3), fill: 1, stroke: 0, ink: 'mint', delay: 0.3 },
+    { a: ellipse(19, 18, 5), keys: [ellipse(19, 18, 5), ellipse(30, 18, 5), ellipse(19, 26, 5), ellipse(30, 26, 5), ellipse(19, 34, 5), ellipse(30, 34, 5)], stroke: 1 },
+    { a: rect(17, 17, 16, 2.4, 1.2), fill: 1, stroke: 0, ink: 'mint' },
+    { a: rect(17, 25, 13, 2.4, 1.2), fill: 1, stroke: 0, ink: 'mint' },
   ] },
-  // Two versions part, the changed lines light up
+  // Two versions as a Venn pair: they part and overlap, the changes blink
   compare: { period: 2.4, slots: [
-    { a: rect(7, 9, 17, 30, 2), b: rect(4, 9, 17, 30, 2), stroke: 1 },
-    { a: rect(24, 9, 17, 30, 2), b: rect(27, 9, 17, 30, 2), stroke: 1 },
-    { a: rect(10.5, 17, 10, 2.6, 1.3), b: rect(7.5, 17, 10, 2.6, 1.3), fill: 1, stroke: 0, ink: 'mint' },
-    { a: rect(27.5, 23, 10, 2.6, 1.3), b: rect(30.5, 23, 10, 2.6, 1.3), fill: 1, stroke: 0, ink: 'mint' },
+    { a: ellipse(18, 24, 12), b: ellipse(15, 24, 12), stroke: 1 },
+    { a: ellipse(30, 24, 12), b: ellipse(33, 24, 12), stroke: 1 },
+    { a: ellipse(24, 20, 2.6), b: ellipse(24, 20, 0.6), fill: 1, stroke: 0, ink: 'mint' },
+    { a: ellipse(24, 28, 0.6), b: ellipse(24, 28, 2.6), fill: 1, stroke: 0, ink: 'mint' },
   ] },
-  // Shackle lifts: access checked
+  // A round padlock: the shackle lifts
   lock: { period: 2.2, slots: [
-    { a: rect(11, 21, 26, 20, 3), stroke: 1 },
-    { a: 'M16 21V15A8 8 0 0 1 32 15V21H29V15A5 5 0 0 0 19 15V21Z',
-      b: 'M16 16V10A8 8 0 0 1 32 10V16H29V10A5 5 0 0 0 19 10V16Z', fill: 1, stroke: 0 },
-    { a: ellipse(24, 29, 2.4), fill: 1, stroke: 0, ink: 'mint' },
-    { a: rect(23, 30, 2, 5, 1), fill: 1, stroke: 0, ink: 'mint' },
+    { a: ellipse(24, 30, 12), stroke: 1 },
+    { a: 'M16 22V16A8 8 0 0 1 32 16V22H29V16A5 5 0 0 0 19 16V22Z',
+      b: 'M16 17V11A8 8 0 0 1 32 11V17H29V11A5 5 0 0 0 19 11V17Z', fill: 1, stroke: 0 },
+    { a: ellipse(24, 29, 3), fill: 1, stroke: 0, ink: 'mint' },
+    { a: ellipse(24, 35, 1.4), b: ellipse(24, 35, 2.2), fill: 1, stroke: 0, ink: 'mint' },
   ] },
-  // Engagement bars grow in turn
-  activity: { period: 2.2, slots: [
-    { a: rect(5, 7, 38, 34, 3), stroke: 1 },
-    { a: rect(11, 26, 6, 10, 1), b: rect(11, 18, 6, 18, 1), fill: 1, stroke: 0 },
-    { a: rect(21, 20, 6, 16, 1), b: rect(21, 26, 6, 10, 1), fill: 1, stroke: 0, ink: 'mint', delay: 0.15 },
-    { a: rect(31, 24, 6, 12, 1), b: rect(31, 13, 6, 23, 1), fill: 1, stroke: 0, delay: 0.3 },
+  // Engagement as a bubble chart: bubbles swell in turn
+  activity: { period: 2.4, slots: [
+    { a: ellipse(18, 28, 11), b: ellipse(18, 28, 8), stroke: 1 },
+    { a: ellipse(33, 17, 6), b: ellipse(33, 17, 9), stroke: 1, delay: 0.12 },
+    { a: ellipse(34, 34, 4.5), b: ellipse(34, 34, 6.5), fill: 1, stroke: 0, ink: 'mint', delay: 0.24 },
+    { a: ellipse(13, 12, 3), b: ellipse(13, 12, 4.5), fill: 1, stroke: 0, delay: 0.36 },
   ] },
-  // Drafting a Q&A answer: typing dots in a bubble
+  // Drafting an answer: typing dots in a round speech bubble
   qa: { period: 1.3, slots: [
-    { a: 'M10 8H38A4 4 0 0 1 42 12V30A4 4 0 0 1 38 34H21L13 41V34H10A4 4 0 0 1 6 30V12A4 4 0 0 1 10 8Z', stroke: 1 },
-    { a: ellipse(16, 21, 2.5), b: ellipse(16, 18, 2.5), fill: 1, stroke: 0 },
-    { a: ellipse(24, 21, 2.5), b: ellipse(24, 18, 2.5), fill: 1, stroke: 0, ink: 'mint', delay: 0.15 },
-    { a: ellipse(32, 21, 2.5), b: ellipse(32, 18, 2.5), fill: 1, stroke: 0, delay: 0.3 },
+    { a: BUBBLE, stroke: 1 },
+    { a: ellipse(16, 24, 2.8), b: ellipse(16, 20.5, 2.8), fill: 1, stroke: 0 },
+    { a: ellipse(24, 24, 2.8), b: ellipse(24, 20.5, 2.8), fill: 1, stroke: 0, ink: 'mint', delay: 0.15 },
+    { a: ellipse(32, 24, 2.8), b: ellipse(32, 20.5, 2.8), fill: 1, stroke: 0, delay: 0.3 },
   ] },
-  // Report assembling: the chart fills, the summary line grows
-  report: { period: 2.6, slots: [
-    { a: rect(10, 5, 28, 38, 3), stroke: 1 },
-    { a: ellipse(24, 19, 7.5), stroke: 1 },
-    { a: wedge(24, 19, 7.5, 40), b: wedge(24, 19, 7.5, 250), fill: 1, stroke: 0, ink: 'mint' },
-    { a: rect(15, 33, 6, 2.6, 1.3), b: rect(15, 33, 18, 2.6, 1.3), fill: 1, stroke: 0, delay: 0.2 },
+  // A pie being drawn: the slice sweeps round while a dot pens its edge
+  report: { period: 3, slots: [
+    { a: ellipse(24, 24, 17), stroke: 1 },
+    { a: wedge(24, 24, 17, 8), keys: PIE_DEG.map(d => wedge(24, 24, 17, d)), linear: true, fill: 1, stroke: 0, ink: 'mint' },
+    { a: ellipse(24, 24, 3.6), fill: 1, stroke: 0 },
+    { a: ellipse(...on(24, 24, 17, 8), 2.6), keys: PIE_DEG.map(d => ellipse(...on(24, 24, 17, d), 2.6)), linear: true, fill: 1, stroke: 0 },
   ] },
-  // Lines blacked out one by one
+  // A round marker runs along the lines and blacks them out
   redact: { period: 2.4, slots: [
     { a: PAGE, stroke: 1 },
-    { a: rect(17, 18, 16, 2, 1), b: rect(16, 16.5, 18, 5, 1), fill: 1, stroke: 0, ink: 'ink' },
-    { a: rect(17, 24, 12, 2, 1), b: rect(16, 22.5, 14, 5, 1), fill: 1, stroke: 0, ink: 'ink', delay: 0.15 },
-    { a: rect(17, 30, 16, 2, 1), b: rect(16, 28.5, 18, 5, 1), fill: 1, stroke: 0, ink: 'ink', delay: 0.3 },
+    { a: rect(17, 17, 3, 4, 1), b: rect(17, 17, 16, 4, 1), fill: 1, stroke: 0, ink: 'ink' },
+    { a: rect(17, 26, 3, 4, 1), b: rect(17, 26, 14, 4, 1), fill: 1, stroke: 0, ink: 'ink', delay: 0.25 },
+    { a: ellipse(20, 19, 3), keys: [ellipse(20, 19, 3), ellipse(33, 19, 3), ellipse(20, 28, 3), ellipse(31, 28, 3)], stroke: 1 },
   ] },
 };
 
@@ -193,10 +224,16 @@ function toPath(p: Pts): string {
 const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 
+/** A slot's loop: [A] still, [A, B] swing, or every keyframe — all aligned to A so the loop never twists. */
+function posesFor(a: Pts, d: SlotDef): Pts[] {
+  if (d.keys?.length) return d.keys.map((k, i) => (i === 0 ? a : align(a, sample(k))));  // a = keys[0]
+  return d.b ? [a, align(a, sample(d.b))] : [a];
+}
+
 interface Slot {
   cur: Pts; fill: number; stroke: number;          // what is on screen now
   from?: Pts; fromFill: number; fromStroke: number; // transition start
-  a: Pts; b: Pts | null; tFill: number; tStroke: number; ink: Ink; delay: number;
+  a: Pts; poses: Pts[]; linear: boolean; tFill: number; tStroke: number; ink: Ink; delay: number;
 }
 
 @Component({
@@ -243,9 +280,9 @@ export class MorphMarkComponent implements AfterViewInit, OnChanges, OnDestroy {
   ngAfterViewInit(): void {
     const defs = this.defs(this.scene);
     this.slots = defs.map(d => {
-      const a = sample(d.a);
+      const a = sample(d.keys?.[0] ?? d.a);
       return { cur: a, fill: d.fill ?? 0, stroke: d.stroke ?? 1, fromFill: 0, fromStroke: 1,
-        a, b: d.b ? align(a, sample(d.b)) : null, tFill: d.fill ?? 0, tStroke: d.stroke ?? 1, ink: d.ink ?? 'line', delay: d.delay ?? 0 };
+        a, poses: posesFor(a, d), linear: !!d.linear, tFill: d.fill ?? 0, tStroke: d.stroke ?? 1, ink: d.ink ?? 'line', delay: d.delay ?? 0 };
     });
     this.loopStart = performance.now();
     this.ready = true;
@@ -274,8 +311,8 @@ export class MorphMarkComponent implements AfterViewInit, OnChanges, OnDestroy {
     this.slots.forEach((s, i) => {
       const d = defs[i];
       s.from = s.cur; s.fromFill = s.fill; s.fromStroke = s.stroke;
-      s.a = align(s.cur, sample(d.a));
-      s.b = d.b ? align(s.a, sample(d.b)) : null;
+      s.a = align(s.cur, sample(d.keys?.[0] ?? d.a));
+      s.poses = posesFor(s.a, d); s.linear = !!d.linear;
       s.tFill = d.fill ?? 0; s.tStroke = d.stroke ?? 1; s.ink = d.ink ?? 'line'; s.delay = d.delay ?? 0;
     });
     this.tStart = performance.now();
@@ -312,13 +349,15 @@ export class MorphMarkComponent implements AfterViewInit, OnChanges, OnDestroy {
     let moving = m < 1;
 
     this.slots.forEach((s, i) => {
-      // pose inside the scene: A ⇄ B on this slot's delay
+      // pose inside the scene: walk the poses in a loop (A → B → A for a swing) on this slot's delay
       let pose = s.a;
-      if (s.b && !this.reduced) {
+      const K = s.poses.length;
+      if (K > 1 && !this.reduced) {
         const tau = Math.max(0, (now - this.loopStart) / 1000 / period - s.delay);
-        const k = (1 - Math.cos(tau * Math.PI * 2)) / 2;
+        const u = (tau % 1) * K, k = Math.floor(u), e = s.linear ? u - k : ease(u - k);
+        const p0 = s.poses[k % K], p1 = s.poses[(k + 1) % K];
         const out = new Float32Array(N * 2);
-        for (let j = 0; j < N * 2; j++) out[j] = lerp(s.a[j], s.b[j], k);
+        for (let j = 0; j < N * 2; j++) out[j] = lerp(p0[j], p1[j], e);
         pose = out;
         moving = true;
       }
