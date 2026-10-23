@@ -176,11 +176,11 @@ export const PROTO_META: Record<string, ProtoMetaInfo> = {
     "author": "Yuliia Porokhivnyk"
   },
   "checklist-matching": {
-    "updated": "2026-10-21T10:16:21+03:00",
+    "updated": "2026-10-23T13:48:39+03:00",
     "author": "Dmitriy Siniehin"
   },
   "checklist-matching-inline": {
-    "updated": "2026-10-21T10:16:21+03:00",
+    "updated": "2026-10-23T13:48:39+03:00",
     "author": "Dmitriy Siniehin"
   },
   "bulk-redaction": {
