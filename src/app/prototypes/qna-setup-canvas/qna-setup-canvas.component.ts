@@ -403,47 +403,126 @@ const TONES = [
                   <span class="field-label">Assignment</span>
                   <fvdr-segment variant="table" size="sm" [items]="assignItems" [activeId]="n.assignMode" (activeIdChange)="setAssignMode(n, $any($event))"></fvdr-segment>
                 </div>
-                <ng-container *ngFor="let m of n.members">
-                  <ng-container *ngTemplateOutlet="memberRow; context: { n: n, m: m }"></ng-container>
-                </ng-container>
-
-                <!-- Auto-assign: categories × experts grid — who answers what, gaps at a glance -->
-                <div class="cat-section" *ngIf="n.roleKey === 'expert' && n.assignMode === 'auto' && n.members.length">
-                  <div class="cat-section-head">
-                    <span class="field-label">Categories</span>
-                    <span class="hint">Tick who answers each category. New questions go to every ticked expert.</span>
+                <!-- Auto-assign: expert list or category tree (Figma 392:77972) -->
+                <ng-container *ngIf="n.roleKey === 'expert' && n.assignMode === 'auto'; else plainMembers">
+                  <div class="ct-bar">
+                    <span class="field-label">Experts</span>
+                    <fvdr-segment variant="table" size="sm" [items]="expertViewItems" [activeId]="expertView" (activeIdChange)="expertView = $any($event)"></fvdr-segment>
                   </div>
-                  <div class="matrix">
-                    <div class="mx-row mx-row--head" [style.grid-template-columns]="matrixCols(n)">
-                      <span class="mx-cat mx-cat--head">Category</span>
-                      <span class="mx-cell" *ngFor="let m of n.members">
-                        <span class="av av--xs" [fvdrTooltip]="person(m.personId).name"
-                              [style.background]="tone(m.personId).bg" [style.color]="tone(m.personId).fg">{{ person(m.personId).initials }}</span>
-                      </span>
-                      <span></span>
+                  <ng-container *ngIf="expertView === 'experts'">
+                    <!-- three layout ideas for the per-expert view (Figma 336:70127) -->
+                    <div class="idea-bar">
+                      <span class="idea-label">Idea</span>
+                      <fvdr-segment variant="table" size="sm" [items]="expertIdeaItems" [activeId]="expertIdea" (activeIdChange)="expertIdea = $any($event); catEdit = null"></fvdr-segment>
                     </div>
-                    <div class="mx-group" *ngFor="let c of categories">
-                      <div class="mx-row" [style.grid-template-columns]="matrixCols(n)">
-                        <span class="mx-cat">
-                          <fvdr-icon name="label" class="cat-ic" [ngClass]="'cat-ic--' + c.color"></fvdr-icon>
-                          <input class="cat-input" [value]="c.name" aria-label="Category name"
-                                 (change)="renameCategory(c, $any($event.target).value, $any($event.target))"
-                                 (keydown.enter)="$any($event.target).blur()" />
-                        </span>
-                        <span class="mx-cell" *ngFor="let m of n.members">
-                          <fvdr-checkbox [checked]="m.categories.includes(c.name)" (checkedChange)="toggleCategory(m, c.name, $event)"></fvdr-checkbox>
-                        </span>
-                        <button class="icon-btn icon-btn--sm mx-del" fvdrTooltip="Delete category" tooltipPosition="left" (click)="deleteCategory(c)"><fvdr-icon name="trash"></fvdr-icon></button>
+                    <p class="hint idea-hint">{{ expertIdeaHint }}</p>
+                    <div class="ex-list">
+                      <div class="ex" *ngFor="let m of n.members" [class.ex--open]="catEdit === m.personId" [class.ex--stack]="expertIdea === 'stack'">
+                        <div class="ex-row">
+                          <button class="ct-toggle" *ngIf="expertIdea === 'expand'" [attr.aria-expanded]="catEdit === m.personId"
+                                  [attr.aria-label]="'Categories of ' + person(m.personId).name" (click)="toggleCatEdit(m)">
+                            <fvdr-icon [name]="catEdit === m.personId ? 'chevron-down' : 'chevron-right'"></fvdr-icon>
+                          </button>
+                          <span class="av av--xs" [style.background]="tone(m.personId).bg" [style.color]="tone(m.personId).fg">{{ person(m.personId).initials }}</span>
+                          <div class="ex-main">
+                            <span class="ex-name">{{ person(m.personId).name }}</span>
+                            <span class="ex-sub" *ngIf="expertIdea === 'expand'">{{ catCountLabel(m) }}</span>
+                            <div class="ex-tags" *ngIf="expertIdea === 'stack'">
+                              <span class="ex-tag ex-tag--chip" *ngFor="let c of memberCats(m)">
+                                <fvdr-icon name="label" class="cat-ic" [ngClass]="'cat-ic--' + c.color"></fvdr-icon>{{ c.name }}
+                                <button class="ex-tag-x" [attr.aria-label]="'Remove ' + c.name" (click)="toggleCategory(m, c.name, false)"><fvdr-icon name="close"></fvdr-icon></button>
+                              </span>
+                              <button class="ex-tag ex-tag--add" (click)="toggleCatEdit(m)"><fvdr-icon name="plus"></fvdr-icon>Category</button>
+                            </div>
+                          </div>
+                          <div class="ex-inline" *ngIf="expertIdea === 'tags'">
+                            <span class="ex-tag" *ngFor="let c of memberCats(m).slice(0, 2)">
+                              <fvdr-icon name="label" class="cat-ic" [ngClass]="'cat-ic--' + c.color"></fvdr-icon>{{ c.name }}
+                            </span>
+                            <span class="ex-more" *ngIf="memberCats(m).length > 2" [fvdrTooltip]="restCats(m)">+{{ memberCats(m).length - 2 }}</span>
+                            <button class="icon-btn icon-btn--sm ex-edit-btn" [fvdrTooltip]="memberCats(m).length ? 'Edit categories' : 'Add category'" tooltipPosition="left" (click)="toggleCatEdit(m)">
+                              <fvdr-icon [name]="memberCats(m).length ? 'edit' : 'plus'"></fvdr-icon>
+                            </button>
+                          </div>
+                          <div class="ex-dots" *ngIf="expertIdea === 'expand'">
+                            <span class="ex-dot" *ngFor="let c of memberCats(m)" [ngClass]="'ex-dot--' + c.color" [fvdrTooltip]="c.name"></span>
+                          </div>
+                          <span class="ct-warn" *ngIf="!memberCats(m).length" fvdrTooltip="No category — gets questions only when assigned by hand" tooltipPosition="left"><fvdr-icon name="warning"></fvdr-icon></span>
+                          <button class="icon-btn icon-btn--sm ct-remove" [fvdrTooltip]="'Remove from ' + n.name" tooltipPosition="left" (click)="removeMember(n, m)"><fvdr-icon name="user-remove"></fvdr-icon></button>
+                        </div>
+                        <div class="ex-edit" *ngIf="catEdit === m.personId">
+                          <fvdr-checkbox *ngFor="let c of categories" [label]="c.name" [checked]="m.categories.includes(c.name)" (checkedChange)="toggleCategory(m, c.name, $event)"></fvdr-checkbox>
+                        </div>
                       </div>
-                      <span class="mx-warn" *ngIf="!expertsFor(n, c.name).length">No expert — {{ c.name }} questions wait for the coordinator</span>
                     </div>
-                    <div class="mx-add">
-                      <fvdr-icon name="label" class="cat-ic cat-ic--grey"></fvdr-icon>
-                      <input class="cat-input" placeholder="New category" [(ngModel)]="newCategory" (keydown.enter)="addCategory()" aria-label="New category name" />
-                      <button class="icon-btn icon-btn--sm" fvdrTooltip="Add category" tooltipPosition="left" [disabled]="!newCategory.trim()" (click)="addCategory()"><fvdr-icon name="plus"></fvdr-icon></button>
+                  </ng-container>
+
+                  <div class="ctree" *ngIf="expertView === 'categories'">
+                    <div class="ct-group" *ngFor="let c of categories">
+                      <div class="ct-row ct-row--cat">
+                        <button class="ct-toggle" [attr.aria-expanded]="!catCollapsed.has(c.name)" [attr.aria-label]="(catCollapsed.has(c.name) ? 'Expand ' : 'Collapse ') + c.name" (click)="toggleCat(c.name)">
+                          <fvdr-icon [name]="catCollapsed.has(c.name) ? 'chevron-right' : 'chevron-down'"></fvdr-icon>
+                        </button>
+                        <fvdr-icon name="label" class="cat-ic" [ngClass]="'cat-ic--' + c.color"></fvdr-icon>
+                        <input class="cat-input" [value]="c.name" aria-label="Category name"
+                               (change)="renameCategory(c, $any($event.target).value, $any($event.target))"
+                               (keydown.enter)="$any($event.target).blur()" />
+                        <span class="ct-warn" *ngIf="!expertsFor(n, c.name).length" [fvdrTooltip]="'No expert — ' + c.name + ' questions wait for the coordinator'"><fvdr-icon name="warning"></fvdr-icon></span>
+                        <button class="icon-btn icon-btn--sm ct-del" fvdrTooltip="Delete category" tooltipPosition="left" (click)="deleteCategory(c)"><fvdr-icon name="trash"></fvdr-icon></button>
+                        <button class="ct-add" (click)="catAddFor = catAddFor === c.name ? null : c.name"><fvdr-icon name="user-add"></fvdr-icon>Add</button>
+                      </div>
+                      <div class="ct-picker" *ngIf="catAddFor === c.name">
+                        <fvdr-dropdown size="s" [options]="catAddOptions(n, c.name)" [value]="''" [placeholder]="'Add expert to ' + c.name"
+                                       [searchable]="true" searchPlaceholder="Search participants"
+                                       (valueChange)="addToCategory(n, c.name, $event)"></fvdr-dropdown>
+                      </div>
+                      <ng-container *ngIf="!catCollapsed.has(c.name)">
+                        <div class="ct-row ct-row--person" *ngFor="let m of membersIn(n, c.name)">
+                          <span class="av av--xs" [style.background]="tone(m.personId).bg" [style.color]="tone(m.personId).fg">{{ person(m.personId).initials }}</span>
+                          <span class="ct-name">{{ person(m.personId).name }}</span>
+                          <button class="icon-btn icon-btn--sm ct-remove" [fvdrTooltip]="'Remove from ' + c.name" tooltipPosition="left" (click)="toggleCategory(m, c.name, false)"><fvdr-icon name="user-remove"></fvdr-icon></button>
+                        </div>
+                      </ng-container>
+                    </div>
+
+                    <!-- experts without a category -->
+                    <div class="ct-group">
+                      <div class="ct-row ct-row--cat">
+                        <button class="ct-toggle" [attr.aria-expanded]="!catCollapsed.has(UNASSIGNED)" aria-label="Toggle unassigned experts" (click)="toggleCat(UNASSIGNED)">
+                          <fvdr-icon [name]="catCollapsed.has(UNASSIGNED) ? 'chevron-right' : 'chevron-down'"></fvdr-icon>
+                        </button>
+                        <fvdr-icon name="label" class="cat-ic cat-ic--grey"></fvdr-icon>
+                        <span class="ct-label">Unassigned experts</span>
+                        <span class="ct-info" fvdrTooltip="No category — they get questions only when a coordinator assigns them by hand"><fvdr-icon name="info"></fvdr-icon></span>
+                        <button class="ct-add" (click)="catAddFor = catAddFor === UNASSIGNED ? null : UNASSIGNED"><fvdr-icon name="user-add"></fvdr-icon>Add</button>
+                      </div>
+                      <div class="ct-picker" *ngIf="catAddFor === UNASSIGNED">
+                        <fvdr-dropdown size="s" [options]="addPeopleOptions(n)" [value]="''" placeholder="Add expert"
+                                       [searchable]="true" searchPlaceholder="Search participants"
+                                       (valueChange)="addFromDropdown(n, $event); catAddFor = null"></fvdr-dropdown>
+                      </div>
+                      <ng-container *ngIf="!catCollapsed.has(UNASSIGNED)">
+                        <div class="ct-row ct-row--person" *ngFor="let m of unassignedIn(n)">
+                          <span class="av av--xs" [style.background]="tone(m.personId).bg" [style.color]="tone(m.personId).fg">{{ person(m.personId).initials }}</span>
+                          <span class="ct-name">{{ person(m.personId).name }}</span>
+                          <button class="icon-btn icon-btn--sm ct-remove" [fvdrTooltip]="'Remove from ' + n.name" tooltipPosition="left" (click)="removeMember(n, m)"><fvdr-icon name="user-remove"></fvdr-icon></button>
+                        </div>
+                        <span class="ct-empty" *ngIf="!unassignedIn(n).length">Every expert has a category</span>
+                      </ng-container>
+                    </div>
+
+                    <div class="ct-row ct-row--new">
+                      <fvdr-icon name="plus" class="ct-new-ic"></fvdr-icon>
+                      <input class="cat-input" placeholder="Add category" [(ngModel)]="newCategory" (keydown.enter)="addCategory()" aria-label="New category name" />
+                      <button class="ct-add" *ngIf="newCategory.trim()" (click)="addCategory()">Add</button>
                     </div>
                   </div>
-                </div>
+                </ng-container>
+                <ng-template #plainMembers>
+                  <ng-container *ngFor="let m of n.members">
+                    <ng-container *ngTemplateOutlet="memberRow; context: { n: n, m: m }"></ng-container>
+                  </ng-container>
+                </ng-template>
               </ng-container>
             </ng-container>
 
@@ -940,17 +1019,60 @@ const TONES = [
     .invite-form { display: flex; flex-direction: column; gap: var(--space-3); padding: var(--space-3); border-radius: var(--radius-md); background: var(--color-stone-100); }
     .invite-actions { display: flex; gap: var(--space-2); }
     .modal-text { margin: 0; color: var(--color-text-secondary); }
-    .matrix { display: flex; flex-direction: column; overflow-x: auto; }
-    .mx-row { display: grid; align-items: center; gap: var(--space-1); min-height: 36px; }
-    .mx-row--head { min-height: 32px; border-bottom: 1px solid var(--color-divider); }
-    .mx-group { border-bottom: 1px solid var(--color-divider); padding-bottom: var(--space-1); }
-    .mx-cat { display: flex; align-items: center; gap: var(--space-1); min-width: 0; }
-    .mx-cat--head { font-size: var(--text-caption1-size); color: var(--color-text-secondary); }
-    .mx-cell { display: flex; justify-content: center; }
-    .mx-del { opacity: 0; transition: opacity 0.15s; }
-    .mx-group:hover .mx-del, .mx-del:focus-visible { opacity: 1; }
-    .mx-warn { display: block; font-size: var(--text-caption2-size); color: var(--color-error-600); padding-left: var(--space-5); }
-    .mx-add { display: flex; align-items: center; gap: var(--space-1); padding-top: var(--space-2); }
+    .ct-bar { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); margin: var(--space-2) 0; }
+    .ctree { display: flex; flex-direction: column; }
+    .ct-row { display: flex; align-items: center; gap: var(--space-2); min-height: var(--space-10); border-radius: var(--radius-sm); }
+    .ct-row--cat { padding-right: var(--space-1); }
+    .ct-row--person { padding-left: var(--space-10); padding-right: var(--space-1); }
+    .ct-row--person:hover { background: var(--color-hover-bg); }
+    .ct-row--new { padding-left: var(--space-1); color: var(--color-primary-500); }
+    .ct-toggle { display: inline-flex; align-items: center; justify-content: center; width: var(--space-6); height: var(--space-6); border: none; background: none; border-radius: var(--radius-sm); color: var(--color-text-secondary); cursor: pointer; padding: 0; }
+    .ct-toggle:hover { background: var(--color-hover-bg); }
+    .ct-label { font-size: var(--font-size-base); }
+    .ct-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .ct-info { display: inline-flex; color: var(--color-text-secondary); }
+    .ct-warn { display: inline-flex; color: var(--color-error-600); }
+    .ct-add { margin-left: auto; display: inline-flex; align-items: center; gap: var(--space-1); border: none; background: none; padding: var(--space-1); font: inherit; color: var(--color-primary-500); cursor: pointer; white-space: nowrap; }
+    .ct-add:hover { color: var(--color-primary-600); }
+    .ct-row--cat .cat-input { flex: 0 1 auto; width: 9em; }
+    .ct-del { opacity: 0; transition: opacity 0.15s; }
+    .ct-row:hover .ct-del, .ct-del:focus-visible { opacity: 1; }
+    .ct-remove { opacity: 0; color: var(--color-error-600); transition: opacity 0.15s; }
+    .ct-row:hover .ct-remove, .ct-remove:focus-visible { opacity: 1; }
+    .ct-picker { padding: 0 0 var(--space-2) var(--space-10); }
+    .ct-empty { display: block; padding: var(--space-2) 0 var(--space-2) var(--space-10); font-size: var(--text-caption1-size); color: var(--color-text-secondary); }
+    .ct-new-ic { margin: 0 var(--space-1); }
+    .idea-bar { display: flex; align-items: center; gap: var(--space-2); }
+    .idea-label { font-size: var(--text-caption1-size); color: var(--color-text-secondary); }
+    .idea-hint { margin: var(--space-1) 0 var(--space-2); }
+    .ex-list { display: flex; flex-direction: column; }
+    .ex { border-radius: var(--radius-sm); }
+    .ex--open { background: var(--color-stone-100); }
+    .ex-row { display: flex; align-items: center; gap: var(--space-2); min-height: var(--space-10); padding: var(--space-1); border-radius: var(--radius-sm); }
+    .ex-row:hover { background: var(--color-hover-bg); }
+    .ex-row:hover .ct-remove, .ex-row .ct-remove:focus-visible { opacity: 1; }
+    .ex--stack .ex-row { align-items: flex-start; padding-top: var(--space-2); padding-bottom: var(--space-2); }
+    .ex-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+    .ex-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .ex-sub { font-size: var(--text-caption1-size); color: var(--color-text-secondary); }
+    .ex-tags { display: flex; flex-wrap: wrap; gap: var(--space-1); padding-top: 2px; }
+    .ex-inline { display: flex; align-items: center; gap: var(--space-2); flex: none; }
+    .ex-tag { display: inline-flex; align-items: center; gap: var(--space-1); font-size: var(--text-caption1-size); color: var(--color-text-primary); white-space: nowrap; }
+    .ex-tag .cat-ic { font-size: var(--space-3); }
+    .ex-tag--chip { padding: 2px var(--space-1) 2px var(--space-2); border: 1px solid var(--color-divider); border-radius: var(--radius-lg); background: var(--color-stone-0); }
+    .ex-tag--add { padding: 2px var(--space-2); border: 1px dashed var(--color-stone-500); border-radius: var(--radius-lg); background: none; color: var(--color-primary-500); cursor: pointer; font: inherit; font-size: var(--text-caption1-size); }
+    .ex-tag-x { display: inline-flex; border: none; background: none; padding: 0; color: var(--color-text-secondary); cursor: pointer; font-size: var(--space-3); }
+    .ex-tag-x:hover { color: var(--color-error-600); }
+    .ex-more { font-size: var(--text-caption1-size); padding: 0 var(--space-1); border-radius: var(--radius-lg); background: var(--color-stone-300); color: var(--color-text-secondary); }
+    .ex-dots { display: flex; gap: var(--space-1); flex: none; }
+    .ex-dot { width: var(--space-2); height: var(--space-2); border-radius: 50%; }
+    .ex-dot--teal { background: var(--color-primary-400); }
+    .ex-dot--green { background: var(--color-primary-600); }
+    .ex-dot--blue { background: var(--color-info-500); }
+    .ex-dot--orange { background: var(--color-warning-600); }
+    .ex-dot--red { background: var(--color-error-500); }
+    .ex-dot--grey { background: var(--color-stone-500); }
+    .ex-edit { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2); padding: var(--space-2) var(--space-3) var(--space-3) var(--space-10); }
     .cat-input { flex: 1; min-width: 0; border: 1px solid transparent; border-radius: var(--radius-sm); padding: 2px var(--space-1); font: inherit; color: var(--color-text-primary); background: none; }
     .cat-input:hover { border-color: var(--color-stone-400); }
     .cat-input:focus { outline: none; border-color: var(--color-primary-500); background: var(--color-stone-0); }
@@ -1391,7 +1513,56 @@ export class QnaSetupCanvasComponent {
   }
 
   // ── categories ──
-  matrixCols(n: FlowNode): string { return `minmax(96px, 1fr) repeat(${n.members.length}, 32px) 28px`; }
+  readonly UNASSIGNED = '__unassigned';
+  expertView: 'experts' | 'categories' = 'categories';
+  expertViewItems: SegmentItem[] = [
+    { id: 'experts', label: 'By experts', icon: 'user' },
+    { id: 'categories', label: 'By categories', icon: 'label' },
+  ];
+  catCollapsed = new Set<string>();
+  expertIdea: 'tags' | 'stack' | 'expand' = 'tags';
+  expertIdeaItems: SegmentItem[] = [
+    { id: 'tags', label: 'A · Inline' },
+    { id: 'stack', label: 'B · Two lines' },
+    { id: 'expand', label: 'C · Expand' },
+  ];
+  get expertIdeaHint(): string {
+    return {
+      tags: 'Figma layout, capped at 2 tags + “+N” so rows stay one line in a narrow panel. Pencil edits inline.',
+      stack: 'Name on top, removable category chips below. Everything visible; rows grow with categories.',
+      expand: 'Coloured dots as a compact summary. Expand a row to tick categories — scales to many.',
+    }[this.expertIdea];
+  }
+  catEdit: string | null = null;
+  toggleCatEdit(m: Membership) { this.catEdit = this.catEdit === m.personId ? null : m.personId; }
+  memberCats(m: Membership) { return this.categories.filter(c => m.categories.includes(c.name)); }
+  restCats(m: Membership): string { return this.memberCats(m).slice(2).map(c => c.name).join(', '); }
+  catCountLabel(m: Membership): string {
+    const k = this.memberCats(m).length;
+    return k ? `${k} ${k === 1 ? 'category' : 'categories'}` : 'No category';
+  }
+  catAddFor: string | null = null;
+  toggleCat(name: string) { this.catCollapsed.has(name) ? this.catCollapsed.delete(name) : this.catCollapsed.add(name); }
+  membersIn(n: FlowNode, cat: string): Membership[] { return n.members.filter(m => m.categories.includes(cat)); }
+  unassignedIn(n: FlowNode): Membership[] { return n.members.filter(m => !m.categories.length); }
+  catAddOptions(n: FlowNode, cat: string): DropdownOption[] {
+    const inCat = new Set(this.membersIn(n, cat).map(m => m.personId));
+    const inNode = new Set(n.members.map(m => m.personId));
+    return this.stable('catAdd:' + n.id + ':' + cat, [...inCat].join(',') + '|' + [...inNode].join(',') + '|' + this.people.length, () => [
+      ...n.members.filter(m => !inCat.has(m.personId)).map(m => ({ value: m.personId, label: this.person(m.personId).name, group: 'Experts' })),
+      ...this.people.filter(p => !inNode.has(p.id)).map(p => ({ value: p.id, label: p.name, sublabel: p.external ? 'Invited' : p.group, group: 'Other participants' })),
+    ]);
+  }
+  addToCategory(n: FlowNode, cat: string, v: string | string[]) {
+    const id = Array.isArray(v) ? v[0] : v;
+    if (!id) return;
+    if (!n.members.some(m => m.personId === id)) this.addMember(n, id, false);
+    const m = n.members.find(x => x.personId === id)!;
+    this.toggleCategory(m, cat, true);
+    this.catAddFor = null;
+    this.catCollapsed.delete(cat);
+    this.toast.show({ variant: 'success', message: `${this.person(id).name} now answers ${cat} questions` });
+  }
   toggleCategory(m: Membership, cat: string, on: boolean) {
     m.categories = on ? [...new Set([...m.categories, cat])] : m.categories.filter(c => c !== cat);
   }
@@ -1489,7 +1660,7 @@ export class QnaSetupCanvasComponent {
     const expertMembers = (n: FlowNode) => {
       n.assignMode = 'auto';
       n.members = [
-        { personId: 'p6', categories: ['Finance', 'Tax'] },
+        { personId: 'p6', categories: ['Finance', 'Tax', 'Legal'] },
         { personId: 'p7', categories: ['Legal'] },
         { personId: 'p8', categories: ['HR'] },
       ];
