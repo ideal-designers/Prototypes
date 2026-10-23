@@ -402,8 +402,16 @@ const TONES = [
                   <span class="field-label">Assignment</span>
                   <fvdr-segment variant="table" size="sm" [items]="assignItems" [activeId]="n.assignMode" (activeIdChange)="setAssignMode(n, $any($event))"></fvdr-segment>
                 </div>
-                <!-- Auto-assign: expert list or category tree (Figma 392:77972) -->
-                <ng-container *ngIf="n.roleKey === 'expert' && n.assignMode === 'auto'; else plainMembers">
+                <!-- approver: any approver signs off, or approvers grouped by category -->
+                <ng-container *ngIf="n.roleKey === 'approver'">
+                  <div class="assign-mode">
+                    <span class="field-label">Who approves</span>
+                    <fvdr-segment variant="table" size="sm" [items]="approveModeItems" [activeId]="n.assignMode" (activeIdChange)="setAssignMode(n, $any($event))"></fvdr-segment>
+                  </div>
+                  <p class="hint">{{ approverAssignHint(n) }}</p>
+                </ng-container>
+                <!-- Auto-assign: list or category tree (Figma 392:77972) -->
+                <ng-container *ngIf="(n.roleKey === 'expert' || n.roleKey === 'approver') && n.assignMode === 'auto'; else plainMembers">
                   <ng-container *ngTemplateOutlet="catAssign; context: { n: n }"></ng-container>
                 </ng-container>
                 <ng-template #plainMembers>
@@ -417,20 +425,8 @@ const TONES = [
             <!-- Permissions -->
             <ng-container *ngIf="nodeTab === 'permissions'">
               <ng-container *ngIf="rolePerms(n) as rp; else flatPerms">
-                <!-- approver: how experts route answers to approvers -->
-                <div class="perm-cat" *ngIf="n.roleKey === 'approver'">
-                  <span class="field-label">Category</span>
-                  <div class="assign-mode">
-                    <span class="perm-label">Experts send answers</span>
-                    <fvdr-segment variant="table" size="sm" [items]="assignItems" [activeId]="n.assignMode" (activeIdChange)="setAssignMode(n, $any($event))"></fvdr-segment>
-                  </div>
-                  <p class="hint">{{ approverAssignHint(n) }}</p>
-                  <ng-container *ngIf="n.assignMode === 'auto'">
-                    <ng-container *ngTemplateOutlet="catAssign; context: { n: n }"></ng-container>
-                  </ng-container>
-                </div>
                 <ng-container *ngIf="rp.fixed.length">
-                  <span class="field-label" [class.field-label--gap]="n.roleKey === 'approver'">Always included</span>
+                  <span class="field-label">Always included</span>
                   <div class="perm perm--fixed" *ngFor="let p of rp.fixed">
                     <div class="perm-text">
                       <span class="perm-label">{{ p.label }}</span>
@@ -699,7 +695,7 @@ const TONES = [
 <ng-template #catAssign let-n="n">
   <div class="ct-bar">
     <span class="field-label">{{ roleWord(n, true, true) }}</span>
-    <fvdr-segment variant="table" size="sm" [items]="expertViewItems" [activeId]="expertView" (activeIdChange)="expertView = $any($event)"></fvdr-segment>
+    <fvdr-segment variant="table" size="sm" [items]="n.roleKey === 'approver' ? approverViewItems : expertViewItems" [activeId]="expertView" (activeIdChange)="expertView = $any($event)"></fvdr-segment>
   </div>
   <ng-container *ngIf="expertView === 'experts'">
     <!-- three layout ideas for the per-expert view (Figma 336:70127) -->
@@ -739,7 +735,7 @@ const TONES = [
           <div class="ex-dots" *ngIf="expertIdea === 'expand'">
             <span class="ex-dot" *ngFor="let c of memberCats(m)" [ngClass]="'ex-dot--' + c.color" [fvdrTooltip]="c.name"></span>
           </div>
-          <span class="ct-warn" *ngIf="!memberCats(m).length" fvdrTooltip="No category — gets questions only when assigned by hand" tooltipPosition="left"><fvdr-icon name="warning"></fvdr-icon></span>
+          <span class="ct-warn" *ngIf="!memberCats(m).length" [fvdrTooltip]="n.roleKey === 'approver' ? 'No category — approves only answers nobody else covers' : 'No category — gets questions only when assigned by hand'" tooltipPosition="left"><fvdr-icon name="warning"></fvdr-icon></span>
           <button class="icon-btn icon-btn--sm ct-remove" [fvdrTooltip]="'Remove from ' + n.name" tooltipPosition="left" (click)="removeMember(n, m)"><fvdr-icon name="user-remove"></fvdr-icon></button>
         </div>
         <div class="ex-edit" *ngIf="catEdit === m.personId">
@@ -759,7 +755,7 @@ const TONES = [
         <input class="cat-input" [value]="c.name" aria-label="Category name"
                (change)="renameCategory(c, $any($event.target).value, $any($event.target))"
                (keydown.enter)="$any($event.target).blur()" />
-        <span class="ct-warn" *ngIf="!expertsFor(n, c.name).length" [fvdrTooltip]="'No ' + roleWord(n) + ' — ' + c.name + ' questions wait for the coordinator'"><fvdr-icon name="warning"></fvdr-icon></span>
+        <span class="ct-warn" *ngIf="!expertsFor(n, c.name).length" [fvdrTooltip]="uncoveredHint(n, c.name)"><fvdr-icon name="warning"></fvdr-icon></span>
         <button class="icon-btn icon-btn--sm ct-del" fvdrTooltip="Delete category" tooltipPosition="left" (click)="deleteCategory(c)"><fvdr-icon name="trash"></fvdr-icon></button>
         <button class="ct-add" (click)="catAddFor = catAddFor === c.name ? null : c.name"><fvdr-icon name="user-add"></fvdr-icon>Add</button>
       </div>
@@ -785,7 +781,7 @@ const TONES = [
         </button>
         <fvdr-icon name="label" class="cat-ic cat-ic--grey"></fvdr-icon>
         <span class="ct-label">Unassigned {{ roleWord(n, true) }}</span>
-        <span class="ct-info" fvdrTooltip="No category — they get questions only when a coordinator assigns them by hand"><fvdr-icon name="info"></fvdr-icon></span>
+        <span class="ct-info" [fvdrTooltip]="n.roleKey === 'approver' ? 'No category — they approve answers of categories nobody else covers' : 'No category — they get questions only when a coordinator assigns them by hand'"><fvdr-icon name="info"></fvdr-icon></span>
         <button class="ct-add" (click)="catAddFor = catAddFor === UNASSIGNED ? null : UNASSIGNED"><fvdr-icon name="user-add"></fvdr-icon>Add</button>
       </div>
       <div class="ct-picker" *ngIf="catAddFor === UNASSIGNED">
@@ -1125,8 +1121,6 @@ const TONES = [
     .perm-fixed-ic { font-size: var(--space-4); color: var(--color-primary-500); }
     .perm-fixed-ic--off { color: var(--color-stone-600); }
     .perm-open-head { display: flex; align-items: center; gap: var(--space-2); }
-    .perm-cat { display: flex; flex-direction: column; gap: var(--space-2); padding-bottom: var(--space-3); border-bottom: 1px solid var(--color-divider); }
-    .perm-cat .hint { margin: 0; }
     .perm-sub { padding: var(--space-2) 0 var(--space-3); border-bottom: 1px solid var(--color-divider); }
     .perm-route { display: flex; gap: var(--space-2); align-items: flex-start; margin-top: var(--space-3); }
     .perm-route fvdr-icon { flex: none; margin-top: 2px; color: var(--color-info-500); }
@@ -1527,10 +1521,20 @@ export class QnaSetupCanvasComponent {
 
   // ── categories ──
   readonly UNASSIGNED = '__unassigned';
+  approveModeItems: SegmentItem[] = [
+    { id: 'manual', label: 'Any approver', icon: 'participants' },
+    { id: 'auto', label: 'By category', icon: 'label' },
+  ];
+  /** tooltip on a category that nobody covers */
+  uncoveredHint(n: FlowNode, cat: string): string {
+    return n.roleKey === 'approver'
+      ? `No approver for ${cat} — these answers go to any approver`
+      : `No expert — ${cat} questions wait for the coordinator`;
+  }
   approverAssignHint(n: FlowNode): string {
     return n.assignMode === 'auto'
-      ? 'Each answer goes to the approvers of its question’s category.'
-      : 'The expert picks an approver for each answer.';
+      ? 'Answers are approved only by approvers of the same category — e.g. Finance answers go to Finance approvers, Legal to Legal. A category with no approver falls back to any approver.'
+      : 'Any approver in this role can approve any answer, whatever its category.';
   }
   roleWord(n: FlowNode, plural = false, cap = false): string {
     const w = (n.roleKey === 'approver' ? 'approver' : 'expert') + (plural ? 's' : '');
@@ -1539,6 +1543,10 @@ export class QnaSetupCanvasComponent {
   expertView: 'experts' | 'categories' = 'categories';
   expertViewItems: SegmentItem[] = [
     { id: 'experts', label: 'By experts', icon: 'user' },
+    { id: 'categories', label: 'By categories', icon: 'label' },
+  ];
+  approverViewItems: SegmentItem[] = [
+    { id: 'experts', label: 'By approvers', icon: 'user' },
     { id: 'categories', label: 'By categories', icon: 'label' },
   ];
   catCollapsed = new Set<string>();
@@ -1620,7 +1628,7 @@ export class QnaSetupCanvasComponent {
 
   nodeSubtitle(n: FlowNode): string {
     if (n.roleKey === 'expert') return n.assignMode === 'auto' ? 'Auto-assign by category' : 'Assigned manually';
-    if (n.roleKey === 'approver' && n.assignMode === 'auto') return 'Gets answers by category';
+    if (n.roleKey === 'approver' && n.assignMode === 'auto') return 'Approves by category';
     if (n.side === 'question') return n.members.length ? `${this.teamsOf(n).length} question ${this.teamsOf(n).length === 1 ? 'team' : 'teams'}` : 'Question side';
     return this.roleDef(n.roleKey)?.description ?? '';
   }
@@ -2095,7 +2103,7 @@ export class QnaSetupCanvasComponent {
     if (!e) return;
     if (n.roleKey === 'approver') {
       // remember the hand-written label so switching back restores it
-      if (mode === 'auto') { e.manualLabel = e.label; e.label = 'Routed by category'; }
+      if (mode === 'auto') { e.manualLabel = e.label; e.label = 'To category approvers'; }
       else e.label = e.manualLabel ?? 'Sends for approval';
       return;
     }
