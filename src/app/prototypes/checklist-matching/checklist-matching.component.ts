@@ -745,25 +745,17 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
     <!-- Modal = Gutenberg pattern (DS): buttons on the right, Cancel first, Primary last -->
     <fvdr-modal [visible]="mergeOpen" title="Merge with source file" size="m"
       [confirmLabel]="mergeMode === 'copy' ? 'Download copy' : 'Replace file'" cancelLabel="Cancel" cancelVariant="secondary"
-      [confirmDisabled]="mergeClash" [closeOnOverlay]="false" (confirmed)="confirmMerge()" (closed)="mergeOpen = false">
+      [closeOnOverlay]="false" (confirmed)="confirmMerge()" (closed)="mergeOpen = false">
       <div class="merge">
         <p class="merge__p">AI writes two values for each document request: its status and the documents it found. Checklists differ, so check where they go.</p>
         <section class="merge__sec">
-          <h3 class="merge__h">Columns</h3>
-          <fvdr-dropdown label="Status" [options]="colOptions" [value]="mergeStatusCol" (valueChange)="mergeStatusCol = asString($event)" />
-          <fvdr-dropdown label="Documents" [options]="colOptions" [value]="mergeDocsCol" (valueChange)="mergeDocsCol = asString($event)" />
-          <p class="merge__hint merge__hint--err" *ngIf="mergeClash">Pick two different columns, or a new column for one of them.</p>
-          <p class="merge__hint" *ngIf="!mergeClash && (counts['review'] || 0) > 0">{{ counts['review'] }} suggestions aren't reviewed yet. Their rows stay empty until you review them.</p>
-        </section>
-        <section class="merge__sec">
-          <h3 class="merge__h">Result</h3>
           <div class="merge__opt">
             <fvdr-radio [options]="[{ value: 'copy', label: 'Download a merged copy' }]" [value]="mergeMode" (valueChange)="mergeMode = $any($event)" />
-            <p class="merge__desc">{{ sc.tabLabel }} (merged).xlsx. The file in the room doesn't change.</p>
+            <p class="merge__desc">The source file doesn't change.</p>
           </div>
           <div class="merge__opt">
-            <fvdr-radio [options]="[{ value: 'replace', label: 'Replace the file in the room' }]" [value]="mergeMode" (valueChange)="mergeMode = $any($event)" />
-            <p class="merge__desc">Saved as a new version. The current one stays in version history.</p>
+            <fvdr-radio [options]="[{ value: 'replace', label: 'Replace the source' }]" [value]="mergeMode" (valueChange)="mergeMode = $any($event)" />
+            <p class="merge__desc">Replace the source file with merged information</p>
           </div>
         </section>
       </div>
@@ -870,10 +862,7 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
     /* Merge dialog body (footer comes from the DS modal) */
     .merge { display: flex; flex-direction: column; gap: var(--space-6); }
     .merge__sec { display: flex; flex-direction: column; gap: var(--space-3); }
-    .merge__h { margin: 0; font-size: var(--text-label-m-size); line-height: var(--text-label-m-lh); font-weight: var(--text-label-m-weight); }
     .merge__p { margin: 0; color: var(--color-text-secondary); }
-    .merge__hint { margin: 0; font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); color: var(--color-text-secondary); }
-    .merge__hint--err { color: var(--color-error-600); }
     .merge__opt { display: flex; flex-direction: column; gap: 2px; }
     .merge__desc { margin: 0 0 0 calc(18px + var(--space-2)); color: var(--color-text-secondary); }
     .sc--n { background: var(--color-stone-200); color: var(--color-text-secondary); text-align: center; font-weight: var(--text-body3-weight); font-style: normal; }
@@ -1246,12 +1235,6 @@ export class ChecklistMatchingComponent implements OnDestroy {
   mergeMode: 'copy' | 'replace' = 'copy';
   mergeStatusCol = '';
   mergeDocsCol = '';
-  get mergeClash() { return this.mergeStatusCol !== 'new' && this.mergeStatusCol === this.mergeDocsCol; }
-  /** Columns of the source file, plus "new column" for checklists without result columns. */
-  get colOptions(): DropdownOption[] {
-    const cols = this.sc.source.cols.map((c, i) => ({ value: '' + i, label: `${this.sheetCols[i]} · ${c}` })).filter((_, i) => !!this.sc.source.cols[i]);
-    return [...cols, { value: 'new', label: 'New column at the end' }];
-  }
   /** Columns the merge appends to the file (when a value goes to a new column). */
   newCols: { key: 'status' | 'docs'; title: string; letter: string }[] = [];
   openMerge() {
@@ -1263,7 +1246,6 @@ export class ChecklistMatchingComponent implements OnDestroy {
     this.mergeOpen = true;
   }
   confirmMerge() {
-    if (this.mergeClash) return;
     this.mergeOpen = false;
     if (this.mergeMode === 'copy') {
       this.toastSvc.show({ variant: 'success', title: 'Merged copy downloaded', message: `${this.sc.tabLabel} (merged).xlsx. The file in the room is unchanged.`, duration: 6000 });
