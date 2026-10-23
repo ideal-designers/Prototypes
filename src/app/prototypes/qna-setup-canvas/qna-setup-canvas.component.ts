@@ -32,7 +32,7 @@ interface FlowNode {
   /** avatar colour; falls back to the side/custom default */
   color?: AvatarColor;
 }
-interface FlowEdge { id: string; from: string; to: string; fs: Port; ts: Port; label: string; kind: EdgeKind; /** ports follow geometry (edges added by the user) */ auto?: boolean; }
+interface FlowEdge { id: string; from: string; to: string; fs: Port; ts: Port; label: string; kind: EdgeKind; /** label before an approver switched to routing by category */ manualLabel?: string; /** ports follow geometry (edges added by the user) */ auto?: boolean; }
 interface PermDef { key: string; label: string; hint: string; }
 type AvatarColor = 'green' | 'teal' | 'blue' | 'orange' | 'red' | 'grey' | 'dark';
 const AVATAR_COLORS: { id: AvatarColor; label: string; bg: string; fg: string }[] = [
@@ -78,12 +78,11 @@ const AP = {
   finalApprover:   { key: 'finalSignoff',    label: 'Answer directly at any step',
                      hint: 'CFO case: re-assign, answer directly and give final sign-off. The final answer goes from this approver to the bidder.' },
   approvalOnly:    { key: 'seeApprovalOnly', label: 'See only questions sent for approval',    hint: "Replaces 'See all questions'" },
-  approveByCat:    { key: 'approveByCat',    label: 'Approve specific categories only',        hint: 'Approvers by category — other answers skip this approver' },
 } satisfies Record<string, PermDef>;
 const ROLE_PERMS: Record<string, RolePerms> = {
   coordinator: { fixed: [AP.seeAll, AP.assign, AP.draftCoord], config: [AP.assignCoord, AP.finalCoord], open: [] },
   expert:      { fixed: [AP.draftExpert], config: [AP.seeFinal, AP.reassignExperts, AP.seeTeam], open: [AP.seeAll, AP.answerDirect] },
-  approver:    { fixed: [AP.seeAll, AP.approve], config: [AP.finalApprover], open: [AP.approvalOnly, AP.approveByCat] },
+  approver:    { fixed: [AP.seeAll, AP.approve], config: [AP.finalApprover], open: [AP.approvalOnly] },
 };
 /** custom answer-side roles can switch anything */
 const A_PERMS: PermDef[] = [
@@ -106,7 +105,7 @@ const STANDARD_ROLES: RoleDef[] = [
     perms: { seeAll: false, assign: false, draftA: true, seeFinal: false, reassignExperts: false, seeTeam: true, answerDirect: false } },
   { key: 'approver',    name: 'Answer approver',    side: 'answer',   icon: 'finished',
     description: 'Approves answers before they are released',
-    perms: { seeAll: true, approve: true, draftA: true, finalSignoff: false, seeApprovalOnly: false, approveByCat: false, seeFinal: true, seeTeam: true } },
+    perms: { seeAll: true, approve: true, draftA: true, finalSignoff: false, seeApprovalOnly: false, seeFinal: true, seeTeam: true } },
 ];
 
 const PEOPLE: Person[] = [
@@ -405,118 +404,7 @@ const TONES = [
                 </div>
                 <!-- Auto-assign: expert list or category tree (Figma 392:77972) -->
                 <ng-container *ngIf="n.roleKey === 'expert' && n.assignMode === 'auto'; else plainMembers">
-                  <div class="ct-bar">
-                    <span class="field-label">Experts</span>
-                    <fvdr-segment variant="table" size="sm" [items]="expertViewItems" [activeId]="expertView" (activeIdChange)="expertView = $any($event)"></fvdr-segment>
-                  </div>
-                  <ng-container *ngIf="expertView === 'experts'">
-                    <!-- three layout ideas for the per-expert view (Figma 336:70127) -->
-                    <div class="idea-bar">
-                      <span class="idea-label">Idea</span>
-                      <fvdr-segment variant="table" size="sm" [items]="expertIdeaItems" [activeId]="expertIdea" (activeIdChange)="expertIdea = $any($event); catEdit = null"></fvdr-segment>
-                    </div>
-                    <p class="hint idea-hint">{{ expertIdeaHint }}</p>
-                    <div class="ex-list">
-                      <div class="ex" *ngFor="let m of n.members" [class.ex--open]="catEdit === m.personId" [class.ex--stack]="expertIdea === 'stack'">
-                        <div class="ex-row">
-                          <button class="ct-toggle" *ngIf="expertIdea === 'expand'" [attr.aria-expanded]="catEdit === m.personId"
-                                  [attr.aria-label]="'Categories of ' + person(m.personId).name" (click)="toggleCatEdit(m)">
-                            <fvdr-icon [name]="catEdit === m.personId ? 'chevron-down' : 'chevron-right'"></fvdr-icon>
-                          </button>
-                          <span class="av av--xs" [style.background]="tone(m.personId).bg" [style.color]="tone(m.personId).fg">{{ person(m.personId).initials }}</span>
-                          <div class="ex-main">
-                            <span class="ex-name">{{ person(m.personId).name }}</span>
-                            <span class="ex-sub" *ngIf="expertIdea === 'expand'">{{ catCountLabel(m) }}</span>
-                            <div class="ex-tags" *ngIf="expertIdea === 'stack'">
-                              <span class="ex-tag ex-tag--chip" *ngFor="let c of memberCats(m)">
-                                <fvdr-icon name="label" class="cat-ic" [ngClass]="'cat-ic--' + c.color"></fvdr-icon>{{ c.name }}
-                                <button class="ex-tag-x" [attr.aria-label]="'Remove ' + c.name" (click)="toggleCategory(m, c.name, false)"><fvdr-icon name="close"></fvdr-icon></button>
-                              </span>
-                              <button class="ex-tag ex-tag--add" (click)="toggleCatEdit(m)"><fvdr-icon name="plus"></fvdr-icon>Category</button>
-                            </div>
-                          </div>
-                          <div class="ex-inline" *ngIf="expertIdea === 'tags'">
-                            <span class="ex-tag" *ngFor="let c of memberCats(m).slice(0, 2)">
-                              <fvdr-icon name="label" class="cat-ic" [ngClass]="'cat-ic--' + c.color"></fvdr-icon>{{ c.name }}
-                            </span>
-                            <span class="ex-more" *ngIf="memberCats(m).length > 2" [fvdrTooltip]="restCats(m)">+{{ memberCats(m).length - 2 }}</span>
-                            <button class="icon-btn icon-btn--sm ex-edit-btn" [fvdrTooltip]="memberCats(m).length ? 'Edit categories' : 'Add category'" tooltipPosition="left" (click)="toggleCatEdit(m)">
-                              <fvdr-icon [name]="memberCats(m).length ? 'edit' : 'plus'"></fvdr-icon>
-                            </button>
-                          </div>
-                          <div class="ex-dots" *ngIf="expertIdea === 'expand'">
-                            <span class="ex-dot" *ngFor="let c of memberCats(m)" [ngClass]="'ex-dot--' + c.color" [fvdrTooltip]="c.name"></span>
-                          </div>
-                          <span class="ct-warn" *ngIf="!memberCats(m).length" fvdrTooltip="No category — gets questions only when assigned by hand" tooltipPosition="left"><fvdr-icon name="warning"></fvdr-icon></span>
-                          <button class="icon-btn icon-btn--sm ct-remove" [fvdrTooltip]="'Remove from ' + n.name" tooltipPosition="left" (click)="removeMember(n, m)"><fvdr-icon name="user-remove"></fvdr-icon></button>
-                        </div>
-                        <div class="ex-edit" *ngIf="catEdit === m.personId">
-                          <fvdr-checkbox *ngFor="let c of categories" [label]="c.name" [checked]="m.categories.includes(c.name)" (checkedChange)="toggleCategory(m, c.name, $event)"></fvdr-checkbox>
-                        </div>
-                      </div>
-                    </div>
-                  </ng-container>
-
-                  <div class="ctree" *ngIf="expertView === 'categories'">
-                    <div class="ct-group" *ngFor="let c of categories">
-                      <div class="ct-row ct-row--cat">
-                        <button class="ct-toggle" [attr.aria-expanded]="!catCollapsed.has(c.name)" [attr.aria-label]="(catCollapsed.has(c.name) ? 'Expand ' : 'Collapse ') + c.name" (click)="toggleCat(c.name)">
-                          <fvdr-icon [name]="catCollapsed.has(c.name) ? 'chevron-right' : 'chevron-down'"></fvdr-icon>
-                        </button>
-                        <fvdr-icon name="label" class="cat-ic" [ngClass]="'cat-ic--' + c.color"></fvdr-icon>
-                        <input class="cat-input" [value]="c.name" aria-label="Category name"
-                               (change)="renameCategory(c, $any($event.target).value, $any($event.target))"
-                               (keydown.enter)="$any($event.target).blur()" />
-                        <span class="ct-warn" *ngIf="!expertsFor(n, c.name).length" [fvdrTooltip]="'No expert — ' + c.name + ' questions wait for the coordinator'"><fvdr-icon name="warning"></fvdr-icon></span>
-                        <button class="icon-btn icon-btn--sm ct-del" fvdrTooltip="Delete category" tooltipPosition="left" (click)="deleteCategory(c)"><fvdr-icon name="trash"></fvdr-icon></button>
-                        <button class="ct-add" (click)="catAddFor = catAddFor === c.name ? null : c.name"><fvdr-icon name="user-add"></fvdr-icon>Add</button>
-                      </div>
-                      <div class="ct-picker" *ngIf="catAddFor === c.name">
-                        <fvdr-dropdown size="s" [options]="catAddOptions(n, c.name)" [value]="''" [placeholder]="'Add expert to ' + c.name"
-                                       [searchable]="true" searchPlaceholder="Search participants"
-                                       (valueChange)="addToCategory(n, c.name, $event)"></fvdr-dropdown>
-                      </div>
-                      <ng-container *ngIf="!catCollapsed.has(c.name)">
-                        <div class="ct-row ct-row--person" *ngFor="let m of membersIn(n, c.name)">
-                          <span class="av av--xs" [style.background]="tone(m.personId).bg" [style.color]="tone(m.personId).fg">{{ person(m.personId).initials }}</span>
-                          <span class="ct-name">{{ person(m.personId).name }}</span>
-                          <button class="icon-btn icon-btn--sm ct-remove" [fvdrTooltip]="'Remove from ' + c.name" tooltipPosition="left" (click)="toggleCategory(m, c.name, false)"><fvdr-icon name="user-remove"></fvdr-icon></button>
-                        </div>
-                      </ng-container>
-                    </div>
-
-                    <!-- experts without a category -->
-                    <div class="ct-group">
-                      <div class="ct-row ct-row--cat">
-                        <button class="ct-toggle" [attr.aria-expanded]="!catCollapsed.has(UNASSIGNED)" aria-label="Toggle unassigned experts" (click)="toggleCat(UNASSIGNED)">
-                          <fvdr-icon [name]="catCollapsed.has(UNASSIGNED) ? 'chevron-right' : 'chevron-down'"></fvdr-icon>
-                        </button>
-                        <fvdr-icon name="label" class="cat-ic cat-ic--grey"></fvdr-icon>
-                        <span class="ct-label">Unassigned experts</span>
-                        <span class="ct-info" fvdrTooltip="No category — they get questions only when a coordinator assigns them by hand"><fvdr-icon name="info"></fvdr-icon></span>
-                        <button class="ct-add" (click)="catAddFor = catAddFor === UNASSIGNED ? null : UNASSIGNED"><fvdr-icon name="user-add"></fvdr-icon>Add</button>
-                      </div>
-                      <div class="ct-picker" *ngIf="catAddFor === UNASSIGNED">
-                        <fvdr-dropdown size="s" [options]="addPeopleOptions(n)" [value]="''" placeholder="Add expert"
-                                       [searchable]="true" searchPlaceholder="Search participants"
-                                       (valueChange)="addFromDropdown(n, $event); catAddFor = null"></fvdr-dropdown>
-                      </div>
-                      <ng-container *ngIf="!catCollapsed.has(UNASSIGNED)">
-                        <div class="ct-row ct-row--person" *ngFor="let m of unassignedIn(n)">
-                          <span class="av av--xs" [style.background]="tone(m.personId).bg" [style.color]="tone(m.personId).fg">{{ person(m.personId).initials }}</span>
-                          <span class="ct-name">{{ person(m.personId).name }}</span>
-                          <button class="icon-btn icon-btn--sm ct-remove" [fvdrTooltip]="'Remove from ' + n.name" tooltipPosition="left" (click)="removeMember(n, m)"><fvdr-icon name="user-remove"></fvdr-icon></button>
-                        </div>
-                        <span class="ct-empty" *ngIf="!unassignedIn(n).length">Every expert has a category</span>
-                      </ng-container>
-                    </div>
-
-                    <div class="ct-row ct-row--new">
-                      <fvdr-icon name="plus" class="ct-new-ic"></fvdr-icon>
-                      <input class="cat-input" placeholder="Add category" [(ngModel)]="newCategory" (keydown.enter)="addCategory()" aria-label="New category name" />
-                      <button class="ct-add" *ngIf="newCategory.trim()" (click)="addCategory()">Add</button>
-                    </div>
-                  </div>
+                  <ng-container *ngTemplateOutlet="catAssign; context: { n: n }"></ng-container>
                 </ng-container>
                 <ng-template #plainMembers>
                   <ng-container *ngFor="let m of n.members">
@@ -529,8 +417,20 @@ const TONES = [
             <!-- Permissions -->
             <ng-container *ngIf="nodeTab === 'permissions'">
               <ng-container *ngIf="rolePerms(n) as rp; else flatPerms">
+                <!-- approver: how experts route answers to approvers -->
+                <div class="perm-cat" *ngIf="n.roleKey === 'approver'">
+                  <span class="field-label">Category</span>
+                  <div class="assign-mode">
+                    <span class="perm-label">Experts send answers</span>
+                    <fvdr-segment variant="table" size="sm" [items]="assignItems" [activeId]="n.assignMode" (activeIdChange)="setAssignMode(n, $any($event))"></fvdr-segment>
+                  </div>
+                  <p class="hint">{{ approverAssignHint(n) }}</p>
+                  <ng-container *ngIf="n.assignMode === 'auto'">
+                    <ng-container *ngTemplateOutlet="catAssign; context: { n: n }"></ng-container>
+                  </ng-container>
+                </div>
                 <ng-container *ngIf="rp.fixed.length">
-                  <span class="field-label">Always included</span>
+                  <span class="field-label" [class.field-label--gap]="n.roleKey === 'approver'">Always included</span>
                   <div class="perm perm--fixed" *ngFor="let p of rp.fixed">
                     <div class="perm-text">
                       <span class="perm-label">{{ p.label }}</span>
@@ -796,6 +696,121 @@ const TONES = [
   </div>
 </fvdr-modal>
 
+<ng-template #catAssign let-n="n">
+  <div class="ct-bar">
+    <span class="field-label">{{ roleWord(n, true, true) }}</span>
+    <fvdr-segment variant="table" size="sm" [items]="expertViewItems" [activeId]="expertView" (activeIdChange)="expertView = $any($event)"></fvdr-segment>
+  </div>
+  <ng-container *ngIf="expertView === 'experts'">
+    <!-- three layout ideas for the per-expert view (Figma 336:70127) -->
+    <div class="idea-bar">
+      <span class="idea-label">Idea</span>
+      <fvdr-segment variant="table" size="sm" [items]="expertIdeaItems" [activeId]="expertIdea" (activeIdChange)="expertIdea = $any($event); catEdit = null"></fvdr-segment>
+    </div>
+    <p class="hint idea-hint">{{ expertIdeaHint }}</p>
+    <div class="ex-list">
+      <div class="ex" *ngFor="let m of n.members" [class.ex--open]="catEdit === m.personId" [class.ex--stack]="expertIdea === 'stack'">
+        <div class="ex-row">
+          <button class="ct-toggle" *ngIf="expertIdea === 'expand'" [attr.aria-expanded]="catEdit === m.personId"
+                  [attr.aria-label]="'Categories of ' + person(m.personId).name" (click)="toggleCatEdit(m)">
+            <fvdr-icon [name]="catEdit === m.personId ? 'chevron-down' : 'chevron-right'"></fvdr-icon>
+          </button>
+          <span class="av av--xs" [style.background]="tone(m.personId).bg" [style.color]="tone(m.personId).fg">{{ person(m.personId).initials }}</span>
+          <div class="ex-main">
+            <span class="ex-name">{{ person(m.personId).name }}</span>
+            <span class="ex-sub" *ngIf="expertIdea === 'expand'">{{ catCountLabel(m) }}</span>
+            <div class="ex-tags" *ngIf="expertIdea === 'stack'">
+              <span class="ex-tag ex-tag--chip" *ngFor="let c of memberCats(m)">
+                <fvdr-icon name="label" class="cat-ic" [ngClass]="'cat-ic--' + c.color"></fvdr-icon>{{ c.name }}
+                <button class="ex-tag-x" [attr.aria-label]="'Remove ' + c.name" (click)="toggleCategory(m, c.name, false)"><fvdr-icon name="close"></fvdr-icon></button>
+              </span>
+              <button class="ex-tag ex-tag--add" (click)="toggleCatEdit(m)"><fvdr-icon name="plus"></fvdr-icon>Category</button>
+            </div>
+          </div>
+          <div class="ex-inline" *ngIf="expertIdea === 'tags'">
+            <span class="ex-tag" *ngFor="let c of memberCats(m).slice(0, 2)">
+              <fvdr-icon name="label" class="cat-ic" [ngClass]="'cat-ic--' + c.color"></fvdr-icon>{{ c.name }}
+            </span>
+            <span class="ex-more" *ngIf="memberCats(m).length > 2" [fvdrTooltip]="restCats(m)">+{{ memberCats(m).length - 2 }}</span>
+            <button class="icon-btn icon-btn--sm ex-edit-btn" [fvdrTooltip]="memberCats(m).length ? 'Edit categories' : 'Add category'" tooltipPosition="left" (click)="toggleCatEdit(m)">
+              <fvdr-icon [name]="memberCats(m).length ? 'edit' : 'plus'"></fvdr-icon>
+            </button>
+          </div>
+          <div class="ex-dots" *ngIf="expertIdea === 'expand'">
+            <span class="ex-dot" *ngFor="let c of memberCats(m)" [ngClass]="'ex-dot--' + c.color" [fvdrTooltip]="c.name"></span>
+          </div>
+          <span class="ct-warn" *ngIf="!memberCats(m).length" fvdrTooltip="No category — gets questions only when assigned by hand" tooltipPosition="left"><fvdr-icon name="warning"></fvdr-icon></span>
+          <button class="icon-btn icon-btn--sm ct-remove" [fvdrTooltip]="'Remove from ' + n.name" tooltipPosition="left" (click)="removeMember(n, m)"><fvdr-icon name="user-remove"></fvdr-icon></button>
+        </div>
+        <div class="ex-edit" *ngIf="catEdit === m.personId">
+          <fvdr-checkbox *ngFor="let c of categories" [label]="c.name" [checked]="m.categories.includes(c.name)" (checkedChange)="toggleCategory(m, c.name, $event)"></fvdr-checkbox>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+  <div class="ctree" *ngIf="expertView === 'categories'">
+    <div class="ct-group" *ngFor="let c of categories">
+      <div class="ct-row ct-row--cat">
+        <button class="ct-toggle" [attr.aria-expanded]="!catCollapsed.has(c.name)" [attr.aria-label]="(catCollapsed.has(c.name) ? 'Expand ' : 'Collapse ') + c.name" (click)="toggleCat(c.name)">
+          <fvdr-icon [name]="catCollapsed.has(c.name) ? 'chevron-right' : 'chevron-down'"></fvdr-icon>
+        </button>
+        <fvdr-icon name="label" class="cat-ic" [ngClass]="'cat-ic--' + c.color"></fvdr-icon>
+        <input class="cat-input" [value]="c.name" aria-label="Category name"
+               (change)="renameCategory(c, $any($event.target).value, $any($event.target))"
+               (keydown.enter)="$any($event.target).blur()" />
+        <span class="ct-warn" *ngIf="!expertsFor(n, c.name).length" [fvdrTooltip]="'No ' + roleWord(n) + ' — ' + c.name + ' questions wait for the coordinator'"><fvdr-icon name="warning"></fvdr-icon></span>
+        <button class="icon-btn icon-btn--sm ct-del" fvdrTooltip="Delete category" tooltipPosition="left" (click)="deleteCategory(c)"><fvdr-icon name="trash"></fvdr-icon></button>
+        <button class="ct-add" (click)="catAddFor = catAddFor === c.name ? null : c.name"><fvdr-icon name="user-add"></fvdr-icon>Add</button>
+      </div>
+      <div class="ct-picker" *ngIf="catAddFor === c.name">
+        <fvdr-dropdown size="s" [options]="catAddOptions(n, c.name)" [value]="''" [placeholder]="'Add ' + roleWord(n) + ' to ' + c.name"
+                       [searchable]="true" searchPlaceholder="Search participants"
+                       (valueChange)="addToCategory(n, c.name, $event)"></fvdr-dropdown>
+      </div>
+      <ng-container *ngIf="!catCollapsed.has(c.name)">
+        <div class="ct-row ct-row--person" *ngFor="let m of membersIn(n, c.name)">
+          <span class="av av--xs" [style.background]="tone(m.personId).bg" [style.color]="tone(m.personId).fg">{{ person(m.personId).initials }}</span>
+          <span class="ct-name">{{ person(m.personId).name }}</span>
+          <button class="icon-btn icon-btn--sm ct-remove" [fvdrTooltip]="'Remove from ' + c.name" tooltipPosition="left" (click)="toggleCategory(m, c.name, false)"><fvdr-icon name="user-remove"></fvdr-icon></button>
+        </div>
+      </ng-container>
+    </div>
+
+    <!-- people without a category -->
+    <div class="ct-group">
+      <div class="ct-row ct-row--cat">
+        <button class="ct-toggle" [attr.aria-expanded]="!catCollapsed.has(UNASSIGNED)" [attr.aria-label]="'Toggle unassigned ' + roleWord(n, true)" (click)="toggleCat(UNASSIGNED)">
+          <fvdr-icon [name]="catCollapsed.has(UNASSIGNED) ? 'chevron-right' : 'chevron-down'"></fvdr-icon>
+        </button>
+        <fvdr-icon name="label" class="cat-ic cat-ic--grey"></fvdr-icon>
+        <span class="ct-label">Unassigned {{ roleWord(n, true) }}</span>
+        <span class="ct-info" fvdrTooltip="No category — they get questions only when a coordinator assigns them by hand"><fvdr-icon name="info"></fvdr-icon></span>
+        <button class="ct-add" (click)="catAddFor = catAddFor === UNASSIGNED ? null : UNASSIGNED"><fvdr-icon name="user-add"></fvdr-icon>Add</button>
+      </div>
+      <div class="ct-picker" *ngIf="catAddFor === UNASSIGNED">
+        <fvdr-dropdown size="s" [options]="addPeopleOptions(n)" [value]="''" [placeholder]="'Add ' + roleWord(n)"
+                       [searchable]="true" searchPlaceholder="Search participants"
+                       (valueChange)="addFromDropdown(n, $event); catAddFor = null"></fvdr-dropdown>
+      </div>
+      <ng-container *ngIf="!catCollapsed.has(UNASSIGNED)">
+        <div class="ct-row ct-row--person" *ngFor="let m of unassignedIn(n)">
+          <span class="av av--xs" [style.background]="tone(m.personId).bg" [style.color]="tone(m.personId).fg">{{ person(m.personId).initials }}</span>
+          <span class="ct-name">{{ person(m.personId).name }}</span>
+          <button class="icon-btn icon-btn--sm ct-remove" [fvdrTooltip]="'Remove from ' + n.name" tooltipPosition="left" (click)="removeMember(n, m)"><fvdr-icon name="user-remove"></fvdr-icon></button>
+        </div>
+        <span class="ct-empty" *ngIf="!unassignedIn(n).length">Every {{ roleWord(n) }} has a category</span>
+      </ng-container>
+    </div>
+
+    <div class="ct-row ct-row--new">
+      <fvdr-icon name="plus" class="ct-new-ic"></fvdr-icon>
+      <input class="cat-input" placeholder="Add category" [(ngModel)]="newCategory" (keydown.enter)="addCategory()" aria-label="New category name" />
+      <button class="ct-add" *ngIf="newCategory.trim()" (click)="addCategory()">Add</button>
+    </div>
+  </div>
+</ng-template>
+
 <ng-template #permRow let-n="n" let-p="p">
   <div class="perm">
     <div class="perm-text">
@@ -803,9 +818,6 @@ const TONES = [
       <span class="perm-hint">{{ p.hint }}</span>
     </div>
     <fvdr-toggle size="s" [checked]="!!n.perms[p.key]" (checkedChange)="setPerm(n, p.key, $event)"></fvdr-toggle>
-  </div>
-  <div class="perm-sub" *ngIf="p.key === 'approveByCat' && n.perms[p.key]">
-    <fvdr-multiselect [options]="categoryOptions()" [(values)]="n.approveCategories" placeholder="Pick categories" [showChips]="true"></fvdr-multiselect>
   </div>
 </ng-template>
 
@@ -1113,6 +1125,8 @@ const TONES = [
     .perm-fixed-ic { font-size: var(--space-4); color: var(--color-primary-500); }
     .perm-fixed-ic--off { color: var(--color-stone-600); }
     .perm-open-head { display: flex; align-items: center; gap: var(--space-2); }
+    .perm-cat { display: flex; flex-direction: column; gap: var(--space-2); padding-bottom: var(--space-3); border-bottom: 1px solid var(--color-divider); }
+    .perm-cat .hint { margin: 0; }
     .perm-sub { padding: var(--space-2) 0 var(--space-3); border-bottom: 1px solid var(--color-divider); }
     .perm-route { display: flex; gap: var(--space-2); align-items: flex-start; margin-top: var(--space-3); }
     .perm-route fvdr-icon { flex: none; margin-top: 2px; color: var(--color-info-500); }
@@ -1345,7 +1359,6 @@ export class QnaSetupCanvasComponent {
   }
   setPerm(n: FlowNode, key: string, on: boolean) {
     n.perms[key] = on;
-    if (key === 'approveByCat' && on && !n.approveCategories) n.approveCategories = [];
     if (key !== 'finalSignoff') return;
     if (on) {
       // only one role can give final sign-off
@@ -1514,6 +1527,15 @@ export class QnaSetupCanvasComponent {
 
   // ── categories ──
   readonly UNASSIGNED = '__unassigned';
+  approverAssignHint(n: FlowNode): string {
+    return n.assignMode === 'auto'
+      ? 'Each answer goes to the approvers of its question’s category.'
+      : 'The expert picks an approver for each answer.';
+  }
+  roleWord(n: FlowNode, plural = false, cap = false): string {
+    const w = (n.roleKey === 'approver' ? 'approver' : 'expert') + (plural ? 's' : '');
+    return cap ? w[0].toUpperCase() + w.slice(1) : w;
+  }
   expertView: 'experts' | 'categories' = 'categories';
   expertViewItems: SegmentItem[] = [
     { id: 'experts', label: 'By experts', icon: 'user' },
@@ -1549,7 +1571,7 @@ export class QnaSetupCanvasComponent {
     const inCat = new Set(this.membersIn(n, cat).map(m => m.personId));
     const inNode = new Set(n.members.map(m => m.personId));
     return this.stable('catAdd:' + n.id + ':' + cat, [...inCat].join(',') + '|' + [...inNode].join(',') + '|' + this.people.length, () => [
-      ...n.members.filter(m => !inCat.has(m.personId)).map(m => ({ value: m.personId, label: this.person(m.personId).name, group: 'Experts' })),
+      ...n.members.filter(m => !inCat.has(m.personId)).map(m => ({ value: m.personId, label: this.person(m.personId).name, group: this.roleWord(n, true, true) })),
       ...this.people.filter(p => !inNode.has(p.id)).map(p => ({ value: p.id, label: p.name, sublabel: p.external ? 'Invited' : p.group, group: 'Other participants' })),
     ]);
   }
@@ -1561,7 +1583,9 @@ export class QnaSetupCanvasComponent {
     this.toggleCategory(m, cat, true);
     this.catAddFor = null;
     this.catCollapsed.delete(cat);
-    this.toast.show({ variant: 'success', message: `${this.person(id).name} now answers ${cat} questions` });
+    this.toast.show({ variant: 'success', message: n.roleKey === 'approver'
+      ? `${this.person(id).name} now approves ${cat} answers`
+      : `${this.person(id).name} now answers ${cat} questions` });
   }
   toggleCategory(m: Membership, cat: string, on: boolean) {
     m.categories = on ? [...new Set([...m.categories, cat])] : m.categories.filter(c => c !== cat);
@@ -1596,6 +1620,7 @@ export class QnaSetupCanvasComponent {
 
   nodeSubtitle(n: FlowNode): string {
     if (n.roleKey === 'expert') return n.assignMode === 'auto' ? 'Auto-assign by category' : 'Assigned manually';
+    if (n.roleKey === 'approver' && n.assignMode === 'auto') return 'Gets answers by category';
     if (n.side === 'question') return n.members.length ? `${this.teamsOf(n).length} question ${this.teamsOf(n).length === 1 ? 'team' : 'teams'}` : 'Question side';
     return this.roleDef(n.roleKey)?.description ?? '';
   }
@@ -2067,7 +2092,14 @@ export class QnaSetupCanvasComponent {
   setAssignMode(n: FlowNode, mode: 'manual' | 'auto') {
     n.assignMode = mode;
     const e = this.edges.find(x => x.to === n.id && x.kind === 'main');
-    if (e) e.label = mode === 'auto' ? 'Auto-assigns by category' : 'Assigns';
+    if (!e) return;
+    if (n.roleKey === 'approver') {
+      // remember the hand-written label so switching back restores it
+      if (mode === 'auto') { e.manualLabel = e.label; e.label = 'Routed by category'; }
+      else e.label = e.manualLabel ?? 'Sends for approval';
+      return;
+    }
+    e.label = mode === 'auto' ? 'Auto-assigns by category' : 'Assigns';
   }
 
   expertsFor(n: FlowNode, cat: string): string[] {
