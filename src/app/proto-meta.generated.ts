@@ -172,7 +172,7 @@ export const PROTO_META: Record<string, ProtoMetaInfo> = {
     "preview": true
   },
   "qna-setup-canvas": {
-    "updated": "2026-10-16T15:50:16+03:00",
+    "updated": "2026-10-23T14:39:32+03:00",
     "author": "Yuliia Porokhivnyk"
   },
   "checklist-matching": {
