@@ -202,5 +202,9 @@ export const PROTO_META: Record<string, ProtoMetaInfo> = {
   "ai-action-morphs": {
     "updated": "2026-10-22T11:15:06+03:00",
     "author": "Dmitriy Siniehin"
+  },
+  "qna-hover-variants": {
+    "updated": "2026-10-26T11:36:31+02:00",
+    "author": "Yuliia Porokhivnyk"
   }
 };
