@@ -350,5 +350,13 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
     status: 'wip',
     description: 'The AI mark morphs into what the assistant is doing in the data room: searching, opening a folder, reading a document, comparing versions, checking permissions, counting activity, drafting a Q&A answer, building a report, redacting. A live thinking line runs the steps in sequence; a library shows each morph on its own.',
   },
+  {
+    slug: 'qna-hover-variants',
+    title: 'Q&A Setup — row hover variants',
+    module: 'Q&A',
+    figma: 'https://www.figma.com/design/Ozvxv10oZM9KwGlCcjmOFO/Q-A-set-up?node-id=3617-78562',
+    status: 'wip',
+    description: 'Three hover patterns for user rows with team chips: reserved icon slot, left-aligned chips, overlay toolbar',
+  },
   // REGISTRY_PLACEHOLDER
 ];

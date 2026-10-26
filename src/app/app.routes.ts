@@ -269,6 +269,11 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./prototypes/ai-action-morphs/ai-action-morphs.component').then(m => m.AiActionMorphsComponent),
   },
+  {
+    path: 'qna-hover-variants',
+    loadComponent: () =>
+      import('./prototypes/qna-hover-variants/qna-hover-variants.component').then(m => m.QnaHoverVariantsComponent),
+  },
   // PROTO_ROUTES_PLACEHOLDER
   {
     path: '**',
