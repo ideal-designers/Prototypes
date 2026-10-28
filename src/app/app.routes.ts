@@ -249,6 +249,11 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./prototypes/bulk-redaction/bulk-redaction.component').then(m => m.BulkRedactionComponent),
   },
+  {
+    path: 'qna-thread-history',
+    loadComponent: () =>
+      import('./prototypes/qna-thread-history/qna-thread-history.component').then(m => m.QnaThreadHistoryComponent),
+  },
   // PROTO_ROUTES_PLACEHOLDER
   {
     path: '**',

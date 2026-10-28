@@ -318,5 +318,13 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
     status: 'wip',
     description: 'Bulk redaction: Concept 1 (dedicated Redaction section) vs Concept 2 (redact from the Documents list)',
   },
+  {
+    slug: 'qna-thread-history',
+    title: 'Q&A thread — workflow & history variants',
+    module: 'Q&A',
+    figma: 'https://www.figma.com/design/Ozvxv10oZM9KwGlCcjmOFO/Q-A-set-up?node-id=8402-345029',
+    status: 'wip',
+    description: 'Q&A question thread from Figma "Coordinator" screen with the workflow stage and merged History instead of the centred Activity toggle — four variants (Activity drawer, History row, Thread/History tabs, stage-grouped stream) and a role switcher',
+  },
   // REGISTRY_PLACEHOLDER
 ];
