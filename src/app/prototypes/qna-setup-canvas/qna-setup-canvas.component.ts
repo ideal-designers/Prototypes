@@ -78,12 +78,26 @@ const AP = {
   finalApprover:   { key: 'finalSignoff',    label: 'Answer directly at any step',
                      hint: 'CFO case: re-assign, answer directly and give final sign-off. The final answer goes from this approver to the bidder.' },
   approvalOnly:    { key: 'seeApprovalOnly', label: 'See only questions sent for approval',    hint: "Replaces 'See all questions'" },
+  // question side
+  draftQ:          { key: 'draftQ',          label: 'Draft questions',                         hint: 'Prepare questions that someone else submits' },
+  draftFollowUp:   { key: 'followUp',        label: 'Draft follow-up questions',               hint: 'Prepare a follow-up after an answer' },
+  draftQOwn:       { key: 'draftQ',          label: 'Draft questions',                         hint: 'Prepare questions before sending them' },
+  submitQ:         { key: 'submitQ',         label: 'Submit questions to the answer side',     hint: 'Send questions without extra review' },
+  answerFollowUp:  { key: 'followUp',        label: 'Answer follow-up questions',              hint: 'Continue a thread after an answer' },
+  // viewer
+  viewAllQ:        { key: 'seeAll',          label: 'View all questions',                      hint: 'Every question in the project' },
+  viewAllA:        { key: 'seeFinal',        label: 'View all answers',                        hint: 'Read-only — cannot answer, assign, edit or delete anything' },
 } satisfies Record<string, PermDef>;
 const ROLE_PERMS: Record<string, RolePerms> = {
   coordinator: { fixed: [AP.seeAll, AP.assign, AP.draftCoord], config: [AP.assignCoord, AP.finalCoord], open: [] },
   expert:      { fixed: [AP.draftExpert], config: [AP.seeFinal, AP.reassignExperts, AP.seeTeam], open: [AP.seeAll, AP.answerDirect] },
   approver:    { fixed: [AP.seeAll, AP.approve], config: [AP.finalApprover], open: [AP.approvalOnly] },
+  drafter:     { fixed: [AP.draftQ, AP.draftFollowUp], config: [], open: [] },
+  submitter:   { fixed: [AP.draftQOwn, AP.submitQ, AP.answerFollowUp], config: [], open: [] },
+  viewer:      { fixed: [AP.viewAllQ, AP.viewAllA], config: [], open: [] },
 };
+/** roles every flow needs — they can't be removed */
+const PROTECTED_ROLES = new Set(['submitter', 'coordinator']);
 /** custom answer-side roles can switch anything */
 const A_PERMS: PermDef[] = [
   AP.seeAll, AP.assign, AP.assignCoord, AP.draftCoord, AP.approve, AP.finalCoord,
@@ -93,10 +107,10 @@ const A_PERMS: PermDef[] = [
 const STANDARD_ROLES: RoleDef[] = [
   { key: 'drafter',     name: 'Question drafter',   side: 'question', icon: 'edit',
     description: 'Drafts questions for submitters',
-    perms: { draftQ: true, submitQ: false, followUp: true, otherTeams: false } },
+    perms: { draftQ: true, followUp: true } },
   { key: 'submitter',   name: 'Question submitter', side: 'question', icon: 'send',
     description: 'Submits questions to the answer side',
-    perms: { draftQ: true, submitQ: true, followUp: true, otherTeams: false } },
+    perms: { draftQ: true, submitQ: true, followUp: true } },
   { key: 'coordinator', name: 'Answer coordinator', side: 'answer',   icon: 'comment',
     description: 'Manages incoming questions and assigns them',
     perms: { seeAll: true, assign: true, draftA: true, assignCoord: false, finalSignoff: false, seeFinal: true, seeTeam: true } },
@@ -106,6 +120,9 @@ const STANDARD_ROLES: RoleDef[] = [
   { key: 'approver',    name: 'Answer approver',    side: 'answer',   icon: 'finished',
     description: 'Approves answers before they are released',
     perms: { seeAll: true, approve: true, draftA: true, finalSignoff: false, seeApprovalOnly: false, seeFinal: true, seeTeam: true } },
+  { key: 'viewer',      name: 'Viewer',             side: 'answer',   icon: 'eye',
+    description: 'Views all questions and answers, read-only',
+    perms: { seeAll: true, seeFinal: true } },
 ];
 
 const PEOPLE: Person[] = [
@@ -326,7 +343,11 @@ const TONES = [
       </div>
 
       <!-- ── Right panel ── -->
-      <aside class="panel">
+      <aside class="panel" [style.width.px]="panelW" [class.panel--resizing]="panelResizing">
+        <div class="panel-resize" role="separator" aria-orientation="vertical" aria-label="Resize panel" tabindex="0"
+             [attr.aria-valuenow]="panelW" fvdrTooltip="Drag to resize" tooltipPosition="left"
+             (mousedown)="startPanelResize($event)" (dblclick)="panelW = PANEL_MIN"
+             (keydown.arrowleft)="nudgePanel(24)" (keydown.arrowright)="nudgePanel(-24)"></div>
 
         <!-- Node panel -->
         <ng-container *ngIf="selectedNode as n; else libraryTpl">
@@ -353,6 +374,7 @@ const TONES = [
                 {{ n.custom ? 'Custom role' : (isCustomized(n) ? 'Customized' : 'Standard role') }}
               </span>
             </div>
+            <button class="icon-btn" [fvdrTooltip]="panelW > PANEL_MIN ? 'Collapse panel' : 'Expand panel'" tooltipPosition="bottom" (click)="togglePanelWide()"><fvdr-icon [name]="panelW > PANEL_MIN ? 'angle-double-right' : 'angle-double-left'"></fvdr-icon></button>
             <button class="icon-btn" fvdrTooltip="Close" tooltipPosition="bottom" (click)="selectedId = null"><fvdr-icon name="close"></fvdr-icon></button>
           </div>
 
@@ -364,14 +386,17 @@ const TONES = [
 
             <!-- People -->
             <ng-container *ngIf="nodeTab === 'people'">
-              <ng-container *ngIf="n.side === 'answer'">
-                <fvdr-dropdown
-                  [options]="addPeopleOptions(n)" [value]="''" placeholder="Add participants or a whole group"
-                  [searchable]="true" searchPlaceholder="Search participants"
-                  (valueChange)="addFromDropdown(n, $event)"></fvdr-dropdown>
-              </ng-container>
-              <ng-container *ngTemplateOutlet="inviteTpl; context: { n: n }"></ng-container>
-              <p class="hint">or drag people from the <b>People</b> tab onto any role on the canvas</p>
+              <!-- question side: teams first -->
+              <div class="people-bar" *ngIf="n.side === 'question'">
+                <span class="field-label">Question teams</span>
+                <span class="people-info" fvdrTooltip="Each question team sees only its own questions unless See other teams' questions is on. One person can be in several teams." tooltipPosition="bottom"><fvdr-icon name="info"></fvdr-icon></span>
+                <fvdr-btn label="New team" variant="secondary" size="s" iconName="plus" (clicked)="newTeam()"></fvdr-btn>
+              </div>
+              <!-- answer side: one clear way in -->
+              <div class="people-bar" *ngIf="n.side === 'answer'">
+                <span class="field-label">{{ n.members.length }} {{ n.members.length === 1 ? 'person' : 'people' }}</span>
+                <fvdr-btn label="Add people" variant="secondary" size="s" iconName="user-add" (clicked)="openPeopleModal(n)"></fvdr-btn>
+              </div>
 
               <div class="empty-panel" *ngIf="!n.members.length">
                 <fvdr-icon name="user-add"></fvdr-icon>
@@ -389,12 +414,9 @@ const TONES = [
                   <ng-container *ngFor="let m of teamMembers(n, t)">
                     <ng-container *ngTemplateOutlet="memberRow; context: { n: n, m: m }"></ng-container>
                   </ng-container>
-                  <fvdr-dropdown size="s" [options]="addToTeamOptions(n, t)" [value]="''" [placeholder]="'Add to ' + t.name"
-                                 [searchable]="true" searchPlaceholder="Search participants"
-                                 (valueChange)="addFromDropdown(n, $event, t.id)"></fvdr-dropdown>
+                  <button class="link-btn link-btn--add" (click)="openPeopleModal(n, { teamId: t.id })"><fvdr-icon name="user-add"></fvdr-icon>Add people to {{ t.name }}</button>
                 </div>
-                <button class="link-btn link-btn--add" (click)="newTeam()"><fvdr-icon name="plus"></fvdr-icon>New question team</button>
-                <p class="hint">Each question team sees only its own questions unless <b>See other teams' questions</b> is on. One person can be in several teams.</p>
+                <p class="hint" *ngIf="!teams.length">No question teams yet — create one with <b>New team</b>.</p>
               </ng-container>
 
               <ng-container *ngIf="n.side === 'answer'">
@@ -448,6 +470,7 @@ const TONES = [
                   </ng-container>
                 </ng-container>
                 <p class="hint perm-route" *ngIf="routeHint(n) as h"><fvdr-icon name="info"></fvdr-icon>{{ h }}</p>
+                <p class="hint perm-route" *ngIf="!rp.config.length && !rp.open.length"><fvdr-icon name="lock-close"></fvdr-icon>These permissions come with the role and can't be changed.</p>
               </ng-container>
               <ng-template #flatPerms>
                 <ng-container *ngFor="let p of permsFor(n)">
@@ -459,31 +482,51 @@ const TONES = [
 
             <!-- Routing -->
             <ng-container *ngIf="nodeTab === 'routing'">
-              <span class="field-label">Receives from</span>
-              <div class="route" *ngFor="let e of incoming(n)">
-                <span class="route-dot" [class.route-dot--reject]="e.kind === 'reject'"></span>
-                <span class="route-node">{{ nodeById(e.from)?.name }}</span>
-                <span class="route-label">{{ e.label }}</span>
-              </div>
-              <p class="hint" *ngIf="!incoming(n).length">Nothing routes here yet. Connect a role with <b>+</b> on the canvas.</p>
+              <span class="field-label">How a question travels</span>
+              <ol class="rt">
+                <li class="rt-step" *ngFor="let st of routePath(); let i = index"
+                    [class.rt-step--here]="st.node.id === n.id && !st.end" [class.rt-step--end]="st.end">
+                  <span class="rt-num"><fvdr-icon *ngIf="st.end" name="check"></fvdr-icon><ng-container *ngIf="!st.end">{{ i + 1 }}</ng-container></span>
+                  <div class="rt-body">
+                    <span class="rt-role">{{ st.node.name }}<span class="rt-here" *ngIf="st.node.id === n.id && !st.end">This role</span></span>
+                    <span class="rt-action" *ngIf="st.label">{{ st.label }}</span>
+                  </div>
+                </li>
+              </ol>
+              <p class="hint" *ngIf="n.roleKey === 'viewer'">Viewers aren't part of the route — they only read questions and answers.</p>
 
-              <span class="field-label field-label--gap">Sends to</span>
-              <div class="route" *ngFor="let e of outgoing(n)">
-                <span class="route-dot" [class.route-dot--reject]="e.kind === 'reject'"></span>
-                <input class="route-input" [(ngModel)]="e.label" aria-label="Step label" />
-                <fvdr-icon name="chevron-right" class="route-arrow"></fvdr-icon>
-                <span class="route-node">{{ nodeById(e.to)?.name }}</span>
-              </div>
-
-              <ng-container *ngIf="!!n.perms['approve']">
-                <span class="field-label field-label--gap">When an answer is rejected, return it to</span>
-                <fvdr-dropdown [options]="rejectTargets(n)" [value]="rejectTargetOf(n)"
-                               (valueChange)="setRejectTarget(n, $any($event))"></fvdr-dropdown>
+              <ng-container *ngIf="rejectEdges().length">
+                <span class="field-label field-label--gap">Sent back when rejected</span>
+                <div class="route" *ngFor="let e of rejectEdges()">
+                  <span class="route-dot route-dot--reject"></span>
+                  <span class="route-node">{{ nodeById(e.from)?.name }}</span>
+                  <fvdr-icon name="chevron-right" class="route-arrow"></fvdr-icon>
+                  <span class="route-node">{{ nodeById(e.to)?.name }}</span>
+                </div>
               </ng-container>
+
+              <span class="field-label field-label--gap rt-settings-head">Routing settings</span>
+              <ng-container *ngIf="approvers().length; else noApprover">
+                <div class="rt-setting">
+                  <span class="rt-q">After approval, the answer goes</span>
+                  <fvdr-radio [options]="afterApproveOptions" [value]="afterApprove" layout="vertical" (valueChange)="setAfterApprove($any($event))"></fvdr-radio>
+                </div>
+                <div class="rt-setting">
+                  <span class="rt-q">When an answer is rejected, it goes back to</span>
+                  <fvdr-radio [options]="rejectToOptions" [value]="rejectTo" layout="vertical" (valueChange)="setRejectTo($any($event))"></fvdr-radio>
+                </div>
+                <div class="rt-setting" *ngIf="approvers().length > 1">
+                  <span class="rt-q">With several approvers, a rejection from a later approver goes back to</span>
+                  <fvdr-radio [options]="rejectChainOptions()" [value]="rejectChain" layout="vertical" (valueChange)="setRejectChain($any($event))"></fvdr-radio>
+                </div>
+              </ng-container>
+              <ng-template #noApprover>
+                <p class="hint">Add an <b>Answer approver</b> role to choose where approved and rejected answers go.</p>
+              </ng-template>
             </ng-container>
           </div>
 
-          <div class="panel-foot">
+          <div class="panel-foot" *ngIf="!isProtected(n)">
             <fvdr-btn label="Delete role" variant="ghost" size="s" iconName="trash" (clicked)="deleteNode(n)"></fvdr-btn>
           </div>
         </ng-container>
@@ -621,7 +664,7 @@ const TONES = [
       <span class="person-name">{{ person(m.personId).name }}<span class="invited-tag" *ngIf="person(m.personId).external">Invited</span></span>
       <ng-container *ngIf="n.roleKey === 'expert' && n.assignMode === 'auto'; else plainCaption">
         <span class="person-roles" *ngIf="m.categories.length">{{ m.categories.join(' · ') }}</span>
-        <span class="person-roles person-roles--warn" *ngIf="!m.categories.length">No category — gets questions only manually</span>
+        <span class="person-roles" *ngIf="!m.categories.length">No category</span>
       </ng-container>
       <ng-template #plainCaption>
         <span class="person-roles" *ngIf="otherRoles(m.personId, n) as other">Also {{ other }}</span>
@@ -645,23 +688,28 @@ const TONES = [
 </ng-template>
 
 <!-- Create custom role -->
-<!-- invite external user by email -->
-<ng-template #inviteTpl let-n="n">
-  <div class="invite">
-    <button class="link-btn link-btn--add" *ngIf="inviteFor !== n.id" (click)="openInvite(n)"><fvdr-icon name="envelope"></fvdr-icon>Invite external user by email</button>
-    <div class="invite-form" *ngIf="inviteFor === n.id">
-      <fvdr-input label="Invite by email" placeholder="name@company.com" type="email" [(ngModel)]="inviteEmail"
-                  [state]="inviteError ? 'error' : 'default'" [errorText]="inviteError"
-                  helperText="They get an email invite and appear here as Invited"></fvdr-input>
-      <fvdr-dropdown *ngIf="n.side === 'question'" size="s" label="Question team" [options]="teamOptions()" [value]="inviteTeam"
-                     (valueChange)="inviteTeam = $any($event)"></fvdr-dropdown>
-      <div class="invite-actions">
-        <fvdr-btn label="Send invite" size="s" (clicked)="invite(n)"></fvdr-btn>
-        <fvdr-btn label="Cancel" size="s" variant="ghost" (clicked)="inviteFor = null"></fvdr-btn>
+
+<!-- add people: one modal for roles, question teams and categories -->
+<fvdr-modal [visible]="!!peopleModal" [title]="peopleModalTitle" size="m"
+            [confirmLabel]="peopleSel.size ? 'Add ' + peopleSel.size : 'Add'" cancelLabel="Cancel" [confirmDisabled]="!peopleSel.size"
+            (confirmed)="confirmPeople()" (cancelled)="peopleModal = null" (closed)="peopleModal = null">
+  <div class="pm" *ngIf="peopleModal">
+    <fvdr-search placeholder="Search people or groups" size="s" [(ngModel)]="pmQuery"></fvdr-search>
+    <div class="pm-list">
+      <div class="pm-group" *ngFor="let g of pmGroups(); trackBy: trackGroup">
+        <div class="pm-group-head">
+          <fvdr-checkbox [label]="g.group" [checked]="pmGroupChecked(g.people)" [disabled]="pmGroupDone(g.people)" (checkedChange)="pmToggleGroup(g.people, $event)"></fvdr-checkbox>
+          <span class="pm-count">{{ g.people.length }}</span>
+        </div>
+        <div class="pm-person" *ngFor="let p of g.people; trackBy: trackById">
+          <fvdr-checkbox [label]="p.name" [checked]="peopleSel.has(p.id) || pmIsIn(p.id)" [disabled]="pmIsIn(p.id)" (checkedChange)="pmToggle(p.id, $event)"></fvdr-checkbox>
+          <span class="pm-sub">{{ pmIsIn(p.id) ? 'Already added' : p.email }}</span>
+        </div>
       </div>
+      <p class="hint" *ngIf="!pmGroups().length">No one matches “{{ pmQuery }}”</p>
     </div>
   </div>
-</ng-template>
+</fvdr-modal>
 
 <fvdr-modal [visible]="!!teamToDelete" [title]="'Delete ' + (teamToDelete?.name || 'team') + '?'" size="s"
             confirmLabel="Delete team" confirmVariant="danger" cancelLabel="Cancel"
@@ -695,55 +743,35 @@ const TONES = [
 <ng-template #catAssign let-n="n">
   <div class="ct-bar">
     <span class="field-label">{{ roleWord(n, true, true) }}</span>
-    <fvdr-segment variant="table" size="sm" [items]="n.roleKey === 'approver' ? approverViewItems : expertViewItems" [activeId]="expertView" (activeIdChange)="expertView = $any($event)"></fvdr-segment>
-  </div>
-  <ng-container *ngIf="expertView === 'experts'">
-    <!-- three layout ideas for the per-expert view (Figma 336:70127) -->
-    <div class="idea-bar">
-      <span class="idea-label">Idea</span>
-      <fvdr-segment variant="table" size="sm" [items]="expertIdeaItems" [activeId]="expertIdea" (activeIdChange)="expertIdea = $any($event); catEdit = null"></fvdr-segment>
+    <span class="hint ct-optional">Categories are optional</span>
+    <div class="view-switch" role="group" [attr.aria-label]="'Group ' + roleWord(n, true)">
+      <button class="view-btn" [class.view-btn--on]="expertView === 'experts'" [attr.aria-pressed]="expertView === 'experts'"
+              [fvdrTooltip]="'By ' + roleWord(n, true)" (click)="expertView = 'experts'"><fvdr-icon name="user"></fvdr-icon></button>
+      <button class="view-btn" [class.view-btn--on]="expertView === 'categories'" [attr.aria-pressed]="expertView === 'categories'"
+              fvdrTooltip="By categories" (click)="expertView = 'categories'"><fvdr-icon name="label"></fvdr-icon></button>
     </div>
-    <p class="hint idea-hint">{{ expertIdeaHint }}</p>
-    <div class="ex-list">
-      <div class="ex" *ngFor="let m of n.members" [class.ex--open]="catEdit === m.personId" [class.ex--stack]="expertIdea === 'stack'">
-        <div class="ex-row">
-          <button class="ct-toggle" *ngIf="expertIdea === 'expand'" [attr.aria-expanded]="catEdit === m.personId"
-                  [attr.aria-label]="'Categories of ' + person(m.personId).name" (click)="toggleCatEdit(m)">
-            <fvdr-icon [name]="catEdit === m.personId ? 'chevron-down' : 'chevron-right'"></fvdr-icon>
-          </button>
-          <span class="av av--xs" [style.background]="tone(m.personId).bg" [style.color]="tone(m.personId).fg">{{ person(m.personId).initials }}</span>
-          <div class="ex-main">
-            <span class="ex-name">{{ person(m.personId).name }}</span>
-            <span class="ex-sub" *ngIf="expertIdea === 'expand'">{{ catCountLabel(m) }}</span>
-            <div class="ex-tags" *ngIf="expertIdea === 'stack'">
-              <span class="ex-tag ex-tag--chip" *ngFor="let c of memberCats(m)">
-                <fvdr-icon name="label" class="cat-ic" [ngClass]="'cat-ic--' + c.color"></fvdr-icon>{{ c.name }}
-                <button class="ex-tag-x" [attr.aria-label]="'Remove ' + c.name" (click)="toggleCategory(m, c.name, false)"><fvdr-icon name="close"></fvdr-icon></button>
-              </span>
-              <button class="ex-tag ex-tag--add" (click)="toggleCatEdit(m)"><fvdr-icon name="plus"></fvdr-icon>Category</button>
-            </div>
-          </div>
-          <div class="ex-inline" *ngIf="expertIdea === 'tags'">
-            <span class="ex-tag" *ngFor="let c of memberCats(m).slice(0, 2)">
+  </div>
+  <div class="ex-list" *ngIf="expertView === 'experts'">
+    <div class="ex ex--stack" *ngFor="let m of n.members" [class.ex--open]="catEdit === m.personId">
+      <div class="ex-row">
+        <span class="av av--xs" [style.background]="tone(m.personId).bg" [style.color]="tone(m.personId).fg">{{ person(m.personId).initials }}</span>
+        <div class="ex-main">
+          <span class="ex-name">{{ person(m.personId).name }}</span>
+          <div class="ex-tags">
+            <span class="ex-tag ex-tag--chip" *ngFor="let c of memberCats(m)">
               <fvdr-icon name="label" class="cat-ic" [ngClass]="'cat-ic--' + c.color"></fvdr-icon>{{ c.name }}
+              <button class="ex-tag-x" [attr.aria-label]="'Remove ' + c.name" (click)="toggleCategory(m, c.name, false)"><fvdr-icon name="close"></fvdr-icon></button>
             </span>
-            <span class="ex-more" *ngIf="memberCats(m).length > 2" [fvdrTooltip]="restCats(m)">+{{ memberCats(m).length - 2 }}</span>
-            <button class="icon-btn icon-btn--sm ex-edit-btn" [fvdrTooltip]="memberCats(m).length ? 'Edit categories' : 'Add category'" tooltipPosition="left" (click)="toggleCatEdit(m)">
-              <fvdr-icon [name]="memberCats(m).length ? 'edit' : 'plus'"></fvdr-icon>
-            </button>
+            <button class="ex-tag ex-tag--add" (click)="toggleCatEdit(m)"><fvdr-icon name="plus"></fvdr-icon>Category</button>
           </div>
-          <div class="ex-dots" *ngIf="expertIdea === 'expand'">
-            <span class="ex-dot" *ngFor="let c of memberCats(m)" [ngClass]="'ex-dot--' + c.color" [fvdrTooltip]="c.name"></span>
-          </div>
-          <span class="ct-warn" *ngIf="!memberCats(m).length" [fvdrTooltip]="n.roleKey === 'approver' ? 'No category — approves only answers nobody else covers' : 'No category — gets questions only when assigned by hand'" tooltipPosition="left"><fvdr-icon name="warning"></fvdr-icon></span>
-          <button class="icon-btn icon-btn--sm ct-remove" [fvdrTooltip]="'Remove from ' + n.name" tooltipPosition="left" (click)="removeMember(n, m)"><fvdr-icon name="user-remove"></fvdr-icon></button>
         </div>
-        <div class="ex-edit" *ngIf="catEdit === m.personId">
-          <fvdr-checkbox *ngFor="let c of categories" [label]="c.name" [checked]="m.categories.includes(c.name)" (checkedChange)="toggleCategory(m, c.name, $event)"></fvdr-checkbox>
-        </div>
+        <button class="icon-btn icon-btn--sm ct-remove" [fvdrTooltip]="'Remove from ' + n.name" tooltipPosition="left" (click)="removeMember(n, m)"><fvdr-icon name="user-remove"></fvdr-icon></button>
+      </div>
+      <div class="ex-edit" *ngIf="catEdit === m.personId">
+        <fvdr-checkbox *ngFor="let c of categories" [label]="c.name" [checked]="m.categories.includes(c.name)" (checkedChange)="toggleCategory(m, c.name, $event)"></fvdr-checkbox>
       </div>
     </div>
-  </ng-container>
+  </div>
 
   <div class="ctree" *ngIf="expertView === 'categories'">
     <div class="ct-group" *ngFor="let c of categories">
@@ -755,14 +783,8 @@ const TONES = [
         <input class="cat-input" [value]="c.name" aria-label="Category name"
                (change)="renameCategory(c, $any($event.target).value, $any($event.target))"
                (keydown.enter)="$any($event.target).blur()" />
-        <span class="ct-warn" *ngIf="!expertsFor(n, c.name).length" [fvdrTooltip]="uncoveredHint(n, c.name)"><fvdr-icon name="warning"></fvdr-icon></span>
         <button class="icon-btn icon-btn--sm ct-del" fvdrTooltip="Delete category" tooltipPosition="left" (click)="deleteCategory(c)"><fvdr-icon name="trash"></fvdr-icon></button>
-        <button class="ct-add" (click)="catAddFor = catAddFor === c.name ? null : c.name"><fvdr-icon name="user-add"></fvdr-icon>Add</button>
-      </div>
-      <div class="ct-picker" *ngIf="catAddFor === c.name">
-        <fvdr-dropdown size="s" [options]="catAddOptions(n, c.name)" [value]="''" [placeholder]="'Add ' + roleWord(n) + ' to ' + c.name"
-                       [searchable]="true" searchPlaceholder="Search participants"
-                       (valueChange)="addToCategory(n, c.name, $event)"></fvdr-dropdown>
+        <button class="ct-add" (click)="openPeopleModal(n, { category: c.name })"><fvdr-icon name="user-add"></fvdr-icon>Add</button>
       </div>
       <ng-container *ngIf="!catCollapsed.has(c.name)">
         <div class="ct-row ct-row--person" *ngFor="let m of membersIn(n, c.name)">
@@ -780,14 +802,9 @@ const TONES = [
           <fvdr-icon [name]="catCollapsed.has(UNASSIGNED) ? 'chevron-right' : 'chevron-down'"></fvdr-icon>
         </button>
         <fvdr-icon name="label" class="cat-ic cat-ic--grey"></fvdr-icon>
-        <span class="ct-label">Unassigned {{ roleWord(n, true) }}</span>
-        <span class="ct-info" [fvdrTooltip]="n.roleKey === 'approver' ? 'No category — they approve answers of categories nobody else covers' : 'No category — they get questions only when a coordinator assigns them by hand'"><fvdr-icon name="info"></fvdr-icon></span>
-        <button class="ct-add" (click)="catAddFor = catAddFor === UNASSIGNED ? null : UNASSIGNED"><fvdr-icon name="user-add"></fvdr-icon>Add</button>
-      </div>
-      <div class="ct-picker" *ngIf="catAddFor === UNASSIGNED">
-        <fvdr-dropdown size="s" [options]="addPeopleOptions(n)" [value]="''" [placeholder]="'Add ' + roleWord(n)"
-                       [searchable]="true" searchPlaceholder="Search participants"
-                       (valueChange)="addFromDropdown(n, $event); catAddFor = null"></fvdr-dropdown>
+        <span class="ct-label">Without a category</span>
+        <span class="ct-info" [fvdrTooltip]="n.roleKey === 'approver' ? 'Categories are optional — they approve answers of any category nobody else covers' : 'Categories are optional — they get questions when a coordinator assigns them'"><fvdr-icon name="info"></fvdr-icon></span>
+        <button class="ct-add" (click)="openPeopleModal(n)"><fvdr-icon name="user-add"></fvdr-icon>Add</button>
       </div>
       <ng-container *ngIf="!catCollapsed.has(UNASSIGNED)">
         <div class="ct-row ct-row--person" *ngFor="let m of unassignedIn(n)">
@@ -996,7 +1013,7 @@ const TONES = [
     .lg--dual { width: 9px; height: 9px; border: 0; border-radius: var(--radius-full); background: var(--color-warning-500); }
 
     /* right panel */
-    .panel { width: 392px; flex-shrink: 0; border-left: 1px solid var(--color-divider); display: flex; flex-direction: column; background: var(--color-stone-0); min-height: 0; }
+    .panel { position: relative; width: 392px; flex-shrink: 0; border-left: 1px solid var(--color-divider); display: flex; flex-direction: column; background: var(--color-stone-0); min-height: 0; }
     .panel-head { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-4) var(--space-4) var(--space-3); }
     .panel-head--lib { padding-bottom: var(--space-2); }
     .panel-titles { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
@@ -1006,6 +1023,11 @@ const TONES = [
     .name-input:hover { border-color: var(--color-stone-400); }
     .name-input:focus { outline: none; border-color: var(--color-primary-500); }
     .panel-tabs { padding: 0 var(--space-4); border-bottom: 1px solid var(--color-divider); }
+    .panel-resize { position: absolute; left: calc(var(--space-1) * -1); top: 0; bottom: 0; width: var(--space-2); cursor: col-resize; z-index: 20; }
+    .panel-resize::after { content: ''; position: absolute; left: 3px; top: 0; bottom: 0; width: 2px; background: transparent; transition: background 0.15s; }
+    .panel-resize:hover::after, .panel-resize:focus-visible::after, .panel--resizing .panel-resize::after { background: var(--color-primary-500); }
+    .panel-resize:focus-visible { outline: none; }
+    .panel--resizing { user-select: none; }
     .panel-body { flex: 1; overflow-y: auto; padding: var(--space-4); display: flex; flex-direction: column; gap: var(--space-2); }
     .panel-foot { padding: var(--space-3) var(--space-4); border-top: 1px solid var(--color-divider); }
     .icon-btn { width: 32px; height: 32px; border: 0; background: none; border-radius: var(--radius-md); color: var(--color-text-secondary); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; font-size: 16px; flex-shrink: 0; }
@@ -1039,7 +1061,6 @@ const TONES = [
     .ct-label { font-size: var(--font-size-base); }
     .ct-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .ct-info { display: inline-flex; color: var(--color-text-secondary); }
-    .ct-warn { display: inline-flex; color: var(--color-error-600); }
     .ct-add { margin-left: auto; display: inline-flex; align-items: center; gap: var(--space-1); border: none; background: none; padding: var(--space-1); font: inherit; color: var(--color-primary-500); cursor: pointer; white-space: nowrap; }
     .ct-add:hover { color: var(--color-primary-600); }
     .ct-row--cat .cat-input { flex: 0 1 auto; width: 9em; }
@@ -1047,12 +1068,14 @@ const TONES = [
     .ct-row:hover .ct-del, .ct-del:focus-visible { opacity: 1; }
     .ct-remove { opacity: 0; color: var(--color-error-600); transition: opacity 0.15s; }
     .ct-row:hover .ct-remove, .ct-remove:focus-visible { opacity: 1; }
-    .ct-picker { padding: 0 0 var(--space-2) var(--space-10); }
     .ct-empty { display: block; padding: var(--space-2) 0 var(--space-2) var(--space-10); font-size: var(--text-caption1-size); color: var(--color-text-secondary); }
     .ct-new-ic { margin: 0 var(--space-1); }
-    .idea-bar { display: flex; align-items: center; gap: var(--space-2); }
-    .idea-label { font-size: var(--text-caption1-size); color: var(--color-text-secondary); }
-    .idea-hint { margin: var(--space-1) 0 var(--space-2); }
+    .ct-optional { margin: 0; }
+    .view-switch { margin-left: auto; display: inline-flex; border: 1px solid var(--color-divider); border-radius: var(--radius-sm); overflow: hidden; }
+    .view-btn { display: inline-flex; align-items: center; justify-content: center; width: var(--space-8); height: var(--space-8); border: none; background: var(--color-stone-0); color: var(--color-text-secondary); cursor: pointer; padding: 0; }
+    .view-btn + .view-btn { border-left: 1px solid var(--color-divider); }
+    .view-btn:hover { background: var(--color-hover-bg); }
+    .view-btn--on { background: var(--color-primary-50); color: var(--color-primary-600); }
     .ex-list { display: flex; flex-direction: column; }
     .ex { border-radius: var(--radius-sm); }
     .ex--open { background: var(--color-stone-100); }
@@ -1062,24 +1085,13 @@ const TONES = [
     .ex--stack .ex-row { align-items: flex-start; padding-top: var(--space-2); padding-bottom: var(--space-2); }
     .ex-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
     .ex-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .ex-sub { font-size: var(--text-caption1-size); color: var(--color-text-secondary); }
     .ex-tags { display: flex; flex-wrap: wrap; gap: var(--space-1); padding-top: 2px; }
-    .ex-inline { display: flex; align-items: center; gap: var(--space-2); flex: none; }
     .ex-tag { display: inline-flex; align-items: center; gap: var(--space-1); font-size: var(--text-caption1-size); color: var(--color-text-primary); white-space: nowrap; }
     .ex-tag .cat-ic { font-size: var(--space-3); }
     .ex-tag--chip { padding: 2px var(--space-1) 2px var(--space-2); border: 1px solid var(--color-divider); border-radius: var(--radius-lg); background: var(--color-stone-0); }
     .ex-tag--add { padding: 2px var(--space-2); border: 1px dashed var(--color-stone-500); border-radius: var(--radius-lg); background: none; color: var(--color-primary-500); cursor: pointer; font: inherit; font-size: var(--text-caption1-size); }
     .ex-tag-x { display: inline-flex; border: none; background: none; padding: 0; color: var(--color-text-secondary); cursor: pointer; font-size: var(--space-3); }
     .ex-tag-x:hover { color: var(--color-error-600); }
-    .ex-more { font-size: var(--text-caption1-size); padding: 0 var(--space-1); border-radius: var(--radius-lg); background: var(--color-stone-300); color: var(--color-text-secondary); }
-    .ex-dots { display: flex; gap: var(--space-1); flex: none; }
-    .ex-dot { width: var(--space-2); height: var(--space-2); border-radius: 50%; }
-    .ex-dot--teal { background: var(--color-primary-400); }
-    .ex-dot--green { background: var(--color-primary-600); }
-    .ex-dot--blue { background: var(--color-info-500); }
-    .ex-dot--orange { background: var(--color-warning-600); }
-    .ex-dot--red { background: var(--color-error-500); }
-    .ex-dot--grey { background: var(--color-stone-500); }
     .ex-edit { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2); padding: var(--space-2) var(--space-3) var(--space-3) var(--space-10); }
     .cat-input { flex: 1; min-width: 0; border: 1px solid transparent; border-radius: var(--radius-sm); padding: 2px var(--space-1); font: inherit; color: var(--color-text-primary); background: none; }
     .cat-input:hover { border-color: var(--color-stone-400); }
@@ -1116,6 +1128,30 @@ const TONES = [
     .perm--compact { padding: var(--space-1) 0; }
     .perm-text { flex: 1; display: flex; flex-direction: column; min-width: 0; }
     .perm-label { font-size: var(--font-size-base); }
+    .rt { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+    .rt-step { position: relative; display: flex; gap: var(--space-3); padding-bottom: var(--space-3); }
+    .rt-step:not(:last-child)::before { content: ''; position: absolute; left: 11px; top: var(--space-6); bottom: 0; width: 2px; background: var(--color-divider); }
+    .rt-num { flex: none; width: var(--space-6); height: var(--space-6); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: var(--text-caption1-size); background: var(--color-stone-300); color: var(--color-text-secondary); }
+    .rt-step--here .rt-num { background: var(--color-primary-500); color: var(--color-stone-0); }
+    .rt-step--end .rt-num { background: var(--color-primary-50); color: var(--color-primary-600); }
+    .rt-body { display: flex; flex-direction: column; gap: 2px; padding-top: 2px; min-width: 0; }
+    .rt-role { display: flex; align-items: center; gap: var(--space-2); font-weight: var(--font-weight-semi); }
+    .rt-step--end .rt-role { font-weight: normal; }
+    .rt-here { font-size: var(--text-caption1-size); font-weight: normal; color: var(--color-primary-600); background: var(--color-primary-50); border-radius: var(--radius-lg); padding: 0 var(--space-2); }
+    .rt-action { font-size: var(--text-caption1-size); color: var(--color-text-secondary); }
+    .rt-settings-head { padding-top: var(--space-3); border-top: 1px solid var(--color-divider); }
+    .rt-setting { display: flex; flex-direction: column; gap: var(--space-2); padding-bottom: var(--space-3); }
+    .rt-q { font-size: var(--font-size-base); }
+    .people-bar { display: flex; align-items: center; gap: var(--space-2); }
+    .people-bar fvdr-btn { margin-left: auto; }
+    .people-info { display: inline-flex; color: var(--color-text-secondary); cursor: help; }
+    .pm { display: flex; flex-direction: column; gap: var(--space-3); }
+    .pm-list { max-height: 50vh; overflow-y: auto; display: flex; flex-direction: column; gap: var(--space-3); }
+    .pm-group { display: flex; flex-direction: column; }
+    .pm-group-head { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-1) 0; border-bottom: 1px solid var(--color-divider); font-weight: var(--font-weight-semi); }
+    .pm-count { margin-left: auto; font-size: var(--text-caption1-size); color: var(--color-text-secondary); }
+    .pm-person { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-1) 0 var(--space-1) var(--space-6); }
+    .pm-sub { margin-left: auto; font-size: var(--text-caption1-size); color: var(--color-text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .perm-hint { font-size: var(--text-caption1-size); color: var(--color-text-secondary); }
     .perm--fixed .perm-label { color: var(--color-text-secondary); }
     .perm-fixed-ic { font-size: var(--space-4); color: var(--color-primary-500); }
@@ -1279,6 +1315,7 @@ export class QnaSetupCanvasComponent {
   // ── lookups ───────────────────────────────────────────────────────────────
   trackById = (_: number, x: { id: string }) => x.id;
   trackSelf = (_: number, x: string) => x;
+  trackGroup = (_: number, g: { group: string }) => g.group;
 
   private readonly sideCache = new Map<string, { key: string; out: Port[]; free: Port[] }>();
   private portsOf(n: FlowNode) {
@@ -1333,9 +1370,9 @@ export class QnaSetupCanvasComponent {
   get errorNodes(): FlowNode[] { return this.nodes.filter(n => !n.members.length); }
   get errorNamesLabel(): string { return this.errorNodes.map(n => n.name).join(', '); }
   permsFor(n: FlowNode): PermDef[] {
-    if (n.side === 'question') return Q_PERMS;
     const rp = this.rolePerms(n);
-    return rp ? [...rp.config, ...rp.open] : A_PERMS;
+    if (rp) return [...rp.config, ...rp.open];
+    return n.side === 'question' ? Q_PERMS : A_PERMS;
   }
   rolePerms(n: FlowNode): RolePerms | null { return n.custom ? null : ROLE_PERMS[n.roleKey] ?? null; }
   fixedLimited(n: FlowNode, p: PermDef) { return p.key === 'seeAll' && n.roleKey === 'approver' && !!n.perms['seeApprovalOnly']; }
@@ -1370,15 +1407,15 @@ export class QnaSetupCanvasComponent {
    *   otherwise             → expert → coordinator → approvers → bidder (sign-off approver last)
    * Only for the standard chain (one coordinator, one expert role, approvers); returns false otherwise.
    */
-  private rebuildAnswerRoute(): boolean {
-    const a = this.nodes.filter(x => x.side === 'answer');
+  private rebuildAnswerRoute(quiet = false): boolean {
+    const a = this.nodes.filter(x => x.side === 'answer' && x.roleKey !== 'viewer');
     const cs = a.filter(x => x.roleKey === 'coordinator'), xs = a.filter(x => x.roleKey === 'expert');
     const order = this.stepMap();
     const first = (x: FlowNode) => order.get(x.id)?.[0] ?? 99;
     let aps = a.filter(x => x.roleKey === 'approver').sort((p, q) => first(p) - first(q));
     const s = this.nodes.find(x => x.side === 'question' && this.edges.some(e => e.from === x.id && e.to === cs[0]?.id));
     if (cs.length !== 1 || xs.length !== 1 || !aps.length || !s || a.length !== 2 + aps.length) {
-      this.toast.show({ variant: 'warning', message: 'This flow has extra roles — update the connections on the canvas by hand' });
+      if (!quiet) this.toast.show({ variant: 'warning', message: 'This flow has extra roles — update the connections on the canvas by hand' });
       return false;
     }
     const c = cs[0], x = xs[0];
@@ -1401,8 +1438,12 @@ export class QnaSetupCanvasComponent {
       out.push(N === 1 ? ed(x, aps[0], 'b', 't', 'Suggests draft') : ed(x, aps[0], 'r', 'l', 'Suggests draft'));
       aps.slice(1).forEach((p, i) => out.push(i + 1 === N - 1 ? ed(aps[i], p, 'b', 't', `Approved · level ${i + 1}`) : ed(aps[i], p, 'r', 'l', `Approved · level ${i + 1}`)));
       out.push(ed(aps[N - 1], c, 'l', 'r', N > 1 ? `Approved · level ${N}` : 'Approved'));
-      out.push(N === 1 ? ed(aps[0], x, 'r', 'r', 'Rejects', 'reject') : ed(aps[0], x, 't', 't', 'Rejects', 'reject'));
-      aps.slice(1).forEach((p, i) => out.push(ed(p, aps[i], 'r', 'r', 'Rejects', 'reject')));
+      out.push(this.rejectTo === 'expert'
+        ? (N === 1 ? ed(aps[0], x, 'r', 'r', 'Rejects', 'reject') : ed(aps[0], x, 't', 't', 'Rejects', 'reject'))
+        : { ...ed(aps[0], c, 'l', 'r', 'Rejects', 'reject'), auto: true });
+      aps.slice(1).forEach((p, i) => out.push(this.rejectChain === 'previous'
+        ? ed(p, aps[i], 'r', 'r', 'Rejects', 'reject')
+        : { ...ed(p, this.rejectTo === 'expert' ? x : c, 'l', 'r', 'Rejects', 'reject'), auto: true }));
       out.push(ed(c, s, 'b', 'b', 'Submits final answer', 'return'));
     } else {
       // expert hands back to the coordinator, approvers run along the bottom row, the last one releases
@@ -1410,14 +1451,81 @@ export class QnaSetupCanvasComponent {
       out.push(ed(x, c, 'b', 'r', 'Proposes answer', 'return'));
       out.push(ed(c, aps[0], 'b', 'l', 'Sends for approval'));
       aps.slice(1).forEach((p, i) => out.push(ed(aps[i], p, 'r', 'l', `Approved · level ${i + 1}`)));
-      out.push(ed(aps[0], c, 't', 'r', 'Rejects', 'reject'));
-      aps.slice(1).forEach((p, i) => out.push(ed(p, aps[i], 't', 'b', 'Rejects', 'reject')));
+      out.push(this.rejectTo === 'coordinator'
+        ? ed(aps[0], c, 't', 'r', 'Rejects', 'reject')
+        : { ...ed(aps[0], x, 't', 'b', 'Rejects', 'reject'), auto: true });
+      aps.slice(1).forEach((p, i) => out.push(this.rejectChain === 'previous'
+        ? ed(p, aps[i], 't', 'b', 'Rejects', 'reject')
+        : { ...ed(p, this.rejectTo === 'expert' ? x : c, 't', 'r', 'Rejects', 'reject'), auto: true }));
       out.push(ed(aps[N - 1], s, 'b', 'b', fin ? 'Final sign-off · sends answer' : 'Final answer', 'return'));
     }
     this.edges = [...keep, ...out];
+    this.autoPorts();
     setTimeout(() => this.fit(), 0);
     return true;
   }
+
+  // ── routing settings ──
+  rejectTo: 'expert' | 'coordinator' = 'coordinator';
+  rejectChain: 'previous' | 'first' = 'previous';
+  readonly afterApproveOptions: RadioOption[] = [
+    { value: 'direct', label: 'Straight to the question side' },
+    { value: 'coordinator', label: 'Back to the answer coordinator, who sends it' },
+  ];
+  readonly rejectToOptions: RadioOption[] = [
+    { value: 'expert', label: 'The expert' },
+    { value: 'coordinator', label: 'The answer coordinator' },
+  ];
+  rejectChainOptions(): RadioOption[] {
+    return this.stable('rejectChain', this.rejectTo, () => [
+      { value: 'previous', label: 'The previous approver' },
+      { value: 'first', label: this.rejectTo === 'expert' ? 'The expert' : 'The answer coordinator' },
+    ]);
+  }
+  approvers(): FlowNode[] { return this.nodes.filter(x => x.roleKey === 'approver'); }
+  private coordinator(): FlowNode | undefined { return this.nodes.find(x => x.roleKey === 'coordinator'); }
+  get afterApprove(): 'direct' | 'coordinator' { return this.coordinator()?.perms['finalSignoff'] ? 'coordinator' : 'direct'; }
+  setAfterApprove(v: string) {
+    const c = this.coordinator();
+    if (c && (v === 'coordinator') !== !!c.perms['finalSignoff']) this.setPerm(c, 'finalSignoff', v === 'coordinator');
+  }
+  setRejectTo(v: string) { this.rejectTo = v as 'expert' | 'coordinator'; this.applyRouting(); }
+  setRejectChain(v: string) { this.rejectChain = v as 'previous' | 'first'; this.applyRouting(); }
+  /** standard flows are re-drawn; anything else just gets its reject arrows re-pointed */
+  private applyRouting() {
+    if (this.rebuildAnswerRoute(true)) return;
+    const order = this.stepMap();
+    const aps = this.approvers().sort((p, q) => (order.get(p.id)?.[0] ?? 99) - (order.get(q.id)?.[0] ?? 99));
+    const target = this.nodes.find(x => x.roleKey === this.rejectTo);
+    if (!target) return;
+    this.edges = this.edges.filter(e => !(e.kind === 'reject' && aps.some(p => p.id === e.from)));
+    aps.forEach((p, i) => {
+      const to = i > 0 && this.rejectChain === 'previous' ? aps[i - 1] : target;
+      this.edges.push({ id: 'e' + this.seq++, from: p.id, to: to.id, fs: 't', ts: 'r', label: 'Rejects', kind: 'reject', auto: true });
+    });
+    this.edges = [...this.edges];
+    this.autoPorts();
+  }
+  /** the main path as a numbered list, ending where the answer reaches the question side */
+  routePath(): { node: FlowNode; label: string; end?: boolean }[] {
+    const sig = this.edges.map(e => e.from + '>' + e.to + ':' + e.kind + ':' + e.label).join('|') + '#' + this.nodes.map(n => n.id + n.name).join(',');
+    return this.stable('routePath', sig, () => {
+      const out: { node: FlowNode; label: string; end?: boolean }[] = [];
+      let cur = this.nodes.find(n => n.roleKey !== 'viewer' && !this.edges.some(e => e.to === n.id && e.kind !== 'reject'));
+      const used = new Set<string>();
+      for (let i = 0; cur && i < 20; i++) {
+        const next = this.edges.find(e => e.from === cur!.id && e.kind !== 'reject' && !used.has(e.id));
+        out.push({ node: cur, label: next?.label ?? '' });
+        if (!next) break;
+        used.add(next.id);
+        const to = this.nodeById(next.to);
+        if (cur.side === 'answer' && to?.side === 'question') { out.push({ node: to, label: 'Receives the final answer', end: true }); break; }
+        cur = to;
+      }
+      return out;
+    });
+  }
+  rejectEdges(): FlowEdge[] { return this.edges.filter(e => e.kind === 'reject'); }
   rolesOf(personId: string): FlowNode[] { return this.nodes.filter(n => n.members.some(m => m.personId === personId)); }
   rolesLabel(personId: string): string { return this.rolesOf(personId).map(n => n.name).join(' · '); }
   otherRoles(personId: string, n: FlowNode): string {
@@ -1495,6 +1603,76 @@ export class QnaSetupCanvasComponent {
     ]);
   }
 
+  // ── resizable side panel ──
+  readonly PANEL_MIN = 392;
+  panelW = 392;
+  panelResizing = false;
+  private panelMax() { return Math.max(this.PANEL_MIN, Math.round(window.innerWidth * 0.7)); }
+  private clampPanel(w: number) { return Math.min(this.panelMax(), Math.max(this.PANEL_MIN, Math.round(w))); }
+  startPanelResize(ev: MouseEvent) {
+    ev.preventDefault();
+    const right = (ev.currentTarget as HTMLElement).parentElement!.getBoundingClientRect().right;
+    this.panelResizing = true;
+    const move = (e: MouseEvent) => { this.panelW = this.clampPanel(right - e.clientX); };
+    const up = () => {
+      this.panelResizing = false;
+      window.removeEventListener('mousemove', move);
+      window.removeEventListener('mouseup', up);
+    };
+    window.addEventListener('mousemove', move);
+    window.addEventListener('mouseup', up);
+  }
+  nudgePanel(dx: number) { this.panelW = this.clampPanel(this.panelW + dx); }
+  togglePanelWide() { this.panelW = this.panelW > this.PANEL_MIN ? this.PANEL_MIN : this.clampPanel(window.innerWidth * 0.5); }
+
+  // ── add-people modal ──
+  peopleModal: { nodeId: string; teamId?: string; category?: string } | null = null;
+  peopleSel = new Set<string>();
+  pmQuery = '';
+  openPeopleModal(n: FlowNode, ctx: { teamId?: string; category?: string } = {}) {
+    if (n.side === 'question' && !ctx.teamId) ctx.teamId = this.teams[0]?.id ?? this.teamFor('Team 1').id;
+    this.peopleModal = { nodeId: n.id, ...ctx };
+    this.peopleSel = new Set();
+    this.pmQuery = '';
+  }
+  get peopleModalTitle(): string {
+    const m = this.peopleModal, n = m && this.nodeById(m.nodeId);
+    if (!m || !n) return '';
+    if (m.category) return `Add ${this.roleWord(n, true)} to ${m.category}`;
+    if (n.side === 'question') return `Add people to ${this.teams.find(t => t.id === m.teamId)?.name ?? 'team'}`;
+    return `Add people to ${n.name}`;
+  }
+  pmIsIn(id: string): boolean {
+    const m = this.peopleModal, n = m && this.nodeById(m.nodeId);
+    if (!m || !n) return false;
+    if (m.category) return n.members.some(x => x.personId === id && x.categories.includes(m.category!));
+    if (n.side === 'question') return n.members.some(x => x.personId === id && x.teamId === m.teamId);
+    return n.members.some(x => x.personId === id);
+  }
+  pmGroups(): { group: string; people: Person[] }[] {
+    const q = this.pmQuery.trim().toLowerCase();
+    return this.stable('pmGroups', q + '|' + this.people.length, () => [...new Set(this.people.map(p => p.group))]
+      .map(group => ({ group, people: this.people.filter(p => p.group === group && (!q || p.name.toLowerCase().includes(q) || p.email.toLowerCase().includes(q) || group.toLowerCase().includes(q))) }))
+      .filter(g => g.people.length));
+  }
+  pmToggle(id: string, on: boolean) { on ? this.peopleSel.add(id) : this.peopleSel.delete(id); }
+  pmGroupDone(ps: Person[]) { return ps.every(p => this.pmIsIn(p.id)); }
+  pmGroupChecked(ps: Person[]) { return ps.every(p => this.pmIsIn(p.id) || this.peopleSel.has(p.id)); }
+  pmToggleGroup(ps: Person[], on: boolean) { ps.filter(p => !this.pmIsIn(p.id)).forEach(p => this.pmToggle(p.id, on)); }
+  confirmPeople() {
+    const m = this.peopleModal, n = m && this.nodeById(m.nodeId);
+    if (!m || !n) return;
+    const ids = [...this.peopleSel];
+    ids.forEach(id => {
+      this.addMember(n, id, false, m.teamId);
+      if (m.category) this.toggleCategory(n.members.find(x => x.personId === id)!, m.category, true);
+    });
+    const where = m.category ?? (n.side === 'question' ? this.teams.find(t => t.id === m.teamId)?.name : n.name);
+    this.toast.show({ variant: 'success', message: ids.length === 1 ? `${this.person(ids[0]).name} added to ${where}` : `${ids.length} people added to ${where}` });
+    if (m.category) this.catCollapsed.delete(m.category);
+    this.peopleModal = null;
+  }
+
   // ── external invites ──
   openInvite(n: FlowNode) {
     this.inviteFor = n.id;
@@ -1525,12 +1703,6 @@ export class QnaSetupCanvasComponent {
     { id: 'manual', label: 'Any approver', icon: 'participants' },
     { id: 'auto', label: 'By category', icon: 'label' },
   ];
-  /** tooltip on a category that nobody covers */
-  uncoveredHint(n: FlowNode, cat: string): string {
-    return n.roleKey === 'approver'
-      ? `No approver for ${cat} — these answers go to any approver`
-      : `No expert — ${cat} questions wait for the coordinator`;
-  }
   approverAssignHint(n: FlowNode): string {
     return n.assignMode === 'auto'
       ? 'Answers are approved only by approvers of the same category — e.g. Finance answers go to Finance approvers, Legal to Legal. A category with no approver falls back to any approver.'
@@ -1541,60 +1713,13 @@ export class QnaSetupCanvasComponent {
     return cap ? w[0].toUpperCase() + w.slice(1) : w;
   }
   expertView: 'experts' | 'categories' = 'categories';
-  expertViewItems: SegmentItem[] = [
-    { id: 'experts', label: 'By experts', icon: 'user' },
-    { id: 'categories', label: 'By categories', icon: 'label' },
-  ];
-  approverViewItems: SegmentItem[] = [
-    { id: 'experts', label: 'By approvers', icon: 'user' },
-    { id: 'categories', label: 'By categories', icon: 'label' },
-  ];
   catCollapsed = new Set<string>();
-  expertIdea: 'tags' | 'stack' | 'expand' = 'tags';
-  expertIdeaItems: SegmentItem[] = [
-    { id: 'tags', label: 'A · Inline' },
-    { id: 'stack', label: 'B · Two lines' },
-    { id: 'expand', label: 'C · Expand' },
-  ];
-  get expertIdeaHint(): string {
-    return {
-      tags: 'Figma layout, capped at 2 tags + “+N” so rows stay one line in a narrow panel. Pencil edits inline.',
-      stack: 'Name on top, removable category chips below. Everything visible; rows grow with categories.',
-      expand: 'Coloured dots as a compact summary. Expand a row to tick categories — scales to many.',
-    }[this.expertIdea];
-  }
   catEdit: string | null = null;
   toggleCatEdit(m: Membership) { this.catEdit = this.catEdit === m.personId ? null : m.personId; }
   memberCats(m: Membership) { return this.categories.filter(c => m.categories.includes(c.name)); }
-  restCats(m: Membership): string { return this.memberCats(m).slice(2).map(c => c.name).join(', '); }
-  catCountLabel(m: Membership): string {
-    const k = this.memberCats(m).length;
-    return k ? `${k} ${k === 1 ? 'category' : 'categories'}` : 'No category';
-  }
-  catAddFor: string | null = null;
   toggleCat(name: string) { this.catCollapsed.has(name) ? this.catCollapsed.delete(name) : this.catCollapsed.add(name); }
   membersIn(n: FlowNode, cat: string): Membership[] { return n.members.filter(m => m.categories.includes(cat)); }
   unassignedIn(n: FlowNode): Membership[] { return n.members.filter(m => !m.categories.length); }
-  catAddOptions(n: FlowNode, cat: string): DropdownOption[] {
-    const inCat = new Set(this.membersIn(n, cat).map(m => m.personId));
-    const inNode = new Set(n.members.map(m => m.personId));
-    return this.stable('catAdd:' + n.id + ':' + cat, [...inCat].join(',') + '|' + [...inNode].join(',') + '|' + this.people.length, () => [
-      ...n.members.filter(m => !inCat.has(m.personId)).map(m => ({ value: m.personId, label: this.person(m.personId).name, group: this.roleWord(n, true, true) })),
-      ...this.people.filter(p => !inNode.has(p.id)).map(p => ({ value: p.id, label: p.name, sublabel: p.external ? 'Invited' : p.group, group: 'Other participants' })),
-    ]);
-  }
-  addToCategory(n: FlowNode, cat: string, v: string | string[]) {
-    const id = Array.isArray(v) ? v[0] : v;
-    if (!id) return;
-    if (!n.members.some(m => m.personId === id)) this.addMember(n, id, false);
-    const m = n.members.find(x => x.personId === id)!;
-    this.toggleCategory(m, cat, true);
-    this.catAddFor = null;
-    this.catCollapsed.delete(cat);
-    this.toast.show({ variant: 'success', message: n.roleKey === 'approver'
-      ? `${this.person(id).name} now approves ${cat} answers`
-      : `${this.person(id).name} now answers ${cat} questions` });
-  }
   toggleCategory(m: Membership, cat: string, on: boolean) {
     m.categories = on ? [...new Set([...m.categories, cat])] : m.categories.filter(c => c !== cat);
   }
@@ -1641,7 +1766,7 @@ export class QnaSetupCanvasComponent {
   }
   private stepMap(): Map<string, number[]> {
     const map = new Map<string, number[]>();
-    const starts = this.nodes.filter(n => !this.edges.some(e => e.to === n.id && e.kind !== 'reject'));
+    const starts = this.nodes.filter(n => n.roleKey !== 'viewer' && !this.edges.some(e => e.to === n.id && e.kind !== 'reject'));
     let cur = starts[0] ?? this.nodes[0];
     const used = new Set<string>();
     let i = 1;
@@ -1676,6 +1801,8 @@ export class QnaSetupCanvasComponent {
   // ── templates ─────────────────────────────────────────────────────────────
   loadTemplate(id: TemplateId) {
     this.templateId = id;
+    this.rejectTo = id === 'coordinator-final' ? 'expert' : 'coordinator';
+    this.rejectChain = 'previous';
     this.selectedId = null;
     this.pendingInsert = null;
     this.teams = [];
@@ -2079,7 +2206,12 @@ export class QnaSetupCanvasComponent {
     const n = this.errorNodes[0];
     if (n) { this.selectNode(n.id); this.nodeTab = 'people'; }
   }
+  isProtected(n: FlowNode) { return PROTECTED_ROLES.has(n.roleKey); }
   deleteNode(n: FlowNode) {
+    if (this.isProtected(n)) {
+      this.toast.show({ variant: 'warning', message: `${n.name} is required in every Q&A flow and can't be deleted` });
+      return;
+    }
     const ins = this.incoming(n).filter(e => e.kind === 'main');
     const outs = this.outgoing(n).filter(e => e.kind === 'main');
     // keep the chain connected: A → (deleted) → B becomes A → B
