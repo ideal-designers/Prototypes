@@ -547,41 +547,29 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
             </ul>
           </section>
 
-          <section class="ds" *ngIf="s.isReview">
-            <h3 class="ds__h">Suggested document</h3>
-            <div class="doc">
-              <fvdr-file-icon [type]="fileType(s.docName)" />
-              <div class="doc__b">
-                <button class="doc__name" (click)="openPreview(s.docName)">{{ s.docLabel }}</button>
-                <button class="doc__path doc__path--link" (click)="openFolder(s.docName)">{{ s.docPath }}</button>
-              </div>
-            </div>
+          <fvdr-inline-message *ngIf="s.isGap && autoGapFor === s.id" variant="info" message="All documents were unlinked, so the status changed to Gap." />
+
+          <section class="ds" *ngIf="s.isGap && s.isReopened">
+            <h3 class="ds__h">{{ s.gapTitle }}</h3>
+            <p class="ds__p">{{ s.gapText }}</p>
           </section>
 
-          <section class="ds" *ngIf="s.isCovered">
-            <h3 class="ds__h">Linked documents</h3>
+          <!-- Documents: one block for every status. Link / unlink everywhere except a question or an instruction -->
+          <section class="ds" *ngIf="s.isReview || s.isCovered || s.isGap">
+            <h3 class="ds__h">{{ s.isReview ? (s.docs.length > 1 ? 'Suggested documents' : 'Suggested document') : 'Documents' }}</h3>
             <div class="doc" *ngFor="let d of s.docs">
               <fvdr-file-icon [type]="d.type" />
               <div class="doc__b">
                 <button class="doc__name" (click)="openPreview(d.name)">{{ d.label }}</button>
-                <span class="doc__path">{{ d.meta }}</span>
+                <button class="doc__path doc__path--link" (click)="openFolder(d.name)">{{ d.meta }}</button>
               </div>
-              <fvdr-btn variant="ghost" size="s" iconName="close" [iconOnly]="true" ariaLabel="Unlink" (clicked)="unlink(d.name)" />
+              <fvdr-btn variant="ghost" size="s" iconName="close" [iconOnly]="true" ariaLabel="Unlink from this request" (clicked)="unlink(d.name)" />
             </div>
-            <button class="lnk lnk--start" (click)="toast('A document picker opens here to link any file or folder from the room')">Link another document</button>
-          </section>
-
-          <section class="ds" *ngIf="s.isGap">
-            <h3 class="ds__h">{{ s.gapTitle }}</h3>
-            <p class="ds__p" *ngIf="s.gapText">{{ s.gapText }}</p>
-            <div class="doc doc--muted" *ngIf="s.hasNear">
-              <fvdr-file-icon [type]="fileType(s.nearName)" />
-              <div class="doc__b">
-                <button class="doc__name" (click)="openPreview(s.nearName)">{{ s.nearName }}</button>
-                <span class="doc__path">Closest document, below the match threshold</span>
-              </div>
-              <fvdr-btn label="Link anyway" variant="ghost" size="s" (clicked)="linkNear()" />
+            <div class="dempty" *ngIf="!s.docs.length">
+              <p class="dempty__t">No documents linked yet</p>
+              <p class="ds__p ds__p--b3">Link a document to cover this request, or ask for it in Q&amp;A.</p>
             </div>
+            <fvdr-btn *ngIf="!s.isCovered || s.isPartial" class="lnk--start" label="Link documents…" variant="secondary" size="s" (clicked)="openLink()" />
           </section>
 
           <section class="ds" *ngIf="s.isQuestion || s.isInstruction || s.isNote || s.isNa">
@@ -604,11 +592,17 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
             <p class="ds__p">Goes to {{ isBidder ? 'Q&A' : 'the seller team' }} only when you click Send. You can edit it first.</p>
           </section>
 
-          <section class="ds" *ngIf="s.isReview">
+          <section class="ds" *ngIf="(s.isReview || s.isCovered) && !composeOpen">
             <fvdr-dropdown label="Status" [options]="statusOptions" [value]="reviewStatus" (valueChange)="reviewStatus = $any(asString($event))" />
           </section>
+          <!-- A gap has no documents, so its status can't change until one is linked -->
+          <section class="ds" *ngIf="s.isGap && !composeOpen">
+            <div fvdrTooltip="Link a document to change the status" tooltipPosition="bottom">
+              <fvdr-dropdown label="Status" [options]="statusOptions" value="gap" [disabled]="true" />
+            </div>
+          </section>
 
-          <section class="ds" *ngIf="s.writes && !s.isReview">
+          <section class="ds" *ngIf="s.writes && !s.isReview && !s.isCovered && !s.isGap">
             <h3 class="ds__h">In your file</h3>
             <dl class="kvs">
               <div *ngFor="let w of s.writes"><dt>{{ w.col }}</dt><dd [class.kv__empty]="!w.val">{{ w.val || 'Empty' }}</dd></div>
@@ -617,19 +611,19 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
 
         </div>
         <footer class="df">
-          <ng-container *ngIf="s.isReview && !composeOpen">
-            <fvdr-btn label="Save" fvdrTooltip="A" (clicked)="saveReview()" />
+          <!-- Covered: Save only · To review / Partial: Save + Ask in Q&A · Gap: Ask in Q&A -->
+          <ng-container *ngIf="(s.isReview || s.isCovered) && !composeOpen">
+            <fvdr-btn label="Save" [fvdrTooltip]="s.isReview ? 'A' : ''" (clicked)="saveReview()" />
             <span class="spacer"></span>
-            <fvdr-btn label="Ask Seller" variant="secondary" (clicked)="openCompose()" />
+            <fvdr-btn *ngIf="(s.isReview || s.isPartial) && !s.requested" [label]="isBidder ? 'Ask in Q&A' : 'Request from seller'" variant="secondary" (clicked)="openCompose()" />
           </ng-container>
           <ng-container *ngIf="composeOpen">
             <fvdr-btn [label]="isBidder ? 'Send to Q&A' : 'Send request'" (clicked)="sendCompose()" />
             <fvdr-btn label="Cancel" variant="secondary" (clicked)="composeOpen = false" />
           </ng-container>
-          <ng-container *ngIf="!composeOpen && !s.requested && !s.isReview">
+          <ng-container *ngIf="!composeOpen && !s.requested && !s.isReview && !s.isCovered">
             <fvdr-btn *ngIf="s.isReopened" label="Restore file" (clicked)="restoreFile()" />
-            <fvdr-btn *ngIf="s.isGap || s.isPartial || s.isQuestion" [label]="isBidder ? (s.isQuestion ? 'Send to Q&A' : 'Ask in Q&A') : 'Request from seller'" [variant]="s.isReopened ? 'secondary' : 'primary'" (clicked)="openCompose()" />
-            <fvdr-btn *ngIf="s.isGap" label="Mark N/A" variant="secondary" (clicked)="markNa()" />
+            <fvdr-btn *ngIf="s.isGap || s.isQuestion" [label]="isBidder ? (s.isQuestion ? 'Send to Q&A' : 'Ask in Q&A') : 'Request from seller'" [variant]="s.isReopened ? 'secondary' : 'primary'" (clicked)="openCompose()" />
             <fvdr-btn *ngIf="s.isNa" label="Undo N/A" variant="secondary" (clicked)="undoNa()" />
           </ng-container>
           <span class="df__done" *ngIf="s.requested && !composeOpen">{{ isBidder ? 'Asked in Q&A' : 'Requested from the seller' }}</span>
@@ -761,6 +755,29 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
       </div>
     </fvdr-modal>
 
+    <!-- Link documents to the open request: room files by folder; already linked ones are left out -->
+    <fvdr-modal [visible]="linkOpen" [title]="'Link documents to ' + (sel?.label || '')" size="m"
+      [confirmLabel]="!linkSel.size ? 'Link documents' : linkSel.size === 1 ? 'Link 1 document' : 'Link ' + linkSel.size + ' documents'" [confirmDisabled]="!linkSel.size"
+      cancelLabel="Cancel" cancelVariant="secondary" (confirmed)="confirmLink()" (closed)="linkOpen = false">
+      <div class="lpick">
+        <fvdr-search placeholder="Search documents" [(ngModel)]="linkQuery" />
+        <div class="lpick__list">
+          <div class="lpick__grp" *ngFor="let g of linkGroups; trackBy: byPath">
+            <p class="lpick__path">{{ g.path }}</p>
+            <div class="lpick__row" *ngFor="let f of g.files; trackBy: byName" (click)="toggleLink(f.name, !linkSel.has(f.name))">
+              <fvdr-checkbox [checked]="linkSel.has(f.name)" (checkedChange)="toggleLink(f.name, $event)" (click)="$event.stopPropagation()" />
+              <fvdr-file-icon [type]="f.type" />
+              <span class="lpick__b">
+                <span class="lpick__name">{{ f.label }}</span>
+                <span class="lpick__hint" *ngIf="f.hint">{{ f.hint }}</span>
+              </span>
+            </div>
+          </div>
+          <p class="lpick__empty" *ngIf="!linkGroups.length">No documents match “{{ linkQuery }}”</p>
+        </div>
+      </div>
+    </fvdr-modal>
+
     <fvdr-toast-host />
     <fvdr-vdr-proto-switcher [groups]="protoGroups" (changed)="onProto($event)" [showRestart]="false" />
   </div>
@@ -865,6 +882,17 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
     .merge__p { margin: 0; color: var(--color-text-secondary); }
     .merge__opt { display: flex; flex-direction: column; gap: 2px; }
     .merge__desc { margin: 0 0 0 calc(18px + var(--space-2)); color: var(--color-text-secondary); }
+    .dempty { display: flex; flex-direction: column; gap: var(--space-1); }
+    .dempty__t { margin: 0; font-size: var(--text-label-s-size); line-height: var(--text-label-s-lh); font-weight: var(--text-label-s-weight); }
+    .lpick { display: flex; flex-direction: column; gap: var(--space-4); }
+    .lpick__list { display: flex; flex-direction: column; max-height: 360px; overflow-y: auto; }
+    .lpick__grp { display: flex; flex-direction: column; }
+    .lpick__path { margin: 0; padding: var(--space-3) 0 var(--space-1); color: var(--color-text-secondary); font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); }
+    .lpick__row { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-2) 0; cursor: pointer; }
+    .lpick__b { display: flex; flex-direction: column; min-width: 0; }
+    .lpick__name { font-size: var(--text-body3-size); line-height: var(--text-body3-lh); overflow-wrap: anywhere; }
+    .lpick__hint { color: var(--color-text-secondary); font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); }
+    .lpick__empty { margin: 0; padding: var(--space-4) 0; color: var(--color-text-secondary); }
     .sc--n { background: var(--color-stone-200); color: var(--color-text-secondary); text-align: center; font-weight: var(--text-body3-weight); font-style: normal; }
     .sr--header .sc--n { color: var(--color-text-secondary); }
     .sc--right { text-align: right; }
@@ -1312,9 +1340,59 @@ export class ChecklistMatchingComponent implements OnDestroy {
   private statusFor = '';
   statusOptions: DropdownOption[] = [{ value: 'covered', label: 'Covered' }, { value: 'partial', label: 'Partial' }, { value: 'gap', label: 'Gap' }, { value: 'na', label: 'Not applicable' }];
   saveReview() {
+    if (!this.sel?.isReview) { this.saveStatus(); return; }
     if (this.reviewStatus === 'gap') { this.reject(); return; }
     if (this.reviewStatus === 'na') { this.markNa(); return; }
     this.accept(this.reviewStatus);
+  }
+  /** Covered / Partial: Save applies the Status dropdown. Gap unlinks everything. */
+  private saveStatus() {
+    const id = this.selected!; const cur = this.st[id] || {} as Rec; const prev = this.st;
+    const to = this.reviewStatus;
+    if (to === cur.s) { this.toast('No changes to save'); return; }
+    if (to === 'na') { this.markNa(); return; }
+    const next = to === 'gap' ? { ...cur, s: 'gap' as const, docs: [] } : { ...cur, s: to };
+    this.st = { ...this.st, [id]: this.hist(next, `Status set to ${this.statusOptions.find(o => o.value === to)!.label}`) };
+    this.recompute(); this.toastUndo(`${id} saved as ${to === 'gap' ? 'a gap' : to}.`, prev, id);
+  }
+
+  // ── Link documents (picker dialog) ──
+  linkOpen = false;
+  linkQuery = '';
+  linkSel = new Set<string>();
+  /** Shown in the drawer after the last document was unlinked and the request fell back to Gap. */
+  autoGapFor = '';
+  openLink() { this.linkSel = new Set(); this.linkQuery = ''; this.linkOpen = true; }
+  toggleLink(n: string, on: boolean) { const s = new Set(this.linkSel); on ? s.add(n) : s.delete(n); this.linkSel = s; }
+  /** Room files by folder, minus deleted ones and the ones already linked to this request. */
+  get linkGroups() {
+    const r = this.selected ? this.findReq(this.selected) : undefined; if (!r) return [];
+    const linked = this.linkedOf(r.id);
+    const q = this.linkQuery.trim().toLowerCase();
+    const byId: Record<string, FolderNode> = {}; this.sc.folderTree.forEach(f => byId[f.id] = f);
+    const pathOf = (f: FolderNode): string => f.parent ? pathOf(byId[f.parent]) + ' / ' + f.name : f.name;
+    return this.sc.folderTree.map(f => ({
+      path: pathOf(f),
+      files: [...(f.link ? [f.link] : []), ...f.files]
+        .filter(n => !linked.includes(n) && !this.deletedFiles.includes(n) && (this.returningCands || !this.sc.returning.laterFiles.includes(n)) && (!q || (this.doc(n).label || n).toLowerCase().includes(q)))
+        .map(n => ({ name: n, label: this.doc(n).label || n, type: this.fileType(n), hint: r.near?.name === n ? 'Closest AI match, below the threshold' : '' })),
+    })).filter(g => g.files.length);
+  }
+  /** Documents linked to a request right now (a suggestion counts as linked until it's unlinked). */
+  private linkedOf(id: string): string[] {
+    const r = this.findReq(id)!; const cur = this.st[id] || {} as Rec;
+    if (cur.s === 'gap') return cur.docs || [];
+    return cur.docs || r.docs || (cur.s === 'review' && r.cand ? [r.cand.name] : []);
+  }
+  confirmLink() {
+    const id = this.selected!; const cur = this.st[id] || {} as Rec; const prev = this.st;
+    const add = [...this.linkSel]; const docs = [...this.linkedOf(id), ...add];
+    const wasGap = cur.s === 'gap';
+    this.st = { ...this.st, [id]: this.hist({ ...cur, s: wasGap ? 'partial' : cur.s, docs, rejected: false, reopened: false }, `Linked ${add.join(', ')}`) };
+    this.linkOpen = false; this.autoGapFor = '';
+    if (wasGap) { this.statusFor = ''; }
+    this.recompute();
+    this.toastUndo(`${add.length === 1 ? 'Linked 1 document' : `Linked ${add.length} documents`}${wasGap ? `. ${id} is now partial — set the status and save` : ''}.`, prev, id);
   }
   /** File names that don't fit their cell (checked on hover) — only these get a tooltip. */
   trunc = new Set<string>();
@@ -1422,6 +1500,8 @@ export class ChecklistMatchingComponent implements OnDestroy {
   asString(v: string | string[]): string { return Array.isArray(v) ? v[0] : v; }
   byId = (_: number, x: { id: string }) => x.id;
   byKey = (_: number, x: { key: string }) => x.key;
+  byPath = (_: number, x: { path: string }) => x.path;
+  byName = (_: number, x: { name: string }) => x.name;
   isSpanRow(r: SrcRow) { return r.kind === 'section' || r.kind === 'title' || r.kind === 'meta' || r.kind === 'legend' || r.kind === 'blank'; }
 
   fileType(name: string): FvdrFileType {
@@ -1795,7 +1875,7 @@ export class ChecklistMatchingComponent implements OnDestroy {
   accept(as?: 'covered' | 'partial') {
     const id = this.selected!; const r = this.findReq(id)!; const cur = this.st[id] || {} as Rec;
     const partial = as ? as === 'partial' : r.cand!.verdict === 'Partial';
-    const next = this.hist({ ...cur, s: partial ? 'partial' : 'covered', docs: [r.cand!.name], missing: r.cand!.missing }, partial ? 'Accepted as partial' : 'Accepted');
+    const next = this.hist({ ...cur, s: partial ? 'partial' : 'covered', docs: this.linkedOf(id), missing: r.cand!.missing }, partial ? 'Accepted as partial' : 'Accepted');
     this.advance({ ...this.st, [id]: next }, id, partial ? `${id} accepted as partial. The missing part stays in the gap report.` : `${id} accepted.`);
   }
   reject() {
@@ -1803,12 +1883,14 @@ export class ChecklistMatchingComponent implements OnDestroy {
     this.advance({ ...this.st, [id]: this.hist({ ...cur, s: 'gap', rejected: true, docs: undefined }, 'Rejected the suggestion') }, id, `${id} rejected. It's now a gap.`);
   }
   unlink(n: string) {
-    const id = this.selected!; const r = this.findReq(id)!; const cur = this.st[id] || {} as Rec;
-    const left = (cur.docs || r.docs || []).filter(x => x !== n);
+    const id = this.selected!; const cur = this.st[id] || {} as Rec;
+    const left = this.linkedOf(id).filter(x => x !== n);
     const prev = this.st;
-    this.st = { ...this.st, [id]: this.hist(left.length ? { ...cur, docs: left } : { ...cur, s: 'gap', rejected: true, docs: undefined }, `Unlinked ${n}`) };
+    // Unlinking the last document turns the request into a gap automatically
+    this.st = { ...this.st, [id]: this.hist(left.length ? { ...cur, docs: left } : { ...cur, s: 'gap', rejected: cur.s === 'review', docs: [] }, `Unlinked ${n}`) };
+    this.autoGapFor = left.length ? '' : id;
     this.recompute();
-    this.toastUndo(left.length ? `Unlinked. ${left.length} document still linked.` : `Unlinked. ${id} is now a gap.`, prev, id);
+    this.toastUndo(left.length ? `Unlinked. ${left.length === 1 ? '1 document is' : left.length + ' documents are'} still linked.` : `Unlinked. ${id} is now a gap.`, prev, id);
   }
   linkNear() {
     const id = this.selected!; const r = this.findReq(id)!;
@@ -2013,7 +2095,11 @@ export class ChecklistMatchingComponent implements OnDestroy {
     this.sel = this.selVm(reqs);
     this.cov = this.panel === 'coverage' && isResults ? this.covVm(reqs) : null;
     this.pie = isResults ? this.segsOf(reqs.filter(r => this.isDoc(r) && st[r.id]?.s !== 'na'), PIE_R, 1.4) : [];
-    if (this.sel?.isReview && this.sel.id !== this.statusFor) { this.statusFor = this.sel.id; this.reviewStatus = this.sel.verdict === 'Partial' ? 'partial' : 'covered'; }
+    if ((this.sel?.isReview || this.sel?.isCovered) && this.sel.id + this.sel.pill.label !== this.statusFor) {
+      this.statusFor = this.sel.id + this.sel.pill.label;
+      this.reviewStatus = this.sel.isReview ? (this.sel.verdict === 'Partial' ? 'partial' : 'covered') : (this.sel.isPartial ? 'partial' : 'covered');
+    }
+    if (this.autoGapFor && this.sel?.id !== this.autoGapFor) this.autoGapFor = '';
     this.showPanel = isResults && this.view === 'requests' && this.layout !== 'folders' && ((this.panel === 'item' && !!this.sel) || this.panel === 'diff' || this.panel === 'coverage');
     // With the drawer open, Priority lives in the drawer; the table keeps room for documents
     // Request and Documents share the remaining width equally
@@ -2119,7 +2205,7 @@ export class ChecklistMatchingComponent implements OnDestroy {
     const qi = rids.indexOf(r.id);
     const cd = r.cand ? this.doc(r.cand.name) : { path: '', summary: '' } as DocInfo;
     const nd = r.near ? this.doc(r.near.name) : { path: '' } as DocInfo;
-    const linked = rec.docs || r.docs || [];
+    const linked = this.linkedOf(r.id);
     const sec = this.sc.sections.find(x => x.id === r.sec);
     const ro = this.sc.returning.reopened;
     const statusOut = this.sc.statusMap && (rec.s === 'covered' || rec.s === 'partial') ? this.sc.statusMap[rec.s] : '';
