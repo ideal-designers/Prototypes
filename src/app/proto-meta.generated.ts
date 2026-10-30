@@ -84,7 +84,7 @@ export const PROTO_META: Record<string, ProtoMetaInfo> = {
     "preview": true
   },
   "branding-page": {
-    "updated": "2026-10-30T11:31:27+02:00",
+    "updated": "2026-10-30T11:37:22+02:00",
     "author": "Dmitriy Siniehin",
     "preview": true
   },
