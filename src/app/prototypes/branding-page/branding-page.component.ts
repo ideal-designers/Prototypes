@@ -389,10 +389,11 @@ type AssetKind = 'logo' | 'background';
 <fvdr-toast-host />
   `,
   styles: [`
-    :host { display: block; height: 100vh; }
+    /* dvh = the visible viewport, so on phones the bottom panel stays on screen above the browser toolbar */
+    :host { display: block; height: 100vh; height: 100dvh; }
 
     /* Sidebar always full viewport height; only the main content scrolls */
-    .bp-layout { display: flex; height: 100vh; overflow: hidden; background: var(--color-stone-0); }
+    .bp-layout { display: flex; height: 100vh; height: 100dvh; overflow: hidden; background: var(--color-stone-0); }
     .bp-main { flex: 1; min-width: 0; min-height: 0; display: flex; flex-direction: column; background: var(--color-stone-0); position: relative; }
     .bp-content { flex: 1; min-height: 0; overflow-y: auto; padding: 24px 32px 64px; }
 
@@ -621,7 +622,7 @@ type AssetKind = 'logo' | 'background';
     .m-header__title { font-size: var(--font-size-lg, 16px); font-weight: var(--font-weight-semi, 600); line-height: var(--line-height-lg, 24px); color: var(--color-text-primary); }
     .m-header fvdr-dropdown { display: block; padding: 0 var(--space-1); }
 
-    .m-bar { flex-shrink: 0; display: flex; gap: var(--space-3); padding: var(--space-4); background: var(--color-stone-0); border-top: 1px solid var(--color-divider); }
+    .m-bar { flex-shrink: 0; display: flex; gap: var(--space-3); padding: var(--space-4); padding-bottom: calc(var(--space-4) + env(safe-area-inset-bottom, 0px)); background: var(--color-stone-0); border-top: 1px solid var(--color-divider); }
     .m-bar__fill { flex: 1; min-width: 0; display: flex; }
     :host ::ng-deep .m-bar__fill .btn { width: 100%; }
     .crop-sheet__actions { display: flex; flex-direction: column; gap: var(--space-4); margin-top: var(--space-6); }
