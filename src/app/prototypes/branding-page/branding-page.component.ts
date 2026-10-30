@@ -241,13 +241,12 @@ type AssetKind = 'logo' | 'background';
       </ng-container>
     </div>
 
-    <!-- ── Sticky save bar — pinned to the bottom of the screen ── -->
+    <!-- ── Sticky save bar — pinned to the bottom of the screen (Settings Figma 610:2213): Cancel, then Save ── -->
     <div *ngIf="!isMobile" class="save-bar" [class.save-bar--visible]="dirty">
       <div class="save-bar__actions">
-        <fvdr-btn variant="primary" size="m" label="Save changes" data-track="save" (clicked)="save()"></fvdr-btn>
-        <fvdr-btn variant="secondary" size="m" label="Discard" data-track="discard" (clicked)="discard()"></fvdr-btn>
+        <fvdr-btn variant="secondary" size="m" label="Cancel" data-track="discard" (clicked)="discard()"></fvdr-btn>
+        <fvdr-btn variant="primary" size="m" label="Save" data-track="save" (clicked)="save()"></fvdr-btn>
       </div>
-      <fvdr-inline-message variant="warning" size="m" text="You have unsaved changes" class="save-bar__msg"></fvdr-inline-message>
     </div>
   </div>
 </div>
@@ -395,7 +394,7 @@ type AssetKind = 'logo' | 'background';
     /* Sidebar always full viewport height; only the main content scrolls */
     .bp-layout { display: flex; height: 100vh; height: 100dvh; overflow: hidden; background: var(--color-stone-0); }
     .bp-main { flex: 1; min-width: 0; min-height: 0; display: flex; flex-direction: column; background: var(--color-stone-0); position: relative; }
-    .bp-content { flex: 1; min-height: 0; overflow-y: auto; padding: 24px 32px 64px; }
+    .bp-content { flex: 1; min-height: 0; overflow-y: auto; padding: 24px 32px calc(var(--space-8) * 3); } /* clears the 73px save bar */
 
     /* Two equal columns (50/50): settings form (left) + live preview (right, sticky) */
     .bp-cols { display: flex; align-items: flex-start; gap: 40px; }
@@ -522,12 +521,12 @@ type AssetKind = 'logo' | 'background';
       display: flex; align-items: center; justify-content: flex-start; gap: 16px;
       background: var(--color-stone-0);
       border-top: 1px solid var(--color-divider);
-      padding: 12px 32px;
+      padding: var(--space-4) var(--space-8);
       transform: translateY(100%); pointer-events: none;
       transition: transform .25s ease;
     }
     .save-bar--visible { transform: translateY(0); pointer-events: auto; }
-    .save-bar__actions { display: flex; gap: 8px; }
+    .save-bar__actions { display: flex; gap: var(--space-3); }
 
     /* ── Login preview (Figma 603:14837) ── */
     .login-preview {
