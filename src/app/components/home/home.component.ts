@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { PrototypeService, PrototypeDef } from '../../services/prototype.service';
+import { ProtoToolsService } from '../../services/proto-tools.service';
 import { PROTO_MODULES, ProtoModule } from '../../proto-registry';
 import { DS_COMPONENTS, ToastService } from '../../shared/ds';
 import type { DropdownOption, DroplistItem, SegmentItem } from '../../shared/ds';
@@ -64,7 +65,7 @@ interface ModuleGroup { module: ProtoModule; protos: PrototypeDef[]; }
         <!-- ── List view (grouped by module) ── -->
         <div *ngIf="!loading && viewMode === 'list' && filteredProtos.length" class="list">
           <div class="list__head" aria-hidden="true">
-            <span></span><span>Name</span><span>Route</span><span>Last updated</span><span></span>
+            <span></span><span>Name</span><span>Route</span><span>Last updated</span><span class="list__head-tools">Tools</span>
           </div>
           <section *ngFor="let group of groups; trackBy: byModule" class="group"
                    [class.group--drop]="dropTarget === group.module"
@@ -164,6 +165,10 @@ interface ModuleGroup { module: ProtoModule; protos: PrototypeDef[]; }
       <!-- ── Row actions (shared by list + cards) ── -->
       <ng-template #actions let-proto>
         <span class="actions" (click)="$event.stopPropagation()">
+          <!-- Platform tools (🔥 heatmap + ✏️ comments FABs) inside this prototype -->
+          <fvdr-toggle size="s" [checked]="!tools.isHidden(proto.slug)"
+                       [fvdrTooltip]="tools.isHidden(proto.slug) ? 'Analytics &amp; comment buttons hidden' : 'Analytics &amp; comment buttons shown'"
+                       (checkedChange)="tools.setHidden(proto.slug, !$event, proto.title)" />
           <fvdr-btn *ngIf="!proto.hasComponent" label="Scaffold" variant="ghost" size="s"
                     (clicked)="showScaffold(proto)" />
           <span class="actions__more">
@@ -335,7 +340,7 @@ interface ModuleGroup { module: ProtoModule; protos: PrototypeDef[]; }
     /* ── List ── */
     .list__head, .row {
       display: grid;
-      grid-template-columns: 16px minmax(0, 1fr) minmax(0, 220px) 160px 88px;
+      grid-template-columns: 16px minmax(0, 1fr) minmax(0, 220px) 160px 120px;
       align-items: center;
       gap: var(--space-3);
       padding: 0 var(--space-3) 0 var(--space-1);
@@ -457,6 +462,7 @@ interface ModuleGroup { module: ProtoModule; protos: PrototypeDef[]; }
 
     /* ── Actions ── */
     .actions { display: flex; align-items: center; justify-content: flex-end; gap: var(--space-1); }
+    .list__head-tools { justify-self: end; padding-right: calc(var(--space-8) + var(--space-1)); } /* sits over the toggle, left of the ⋯ button */
     .actions__more { position: relative; }
     .actions__menu { position: absolute; top: calc(100% + var(--space-1)); right: 0; z-index: var(--z-dropdown); }
 
@@ -509,6 +515,7 @@ interface ModuleGroup { module: ProtoModule; protos: PrototypeDef[]; }
 })
 export class HomeComponent implements OnInit {
   readonly svc = inject(PrototypeService);
+  readonly tools = inject(ProtoToolsService);
   readonly router = inject(Router);
   private readonly toast = inject(ToastService);
 
