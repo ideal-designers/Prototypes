@@ -631,7 +631,9 @@ type AssetKind = 'logo' | 'background';
       :host ::ng-deep fvdr-sidebar-nav .burger-btn { display: none !important; }
       .bp-content { padding: var(--space-4) var(--space-4) var(--space-6); }
       .bp-preview-col { display: none; }
-      .upload-tile--wide { width: 100%; height: auto; aspect-ratio: 16 / 9; }
+      /* Background tile: full content width × 200 (Settings Figma 679:39063) */
+      .bp-card__control { align-self: stretch; }
+      .upload-tile--wide { width: 100%; height: 200px; }
       .swatches { gap: var(--space-3); }
       .invite-card { padding-top: 0; }
     }
