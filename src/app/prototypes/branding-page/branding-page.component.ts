@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ViewChild, ElementRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -9,6 +9,9 @@ import {
   HeaderAction,
   TabsComponent,
   TabItem,
+  SidebarNavComponent,
+  DropdownOption,
+  SegmentItem,
 } from '../../shared/ds';
 import { TrackerService } from '../../services/tracker.service';
 
@@ -45,16 +48,27 @@ type AssetKind = 'logo' | 'background';
   <div class="bp-main">
 
     <fvdr-header
+      *ngIf="!isMobile"
       [breadcrumbs]="breadcrumbs"
       [actions]="headerActions"
       [showMenu]="false"
       userName="DT"
     ></fvdr-header>
 
+    <!-- ── Mobile header (Settings Figma 679:39208): burger + section, tabs as a dropdown ── -->
+    <div *ngIf="isMobile" class="m-header">
+      <div class="m-header__top">
+        <fvdr-btn variant="ghost" size="m" iconName="menu" [iconOnly]="true" ariaLabel="Open menu" dataTrack="m-menu" (clicked)="openSidebar()"></fvdr-btn>
+        <span class="m-header__title">Project</span>
+      </div>
+      <fvdr-dropdown size="l" [options]="settingsTabOptions" [value]="activeTab" (valueChange)="onTabSelect($event)"></fvdr-dropdown>
+    </div>
+
     <div class="bp-content">
 
       <!-- Settings sub-tabs (Branding active; others out of prototype scope) -->
       <fvdr-tabs
+        *ngIf="!isMobile"
         class="settings-tabs"
         [tabs]="settingsTabs"
         [activeId]="activeTab"
@@ -218,8 +232,18 @@ type AssetKind = 'logo' | 'background';
 
     </div>
 
+    <!-- ── Mobile bottom panel: Preview is always here; Discard / Save join it once something changed ── -->
+    <div *ngIf="isMobile" class="m-bar">
+      <fvdr-btn *ngIf="!dirty" class="m-bar__fill" variant="secondary" size="l" iconName="eye" label="Preview login page" dataTrack="m-preview" (clicked)="openPreview()"></fvdr-btn>
+      <ng-container *ngIf="dirty">
+        <fvdr-btn variant="secondary" size="l" iconName="eye" [iconOnly]="true" ariaLabel="Preview login page" dataTrack="m-preview" (clicked)="openPreview()"></fvdr-btn>
+        <fvdr-btn class="m-bar__fill" variant="secondary" size="l" label="Discard" data-track="discard" (clicked)="discard()"></fvdr-btn>
+        <fvdr-btn class="m-bar__fill" variant="primary" size="l" label="Save" data-track="save" (clicked)="save()"></fvdr-btn>
+      </ng-container>
+    </div>
+
     <!-- ── Sticky save bar — pinned to the bottom of the screen ── -->
-    <div class="save-bar" [class.save-bar--visible]="dirty">
+    <div *ngIf="!isMobile" class="save-bar" [class.save-bar--visible]="dirty">
       <div class="save-bar__actions">
         <fvdr-btn variant="primary" size="m" label="Save changes" data-track="save" (clicked)="save()"></fvdr-btn>
         <fvdr-btn variant="secondary" size="m" label="Discard" data-track="discard" (clicked)="discard()"></fvdr-btn>
@@ -233,9 +257,9 @@ type AssetKind = 'logo' | 'background';
 <input #logoInput type="file" accept="image/*" hidden (change)="onFileSelected($event, 'logo')" />
 <input #bgInput type="file" accept="image/*" hidden (change)="onFileSelected($event, 'background')" />
 
-<!-- ── Crop modal ──────────────────────────────────────────────────── -->
+<!-- ── Crop: modal on desktop, action sheet on mobile (Settings Figma 679:39511 / 679:39683) ── -->
 <fvdr-modal
-  [visible]="cropOpen"
+  [visible]="cropOpen && !isMobile"
   [title]="cropKind === 'logo' ? 'Crop logo' : 'Crop background'"
   size="m"
   confirmLabel="Apply"
@@ -245,6 +269,22 @@ type AssetKind = 'logo' | 'background';
   (cancelled)="cropOpen = false"
   (closed)="cropOpen = false"
 >
+  <ng-container *ngTemplateOutlet="cropBody"></ng-container>
+</fvdr-modal>
+
+<fvdr-bottom-sheet
+  [visible]="cropOpen && isMobile"
+  [title]="cropKind === 'logo' ? 'Crop logo' : 'Crop background'"
+  (closed)="cropOpen = false"
+>
+  <ng-container *ngTemplateOutlet="cropBody"></ng-container>
+  <div class="crop-sheet__actions">
+    <fvdr-btn class="m-bar__fill" variant="primary" size="l" label="Crop" dataTrack="crop-apply" (clicked)="applyCrop()"></fvdr-btn>
+    <fvdr-btn class="m-bar__fill" variant="secondary" size="l" label="Cancel" dataTrack="crop-cancel" (clicked)="cropOpen = false"></fvdr-btn>
+  </div>
+</fvdr-bottom-sheet>
+
+<ng-template #cropBody>
   <div class="crop">
     <div
       class="crop__frame"
@@ -288,7 +328,96 @@ type AssetKind = 'logo' | 'background';
       <p class="crop__hint">Drag the image to reposition. Slide to zoom.</p>
     </div>
   </div>
-</fvdr-modal>
+</ng-template>
+
+<!-- ── Mobile: full-screen login preview (Settings Figma 679:40513 / 679:40607) ── -->
+<div *ngIf="previewOpen" class="pv" role="dialog" aria-label="Login page preview">
+  <div class="pv__head">
+    <span class="pv__title">Login page preview</span>
+    <fvdr-btn variant="ghost" size="m" iconName="close" [iconOnly]="true" ariaLabel="Close preview" dataTrack="preview-close" (clicked)="previewOpen = false"></fvdr-btn>
+  </div>
+  <div class="pv__switch">
+    <fvdr-segment variant="table" size="mobile" [items]="previewModes" [activeId]="previewMode" (activeIdChange)="previewMode = $any($event)"></fvdr-segment>
+  </div>
+
+  <!-- Mobile sign-in (User account Figma 24778:36577): plain white page, no background image -->
+  <ng-container *ngIf="previewMode === 'mobile'">
+    <div class="pv__note">
+      <fvdr-inline-message variant="info" size="m" text="The background image appears on desktop only. On mobile, the sign-in page is plain white."></fvdr-inline-message>
+    </div>
+    <div class="pv__screen msi">
+      <div class="msi__body">
+        <span class="msi__logo">
+          <img *ngIf="logoUrl" [src]="logoUrl" alt="Logo" />
+          <span *ngIf="!logoUrl" class="logo-ph">Logo</span>
+        </span>
+        <h2 class="msi__title">Sign in to Project Alpha</h2>
+        <div class="msi__field">
+          <span class="msi__label">Email</span>
+          <span class="msi__input"><fvdr-icon name="envelope"></fvdr-icon>name&#64;company.com</span>
+        </div>
+        <span class="msi__btn" [style.background]="themeColor">Continue</span>
+      </div>
+      <div class="msi__footer">
+        <div class="msi__row">
+          <span class="msi__link"><fvdr-icon name="language"></fvdr-icon>English<fvdr-icon name="chevron-down"></fvdr-icon></span>
+          <span class="msi__link"><fvdr-icon name="help"></fvdr-icon>Help</span>
+        </div>
+        <div class="msi__row msi__row--small"><span>Privacy Policy</span><span>Terms of Use</span></div>
+        <span class="msi__small">© 2026 iDeals. All rights reserved.</span>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- Desktop sign-in (User account Figma 24778:6461), scaled down to the phone width -->
+  <div *ngIf="previewMode === 'desktop'" class="pv__screen pv__screen--desktop">
+    <div class="dsk-frame" [style.height.px]="dskHeight * dskScale">
+      <div
+        class="dsk"
+        [class.dsk--default]="!backgroundUrl"
+        [style.transform]="'scale(' + dskScale + ')'"
+        [style.background-image]="backgroundUrl ? 'url(' + backgroundUrl + ')' : null"
+      >
+        <ng-container *ngIf="!backgroundUrl">
+          <span class="dsk__ring dsk__ring--1"></span>
+          <span class="dsk__ring dsk__ring--2"></span>
+          <span class="dsk__ring dsk__ring--3"></span>
+        </ng-container>
+        <svg class="dsk__wordmark" viewBox="0 0 86 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="ideals.">
+          <path d="M0.380615 3.0228C0.380615 1.67609 1.47081 0.650024 2.84959 0.650024C4.1963 0.650024 5.25444 1.67609 5.25444 3.0228C5.25444 4.40158 4.1963 5.39558 2.84959 5.39558C1.43875 5.39558 0.380615 4.40158 0.380615 3.0228ZM0.861584 22.967V7.25533H4.67727V22.967H0.861584Z" fill="currentColor"/>
+          <path d="M23.2427 1.00281V22.9991H19.5232V20.947C18.3689 22.3258 16.7336 23.3839 14.457 23.3839C9.93588 23.3839 6.56909 19.8247 6.56909 15.1433C6.56909 10.526 9.96794 6.93476 14.4249 6.93476C16.6694 6.93476 18.2727 7.96083 19.427 9.30754V1.00281H23.2427ZM19.6514 15.1112C19.6514 12.514 17.8238 10.3336 15.0021 10.3336C12.2125 10.3336 10.3848 12.514 10.3848 15.1112C10.3848 17.7726 12.2125 19.9209 15.0021 19.9209C17.7917 19.9209 19.6514 17.7726 19.6514 15.1112Z" fill="currentColor"/>
+          <path d="M40.9744 16.4579H28.8861C29.367 18.478 30.842 20.0812 33.7278 20.0812C35.5234 20.0812 37.5756 19.4078 38.9544 18.4459L40.4614 21.1393C38.9864 22.2295 36.4533 23.3197 33.5675 23.3197C27.6035 23.3197 24.9742 19.2796 24.9742 15.1112C24.9742 10.4298 28.2768 6.90265 33.2148 6.90265C37.6718 6.90265 41.0706 9.82053 41.0706 14.7905C41.1027 15.4318 41.0386 15.9449 40.9744 16.4579ZM28.8861 13.6041H37.3511C37.0305 11.3917 35.3952 10.045 33.2148 10.045C31.0344 10.045 29.3991 11.4238 28.8861 13.6041Z" fill="currentColor"/>
+          <path d="M59.1871 7.28742V22.967H55.5638V21.0431C54.3774 22.3899 52.6779 23.3518 50.4014 23.3518C45.8161 23.3518 42.5455 19.6964 42.5455 15.0471C42.5455 10.3336 45.8803 6.90265 50.4014 6.90265C52.6779 6.90265 54.3453 7.92872 55.5638 9.27543V7.28742H59.1871ZM55.66 15.1112C55.66 12.514 53.7681 10.3336 50.9785 10.3336C48.1889 10.3336 46.3292 12.514 46.3292 15.1112C46.3292 17.7405 48.1889 19.9209 50.9785 19.9209C53.7361 19.9209 55.66 17.7405 55.66 15.1112Z" fill="currentColor"/>
+          <path d="M61.5919 22.9671V1.00281H65.3755V22.9991H61.5919V22.9671Z" fill="currentColor"/>
+          <path d="M66.9468 20.2735L69.0951 17.9649C70.1853 19.3757 71.8206 20.1773 73.3597 20.1773C74.7385 20.1773 75.7004 19.4399 75.7004 18.5421C75.7004 17.8687 75.2515 17.4198 74.514 17.035C73.6162 16.5861 71.5641 15.9128 70.5701 15.3997C68.7745 14.534 67.9087 13.1231 67.9087 11.3916C67.9087 8.69822 70.1532 6.74228 73.6803 6.74228C75.7004 6.74228 77.6884 7.4477 79.1313 9.05093L77.1433 11.4558C76.0211 10.3015 74.6743 9.82048 73.5841 9.82048C72.3657 9.82048 71.6603 10.4938 71.6603 11.2955C71.6603 11.8406 72.013 12.4498 73.0391 12.8346C74.0651 13.2514 75.6042 13.7644 76.8547 14.4057C78.6183 15.3356 79.5482 16.554 79.5482 18.4138C79.5482 21.2034 77.1433 23.3838 73.3918 23.3838C70.8587 23.3838 68.4538 22.3577 66.9468 20.2735Z" fill="currentColor"/>
+          <path d="M80.51 21.1714C80.51 19.9209 81.5361 18.959 82.8187 18.959C84.0371 18.959 85.0311 19.9209 85.0311 21.1714C85.0311 22.4861 84.0371 23.416 82.8187 23.416C81.5361 23.448 80.51 22.4861 80.51 21.1714Z" fill="currentColor"/>
+        </svg>
+        <div class="dsk__card">
+          <span class="dsk__logo">
+            <img *ngIf="logoUrl" [src]="logoUrl" alt="Logo" />
+            <span *ngIf="!logoUrl" class="logo-ph">Logo</span>
+          </span>
+          <h2 class="dsk__title">Sign in to Project Alpha</h2>
+          <div class="msi__field">
+            <span class="msi__label">Email</span>
+            <span class="msi__input dsk__input"><fvdr-icon name="envelope"></fvdr-icon>name&#64;company.com</span>
+          </div>
+          <span class="msi__btn dsk__btn" [style.background]="themeColor">Continue</span>
+        </div>
+        <div class="dsk__footer">
+          <span class="dsk__links">
+            <span class="msi__link"><fvdr-icon name="help"></fvdr-icon>Help</span>
+            <span class="msi__link"><fvdr-icon name="language"></fvdr-icon>English<fvdr-icon name="chevron-down"></fvdr-icon></span>
+          </span>
+          <span class="dsk__links dsk__links--small">
+            <span>© 2026 iDeals. All rights reserved.</span><span>Privacy Policy</span><span>Terms of Use</span>
+          </span>
+        </div>
+      </div>
+    </div>
+    <p class="pv__caption">How participants see the sign-in page on a computer</p>
+  </div>
+</div>
 
 <!-- Toast host -->
 <fvdr-toast-host />
@@ -519,6 +648,91 @@ type AssetKind = 'logo' | 'background';
       .bp-content { padding: 18px 16px 48px; }
       .save-bar { padding: 12px 16px; }
     }
+
+    /* ══ Mobile (< 768px) — Settings Figma "Mobile" row ══════════════════════ */
+    .m-header { flex-shrink: 0; display: flex; flex-direction: column; gap: var(--space-4); padding: var(--space-5) var(--space-3) var(--space-4); border-bottom: 1px solid var(--color-divider); }
+    .m-header__top { display: flex; align-items: center; gap: var(--space-1); }
+    .m-header__title { font-size: var(--font-size-lg, 16px); font-weight: var(--font-weight-semi, 600); line-height: var(--line-height-lg, 24px); color: var(--color-text-primary); }
+    .m-header fvdr-dropdown { display: block; padding: 0 var(--space-1); }
+
+    .m-bar { flex-shrink: 0; display: flex; gap: var(--space-3); padding: var(--space-4); background: var(--color-stone-0); border-top: 1px solid var(--color-divider); }
+    .m-bar__fill { flex: 1; min-width: 0; display: flex; }
+    :host ::ng-deep .m-bar__fill .btn { width: 100%; }
+    .crop-sheet__actions { display: flex; flex-direction: column; gap: var(--space-4); margin-top: var(--space-6); }
+
+    @media (max-width: 767px) {
+      /* The page draws its own burger in the mobile header */
+      :host ::ng-deep fvdr-sidebar-nav .burger-btn { display: none !important; }
+      .bp-content { padding: var(--space-4) var(--space-4) var(--space-6); }
+      .bp-preview-col { display: none; }
+      .upload-tile--wide { width: 100%; height: auto; aspect-ratio: 16 / 9; }
+      .swatches { gap: var(--space-3); }
+      .invite-card { padding-top: 0; }
+    }
+    /* No hover on touch: edit / delete sit in the corner of the image, no dim */
+    @media (max-width: 767px), (hover: none) {
+      .upload-tile__overlay { opacity: 1; align-items: flex-end; justify-content: flex-end; gap: var(--space-2); padding: var(--space-2); }
+      .upload-tile__overlay::before { display: none; }
+      :host ::ng-deep .upload-tile__overlay .btn { background: var(--color-stone-0); }
+    }
+
+    /* ── Full-screen login preview ── */
+    .pv { position: fixed; inset: 0; z-index: 900; display: flex; flex-direction: column; background: var(--color-stone-0); animation: pv-in .2s ease; }
+    @keyframes pv-in { from { transform: translateY(16px); opacity: 0; } to { transform: none; opacity: 1; } }
+    .pv__head { flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); padding: var(--space-5) var(--space-1) var(--space-5) var(--space-4); }
+    .pv__title { font-size: var(--font-size-lg, 16px); font-weight: var(--font-weight-semi, 600); line-height: var(--line-height-lg, 24px); color: var(--color-text-primary); }
+    .pv__switch { flex-shrink: 0; padding: 0 var(--space-4) var(--space-4); }
+    .pv__switch fvdr-segment { display: block; }
+    :host ::ng-deep .pv__switch .seg-table { display: flex; width: 100%; }
+    :host ::ng-deep .pv__switch .seg-table__item { flex: 1; justify-content: center; }
+    .pv__note { flex-shrink: 0; padding: 0 var(--space-4) var(--space-4); }
+    .pv__screen { flex: 1; min-height: 0; overflow-y: auto; border-top: 1px solid var(--color-divider); }
+    .pv__screen--desktop { display: flex; flex-direction: column; justify-content: center; gap: var(--space-3); padding: var(--space-4); background: var(--color-stone-200); }
+    .pv__caption { margin: 0; text-align: center; font-size: var(--font-size-base, 14px); line-height: var(--line-height-base, 20px); color: var(--color-text-secondary); }
+
+    .logo-ph { width: 100%; height: 100%; border-radius: var(--radius-sm); background: var(--color-text-placeholder); color: var(--color-stone-0); display: grid; place-items: center; font-size: var(--font-size-base, 14px); }
+
+    /* Mobile sign-in (User account Figma 24778:36577) */
+    .msi { display: flex; flex-direction: column; justify-content: space-between; }
+    .msi__body { display: flex; flex-direction: column; align-items: stretch; gap: var(--space-6); padding: var(--space-6); }
+    .msi__logo { width: 48px; height: 48px; display: block; }
+    .msi__logo img { width: 100%; height: 100%; object-fit: contain; border-radius: 50%; }
+    .msi__title { margin: 0; font-size: var(--font-size-4xl, 24px); font-weight: var(--font-weight-bold, 700); line-height: 32px; color: var(--color-text-primary); }
+    .msi__field { display: flex; flex-direction: column; gap: var(--space-1); margin-top: var(--space-2); }
+    .msi__label { font-size: var(--font-size-md, 15px); font-weight: var(--font-weight-semi, 600); line-height: var(--line-height-lg, 24px); color: var(--color-text-primary); }
+    .msi__input { display: flex; align-items: center; gap: var(--space-2); height: 48px; padding: 0 var(--space-4); border: 1px solid var(--color-stone-400); border-radius: var(--radius-sm); font-size: var(--font-size-lg, 16px); color: var(--color-text-placeholder); }
+    .msi__input fvdr-icon { font-size: var(--font-size-lg, 16px); color: var(--color-text-secondary); }
+    .msi__btn { display: grid; place-items: center; height: 48px; margin-top: var(--space-2); border-radius: var(--radius-sm); color: var(--color-stone-0); font-size: var(--font-size-lg, 16px); }
+    .msi__footer { display: flex; flex-direction: column; align-items: center; gap: var(--space-6); padding: var(--space-6) var(--space-6) var(--space-8); background: var(--color-signin-bg); color: var(--color-stone-0); }
+    .msi__row { display: flex; align-items: center; gap: var(--space-2); }
+    .msi__row--small { gap: var(--space-8); font-size: var(--font-size-xs, 12px); line-height: 16px; }
+    .msi__link { display: inline-flex; align-items: center; gap: var(--space-2); padding: var(--space-2) var(--space-3); font-size: var(--font-size-base, 14px); line-height: var(--line-height-base, 20px); }
+    .msi__small { font-size: var(--font-size-xs, 12px); line-height: 16px; }
+
+    /* Desktop sign-in (User account Figma 24778:6461) — laid out at 880×640, scaled to fit */
+    .dsk-frame { position: relative; width: 100%; overflow: hidden; border-radius: var(--radius-md); }
+    .dsk {
+      position: absolute; left: 0; top: 0; width: 880px; height: 640px; transform-origin: 0 0; overflow: hidden;
+      background-color: var(--color-signin-bg); background-size: cover; background-position: center; color: var(--color-stone-0);
+    }
+    .dsk__ring { position: absolute; border-radius: 50%; border: 1.5px solid var(--color-signin-ring); opacity: .7; }
+    .dsk__ring--1 { width: 420px; height: 420px; left: -120px; top: -260px; }
+    .dsk__ring--2 { width: 900px; height: 900px; left: -160px; top: -420px; }
+    .dsk__ring--3 { width: 1300px; height: 1300px; left: -300px; top: -700px; }
+    .dsk__wordmark { position: absolute; left: 50%; top: 28px; width: 86px; height: 24px; transform: translateX(-50%); color: var(--color-stone-0); }
+    .dsk__card {
+      position: absolute; left: 50%; top: 50%; transform: translate(-50%, -54%); width: 384px; box-sizing: border-box;
+      display: flex; flex-direction: column; gap: var(--space-5); padding: 28px var(--space-8);
+      background: var(--color-stone-0); border-radius: var(--radius-sm); color: var(--color-text-primary);
+    }
+    .dsk__logo { width: 40px; height: 40px; display: block; }
+    .dsk__logo img { width: 100%; height: 100%; object-fit: contain; border-radius: 50%; }
+    .dsk__title { margin: 0; font-size: var(--font-size-2xl, 20px); font-weight: var(--font-weight-bold, 700); line-height: 28px; }
+    .dsk__input { height: 40px; font-size: var(--font-size-base, 14px); }
+    .dsk__btn { height: 40px; margin-top: 0; font-size: var(--font-size-base, 14px); }
+    .dsk__footer { position: absolute; left: var(--space-6); right: var(--space-6); bottom: var(--space-5); display: flex; align-items: center; justify-content: space-between; }
+    .dsk__links { display: flex; align-items: center; gap: var(--space-2); }
+    .dsk__links--small { gap: var(--space-6); font-size: var(--font-size-xs, 12px); }
   `],
 })
 export class BrandingPageComponent implements OnInit, OnDestroy {
@@ -528,9 +742,41 @@ export class BrandingPageComponent implements OnInit, OnDestroy {
   @ViewChild('logoInput') logoInput!: ElementRef<HTMLInputElement>;
   @ViewChild('bgInput') bgInput!: ElementRef<HTMLInputElement>;
   @ViewChild(TabsComponent) private tabsRef?: TabsComponent;
+  @ViewChild(SidebarNavComponent) private sidebarRef?: SidebarNavComponent;
 
   sidebarCollapsed = false;
   activeTab = 'branding';
+
+  // Phone layout (< 768px): mobile header, bottom panel, crop as an action sheet, full-screen preview
+  private static readonly BP_MOBILE = 768;
+  viewportW = typeof window !== 'undefined' ? window.innerWidth : 1440;
+  get isMobile(): boolean { return this.viewportW < BrandingPageComponent.BP_MOBILE; }
+
+  previewOpen = false;
+  previewMode: 'mobile' | 'desktop' = 'mobile';
+  previewModes: SegmentItem[] = [
+    { id: 'desktop', label: 'Desktop' },
+    { id: 'mobile',  label: 'Mobile' },
+  ];
+  /** Desktop sign-in mock is laid out at 880×640 and scaled to the phone width. */
+  readonly dskHeight = 640;
+  get dskScale(): number { return Math.max(0.2, (this.viewportW - 32) / 880); }
+
+  @HostListener('window:resize')
+  onResize(): void {
+    this.viewportW = window.innerWidth;
+    if (!this.isMobile) this.previewOpen = false;
+    if (this.cropOpen) this.clampCropOffset();
+    this.syncFabLift();
+  }
+
+  /** Lift the platform FABs (annotate / heatmap) above the mobile bottom panel. */
+  private syncFabLift(): void {
+    if (typeof document === 'undefined') return;
+    const root = document.documentElement.style;
+    if (this.isMobile) root.setProperty('--fab-lift', '80px');
+    else root.removeProperty('--fab-lift');
+  }
 
   // Working (edited) state
   logoUrl: string | null = null;
@@ -577,6 +823,7 @@ export class BrandingPageComponent implements OnInit, OnDestroy {
     { id: 'branding',  label: 'Branding' },
     { id: 'notifications', label: 'Notifications' },
   ];
+  settingsTabOptions: DropdownOption[] = this.settingsTabs.map(t => ({ value: t.id, label: t.label }));
 
   navItems: SidebarNavItem[] = [
     { id: 'overview',     icon: 'nav-overview',     iconActive: 'nav-overview-active',     label: 'Overview',     active: false },
@@ -634,10 +881,12 @@ export class BrandingPageComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.tracker.trackPageView('branding-page');
+    this.syncFabLift();
   }
 
   ngOnDestroy(): void {
     this.tracker.destroyListeners();
+    document.documentElement.style.removeProperty('--fab-lift');
   }
 
   // ── Sidebar / tabs ──────────────────────────────────────────────
@@ -652,6 +901,26 @@ export class BrandingPageComponent implements OnInit, OnDestroy {
     this.toast.show({ variant: 'info', message: `Only “Branding” is implemented in this prototype.`, title: label, duration: 2400 });
     // Keep Branding visually active — fvdr-tabs self-mutates its activeId on click, so reset it.
     if (this.tabsRef) this.tabsRef.activeId = 'branding';
+  }
+
+  /** Mobile tab dropdown — same behaviour as the tabs, then snap back to Branding. */
+  onTabSelect(v: string | string[]): void {
+    const id = Array.isArray(v) ? v[0] : v;
+    if (!id || id === 'branding') return;
+    this.activeTab = id;
+    this.onTabClick(id);
+    setTimeout(() => (this.activeTab = 'branding'));
+  }
+
+  openSidebar(): void {
+    if (!this.sidebarRef) return;
+    this.sidebarRef.mobileOpen = true;
+    this.sidebarRef.cdr.markForCheck();
+  }
+
+  openPreview(): void {
+    this.previewMode = 'mobile';
+    this.previewOpen = true;
   }
 
   // ── File handling ───────────────────────────────────────────────
@@ -689,9 +958,12 @@ export class BrandingPageComponent implements OnInit, OnDestroy {
   /** Zoom slider fill percentage (cropZoom 1→3 maps to 0→100%). */
   get rangePct(): string { return `${((this.cropZoom - 1) / 2) * 100}%`; }
 
-  /** Crop frame dimensions per asset (Figma: logo 300×300, background 390×234). */
-  get cropFrameW(): number { return this.cropKind === 'logo' ? 300 : 390; }
-  get cropFrameH(): number { return this.cropKind === 'logo' ? 300 : 234; }
+  /** Crop frame dimensions per asset (Figma: logo 300×300, background 390×234; on a phone they shrink to the sheet width). */
+  get cropFrameW(): number {
+    const base = this.cropKind === 'logo' ? 300 : 390;
+    return this.isMobile ? Math.min(base, this.viewportW - 32) : base;
+  }
+  get cropFrameH(): number { return this.cropKind === 'logo' ? this.cropFrameW : Math.round(this.cropFrameW * 0.6); }
   /** Output/frame aspect ratio (derived from the frame so the crop is not distorted). */
   private get cropAspect(): number { return this.cropFrameW / this.cropFrameH; }
 

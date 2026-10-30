@@ -257,7 +257,7 @@ function kindTitle(kind: AnnotationKind): string {
   styles: [`
     .annotate-fab {
       position: fixed;
-      bottom: 80px;
+      bottom: calc(80px + var(--fab-lift, 0px));
       right: 20px;
       width: 48px;
       height: 48px;
@@ -289,7 +289,7 @@ function kindTitle(kind: AnnotationKind): string {
 
     .annotate-panel {
       position: fixed;
-      bottom: 136px;
+      bottom: calc(136px + var(--fab-lift, 0px));
       right: 20px;
       width: 300px;
       max-height: 60vh;

@@ -58,7 +58,7 @@ interface ClickDot {
   styles: [`
     .heatmap-fab {
       position: fixed;
-      bottom: 20px;
+      bottom: calc(20px + var(--fab-lift, 0px)); /* --fab-lift: pages with a sticky bottom bar lift the FABs above it */
       right: 20px;
       width: 48px;
       height: 48px;

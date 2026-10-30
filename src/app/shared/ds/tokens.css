@@ -777,6 +777,14 @@
 :root { --shadow-viewer: 0 0 4px rgba(52, 58, 64, 0.08); }
 :root { --shadow-ai-field: 0 0.5px 1.75px rgba(0, 0, 0, 0.08); }
 
+/* ── Sign-in page (User account Figma 24778:6461 / 24778:36577) ───────────────
+   The default iDeals sign-in backdrop and its rings, plus the mobile footer band.
+   Brand surface — identical in dark, so no .dark-theme override. */
+:root {
+  --color-signin-bg:   #022E34;
+  --color-signin-ring: #1C8269;
+}
+
 /* ── AI mark motion (ai-motion / ai-loader-lab prototypes) ────────────────────
    The ideals. sphere (sidebar logo, DS Figma 15032:7628): a dark-green disc with
    three lighter ellipses nested against its left edge. Brand ink stays the same
