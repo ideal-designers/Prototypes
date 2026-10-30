@@ -14,7 +14,7 @@ import type { FvdrIconName } from '../../shared/ds/icons/icons';
 type Side = 'question' | 'answer';
 type Port = 'l' | 'r' | 't' | 'b';
 type EdgeKind = 'main' | 'return' | 'reject';
-type TemplateId = 'basic' | 'advanced' | 'advisory' | 'multilevel' | 'coordinator-final';
+type TemplateId = 'basic' | 'experts' | 'advanced' | 'scratch';
 
 interface Person { id: string; name: string; initials: string; email: string; group: string; tone: number; /** invited by email, not a project participant yet */ external?: boolean; }
 interface Membership { personId: string; categories: string[]; /** question side: which question team this person acts for */ teamId?: string; }
@@ -166,14 +166,49 @@ const TONES = [
 
     <!-- ── Stepper ── -->
     <div class="stepper">
-      <button class="step" [class.step--active]="step === 1" [class.step--done]="step === 2" (click)="step = 1">
-        <span class="step-num"><fvdr-icon *ngIf="step === 2" name="check"></fvdr-icon><ng-container *ngIf="step === 1">1</ng-container></span>
+      <button class="step" [class.step--active]="step === 0" [class.step--done]="step > 0" (click)="backToTemplates()">
+        <span class="step-num"><fvdr-icon *ngIf="step > 0" name="check"></fvdr-icon><ng-container *ngIf="step === 0">1</ng-container></span>
+        Template
+      </button>
+      <span class="step-sep"></span>
+      <button class="step" [class.step--active]="step === 1" [class.step--done]="step === 2" [disabled]="step === 0" (click)="step = 1">
+        <span class="step-num"><fvdr-icon *ngIf="step === 2" name="check"></fvdr-icon><ng-container *ngIf="step < 2">2</ng-container></span>
         Workflow &amp; people
       </button>
       <span class="step-sep"></span>
-      <button class="step" [class.step--active]="step === 2" [disabled]="errorNodes.length > 0" (click)="goNext()">
-        <span class="step-num">2</span> Preferences
+      <button class="step" [class.step--active]="step === 2" [disabled]="step === 0 || errorNodes.length > 0" (click)="goNext()">
+        <span class="step-num">3</span> Preferences
       </button>
+    </div>
+
+    <!-- ══════════════ STEP 0 — Template ══════════════ -->
+    <div class="tpl-pick" *ngIf="step === 0">
+      <div class="tpl-pick-inner">
+        <h2 class="tpl-title">How do you want to set up Q&amp;A?</h2>
+        <p class="tpl-sub">Pick a starting point. You can add, remove and rename roles later.</p>
+        <div class="tpl-grid" role="radiogroup" aria-label="Q&A template">
+          <button class="tpl-card" *ngFor="let t of templateCards" role="radio"
+                  [attr.aria-checked]="pickedTemplate === t.id" [class.tpl-card--on]="pickedTemplate === t.id"
+                  (click)="pickedTemplate = t.id" (dblclick)="pickedTemplate = t.id; confirmTemplate()">
+            <span class="tpl-card-head">
+              <span class="tpl-card-name">{{ t.name }}</span>
+              <span class="tpl-card-count">{{ t.roles.length }} roles</span>
+              <span class="tpl-radio" [class.tpl-radio--on]="pickedTemplate === t.id"></span>
+            </span>
+            <span class="tpl-card-desc">{{ t.description }}</span>
+            <span class="tpl-flow">
+              <ng-container *ngFor="let r of t.roles; let last = last">
+                <span class="tpl-role" [class.tpl-role--q]="roleDef(r)?.side === 'question'">
+                  <fvdr-icon [name]="roleDef(r)!.icon"></fvdr-icon>{{ roleDef(r)!.name }}
+                </span>
+                <fvdr-icon *ngIf="!last && t.chain" name="chevron-right" class="tpl-arrow"></fvdr-icon>
+              </ng-container>
+            </span>
+            <span class="tpl-card-note" *ngIf="t.note">{{ t.note }}</span>
+          </button>
+        </div>
+        <p class="tpl-replace" *ngIf="templateConfirmed"><fvdr-icon name="info"></fvdr-icon>Choosing a template replaces your current workflow and people.</p>
+      </div>
     </div>
 
     <!-- ══════════════ STEP 1 — Canvas ══════════════ -->
@@ -191,18 +226,6 @@ const TONES = [
 
         <!-- top toolbar -->
         <div class="canvas-top" (mousedown)="$event.stopPropagation()">
-          <div class="tpl">
-            <span class="tpl-label">Start from</span>
-            <div class="tpl-segment">
-              <fvdr-segment variant="table" size="sm" [items]="templateItems" [activeId]="templateId" (activeIdChange)="loadTemplate($any($event))"></fvdr-segment>
-            </div>
-          </div>
-          <div class="tpl" *ngIf="templateId === 'coordinator-final'">
-            <span class="tpl-label">Example</span>
-            <div class="tpl-segment">
-              <fvdr-segment variant="table" size="sm" [items]="leadCaseItems" [activeId]="leadCase" (activeIdChange)="setLeadCase($any($event))"></fvdr-segment>
-            </div>
-          </div>
           <!-- shown only when something needs attention -->
           <button class="health health--error" *ngIf="errorNodes.length" (click)="focusFirstError()">
             <fvdr-icon name="warning"></fvdr-icon>
@@ -645,7 +668,9 @@ const TONES = [
 
     <!-- footer -->
     <div class="footer">
-      <fvdr-btn *ngIf="step === 1" label="Cancel" variant="secondary"></fvdr-btn>
+      <fvdr-btn *ngIf="step === 0" label="Cancel" variant="secondary"></fvdr-btn>
+      <fvdr-btn *ngIf="step === 0" label="Continue" (clicked)="confirmTemplate()"></fvdr-btn>
+      <fvdr-btn *ngIf="step === 1" label="Back" variant="secondary" (clicked)="backToTemplates()"></fvdr-btn>
       <fvdr-btn *ngIf="step === 2" label="Back" variant="secondary" (clicked)="step = 1"></fvdr-btn>
       <fvdr-btn *ngIf="step === 1" label="Next" [disabled]="errorNodes.length > 0" (clicked)="goNext()"></fvdr-btn>
       <fvdr-btn *ngIf="step === 2" label="Activate Q&A" (clicked)="activate()"></fvdr-btn>
@@ -843,6 +868,27 @@ const TONES = [
     button { font-family: inherit; }
 
     /* stepper */
+    .tpl-pick { flex: 1; overflow-y: auto; padding: var(--space-8) var(--space-6); background: var(--color-stone-100); }
+    .tpl-pick-inner { max-width: 880px; margin: 0 auto; display: flex; flex-direction: column; gap: var(--space-2); }
+    .tpl-title { margin: 0; font-size: var(--text-h3-size); font-weight: var(--font-weight-semi); }
+    .tpl-sub { margin: 0 0 var(--space-4); color: var(--color-text-secondary); }
+    .tpl-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: var(--space-4); }
+    .tpl-card { display: flex; flex-direction: column; align-items: stretch; gap: var(--space-3); text-align: left; padding: var(--space-5); border: 1px solid var(--color-divider); border-radius: var(--radius-lg); background: var(--color-stone-0); cursor: pointer; font: inherit; color: inherit; transition: border-color 0.15s, box-shadow 0.15s; }
+    .tpl-card:hover { border-color: var(--color-stone-500); }
+    .tpl-card:focus-visible { outline: 2px solid var(--color-primary-500); outline-offset: 2px; }
+    .tpl-card--on { border-color: var(--color-primary-500); box-shadow: 0 0 0 1px var(--color-primary-500); }
+    .tpl-card-head { display: flex; align-items: center; gap: var(--space-2); }
+    .tpl-card-name { font-size: var(--font-size-lg); font-weight: var(--font-weight-semi); }
+    .tpl-card-count { font-size: var(--text-caption1-size); color: var(--color-text-secondary); background: var(--color-stone-300); border-radius: var(--radius-lg); padding: 0 var(--space-2); }
+    .tpl-radio { margin-left: auto; width: var(--space-4); height: var(--space-4); border-radius: 50%; border: 1px solid var(--color-stone-500); flex: none; }
+    .tpl-radio--on { border: 5px solid var(--color-primary-500); }
+    .tpl-card-desc { color: var(--color-text-secondary); }
+    .tpl-flow { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1) var(--space-2); }
+    .tpl-role { display: inline-flex; align-items: center; gap: var(--space-1); padding: 2px var(--space-2); border-radius: var(--radius-sm); background: var(--color-primary-50); color: var(--color-primary-700); font-size: var(--text-caption1-size); }
+    .tpl-role--q { background: var(--color-info-50); color: var(--color-info-800); }
+    .tpl-arrow { color: var(--color-stone-600); font-size: var(--space-3); }
+    .tpl-card-note { font-size: var(--text-caption1-size); color: var(--color-text-secondary); }
+    .tpl-replace { display: flex; align-items: center; gap: var(--space-2); margin: var(--space-4) 0 0; font-size: var(--text-caption1-size); color: var(--color-text-secondary); }
     .stepper { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-4) var(--space-6); border-bottom: 1px solid var(--color-divider); flex-shrink: 0; }
     .step { display: flex; align-items: center; gap: var(--space-2); border: 0; background: none; padding: 0; cursor: pointer; color: var(--color-text-secondary); font-size: var(--font-size-base); }
     .step:disabled { cursor: not-allowed; }
@@ -998,8 +1044,6 @@ const TONES = [
     .canvas-top { position: absolute; left: var(--space-4); right: var(--space-4); top: var(--space-4); display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; z-index: 10; pointer-events: none; }
     .canvas-top > * { pointer-events: auto; }
     .canvas-top > .health { margin-left: auto; }
-    .tpl { display: flex; white-space: nowrap; align-items: center; gap: var(--space-2); background: var(--color-stone-0); border-radius: var(--radius-md); padding: var(--space-2) var(--space-2) var(--space-2) var(--space-3); box-shadow: var(--shadow-card); }
-    .tpl-label { font-size: var(--text-caption1-size); color: var(--color-text-secondary); }
     .health { display: inline-flex; white-space: nowrap; flex-shrink: 0; align-items: center; gap: var(--space-2); border: 1px solid var(--color-success-border); background: var(--color-success-bg); color: var(--color-success-text); border-radius: var(--radius-full); padding: var(--space-1) var(--space-3); font-size: var(--text-caption1-size); cursor: pointer; }
     .health--error { border-color: var(--color-error-border); background: var(--color-error-bg); color: var(--color-error-text); }
     .canvas-controls { position: absolute; left: var(--space-4); bottom: var(--space-4); display: flex; align-items: center; gap: var(--space-1); z-index: 10; }
@@ -1231,26 +1275,27 @@ export class QnaSetupCanvasComponent {
     { id: 'help', icon: 'help' },
   ];
 
-  step: 1 | 2 = 1;
+  step: 0 | 1 | 2 = 0;
 
-  templateItems: SegmentItem[] = [
-    { id: 'basic', label: 'Basic' },
-    { id: 'advanced', label: 'Advanced' },
-    { id: 'advisory', label: 'Advisory' },
-    { id: 'multilevel', label: 'Multi-level approval' },
-    { id: 'coordinator-final', label: 'Lead sign-off' },
+  templateCards: { id: TemplateId; name: string; description: string; roles: string[]; chain: boolean; note?: string }[] = [
+    { id: 'basic', name: 'Basic', description: 'Coordinators answer questions themselves.', roles: ['submitter', 'coordinator'], chain: true },
+    { id: 'experts', name: 'With experts', description: 'Coordinators route questions to experts who draft answers.', roles: ['submitter', 'coordinator', 'expert'], chain: true },
+    { id: 'advanced', name: 'Advanced', description: 'Drafting, expert answers and approval before release, plus read-only viewers.', roles: ['drafter', 'submitter', 'coordinator', 'expert', 'approver', 'viewer'], chain: false },
+    { id: 'scratch', name: 'Start from scratch', description: 'An empty flow with the two required roles. Add roles and people yourself.', roles: ['submitter', 'coordinator'], chain: true, note: 'No people added' },
   ];
-  /** Lead sign-off: same flow, two staffing examples */
-  leadCase: 'advisory' | 'cfo' = 'advisory';
-  leadCaseItems: SegmentItem[] = [
-    { id: 'advisory', label: 'Advisory leads' },
-    { id: 'cfo', label: 'CFO leads' },
-  ];
-  setLeadCase(id: 'advisory' | 'cfo') {
-    this.leadCase = id;
-    this.loadTemplate('coordinator-final');
+  pickedTemplate: TemplateId = 'experts';
+  /** a template was confirmed once, so picking again replaces work */
+  templateConfirmed = false;
+  confirmTemplate() {
+    this.templateConfirmed = true;
+    this.loadTemplate(this.pickedTemplate);
+    this.step = 1;
   }
-  templateId: TemplateId = 'advanced';
+  backToTemplates() {
+    this.pickedTemplate = this.templateId;
+    this.step = 0;
+  }
+  templateId: TemplateId = 'experts';
   assignItems: SegmentItem[] = [
     { id: 'manual', label: 'Manual', icon: 'edit' },
     { id: 'auto', label: 'Auto by category', icon: 'sparkle' },
@@ -1309,7 +1354,7 @@ export class QnaSetupCanvasComponent {
   indexing = 'random';
 
   constructor() {
-    this.loadTemplate('advanced');
+    this.loadTemplate('experts');
   }
 
   // ── lookups ───────────────────────────────────────────────────────────────
@@ -1801,7 +1846,7 @@ export class QnaSetupCanvasComponent {
   // ── templates ─────────────────────────────────────────────────────────────
   loadTemplate(id: TemplateId) {
     this.templateId = id;
-    this.rejectTo = id === 'coordinator-final' ? 'expert' : 'coordinator';
+    this.rejectTo = 'coordinator';
     this.rejectChain = 'previous';
     this.selectedId = null;
     this.pendingInsert = null;
@@ -1827,18 +1872,33 @@ export class QnaSetupCanvasComponent {
       return n;
     };
 
-    if (id === 'basic') {
-      const s = mk('submitter', 0, 1, ['p9', 'p10', 'p11']);
-      const c = mk('coordinator', 1, 1, ['p1']);
+    if (id === 'basic' || id === 'scratch') {
+      // scratch = the two required roles, nobody in them yet
+      const empty = id === 'scratch';
+      const s = mk('submitter', 0, 1, empty ? [] : ['p9', 'p10', 'p11']);
+      const c = mk('coordinator', 1, 1, empty ? [] : ['p1']);
       this.nodes = [s, c];
       this.edges = [ed(s, c, 'r', 'l', 'Submits question'), ed(c, s, 'b', 'b', 'Sends answer', 'return')];
-    } else if (id === 'advanced') {
+    } else if (id === 'experts') {
+      const s = mk('submitter', 0, 1, ['p9', 'p11']);
+      const c = mk('coordinator', 1, 1, ['p1', 'p2']);
+      const x = expertMembers(mk('expert', 2, 0, []));
+      this.nodes = [s, c, x];
+      this.edges = [
+        ed(s, c, 'r', 'l', 'Submits question'),
+        ed(c, x, 't', 'l', 'Assigns'),
+        ed(x, c, 'b', 'r', 'Proposes answer', 'return'),
+        ed(c, s, 'b', 'b', 'Sends answer', 'return'),
+      ];
+    } else {
       const d = mk('drafter', 0, 1, ['p10', 'p12']);
       const s = mk('submitter', 1, 1, ['p9', 'p11']);
       const c = mk('coordinator', 2, 1, ['p1', 'p2']);
       const x = expertMembers(mk('expert', 3, 0, []));
       const a = mk('approver', 3, 2, ['p4']);
-      this.nodes = [d, s, c, x, a];
+      // viewers sit outside the route
+      const v = mk('viewer', 4, 1, ['p13']);
+      this.nodes = [d, s, c, x, a, v];
       this.edges = [
         ed(d, s, 'r', 'l', 'Proposes question'),
         ed(s, c, 'r', 'l', 'Submits question'),
@@ -1847,61 +1907,6 @@ export class QnaSetupCanvasComponent {
         ed(c, a, 'b', 'l', 'Sends for approval'),
         ed(a, c, 't', 'r', 'Rejects', 'reject'),
         ed(a, s, 'b', 'b', 'Final answer', 'return'),
-      ];
-    } else if (id === 'advisory') {
-      if (!this.customRoles.some(r => r.key === 'final-signoff')) {
-        this.customRoles.push({
-          key: 'final-signoff', name: 'Final sign-off', side: 'answer', icon: 'user-edit', custom: true,
-          description: 'Advisors release the approved answer',
-          perms: { seeAll: true, assign: true, draftA: true, assignCoord: false, approve: false, finalSignoff: false, seeFinal: true, seeTeam: true },
-        });
-      }
-      const s = mk('submitter', 0, 1, ['p9', 'p11']);
-      const c = mk('coordinator', 1, 1, ['p2', 'p3']);
-      const x = expertMembers(mk('expert', 2, 0, []));
-      const a = mk('approver', 2, 2, ['p4', 'p5']);
-      const f = mk('final-signoff', 3, 1, ['p2']);
-      this.nodes = [s, c, x, a, f];
-      this.edges = [
-        ed(s, c, 'r', 'l', 'Submits question'),
-        ed(c, x, 't', 'l', 'Assigns'),
-        ed(x, c, 'b', 'r', 'Proposes answer', 'return'),
-        ed(c, a, 'b', 'l', 'Sends for approval'),
-        ed(a, c, 't', 'r', 'Rejects', 'reject'),
-        ed(a, f, 'r', 'b', 'Approved'),
-        ed(f, s, 't', 't', 'Sends final answer', 'return'),
-      ];
-    } else if (id === 'coordinator-final') {
-      // One flow, two staffing examples — the route follows whoever has final sign-off:
-      //   advisory: coordinators sign off → expert → approver 1 → approver 2 → coordinators → bidder
-      //   CFO: the CFO is the last approver and signs off → expert → coordinators → approver → CFO → bidder
-      const cfo = this.leadCase === 'cfo';
-      const s = mk('submitter', 0, 1, ['p9', 'p11']);
-      const c = mk('coordinator', 1, 1, cfo ? ['p13', 'p4', 'p5'] : ['p2', 'p3'], { name: cfo ? 'Coordinators' : 'Coordinator (advisory)' });
-      c.perms['assignCoord'] = true;
-      c.perms['finalSignoff'] = !cfo;
-      const x = expertMembers(mk('expert', 2, 0, []));
-      const a1 = mk('approver', 3, 0, ['p14'], { name: 'Approver 1' });
-      const a2 = mk('approver', 3, 2, cfo ? ['p13'] : ['p15'], { name: cfo ? 'CFO' : 'Approver 2' });
-      if (cfo) a2.perms['finalSignoff'] = true;
-      this.nodes = [s, c, x, a1, a2];
-      this.edges = [ed(s, c, 'r', 'l', 'Submits question'), ed(c, x, 't', 'l', 'Assigns'), ed(x, a1, 'r', 'l', ''), ed(a1, a2, 'b', 't', '')];
-      this.rebuildAnswerRoute();
-    } else {
-      const s = mk('submitter', 0, 1, ['p9', 'p11']);
-      const c = mk('coordinator', 1, 1, ['p1']);
-      const x = expertMembers(mk('expert', 2, 0, []));
-      const a1 = mk('approver', 2, 2, ['p5'], { name: 'Legal approver' });
-      const a2 = mk('approver', 3, 2, [], { name: 'Final approver' });
-      this.nodes = [s, c, x, a1, a2];
-      this.edges = [
-        ed(s, c, 'r', 'l', 'Submits question'),
-        ed(c, x, 't', 'l', 'Assigns'),
-        ed(x, c, 'b', 'r', 'Proposes answer', 'return'),
-        ed(c, a1, 'b', 'l', 'Sends for approval'),
-        ed(a1, a2, 'r', 'l', 'Approved · level 1'),
-        ed(a1, c, 't', 'r', 'Rejects', 'reject'),
-        ed(a2, s, 'b', 'b', 'Final answer', 'return'),
       ];
     }
     setTimeout(() => this.fit(), 0);
