@@ -14,7 +14,7 @@ import type { FvdrIconName } from '../../shared/ds/icons/icons';
 type Side = 'question' | 'answer';
 type Port = 'l' | 'r' | 't' | 'b';
 type EdgeKind = 'main' | 'return' | 'reject';
-type TemplateId = 'basic' | 'experts' | 'advanced' | 'scratch';
+type TemplateId = 'basic' | 'experts' | 'advanced' | 'advisory' | 'multilevel' | 'coordinator-final' | 'scratch';
 
 interface Person { id: string; name: string; initials: string; email: string; group: string; tone: number; /** invited by email, not a project participant yet */ external?: boolean; }
 interface Membership { personId: string; categories: string[]; /** question side: which question team this person acts for */ teamId?: string; }
@@ -195,8 +195,12 @@ const TONES = [
           <!-- template choice: preview each workflow, confirm once -->
           <div class="tpl-bar" *ngIf="!templateConfirmed">
             <span class="tpl-bar-label">Workflow template</span>
-            <fvdr-segment variant="table" size="sm" [items]="templateItems" [activeId]="templateId" (activeIdChange)="loadTemplate($any($event))"></fvdr-segment>
+            <fvdr-dropdown class="tpl-dd" size="s" [options]="templateOptions" [value]="templateId" (valueChange)="loadTemplate(asTemplate($event))"></fvdr-dropdown>
             <fvdr-btn label="Use this template" size="s" iconName="check" (clicked)="confirmTemplate()"></fvdr-btn>
+          </div>
+          <div class="tpl-bar" *ngIf="!templateConfirmed && templateId === 'coordinator-final'">
+            <span class="tpl-bar-label">Example</span>
+            <fvdr-segment variant="table" size="sm" [items]="leadCaseItems" [activeId]="leadCase" (activeIdChange)="setLeadCase($any($event))"></fvdr-segment>
           </div>
           <!-- shown only when something needs attention -->
           <button class="health health--error" *ngIf="templateConfirmed && errorNodes.length" (click)="focusFirstError()">
@@ -355,12 +359,12 @@ const TONES = [
           </div>
           <div class="panel-body">
             <p class="tp-desc">{{ currentTemplate.description }}</p>
-            <span class="field-label">{{ currentTemplate.roles.length }} roles</span>
-            <div class="tp-role" *ngFor="let r of currentTemplate.roles">
-              <span class="node-icon" [class.node-icon--q]="roleDef(r)?.side === 'question'"><fvdr-icon [name]="roleDef(r)!.icon"></fvdr-icon></span>
+            <span class="field-label">{{ nodes.length }} roles</span>
+            <div class="tp-role" *ngFor="let r of nodes; trackBy: trackById">
+              <span class="node-icon" [class.node-icon--q]="r.side === 'question'" [class.node-icon--custom]="r.custom"><fvdr-icon [name]="r.icon"></fvdr-icon></span>
               <span class="role-text">
-                <span class="role-name">{{ roleDef(r)!.name }}<span class="tp-req" *ngIf="isProtectedKey(r)">Required</span></span>
-                <span class="role-desc">{{ roleDef(r)!.description }}</span>
+                <span class="role-name">{{ r.name }}<span class="tp-req" *ngIf="isProtectedKey(r.roleKey)">Required</span></span>
+                <span class="role-desc">{{ roleDef(r.roleKey)?.description }}</span>
               </span>
             </div>
             <p class="hint" *ngIf="currentTemplate.note">{{ currentTemplate.note }}</p>
@@ -869,6 +873,7 @@ const TONES = [
 
     /* stepper */
     .tpl-bar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); background: var(--color-stone-0); border-radius: var(--radius-md); padding: var(--space-2) var(--space-2) var(--space-2) var(--space-3); box-shadow: var(--shadow-card); }
+    .tpl-dd { width: 220px; }
     .tpl-bar-label { font-size: var(--text-caption1-size); color: var(--color-text-secondary); white-space: nowrap; }
     .canvas--preview .node, .canvas--preview .edge-label { cursor: default; }
     .canvas--preview .node-add, .canvas--preview .edge-actions { display: none; }
@@ -1264,13 +1269,27 @@ export class QnaSetupCanvasComponent {
 
   step: 1 | 2 = 1;
 
-  templateCards: { id: TemplateId; name: string; description: string; roles: string[]; note?: string }[] = [
-    { id: 'basic', name: 'Basic', description: 'Coordinators answer questions themselves.', roles: ['submitter', 'coordinator'] },
-    { id: 'experts', name: 'With experts', description: 'Coordinators route questions to experts who draft answers.', roles: ['submitter', 'coordinator', 'expert'] },
-    { id: 'advanced', name: 'Advanced', description: 'Drafting, expert answers and approval before release, plus read-only viewers.', roles: ['drafter', 'submitter', 'coordinator', 'expert', 'approver', 'viewer'] },
-    { id: 'scratch', name: 'Start from scratch', description: 'An empty flow with the two required roles. Add roles and people yourself.', roles: ['submitter', 'coordinator'], note: 'No people are added yet.' },
+  templateCards: { id: TemplateId; name: string; description: string; note?: string }[] = [
+    { id: 'basic', name: 'Basic', description: 'Coordinators answer questions themselves.' },
+    { id: 'experts', name: 'With experts', description: 'Coordinators route questions to experts who draft answers.' },
+    { id: 'advanced', name: 'Advanced', description: 'Drafting, expert answers and approval before release, plus read-only viewers.' },
+    { id: 'advisory', name: 'Advisory', description: 'Advisors coordinate; after approval a separate Final sign-off role releases the answer.' },
+    { id: 'multilevel', name: 'Multi-level approval', description: 'Answers pass two approval levels before the last approver releases them.' },
+    { id: 'coordinator-final', name: 'Lead sign-off', description: 'One flow, two staffing examples: advisory leads or a CFO give final sign-off and can answer at any step.' },
+    { id: 'scratch', name: 'Start from scratch', description: 'An empty flow with the two required roles. Add roles and people yourself.', note: 'No people are added yet.' },
   ];
-  templateItems: SegmentItem[] = this.templateCards.map(t => ({ id: t.id, label: t.name }));
+  templateOptions: DropdownOption[] = this.templateCards.map(t => ({ value: t.id, label: t.name }));
+  asTemplate(v: string | string[]): TemplateId { return (Array.isArray(v) ? v[0] : v) as TemplateId; }
+  /** Lead sign-off: same flow, two staffing examples */
+  leadCase: 'advisory' | 'cfo' = 'advisory';
+  leadCaseItems: SegmentItem[] = [
+    { id: 'advisory', label: 'Advisory leads' },
+    { id: 'cfo', label: 'CFO leads' },
+  ];
+  setLeadCase(id: 'advisory' | 'cfo') {
+    this.leadCase = id;
+    this.loadTemplate('coordinator-final');
+  }
   get currentTemplate() { return this.templateCards.find(t => t.id === this.templateId)!; }
   isProtectedKey(key: string) { return PROTECTED_ROLES.has(key); }
   /** until confirmed the canvas is a read-only preview of the chosen template */
@@ -1831,7 +1850,7 @@ export class QnaSetupCanvasComponent {
   // ── templates ─────────────────────────────────────────────────────────────
   loadTemplate(id: TemplateId) {
     this.templateId = id;
-    this.rejectTo = 'coordinator';
+    this.rejectTo = id === 'coordinator-final' ? 'expert' : 'coordinator';
     this.rejectChain = 'previous';
     this.selectedId = null;
     this.pendingInsert = null;
@@ -1875,7 +1894,7 @@ export class QnaSetupCanvasComponent {
         ed(x, c, 'b', 'r', 'Proposes answer', 'return'),
         ed(c, s, 'b', 'b', 'Sends answer', 'return'),
       ];
-    } else {
+    } else if (id === 'advanced') {
       const d = mk('drafter', 0, 1, ['p10', 'p12']);
       const s = mk('submitter', 1, 1, ['p9', 'p11']);
       const c = mk('coordinator', 2, 1, ['p1', 'p2']);
@@ -1892,6 +1911,61 @@ export class QnaSetupCanvasComponent {
         ed(c, a, 'b', 'l', 'Sends for approval'),
         ed(a, c, 't', 'r', 'Rejects', 'reject'),
         ed(a, s, 'b', 'b', 'Final answer', 'return'),
+      ];
+    } else if (id === 'advisory') {
+      if (!this.customRoles.some(r => r.key === 'final-signoff')) {
+        this.customRoles.push({
+          key: 'final-signoff', name: 'Final sign-off', side: 'answer', icon: 'user-edit', custom: true,
+          description: 'Advisors release the approved answer',
+          perms: { seeAll: true, assign: true, draftA: true, assignCoord: false, approve: false, finalSignoff: false, seeFinal: true, seeTeam: true },
+        });
+      }
+      const s = mk('submitter', 0, 1, ['p9', 'p11']);
+      const c = mk('coordinator', 1, 1, ['p2', 'p3']);
+      const x = expertMembers(mk('expert', 2, 0, []));
+      const a = mk('approver', 2, 2, ['p4', 'p5']);
+      const f = mk('final-signoff', 3, 1, ['p2']);
+      this.nodes = [s, c, x, a, f];
+      this.edges = [
+        ed(s, c, 'r', 'l', 'Submits question'),
+        ed(c, x, 't', 'l', 'Assigns'),
+        ed(x, c, 'b', 'r', 'Proposes answer', 'return'),
+        ed(c, a, 'b', 'l', 'Sends for approval'),
+        ed(a, c, 't', 'r', 'Rejects', 'reject'),
+        ed(a, f, 'r', 'b', 'Approved'),
+        ed(f, s, 't', 't', 'Sends final answer', 'return'),
+      ];
+    } else if (id === 'coordinator-final') {
+      // One flow, two staffing examples — the route follows whoever has final sign-off:
+      //   advisory: coordinators sign off → expert → approver 1 → approver 2 → coordinators → bidder
+      //   CFO: the CFO is the last approver and signs off → expert → coordinators → approver → CFO → bidder
+      const cfo = this.leadCase === 'cfo';
+      const s = mk('submitter', 0, 1, ['p9', 'p11']);
+      const c = mk('coordinator', 1, 1, cfo ? ['p13', 'p4', 'p5'] : ['p2', 'p3'], { name: cfo ? 'Coordinators' : 'Coordinator (advisory)' });
+      c.perms['assignCoord'] = true;
+      c.perms['finalSignoff'] = !cfo;
+      const x = expertMembers(mk('expert', 2, 0, []));
+      const a1 = mk('approver', 3, 0, ['p14'], { name: 'Approver 1' });
+      const a2 = mk('approver', 3, 2, cfo ? ['p13'] : ['p15'], { name: cfo ? 'CFO' : 'Approver 2' });
+      if (cfo) a2.perms['finalSignoff'] = true;
+      this.nodes = [s, c, x, a1, a2];
+      this.edges = [ed(s, c, 'r', 'l', 'Submits question'), ed(c, x, 't', 'l', 'Assigns'), ed(x, a1, 'r', 'l', ''), ed(a1, a2, 'b', 't', '')];
+      this.rebuildAnswerRoute();
+    } else if (id === 'multilevel') {
+      const s = mk('submitter', 0, 1, ['p9', 'p11']);
+      const c = mk('coordinator', 1, 1, ['p1']);
+      const x = expertMembers(mk('expert', 2, 0, []));
+      const a1 = mk('approver', 2, 2, ['p5'], { name: 'Legal approver' });
+      const a2 = mk('approver', 3, 2, [], { name: 'Final approver' });
+      this.nodes = [s, c, x, a1, a2];
+      this.edges = [
+        ed(s, c, 'r', 'l', 'Submits question'),
+        ed(c, x, 't', 'l', 'Assigns'),
+        ed(x, c, 'b', 'r', 'Proposes answer', 'return'),
+        ed(c, a1, 'b', 'l', 'Sends for approval'),
+        ed(a1, a2, 'r', 'l', 'Approved · level 1'),
+        ed(a1, c, 't', 'r', 'Rejects', 'reject'),
+        ed(a2, s, 'b', 'b', 'Final answer', 'return'),
       ];
     }
     setTimeout(() => this.fit(), 0);
