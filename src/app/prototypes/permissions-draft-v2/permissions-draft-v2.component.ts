@@ -212,6 +212,19 @@ function minutesAgo(m: number): Date { return new Date(Date.now() - m * 60_000);
             </button>
 
             <div class="toolbar-right">
+              <!-- B · Compare: press and hold to see the saved permissions, like "before" in photo editors -->
+              <button *ngIf="markerVariant === 'compare' && changeCount"
+                      class="tool-btn compare-btn"
+                      [class.compare-btn--on]="comparing"
+                      data-track="compare-hold"
+                      fvdrTooltip="Hold to see saved permissions · or hold \\" tooltipPosition="bottom"
+                      (pointerdown)="startCompare($event)"
+                      (pointerup)="stopCompare()"
+                      (pointerleave)="stopCompare()"
+                      (pointercancel)="stopCompare()">
+                <fvdr-icon [name]="comparing ? 'eye' : 'eye-slash'" />
+                {{ comparing ? 'Showing saved' : 'Compare changes' }}
+              </button>
               <button class="tool-btn"
                       [class.tool-btn--active]="panelOpen"
                       data-track="toggle-changes-panel"
@@ -333,6 +346,11 @@ function minutesAgo(m: number): Date { return new Date(Date.now() - m * 60_000);
                     </div>
                   </div>
                 </div>
+              </div>
+
+              <div class="before-pill" *ngIf="comparing">
+                <fvdr-icon name="eye" />
+                Saved permissions — release to return to your draft
               </div>
 
               <div class="pt-rows">
@@ -597,7 +615,8 @@ function minutesAgo(m: number): Date { return new Date(Date.now() - m * 60_000);
            [class.pt-row--changed]="isChanged(docId, groupId)"
            [class.pt-row--inherited]="changeAt(docId, groupId)?.via != null"
            [class.pt-row--child-changed]="kind === 'doc' && !isChanged(docId, groupId) && !isFolderExpanded(docId) && innerChangeCount(docId, groupId) > 0"
-           [class.pt-row--flash]="flashKey === key(docId, groupId)">
+           [class.pt-row--flash]="flashKey === key(docId, groupId)"
+           [class.pt-row--before]="isBefore(docId, groupId)">
         <div class="pt-expand-cell">
           <button *ngIf="kind === 'group' && group.users.length"
                   class="expand-btn"
@@ -624,6 +643,10 @@ function minutesAgo(m: number): Date { return new Date(Date.now() - m * 60_000);
 
           <ng-container *ngIf="changeAt(docId, groupId) as c">
             <span class="was-tag"
+                  [class.was-tag--peek]="markerVariant === 'compare'"
+                  [class.was-tag--active]="peekKey === key(docId, groupId)"
+                  (mouseenter)="markerVariant === 'compare' && (peekKey = key(docId, groupId))"
+                  (mouseleave)="peekKey = null"
                   [fvdrTooltip]="c.via != null
                     ? 'Changed together with folder ' + doc(c.via).index + ' ' + doc(c.via).name + ' · saved level: ' + permLevels[c.from].label
                     : 'Saved level: ' + permLevels[c.from].label">
@@ -643,20 +666,25 @@ function minutesAgo(m: number): Date { return new Date(Date.now() - m * 60_000);
                 (mouseenter)="hoveredSeg = key(docId, groupId) + '-0'"
                 (mouseleave)="hoveredSeg = null"
                 (click)="setLevel(docId, groupId, 0)">
-            <fvdr-icon *ngIf="level(docId, groupId) === 0 || wasLevel(docId, groupId) === 0"
+            <fvdr-icon *ngIf="shownLevel(docId, groupId) === 0 || (!isBefore(docId, groupId) && wasLevel(docId, groupId) === 0)"
                        name="cancel" class="row-empty-icon" />
             <div class="seg-tooltip" *ngIf="hoveredSeg === key(docId, groupId) + '-0'">{{ permLevels[0].label }}</div>
           </span>
-          <div class="slider-track">
+          <div class="slider-track" [ngClass]="'mk-' + markerVariant" [class.is-before]="isBefore(docId, groupId)">
             <div *ngFor="let pos of sliderRange"
                  class="slider-block"
-                 [ngClass]="'s-' + segClass(level(docId, groupId), pos, item.restricted)"
+                 [ngClass]="'s-' + segClass(shownLevel(docId, groupId), pos, item.restricted)"
                  [class.s-was]="wasLevel(docId, groupId) === pos"
+                 [class.s-saved-range]="wasLevel(docId, groupId) != null && pos <= wasLevel(docId, groupId)!"
+                 [class.s-saved-end]="wasLevel(docId, groupId) === pos"
+                 [class.s-gain]="isGain(docId, groupId, pos)"
+                 [class.s-loss]="isLoss(docId, groupId, pos)"
                  (mouseenter)="hoveredSeg = key(docId, groupId) + '-' + pos"
                  (mouseleave)="hoveredSeg = null"
                  (click)="setLevel(docId, groupId, pos)">
               <div class="seg-tooltip" *ngIf="hoveredSeg === key(docId, groupId) + '-' + pos">
-                {{ permLevels[pos].label }}<span *ngIf="wasLevel(docId, groupId) === pos"> · saved level</span>
+                <ng-container *ngIf="markerVariant === 'saved' && wasLevel(docId, groupId) === pos && !isBefore(docId, groupId); else lvlTip">Saved permission</ng-container>
+                <ng-template #lvlTip>{{ permLevels[pos].label }}<span *ngIf="wasLevel(docId, groupId) === pos"> · saved level</span></ng-template>
               </div>
             </div>
           </div>
@@ -819,6 +847,30 @@ function minutesAgo(m: number): Date { return new Date(Date.now() - m * 60_000);
         Save them first, or stay and keep editing.
       </p>
     </fvdr-modal>
+
+    <!-- Prototype-only: compare ways to show the saved level on a changed bar -->
+    <div class="variant-switch">
+      <span class="variant-switch-label">Saved level on a changed bar</span>
+      <fvdr-segment variant="table" size="sm" [items]="markerItems" [activeId]="markerVariant"
+                    (activeIdChange)="markerVariant = $any($event)" />
+      <div class="variant-demo">
+        <span class="variant-demo-cap">View → Upload</span>
+        <div class="slider-track slider-track--demo" [ngClass]="'mk-' + markerVariant">
+          <div *ngFor="let pos of sliderRange" class="slider-block"
+               [ngClass]="'s-' + segClass(comparing && markerVariant === 'compare' ? 2 : 6, pos)"
+               [class.s-was]="pos === 2" [class.s-saved-range]="pos <= 2" [class.s-saved-end]="pos === 2"
+               [class.s-gain]="pos > 2 && pos <= 6"></div>
+        </div>
+        <span class="variant-demo-cap">Original → Fence</span>
+        <div class="slider-track slider-track--demo" [ngClass]="'mk-' + markerVariant">
+          <div *ngFor="let pos of sliderRange" class="slider-block"
+               [ngClass]="'s-' + segClass(comparing && markerVariant === 'compare' ? 5 : 1, pos)"
+               [class.s-was]="pos === 5" [class.s-saved-range]="pos <= 5" [class.s-saved-end]="pos === 5"
+               [class.s-loss]="pos > 1 && pos <= 5"></div>
+        </div>
+      </div>
+      <span class="variant-switch-note">{{ markerNote }}</span>
+    </div>
 
     <fvdr-toast-host></fvdr-toast-host>
   `,
@@ -1163,15 +1215,94 @@ function minutesAgo(m: number): Date { return new Date(Date.now() - m * 60_000);
       cursor: not-allowed;
     }
     .s-hatched:hover { filter: none; }
-    /* Ghost marker for the saved level of a changed cell */
-    .s-was::after {
+    /* ── Saved level on a changed bar — prototype variants ── */
+
+    /* A · Pin — a small caret above the saved segment, like a "you were here" marker */
+    .mk-pin .s-was::before {
       content: '';
-      position: absolute; inset: 2px;
-      border: 1.5px dashed var(--color-stone-900);
+      position: absolute; left: 50%; top: -7px;
+      transform: translateX(-50%);
+      border-left: 5px solid transparent;
+      border-right: 5px solid transparent;
+      border-top: 6px solid var(--color-stone-900);
+      pointer-events: none;
+    }
+    .mk-pin .s-was::after {
+      content: '';
+      position: absolute; left: 50%; top: -1px; bottom: -1px;
+      width: 2px; transform: translateX(-50%);
+      background: var(--color-stone-900);
+      opacity: 0.55;
+      pointer-events: none;
+    }
+
+    /* B · Compare — no permanent marker; hold "Compare changes" (or \\) to flip every bar to its
+       saved level, or hover a row's "was …" tag to flip just that row */
+    .compare-btn { user-select: none; touch-action: none; }
+    .compare-btn--on { border-color: var(--color-stone-900); background: var(--color-stone-900); color: var(--color-stone-0); }
+    .compare-btn--on fvdr-icon { color: var(--color-stone-0); }
+    .pt-row--before, .pt-row--before:hover { background: var(--color-stone-100); }
+    .pt-row--before::before { background: var(--color-stone-500); }
+    .is-before .slider-block { transition: background 0.12s; }
+    .was-tag--peek { cursor: help; }
+    .was-tag--active { border-color: var(--color-stone-900); color: var(--color-text-primary); background: var(--color-stone-200); }
+    .perm-table { position: relative; }
+    .before-pill {
+      position: absolute; top: 56px; left: 50%; transform: translateX(-50%);
+      z-index: 20;
+      display: inline-flex; align-items: center; gap: var(--space-2);
+      padding: var(--space-1) var(--space-3);
+      border-radius: var(--radius-full, 999px);
+      background: var(--color-stone-900); color: var(--color-stone-0);
+      font-size: 12px; font-weight: 600; white-space: nowrap;
+      box-shadow: 0 4px 12px rgba(31, 33, 41, 0.2);
+      pointer-events: none;
+    }
+    .before-pill fvdr-icon { font-size: 14px; }
+
+    /* A · Saved (Figma 2059-100240) — a thin dashed frame inside the saved segment;
+       segments the draft takes away turn white; hover says "Saved permission" */
+    .mk-saved .s-was::after {
+      content: '';
+      position: absolute; inset: 3px 2px;
+      border: 1px dashed var(--color-stone-700);
       border-radius: 2px;
       pointer-events: none;
     }
-    .s-active.s-was::after { border-color: var(--color-stone-0); }
+    .mk-saved .s-active.s-was::after { border-color: var(--color-stone-0); }
+    .mk-saved .s-loss { background: var(--color-stone-0); }
+
+    /* D · Dot — a small dot in the saved segment */
+    .mk-dot .s-was::after {
+      content: '';
+      position: absolute; left: 50%; top: 50%;
+      width: 6px; height: 6px; border-radius: 50%;
+      transform: translate(-50%, -50%);
+      background: var(--color-stone-900);
+      box-shadow: 0 0 0 2px var(--color-stone-0);
+      pointer-events: none;
+    }
+
+    /* Prototype-only switcher */
+    .variant-switch {
+      position: fixed; left: 88px; bottom: 88px; z-index: 250;
+      display: flex; flex-direction: column; gap: var(--space-2);
+      width: 340px;
+      padding: var(--space-3) var(--space-4);
+      border-radius: var(--radius-md);
+      background: var(--color-stone-0);
+      box-shadow: 0 4px 16px rgba(31, 33, 41, 0.16);
+    }
+    .variant-switch-label { font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--color-text-secondary); }
+    .variant-switch-note { font-size: 12px; line-height: 16px; color: var(--color-text-secondary); }
+    .variant-demo {
+      display: grid; grid-template-columns: auto 1fr; align-items: center;
+      gap: var(--space-3) var(--space-3);
+      padding: var(--space-3) 0 var(--space-2);
+    }
+    .variant-demo-cap { font-size: 11px; color: var(--color-text-secondary); white-space: nowrap; }
+    .slider-track--demo { pointer-events: none; }
+    .slider-track--demo .slider-block { width: 30px; }
 
     .seg-tooltip {
       position: absolute; top: calc(100% + 6px); left: 50%;
@@ -1577,6 +1708,26 @@ export class PermissionsDraftV2Component implements OnInit, OnDestroy {
   panelOpen = false;
   panelTab: PanelTab = 'activity';
 
+  /** Prototype-only: how a changed bar shows its saved level. */
+  markerVariant: 'pin' | 'compare' | 'saved' | 'dot' = 'saved';
+  /** B · Compare: every bar shows its saved level while true (held button or \\ key). */
+  comparing = false;
+  /** B · Compare: one row previewed via its "was …" tag. */
+  peekKey: string | null = null;
+  readonly markerItems: SegmentItem[] = [
+    { id: 'saved', label: 'A · Saved' },
+    { id: 'compare', label: 'B · Compare' },
+    { id: 'pin',   label: 'C · Pin' },
+    { id: 'dot',   label: 'D · Dot' },
+  ];
+  private static readonly MARKER_NOTES: Record<string, string> = {
+    saved: 'A thin dashed frame marks the saved level inside the bar; access the draft removes shows as white segments. Hover the frame: “Saved permission”.',
+    compare: 'No permanent marker. Hold “Compare changes” (or the \\ key) to see the saved permissions everywhere — like “before” in photo editors. Hover a row’s “was …” tag to flip just that row.',
+    pin:   'A caret and tick sit on the saved level, like a “you were here” marker. Minimal, keeps the bar untouched.',
+    dot:   'A dot inside the saved segment. The lightest option; works best combined with the “was …” tag.',
+  };
+  get markerNote(): string { return PermissionsDraftV2Component.MARKER_NOTES[this.markerVariant]; }
+
   // ── Activity log ──
   @ViewChild('feed') private feedEl?: ElementRef<HTMLElement>;
   log: LogEntry[] = [];
@@ -1807,6 +1958,30 @@ export class PermissionsDraftV2Component implements OnInit, OnDestroy {
   isChanged(docId: number, groupId: number): boolean { return !!this.changeAt(docId, groupId); }
   /** Saved level of a changed cell — drawn as a dashed ghost; null when the cell is unchanged. */
   wasLevel(docId: number, groupId: number): number | null { return this.changeAt(docId, groupId)?.from ?? null; }
+  /** Level drawn on the bar: the saved one while comparing / peeking, the draft otherwise. */
+  shownLevel(docId: number, groupId: number): number {
+    return this.isBefore(docId, groupId) ? this.savedLevel(docId, groupId) : this.level(docId, groupId);
+  }
+  isBefore(docId: number, groupId: number): boolean {
+    if (this.markerVariant !== 'compare' || !this.isChanged(docId, groupId)) return false;
+    return this.comparing || this.peekKey === this.key(docId, groupId);
+  }
+  startCompare(e: PointerEvent): void {
+    (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
+    this.comparing = true;
+  }
+  stopCompare(): void { this.comparing = false; }
+
+  /** Segment newly granted by the draft (between saved and new level). */
+  isGain(docId: number, groupId: number, pos: number): boolean {
+    const c = this.changeAt(docId, groupId);
+    return !!c && c.to > c.from && pos > c.from && pos <= c.to;
+  }
+  /** Segment the draft takes away. */
+  isLoss(docId: number, groupId: number, pos: number): boolean {
+    const c = this.changeAt(docId, groupId);
+    return !!c && c.to < c.from && pos > c.to && pos <= c.from;
+  }
 
   grantsOriginal(c: Change): boolean { return c.to >= ORIGINAL_LEVEL && c.from < ORIGINAL_LEVEL; }
 
@@ -2156,9 +2331,19 @@ export class PermissionsDraftV2Component implements OnInit, OnDestroy {
     if (item.id !== 'permissions' && this.changeCount) this.leaveTarget = item;
   }
 
+  @HostListener('document:keyup', ['$event'])
+  onKeyUp(e: KeyboardEvent): void {
+    if (e.key === '\\') this.comparing = false;
+  }
+
   @HostListener('document:keydown', ['$event'])
   onKey(e: KeyboardEvent): void {
     if (e.target instanceof Element && e.target.closest('input, textarea, [contenteditable]')) return;
+    if (e.key === '\\' && this.markerVariant === 'compare' && this.changeCount) {
+      e.preventDefault();
+      this.comparing = true;
+      return;
+    }
     if ((e.metaKey || e.ctrlKey) && !e.shiftKey && e.key.toLowerCase() === 'z' && this.undoStack.length) {
       e.preventDefault();
       this.undo();

@@ -217,6 +217,14 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
     description: 'Version 1’s draft model with an assistant-style Activity panel that opens on the first edit: every change is logged as “not saved yet”, folder cascades and reverts appear as steps, and hints flag risky edits with one-click fixes',
   },
     {
+    slug: 'permissions-draft-highlight',
+    title: 'Permissions — Draft highlight · 4 variants',
+    module: 'Permissions',
+    figma: 'https://www.figma.com/design/E2LJ0seWC3c1bJrgenukSS/%F0%9F%94%90-Permissions?node-id=2059-100240',
+    status: 'wip',
+    description: 'How a changed permission bar shows its saved level — Saved (dashed frame), Compare (hold to see before), Pin and Dot — on the draft model without the changes panel or the changed-only filter',
+  },
+    {
     slug: 'added-column-hover',
     title: 'Documents — Added column hover',
     module: 'Documents',
