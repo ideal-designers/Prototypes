@@ -430,20 +430,6 @@ function minutesAgo(m: number): Date { return new Date(Date.now() - m * 60_000);
                   class="inside-tag" (click)="toggleFolder(docId)">{{ n }} changed inside</span>
           </ng-container>
 
-          <ng-container *ngIf="changeAt(docId, groupId) as c">
-            <!-- Only the revert button — its tooltip names the saved level; in B · Compare,
-                 hovering it previews the row's saved state -->
-            <button class="row-revert row-revert--row"
-                    [class.row-revert--peek]="peekKey === key(docId, groupId)"
-                    [fvdrTooltip]="'Revert to saved: ' + permLevels[c.from].label + (c.via != null ? ' · changed with folder ' + doc(c.via).index + ' ' + doc(c.via).name : '')"
-                    aria-label="Revert to saved"
-                    data-track="revert-row"
-                    (mouseenter)="markerVariant === 'compare' && (peekKey = key(docId, groupId))"
-                    (mouseleave)="peekKey = null"
-                    (click)="peekKey = null; revert(c)">
-              <fvdr-icon name="undo" />
-            </button>
-          </ng-container>
         </div>
 
         <div class="pt-perm-cell">
@@ -1511,9 +1497,9 @@ export class PermissionsDraftHighlightComponent implements OnInit, OnDestroy {
   ];
   private static readonly MARKER_NOTES: Record<string, string> = {
     saved: 'A thin dashed frame marks the saved level inside the bar; access the draft removes shows as white segments. Hover the frame: “Saved permission”.',
-    compare: 'No permanent marker. Hold “Compare changes” (or the \\ key) to see the saved permissions everywhere — like “before” in photo editors. Hover a row’s revert button to flip just that row.',
+    compare: 'No permanent marker. Hold “Compare changes” (or the \\ key) to see the saved permissions everywhere — like “before” in photo editors.',
     pin:   'A caret and tick sit on the saved level, like a “you were here” marker. Minimal, keeps the bar untouched.',
-    dot:   'A dot inside the saved segment. The lightest option; pairs with the revert button’s tooltip.',
+    dot:   'A dot inside the saved segment. The lightest option.',
   };
   get markerNote(): string { return PermissionsDraftHighlightComponent.MARKER_NOTES[this.markerVariant]; }
 
