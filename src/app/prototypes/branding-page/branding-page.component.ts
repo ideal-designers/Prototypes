@@ -11,7 +11,6 @@ import {
   TabItem,
   SidebarNavComponent,
   DropdownOption,
-  SegmentItem,
 } from '../../shared/ds';
 import { TrackerService } from '../../services/tracker.service';
 
@@ -237,7 +236,7 @@ type AssetKind = 'logo' | 'background';
       <fvdr-btn *ngIf="!dirty" class="m-bar__fill" variant="secondary" size="l" iconName="eye" label="Preview login page" dataTrack="m-preview" (clicked)="openPreview()"></fvdr-btn>
       <ng-container *ngIf="dirty">
         <fvdr-btn variant="secondary" size="l" iconName="eye" [iconOnly]="true" ariaLabel="Preview login page" dataTrack="m-preview" (clicked)="openPreview()"></fvdr-btn>
-        <fvdr-btn class="m-bar__fill" variant="secondary" size="l" label="Discard" data-track="discard" (clicked)="discard()"></fvdr-btn>
+        <fvdr-btn class="m-bar__fill" variant="secondary" size="l" label="Cancel" data-track="discard" (clicked)="discard()"></fvdr-btn>
         <fvdr-btn class="m-bar__fill" variant="primary" size="l" label="Save" data-track="save" (clicked)="save()"></fvdr-btn>
       </ng-container>
     </div>
@@ -330,47 +329,14 @@ type AssetKind = 'logo' | 'background';
   </div>
 </ng-template>
 
-<!-- ── Mobile: full-screen login preview (Settings Figma 679:40513 / 679:40607) ── -->
+<!-- ── Mobile: full-screen login preview (Settings Figma 679:40607 / 679:40759) ── -->
 <div *ngIf="previewOpen" class="pv" role="dialog" aria-label="Login page preview">
   <div class="pv__head">
     <span class="pv__title">Login page preview</span>
     <fvdr-btn variant="ghost" size="m" iconName="close" [iconOnly]="true" ariaLabel="Close preview" dataTrack="preview-close" (clicked)="previewOpen = false"></fvdr-btn>
   </div>
-  <div class="pv__switch">
-    <fvdr-segment variant="table" size="mobile" [items]="previewModes" [activeId]="previewMode" (activeIdChange)="previewMode = $any($event)"></fvdr-segment>
-  </div>
-
-  <!-- Mobile sign-in (User account Figma 24778:36577): plain white page, no background image -->
-  <ng-container *ngIf="previewMode === 'mobile'">
-    <div class="pv__note">
-      <fvdr-inline-message variant="info" size="m" text="The background image appears on desktop only. On mobile, the sign-in page is plain white."></fvdr-inline-message>
-    </div>
-    <div class="pv__screen msi">
-      <div class="msi__body">
-        <span class="msi__logo">
-          <img *ngIf="logoUrl" [src]="logoUrl" alt="Logo" />
-          <span *ngIf="!logoUrl" class="logo-ph">Logo</span>
-        </span>
-        <h2 class="msi__title">Sign in to Project Alpha</h2>
-        <div class="msi__field">
-          <span class="msi__label">Email</span>
-          <span class="msi__input"><fvdr-icon name="envelope"></fvdr-icon>name&#64;company.com</span>
-        </div>
-        <span class="msi__btn" [style.background]="themeColor">Continue</span>
-      </div>
-      <div class="msi__footer">
-        <div class="msi__row">
-          <span class="msi__link"><fvdr-icon name="language"></fvdr-icon>English<fvdr-icon name="chevron-down"></fvdr-icon></span>
-          <span class="msi__link"><fvdr-icon name="help"></fvdr-icon>Help</span>
-        </div>
-        <div class="msi__row msi__row--small"><span>Privacy Policy</span><span>Terms of Use</span></div>
-        <span class="msi__small">© 2026 iDeals. All rights reserved.</span>
-      </div>
-    </div>
-  </ng-container>
-
   <!-- Desktop sign-in (User account Figma 24778:6461), scaled down to the phone width -->
-  <div *ngIf="previewMode === 'desktop'" class="pv__screen pv__screen--desktop">
+  <div class="pv__screen pv__screen--desktop">
     <div class="dsk-frame" [style.height.px]="dskHeight * dskScale">
       <div
         class="dsk"
@@ -398,16 +364,16 @@ type AssetKind = 'logo' | 'background';
             <span *ngIf="!logoUrl" class="logo-ph">Logo</span>
           </span>
           <h2 class="dsk__title">Sign in to Project Alpha</h2>
-          <div class="msi__field">
-            <span class="msi__label">Email</span>
-            <span class="msi__input dsk__input"><fvdr-icon name="envelope"></fvdr-icon>name&#64;company.com</span>
+          <div class="dsk__field">
+            <span class="dsk__label">Email</span>
+            <span class="dsk__input"><fvdr-icon name="envelope"></fvdr-icon>name&#64;company.com</span>
           </div>
-          <span class="msi__btn dsk__btn" [style.background]="themeColor">Continue</span>
+          <span class="dsk__btn" [style.background]="themeColor">Continue</span>
         </div>
         <div class="dsk__footer">
           <span class="dsk__links">
-            <span class="msi__link"><fvdr-icon name="help"></fvdr-icon>Help</span>
-            <span class="msi__link"><fvdr-icon name="language"></fvdr-icon>English<fvdr-icon name="chevron-down"></fvdr-icon></span>
+            <span class="dsk__link"><fvdr-icon name="help"></fvdr-icon>Help</span>
+            <span class="dsk__link"><fvdr-icon name="language"></fvdr-icon>English<fvdr-icon name="chevron-down"></fvdr-icon></span>
           </span>
           <span class="dsk__links dsk__links--small">
             <span>© 2026 iDeals. All rights reserved.</span><span>Privacy Policy</span><span>Terms of Use</span>
@@ -681,33 +647,11 @@ type AssetKind = 'logo' | 'background';
     @keyframes pv-in { from { transform: translateY(16px); opacity: 0; } to { transform: none; opacity: 1; } }
     .pv__head { flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); padding: var(--space-5) var(--space-1) var(--space-5) var(--space-4); }
     .pv__title { font-size: var(--font-size-lg, 16px); font-weight: var(--font-weight-semi, 600); line-height: var(--line-height-lg, 24px); color: var(--color-text-primary); }
-    .pv__switch { flex-shrink: 0; padding: 0 var(--space-4) var(--space-4); }
-    .pv__switch fvdr-segment { display: block; }
-    :host ::ng-deep .pv__switch .seg-table { display: flex; width: 100%; }
-    :host ::ng-deep .pv__switch .seg-table__item { flex: 1; justify-content: center; }
-    .pv__note { flex-shrink: 0; padding: 0 var(--space-4) var(--space-4); }
     .pv__screen { flex: 1; min-height: 0; overflow-y: auto; border-top: 1px solid var(--color-divider); }
     .pv__screen--desktop { display: flex; flex-direction: column; justify-content: center; gap: var(--space-3); padding: var(--space-4); background: var(--color-stone-200); }
     .pv__caption { margin: 0; text-align: center; font-size: var(--font-size-base, 14px); line-height: var(--line-height-base, 20px); color: var(--color-text-secondary); }
 
     .logo-ph { width: 100%; height: 100%; border-radius: var(--radius-sm); background: var(--color-text-placeholder); color: var(--color-stone-0); display: grid; place-items: center; font-size: var(--font-size-base, 14px); }
-
-    /* Mobile sign-in (User account Figma 24778:36577) */
-    .msi { display: flex; flex-direction: column; justify-content: space-between; }
-    .msi__body { display: flex; flex-direction: column; align-items: stretch; gap: var(--space-6); padding: var(--space-6); }
-    .msi__logo { width: 48px; height: 48px; display: block; }
-    .msi__logo img { width: 100%; height: 100%; object-fit: contain; border-radius: 50%; }
-    .msi__title { margin: 0; font-size: var(--font-size-4xl, 24px); font-weight: var(--font-weight-bold, 700); line-height: 32px; color: var(--color-text-primary); }
-    .msi__field { display: flex; flex-direction: column; gap: var(--space-1); margin-top: var(--space-2); }
-    .msi__label { font-size: var(--font-size-md, 15px); font-weight: var(--font-weight-semi, 600); line-height: var(--line-height-lg, 24px); color: var(--color-text-primary); }
-    .msi__input { display: flex; align-items: center; gap: var(--space-2); height: 48px; padding: 0 var(--space-4); border: 1px solid var(--color-stone-400); border-radius: var(--radius-sm); font-size: var(--font-size-lg, 16px); color: var(--color-text-placeholder); }
-    .msi__input fvdr-icon { font-size: var(--font-size-lg, 16px); color: var(--color-text-secondary); }
-    .msi__btn { display: grid; place-items: center; height: 48px; margin-top: var(--space-2); border-radius: var(--radius-sm); color: var(--color-stone-0); font-size: var(--font-size-lg, 16px); }
-    .msi__footer { display: flex; flex-direction: column; align-items: center; gap: var(--space-6); padding: var(--space-6) var(--space-6) var(--space-8); background: var(--color-signin-bg); color: var(--color-stone-0); }
-    .msi__row { display: flex; align-items: center; gap: var(--space-2); }
-    .msi__row--small { gap: var(--space-8); font-size: var(--font-size-xs, 12px); line-height: 16px; }
-    .msi__link { display: inline-flex; align-items: center; gap: var(--space-2); padding: var(--space-2) var(--space-3); font-size: var(--font-size-base, 14px); line-height: var(--line-height-base, 20px); }
-    .msi__small { font-size: var(--font-size-xs, 12px); line-height: 16px; }
 
     /* Desktop sign-in (User account Figma 24778:6461) — laid out at 880×640, scaled to fit */
     .dsk-frame { position: relative; width: 100%; overflow: hidden; border-radius: var(--radius-md); }
@@ -728,8 +672,12 @@ type AssetKind = 'logo' | 'background';
     .dsk__logo { width: 40px; height: 40px; display: block; }
     .dsk__logo img { width: 100%; height: 100%; object-fit: contain; border-radius: 50%; }
     .dsk__title { margin: 0; font-size: var(--font-size-2xl, 20px); font-weight: var(--font-weight-bold, 700); line-height: 28px; }
-    .dsk__input { height: 40px; font-size: var(--font-size-base, 14px); }
-    .dsk__btn { height: 40px; margin-top: 0; font-size: var(--font-size-base, 14px); }
+    .dsk__field { display: flex; flex-direction: column; gap: var(--space-1); }
+    .dsk__label { font-size: var(--font-size-md, 15px); font-weight: var(--font-weight-semi, 600); line-height: var(--line-height-lg, 24px); color: var(--color-text-primary); }
+    .dsk__input { display: flex; align-items: center; gap: var(--space-2); height: 40px; padding: 0 var(--space-4); border: 1px solid var(--color-stone-400); border-radius: var(--radius-sm); font-size: var(--font-size-base, 14px); color: var(--color-text-placeholder); }
+    .dsk__input fvdr-icon { font-size: var(--font-size-lg, 16px); color: var(--color-text-secondary); }
+    .dsk__btn { display: grid; place-items: center; height: 40px; border-radius: var(--radius-sm); color: var(--color-stone-0); font-size: var(--font-size-base, 14px); }
+    .dsk__link { display: inline-flex; align-items: center; gap: var(--space-2); padding: var(--space-2) var(--space-3); font-size: var(--font-size-base, 14px); line-height: var(--line-height-base, 20px); }
     .dsk__footer { position: absolute; left: var(--space-6); right: var(--space-6); bottom: var(--space-5); display: flex; align-items: center; justify-content: space-between; }
     .dsk__links { display: flex; align-items: center; gap: var(--space-2); }
     .dsk__links--small { gap: var(--space-6); font-size: var(--font-size-xs, 12px); }
@@ -753,11 +701,6 @@ export class BrandingPageComponent implements OnInit, OnDestroy {
   get isMobile(): boolean { return this.viewportW < BrandingPageComponent.BP_MOBILE; }
 
   previewOpen = false;
-  previewMode: 'mobile' | 'desktop' = 'mobile';
-  previewModes: SegmentItem[] = [
-    { id: 'desktop', label: 'Desktop' },
-    { id: 'mobile',  label: 'Mobile' },
-  ];
   /** Desktop sign-in mock is laid out at 880×640 and scaled to the phone width. */
   readonly dskHeight = 640;
   get dskScale(): number { return Math.max(0.2, (this.viewportW - 32) / 880); }
@@ -919,7 +862,6 @@ export class BrandingPageComponent implements OnInit, OnDestroy {
   }
 
   openPreview(): void {
-    this.previewMode = 'mobile';
     this.previewOpen = true;
   }
 
