@@ -166,49 +166,14 @@ const TONES = [
 
     <!-- ── Stepper ── -->
     <div class="stepper">
-      <button class="step" [class.step--active]="step === 0" [class.step--done]="step > 0" (click)="backToTemplates()">
-        <span class="step-num"><fvdr-icon *ngIf="step > 0" name="check"></fvdr-icon><ng-container *ngIf="step === 0">1</ng-container></span>
-        Template
-      </button>
-      <span class="step-sep"></span>
-      <button class="step" [class.step--active]="step === 1" [class.step--done]="step === 2" [disabled]="step === 0" (click)="step = 1">
-        <span class="step-num"><fvdr-icon *ngIf="step === 2" name="check"></fvdr-icon><ng-container *ngIf="step < 2">2</ng-container></span>
+      <button class="step" [class.step--active]="step === 1" [class.step--done]="step === 2" (click)="step = 1">
+        <span class="step-num"><fvdr-icon *ngIf="step === 2" name="check"></fvdr-icon><ng-container *ngIf="step === 1">1</ng-container></span>
         Workflow &amp; people
       </button>
       <span class="step-sep"></span>
-      <button class="step" [class.step--active]="step === 2" [disabled]="step === 0 || errorNodes.length > 0" (click)="goNext()">
-        <span class="step-num">3</span> Preferences
+      <button class="step" [class.step--active]="step === 2" [disabled]="!templateConfirmed || errorNodes.length > 0" (click)="goNext()">
+        <span class="step-num">2</span> Preferences
       </button>
-    </div>
-
-    <!-- ══════════════ STEP 0 — Template ══════════════ -->
-    <div class="tpl-pick" *ngIf="step === 0">
-      <div class="tpl-pick-inner">
-        <h2 class="tpl-title">How do you want to set up Q&amp;A?</h2>
-        <p class="tpl-sub">Pick a starting point. You can add, remove and rename roles later.</p>
-        <div class="tpl-grid" role="radiogroup" aria-label="Q&A template">
-          <button class="tpl-card" *ngFor="let t of templateCards" role="radio"
-                  [attr.aria-checked]="pickedTemplate === t.id" [class.tpl-card--on]="pickedTemplate === t.id"
-                  (click)="pickedTemplate = t.id" (dblclick)="pickedTemplate = t.id; confirmTemplate()">
-            <span class="tpl-card-head">
-              <span class="tpl-card-name">{{ t.name }}</span>
-              <span class="tpl-card-count">{{ t.roles.length }} roles</span>
-              <span class="tpl-radio" [class.tpl-radio--on]="pickedTemplate === t.id"></span>
-            </span>
-            <span class="tpl-card-desc">{{ t.description }}</span>
-            <span class="tpl-flow">
-              <ng-container *ngFor="let r of t.roles; let last = last">
-                <span class="tpl-role" [class.tpl-role--q]="roleDef(r)?.side === 'question'">
-                  <fvdr-icon [name]="roleDef(r)!.icon"></fvdr-icon>{{ roleDef(r)!.name }}
-                </span>
-                <fvdr-icon *ngIf="!last && t.chain" name="chevron-right" class="tpl-arrow"></fvdr-icon>
-              </ng-container>
-            </span>
-            <span class="tpl-card-note" *ngIf="t.note">{{ t.note }}</span>
-          </button>
-        </div>
-        <p class="tpl-replace" *ngIf="templateConfirmed"><fvdr-icon name="info"></fvdr-icon>Choosing a template replaces your current workflow and people.</p>
-      </div>
     </div>
 
     <!-- ══════════════ STEP 1 — Canvas ══════════════ -->
@@ -218,6 +183,7 @@ const TONES = [
            #canvas
            [class.canvas--panning]="panning"
            [class.canvas--drop]="canvasDropActive"
+           [class.canvas--preview]="!templateConfirmed"
            (mousedown)="onCanvasMouseDown($event)"
            (wheel)="onWheel($event)"
            (dragover)="onCanvasDragOver($event)"
@@ -226,8 +192,14 @@ const TONES = [
 
         <!-- top toolbar -->
         <div class="canvas-top" (mousedown)="$event.stopPropagation()">
+          <!-- template choice: preview each workflow, confirm once -->
+          <div class="tpl-bar" *ngIf="!templateConfirmed">
+            <span class="tpl-bar-label">Workflow template</span>
+            <fvdr-segment variant="table" size="sm" [items]="templateItems" [activeId]="templateId" (activeIdChange)="loadTemplate($any($event))"></fvdr-segment>
+            <fvdr-btn label="Use this template" size="s" iconName="check" (clicked)="confirmTemplate()"></fvdr-btn>
+          </div>
           <!-- shown only when something needs attention -->
-          <button class="health health--error" *ngIf="errorNodes.length" (click)="focusFirstError()">
+          <button class="health health--error" *ngIf="templateConfirmed && errorNodes.length" (click)="focusFirstError()">
             <fvdr-icon name="warning"></fvdr-icon>
             <span>{{ errorNodes.length }} {{ errorNodes.length === 1 ? 'role needs' : 'roles need' }} people</span>
           </button>
@@ -290,7 +262,7 @@ const TONES = [
                *ngFor="let n of nodes; trackBy: trackById"
                [style.left.px]="n.x" [style.top.px]="n.y"
                [class.node--selected]="selectedId === n.id"
-               [class.node--error]="!n.members.length"
+               [class.node--error]="templateConfirmed && !n.members.length"
                [class.node--drop]="dropNodeId === n.id"
                [class.node--dragging]="dragNodeId === n.id && dragMoved"
                (mousedown)="onNodeMouseDown($event, n)"
@@ -373,6 +345,33 @@ const TONES = [
              (keydown.arrowleft)="nudgePanel(24)" (keydown.arrowright)="nudgePanel(-24)"></div>
 
         <!-- Node panel -->
+        <!-- template preview panel -->
+        <ng-container *ngIf="!templateConfirmed; else editPanel">
+          <div class="panel-head panel-head--lib">
+            <div class="panel-titles">
+              <span class="lib-title">{{ currentTemplate.name }}</span>
+              <span class="panel-sub">Preview — choose a template, then confirm it to start editing</span>
+            </div>
+          </div>
+          <div class="panel-body">
+            <p class="tp-desc">{{ currentTemplate.description }}</p>
+            <span class="field-label">{{ currentTemplate.roles.length }} roles</span>
+            <div class="tp-role" *ngFor="let r of currentTemplate.roles">
+              <span class="node-icon" [class.node-icon--q]="roleDef(r)?.side === 'question'"><fvdr-icon [name]="roleDef(r)!.icon"></fvdr-icon></span>
+              <span class="role-text">
+                <span class="role-name">{{ roleDef(r)!.name }}<span class="tp-req" *ngIf="isProtectedKey(r)">Required</span></span>
+                <span class="role-desc">{{ roleDef(r)!.description }}</span>
+              </span>
+            </div>
+            <p class="hint" *ngIf="currentTemplate.note">{{ currentTemplate.note }}</p>
+            <p class="hint">You can add, remove and rename roles after confirming.</p>
+          </div>
+          <div class="panel-foot">
+            <fvdr-btn label="Use this template" iconName="check" (clicked)="confirmTemplate()"></fvdr-btn>
+          </div>
+        </ng-container>
+
+        <ng-template #editPanel>
         <ng-container *ngIf="selectedNode as n; else libraryTpl">
           <div class="panel-head">
             <div class="avatar-pick">
@@ -554,6 +553,8 @@ const TONES = [
           </div>
         </ng-container>
 
+        </ng-template>
+
         <!-- Library panel -->
         <ng-template #libraryTpl>
           <div class="panel-head panel-head--lib">
@@ -668,13 +669,12 @@ const TONES = [
 
     <!-- footer -->
     <div class="footer">
-      <fvdr-btn *ngIf="step === 0" label="Cancel" variant="secondary"></fvdr-btn>
-      <fvdr-btn *ngIf="step === 0" label="Continue" (clicked)="confirmTemplate()"></fvdr-btn>
-      <fvdr-btn *ngIf="step === 1" label="Back" variant="secondary" (clicked)="backToTemplates()"></fvdr-btn>
+      <fvdr-btn *ngIf="step === 1" label="Cancel" variant="secondary"></fvdr-btn>
       <fvdr-btn *ngIf="step === 2" label="Back" variant="secondary" (clicked)="step = 1"></fvdr-btn>
-      <fvdr-btn *ngIf="step === 1" label="Next" [disabled]="errorNodes.length > 0" (clicked)="goNext()"></fvdr-btn>
+      <fvdr-btn *ngIf="step === 1" label="Next" [disabled]="!templateConfirmed || errorNodes.length > 0" (clicked)="goNext()"></fvdr-btn>
       <fvdr-btn *ngIf="step === 2" label="Activate Q&A" (clicked)="activate()"></fvdr-btn>
-      <span class="footer-hint" *ngIf="step === 1 && errorNodes.length">Add people to {{ errorNamesLabel }} to continue</span>
+      <span class="footer-hint footer-hint--info" *ngIf="step === 1 && !templateConfirmed">Choose a workflow template to continue</span>
+      <span class="footer-hint" *ngIf="step === 1 && templateConfirmed && errorNodes.length">Add people to {{ errorNamesLabel }} to continue</span>
     </div>
   </div>
 </div>
@@ -868,27 +868,14 @@ const TONES = [
     button { font-family: inherit; }
 
     /* stepper */
-    .tpl-pick { flex: 1; overflow-y: auto; padding: var(--space-8) var(--space-6); background: var(--color-stone-100); }
-    .tpl-pick-inner { max-width: 880px; margin: 0 auto; display: flex; flex-direction: column; gap: var(--space-2); }
-    .tpl-title { margin: 0; font-size: var(--text-h3-size); font-weight: var(--font-weight-semi); }
-    .tpl-sub { margin: 0 0 var(--space-4); color: var(--color-text-secondary); }
-    .tpl-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: var(--space-4); }
-    .tpl-card { display: flex; flex-direction: column; align-items: stretch; gap: var(--space-3); text-align: left; padding: var(--space-5); border: 1px solid var(--color-divider); border-radius: var(--radius-lg); background: var(--color-stone-0); cursor: pointer; font: inherit; color: inherit; transition: border-color 0.15s, box-shadow 0.15s; }
-    .tpl-card:hover { border-color: var(--color-stone-500); }
-    .tpl-card:focus-visible { outline: 2px solid var(--color-primary-500); outline-offset: 2px; }
-    .tpl-card--on { border-color: var(--color-primary-500); box-shadow: 0 0 0 1px var(--color-primary-500); }
-    .tpl-card-head { display: flex; align-items: center; gap: var(--space-2); }
-    .tpl-card-name { font-size: var(--font-size-lg); font-weight: var(--font-weight-semi); }
-    .tpl-card-count { font-size: var(--text-caption1-size); color: var(--color-text-secondary); background: var(--color-stone-300); border-radius: var(--radius-lg); padding: 0 var(--space-2); }
-    .tpl-radio { margin-left: auto; width: var(--space-4); height: var(--space-4); border-radius: 50%; border: 1px solid var(--color-stone-500); flex: none; }
-    .tpl-radio--on { border: 5px solid var(--color-primary-500); }
-    .tpl-card-desc { color: var(--color-text-secondary); }
-    .tpl-flow { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1) var(--space-2); }
-    .tpl-role { display: inline-flex; align-items: center; gap: var(--space-1); padding: 2px var(--space-2); border-radius: var(--radius-sm); background: var(--color-primary-50); color: var(--color-primary-700); font-size: var(--text-caption1-size); }
-    .tpl-role--q { background: var(--color-info-50); color: var(--color-info-800); }
-    .tpl-arrow { color: var(--color-stone-600); font-size: var(--space-3); }
-    .tpl-card-note { font-size: var(--text-caption1-size); color: var(--color-text-secondary); }
-    .tpl-replace { display: flex; align-items: center; gap: var(--space-2); margin: var(--space-4) 0 0; font-size: var(--text-caption1-size); color: var(--color-text-secondary); }
+    .tpl-bar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); background: var(--color-stone-0); border-radius: var(--radius-md); padding: var(--space-2) var(--space-2) var(--space-2) var(--space-3); box-shadow: var(--shadow-card); }
+    .tpl-bar-label { font-size: var(--text-caption1-size); color: var(--color-text-secondary); white-space: nowrap; }
+    .canvas--preview .node, .canvas--preview .edge-label { cursor: default; }
+    .canvas--preview .node-add, .canvas--preview .edge-actions { display: none; }
+    .tp-desc { margin: 0 0 var(--space-2); }
+    .tp-role { display: flex; align-items: flex-start; gap: var(--space-3); padding: var(--space-2) 0; }
+    .tp-req { margin-left: var(--space-2); font-size: var(--text-caption1-size); font-weight: normal; color: var(--color-text-secondary); background: var(--color-stone-300); border-radius: var(--radius-lg); padding: 0 var(--space-2); }
+    .footer-hint.footer-hint--info { color: var(--color-text-secondary); }
     .stepper { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-4) var(--space-6); border-bottom: 1px solid var(--color-divider); flex-shrink: 0; }
     .step { display: flex; align-items: center; gap: var(--space-2); border: 0; background: none; padding: 0; cursor: pointer; color: var(--color-text-secondary); font-size: var(--font-size-base); }
     .step:disabled { cursor: not-allowed; }
@@ -1275,25 +1262,23 @@ export class QnaSetupCanvasComponent {
     { id: 'help', icon: 'help' },
   ];
 
-  step: 0 | 1 | 2 = 0;
+  step: 1 | 2 = 1;
 
-  templateCards: { id: TemplateId; name: string; description: string; roles: string[]; chain: boolean; note?: string }[] = [
-    { id: 'basic', name: 'Basic', description: 'Coordinators answer questions themselves.', roles: ['submitter', 'coordinator'], chain: true },
-    { id: 'experts', name: 'With experts', description: 'Coordinators route questions to experts who draft answers.', roles: ['submitter', 'coordinator', 'expert'], chain: true },
-    { id: 'advanced', name: 'Advanced', description: 'Drafting, expert answers and approval before release, plus read-only viewers.', roles: ['drafter', 'submitter', 'coordinator', 'expert', 'approver', 'viewer'], chain: false },
-    { id: 'scratch', name: 'Start from scratch', description: 'An empty flow with the two required roles. Add roles and people yourself.', roles: ['submitter', 'coordinator'], chain: true, note: 'No people added' },
+  templateCards: { id: TemplateId; name: string; description: string; roles: string[]; note?: string }[] = [
+    { id: 'basic', name: 'Basic', description: 'Coordinators answer questions themselves.', roles: ['submitter', 'coordinator'] },
+    { id: 'experts', name: 'With experts', description: 'Coordinators route questions to experts who draft answers.', roles: ['submitter', 'coordinator', 'expert'] },
+    { id: 'advanced', name: 'Advanced', description: 'Drafting, expert answers and approval before release, plus read-only viewers.', roles: ['drafter', 'submitter', 'coordinator', 'expert', 'approver', 'viewer'] },
+    { id: 'scratch', name: 'Start from scratch', description: 'An empty flow with the two required roles. Add roles and people yourself.', roles: ['submitter', 'coordinator'], note: 'No people are added yet.' },
   ];
-  pickedTemplate: TemplateId = 'experts';
-  /** a template was confirmed once, so picking again replaces work */
+  templateItems: SegmentItem[] = this.templateCards.map(t => ({ id: t.id, label: t.name }));
+  get currentTemplate() { return this.templateCards.find(t => t.id === this.templateId)!; }
+  isProtectedKey(key: string) { return PROTECTED_ROLES.has(key); }
+  /** until confirmed the canvas is a read-only preview of the chosen template */
   templateConfirmed = false;
   confirmTemplate() {
     this.templateConfirmed = true;
-    this.loadTemplate(this.pickedTemplate);
-    this.step = 1;
-  }
-  backToTemplates() {
-    this.pickedTemplate = this.templateId;
-    this.step = 0;
+    this.selectedId = null;
+    this.toast.show({ variant: 'success', message: `${this.currentTemplate.name} workflow ready — add people and adjust roles` });
   }
   templateId: TemplateId = 'experts';
   assignItems: SegmentItem[] = [
@@ -2084,7 +2069,7 @@ export class QnaSetupCanvasComponent {
   }
   onNodeMouseDown(ev: MouseEvent, n: FlowNode) {
     ev.stopPropagation();
-    if (ev.button !== 0) return;
+    if (ev.button !== 0 || !this.templateConfirmed) return;
     this.dragNodeId = n.id;
     this.dragMoved = false;
     this.dragStart = { x: ev.clientX, y: ev.clientY, nx: n.x, ny: n.y };
@@ -2415,6 +2400,7 @@ export class QnaSetupCanvasComponent {
   onRoleDragStart(ev: DragEvent, r: RoleDef) { ev.dataTransfer?.setData('text/plain', 'role:' + r.key); }
   onNodeDragOver(ev: DragEvent, n: FlowNode) { ev.preventDefault(); ev.stopPropagation(); this.dropNodeId = n.id; this.canvasDropActive = false; }
   onNodeDrop(ev: DragEvent, n: FlowNode) {
+    if (!this.templateConfirmed) return;
     ev.preventDefault(); ev.stopPropagation();
     this.dropNodeId = null;
     const data = ev.dataTransfer?.getData('text/plain') ?? '';
@@ -2422,6 +2408,7 @@ export class QnaSetupCanvasComponent {
   }
   onCanvasDragOver(ev: DragEvent) { ev.preventDefault(); this.canvasDropActive = true; this.dropNodeId = null; }
   onCanvasDrop(ev: DragEvent) {
+    if (!this.templateConfirmed) return;
     ev.preventDefault();
     this.canvasDropActive = false;
     const data = ev.dataTransfer?.getData('text/plain') ?? '';
