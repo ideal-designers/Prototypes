@@ -642,19 +642,16 @@ function minutesAgo(m: number): Date { return new Date(Date.now() - m * 60_000);
           </ng-container>
 
           <ng-container *ngIf="changeAt(docId, groupId) as c">
-            <span class="was-tag"
-                  [class.was-tag--peek]="markerVariant === 'compare'"
-                  [class.was-tag--active]="peekKey === key(docId, groupId)"
-                  (mouseenter)="markerVariant === 'compare' && (peekKey = key(docId, groupId))"
-                  (mouseleave)="peekKey = null"
-                  [fvdrTooltip]="c.via != null
-                    ? 'Changed together with folder ' + doc(c.via).index + ' ' + doc(c.via).name + ' · saved level: ' + permLevels[c.from].label
-                    : 'Saved level: ' + permLevels[c.from].label">
-              <fvdr-icon *ngIf="c.via != null" name="folder" class="was-via" />
-              was <fvdr-icon [name]="permLevels[c.from].icon" /> {{ permLevels[c.from].label }}
-            </span>
-            <button class="row-revert" fvdrTooltip="Revert to saved" aria-label="Revert to saved"
-                    data-track="revert-row" (click)="revert(c)">
+            <!-- Only the revert button — its tooltip names the saved level; in B · Compare,
+                 hovering it previews the row's saved state -->
+            <button class="row-revert row-revert--row"
+                    [class.row-revert--peek]="peekKey === key(docId, groupId)"
+                    [fvdrTooltip]="'Revert to saved: ' + permLevels[c.from].label + (c.via != null ? ' · changed with folder ' + doc(c.via).index + ' ' + doc(c.via).name : '')"
+                    aria-label="Revert to saved"
+                    data-track="revert-row"
+                    (mouseenter)="markerVariant === 'compare' && (peekKey = key(docId, groupId))"
+                    (mouseleave)="peekKey = null"
+                    (click)="peekKey = null; revert(c)">
               <fvdr-icon name="undo" />
             </button>
           </ng-container>
@@ -1157,6 +1154,9 @@ function minutesAgo(m: number): Date { return new Date(Date.now() - m * 60_000);
       padding: 0;
     }
     .row-revert:hover { background: var(--color-stone-300); color: var(--color-text-primary); }
+    .row-revert--row { margin-left: auto; }
+    .row-revert--peek { background: var(--color-stone-900); color: var(--color-stone-0); }
+    .row-revert--peek:hover { background: var(--color-stone-900); color: var(--color-stone-0); }
 
     .pt-perm-hdr { display: flex; align-items: stretch; flex-shrink: 0; }
     .perm-spacer { width: 32px; flex-shrink: 0; }
@@ -1722,9 +1722,9 @@ export class PermissionsDraftV2Component implements OnInit, OnDestroy {
   ];
   private static readonly MARKER_NOTES: Record<string, string> = {
     saved: 'A thin dashed frame marks the saved level inside the bar; access the draft removes shows as white segments. Hover the frame: “Saved permission”.',
-    compare: 'No permanent marker. Hold “Compare changes” (or the \\ key) to see the saved permissions everywhere — like “before” in photo editors. Hover a row’s “was …” tag to flip just that row.',
+    compare: 'No permanent marker. Hold “Compare changes” (or the \\ key) to see the saved permissions everywhere — like “before” in photo editors. Hover a row’s revert button to flip just that row.',
     pin:   'A caret and tick sit on the saved level, like a “you were here” marker. Minimal, keeps the bar untouched.',
-    dot:   'A dot inside the saved segment. The lightest option; works best combined with the “was …” tag.',
+    dot:   'A dot inside the saved segment. The lightest option; pairs with the revert button’s tooltip.',
   };
   get markerNote(): string { return PermissionsDraftV2Component.MARKER_NOTES[this.markerVariant]; }
 
