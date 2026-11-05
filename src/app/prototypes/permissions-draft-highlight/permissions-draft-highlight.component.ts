@@ -205,19 +205,6 @@ function minutesAgo(m: number): Date { return new Date(Date.now() - m * 60_000);
             </button>
 
             <div class="toolbar-right">
-              <!-- B · Compare: press and hold to see the saved permissions, like "before" in photo editors -->
-              <button *ngIf="markerVariant === 'compare' && changeCount"
-                      class="tool-btn compare-btn"
-                      [class.compare-btn--on]="comparing"
-                      data-track="compare-hold"
-                      fvdrTooltip="Hold to see saved permissions · or hold \\" tooltipPosition="bottom"
-                      (pointerdown)="startCompare($event)"
-                      (pointerup)="stopCompare()"
-                      (pointerleave)="stopCompare()"
-                      (pointercancel)="stopCompare()">
-                <fvdr-icon [name]="comparing ? 'eye' : 'eye-slash'" />
-                {{ comparing ? 'Showing saved' : 'Compare changes' }}
-              </button>
 
             </div>
           </div>
@@ -252,10 +239,6 @@ function minutesAgo(m: number): Date { return new Date(Date.now() - m * 60_000);
                   <ng-container *ngTemplateOutlet="fileChip; context: { $implicit: item }"></ng-container>
                   <span class="item-idx">{{ item.index }}</span>
                   <span class="item-name" [innerHTML]="highlight(item.name)"></span>
-                  <span *ngIf="docChangeCount(item.id) as n"
-                        class="change-pill"
-                        [fvdrTooltip]="n + ' unsaved ' + (n === 1 ? 'change' : 'changes')"
-                        tooltipPosition="right">{{ n }}</span>
                   <span *ngIf="!docChangeCount(item.id) && subtreeChangeCount(item.id)"
                         class="change-dot"
                         fvdrTooltip="Items inside have unsaved changes" tooltipPosition="right"></span>
@@ -279,10 +262,6 @@ function minutesAgo(m: number): Date { return new Date(Date.now() - m * 60_000);
                     <span *ngIf="!g.users.length" class="expand-gap"></span>
                     <fvdr-icon name="participants" [style.color]="g.color ?? 'var(--color-text-secondary)'" />
                     <span class="item-name">{{ g.name }}</span>
-                    <span *ngIf="groupChangeCount(g.id) as n"
-                          class="change-pill"
-                          [fvdrTooltip]="n + ' unsaved ' + (n === 1 ? 'change' : 'changes')"
-                          tooltipPosition="right">{{ n }}</span>
                   </div>
                   <ng-container *ngIf="isGroupExpanded(g.id)">
                     <div *ngFor="let u of g.users" class="tree-item tree-item--user"
@@ -323,11 +302,6 @@ function minutesAgo(m: number): Date { return new Date(Date.now() - m * 60_000);
                     </div>
                   </div>
                 </div>
-              </div>
-
-              <div class="before-pill" *ngIf="comparing">
-                <fvdr-icon name="eye" />
-                Saved permissions — release to return to your draft
               </div>
 
               <div class="pt-rows">
@@ -381,8 +355,7 @@ function minutesAgo(m: number): Date { return new Date(Date.now() - m * 60_000);
         <div class="draft-bar" *ngIf="changeCount">
           <div class="draft-actions">
             <fvdr-btn variant="secondary" label="Discard all" (clicked)="discardOpen = true" />
-            <fvdr-btn variant="primary" [label]="'Save ' + changeCount + (changeCount === 1 ? ' change' : ' changes')"
-                      dataTrack="open-save-review" (clicked)="openSaveReview()" />
+            <fvdr-btn variant="primary" label="Save" dataTrack="save" (clicked)="save()" />
           </div>
           <div class="draft-status">
             <span class="draft-mark"><fvdr-icon name="edit" /></span>
@@ -610,13 +583,13 @@ function minutesAgo(m: number): Date { return new Date(Date.now() - m * 60_000);
       title="You have unsaved permission changes"
       size="s"
       cancelLabel="Stay here"
-      confirmLabel="Review and save"
-      (confirmed)="leaveTarget = null; openSaveReview()"
+      confirmLabel="Save and leave"
+      (confirmed)="leaveTarget = null; save()"
       (cancelled)="leaveTarget = null"
       (closed)="leaveTarget = null">
       <p class="modal-text">
         Leaving the Permissions page would drop {{ changeCount }} unsaved {{ changeCount === 1 ? 'change' : 'changes' }}.
-        Save them first, or stay and keep editing.
+        Save them now, or stay and keep editing.
       </p>
     </fvdr-modal>
 
@@ -629,14 +602,14 @@ function minutesAgo(m: number): Date { return new Date(Date.now() - m * 60_000);
         <span class="variant-demo-cap">View → Upload</span>
         <div class="slider-track slider-track--demo" [ngClass]="'mk-' + markerVariant">
           <div *ngFor="let pos of sliderRange" class="slider-block"
-               [ngClass]="'s-' + segClass(comparing && markerVariant === 'compare' ? 2 : 6, pos)"
+               [ngClass]="'s-' + segClass(6, pos)"
                [class.s-was]="pos === 2" [class.s-saved-range]="pos <= 2" [class.s-saved-end]="pos === 2"
                [class.s-gain]="pos > 2 && pos <= 6"></div>
         </div>
         <span class="variant-demo-cap">Original → Fence</span>
         <div class="slider-track slider-track--demo" [ngClass]="'mk-' + markerVariant">
           <div *ngFor="let pos of sliderRange" class="slider-block"
-               [ngClass]="'s-' + segClass(comparing && markerVariant === 'compare' ? 5 : 1, pos)"
+               [ngClass]="'s-' + segClass(1, pos)"
                [class.s-was]="pos === 5" [class.s-saved-range]="pos <= 5" [class.s-saved-end]="pos === 5"
                [class.s-loss]="pos > 1 && pos <= 5"></div>
         </div>
@@ -852,7 +825,7 @@ function minutesAgo(m: number): Date { return new Date(Date.now() - m * 60_000);
       display: flex; align-items: stretch;
       flex-shrink: 0;
     }
-    .pt-rows { flex: 1; overflow-y: auto; display: flex; flex-direction: column; padding-bottom: var(--space-4); }
+    .pt-rows { flex: 1; overflow-y: auto; display: flex; flex-direction: column; padding-bottom: var(--space-10); }
 
     .pt-row {
       position: relative;
@@ -861,6 +834,9 @@ function minutesAgo(m: number): Date { return new Date(Date.now() - m * 60_000);
       transition: background 0.15s;
     }
     .pt-row:hover { background: var(--color-stone-100); }
+    /* Slider blocks use filter (a stacking context each), so later rows painted over the
+       segment tooltip. Lifting the hovered row keeps its tooltip on top. */
+    .pt-row:hover { z-index: 5; }
     .pt-row--user { height: 36px; min-height: 36px; background: var(--color-stone-100); }
 
     /* Changed row — yellow wash + left bar, so edits stand out while scrolling */
@@ -1484,21 +1460,17 @@ export class PermissionsDraftHighlightComponent implements OnInit, OnDestroy {
   panelTab: PanelTab = 'activity';
 
   /** Prototype-only: how a changed bar shows its saved level. */
-  markerVariant: 'pin' | 'compare' | 'saved' | 'dot' = 'saved';
+  markerVariant: 'saved' | 'dot' = 'saved';
   /** B · Compare: every bar shows its saved level while true (held button or \\ key). */
   comparing = false;
   /** B · Compare: one row previewed via its "was …" tag. */
   peekKey: string | null = null;
   readonly markerItems: SegmentItem[] = [
     { id: 'saved', label: 'A · Saved' },
-    { id: 'compare', label: 'B · Compare' },
-    { id: 'pin',   label: 'C · Pin' },
-    { id: 'dot',   label: 'D · Dot' },
+    { id: 'dot',   label: 'B · Dot' },
   ];
   private static readonly MARKER_NOTES: Record<string, string> = {
     saved: 'A thin dashed frame marks the saved level inside the bar; access the draft removes shows as white segments. Hover the frame: “Saved permission”.',
-    compare: 'No permanent marker. Hold “Compare changes” (or the \\ key) to see the saved permissions everywhere — like “before” in photo editors.',
-    pin:   'A caret and tick sit on the saved level, like a “you were here” marker. Minimal, keeps the bar untouched.',
     dot:   'A dot inside the saved segment. The lightest option.',
   };
   get markerNote(): string { return PermissionsDraftHighlightComponent.MARKER_NOTES[this.markerVariant]; }
@@ -1737,10 +1709,8 @@ export class PermissionsDraftHighlightComponent implements OnInit, OnDestroy {
   shownLevel(docId: number, groupId: number): number {
     return this.isBefore(docId, groupId) ? this.savedLevel(docId, groupId) : this.level(docId, groupId);
   }
-  isBefore(docId: number, groupId: number): boolean {
-    if (this.markerVariant !== 'compare' || !this.isChanged(docId, groupId)) return false;
-    return this.comparing || this.peekKey === this.key(docId, groupId);
-  }
+  /** "Before" preview came from the removed Compare variant — bars always show the draft now. */
+  isBefore(_docId: number, _groupId: number): boolean { return false; }
   startCompare(e: PointerEvent): void {
     (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
     this.comparing = true;
@@ -2103,19 +2073,9 @@ export class PermissionsDraftHighlightComponent implements OnInit, OnDestroy {
     if (item.id !== 'permissions' && this.changeCount) this.leaveTarget = item;
   }
 
-  @HostListener('document:keyup', ['$event'])
-  onKeyUp(e: KeyboardEvent): void {
-    if (e.key === '\\') this.comparing = false;
-  }
-
   @HostListener('document:keydown', ['$event'])
   onKey(e: KeyboardEvent): void {
     if (e.target instanceof Element && e.target.closest('input, textarea, [contenteditable]')) return;
-    if (e.key === '\\' && this.markerVariant === 'compare' && this.changeCount) {
-      e.preventDefault();
-      this.comparing = true;
-      return;
-    }
     if ((e.metaKey || e.ctrlKey) && !e.shiftKey && e.key.toLowerCase() === 'z' && this.undoStack.length) {
       e.preventDefault();
       this.undo();
