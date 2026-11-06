@@ -366,16 +366,15 @@ function minutesAgo(m: number): Date { return new Date(Date.now() - m * 60_000);
               <strong class="fs-label">{{ unsavedLabel }}</strong>
             </ng-container>
 
-            <!-- B · Counter: the number itself is the marker -->
-            <ng-container *ngIf="footerVariant === 'badge'">
-              <span class="fs-count">{{ changeCount }}</span>
-              <strong class="fs-label">unsaved {{ changeCount === 1 ? 'change' : 'changes' }}</strong>
-            </ng-container>
 
-            <!-- C · Stepper: walk through the changes, even the ones scrolled out of view -->
+            <!-- B · Stepper: walk through the changes, even the ones scrolled out of view.
+                 The sentence stays the same; only the number becomes "1/2", in a fixed-width slot. -->
             <ng-container *ngIf="footerVariant === 'stepper'">
               <span class="fs-dot"></span>
-              <strong class="fs-label">{{ stepIdx >= 0 && stepIdx < changeCount ? (stepIdx + 1) + ' of ' + changeCount : unsavedLabel }}</strong>
+              <strong class="fs-label">
+                <span class="fs-pos" [style.min-width.ch]="stepSlotCh">{{ stepIdx >= 0 && stepIdx < changeCount ? (stepIdx + 1) + '/' + changeCount : changeCount }}</span>
+                unsaved {{ changeCount === 1 ? 'change' : 'changes' }}
+              </strong>
               <div class="fs-steps">
                 <button class="fs-step" fvdrTooltip="Previous change" aria-label="Previous change"
                         data-track="footer-step-prev" (click)="step(-1)">
@@ -388,7 +387,7 @@ function minutesAgo(m: number): Date { return new Date(Date.now() - m * 60_000);
               </div>
             </ng-container>
 
-            <!-- D · Toggle: show only the changed rows -->
+            <!-- C · Toggle: show only the changed rows -->
             <ng-container *ngIf="footerVariant === 'toggle'">
               <fvdr-toggle [(checked)]="onlyChanges" label="Show only changes" />
               <span class="fs-count fs-count--muted">{{ changeCount }}</span>
@@ -1429,6 +1428,7 @@ function minutesAgo(m: number): Date { return new Date(Date.now() - m * 60_000);
     /* Status sits right after Save, split off by a divider */
     .draft-status { padding-left: var(--space-4); border-left: 1px solid var(--color-divider); min-height: 32px; }
     .fs-label { font-size: 14px; font-weight: 600; color: var(--color-text-primary); white-space: nowrap; }
+    .fs-pos { display: inline-block; text-align: right; font-variant-numeric: tabular-nums; }
     .fs-dot {
       width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
       background: var(--changed-bar);
@@ -1447,7 +1447,6 @@ function minutesAgo(m: number): Date { return new Date(Date.now() - m * 60_000);
       color: var(--color-text-primary);
       font-size: 13px; font-weight: 700;
     }
-    .fsv-badge { gap: var(--space-2); }
     .fs-count--muted { min-width: 20px; height: 20px; font-size: 12px; background: var(--chip-bg-yellow); color: var(--primitive-yellow-800); }
     .fs-steps {
       display: inline-flex;
@@ -1532,21 +1531,19 @@ export class PermissionsDraftHighlightComponent implements OnInit, OnDestroy {
   markerVariant: 'saved' | 'dot' = 'saved';
 
   /** Prototype-only: how the footer shows the draft. */
-  footerVariant: 'dot' | 'badge' | 'stepper' | 'toggle' = 'dot';
+  footerVariant: 'dot' | 'stepper' | 'toggle' = 'dot';
   readonly footerItems: SegmentItem[] = [
     { id: 'dot',     label: 'A · Dot' },
-    { id: 'badge',   label: 'B · Counter' },
-    { id: 'stepper', label: 'C · Stepper' },
-    { id: 'toggle',  label: 'D · Toggle' },
+    { id: 'stepper', label: 'B · Stepper' },
+    { id: 'toggle',  label: 'C · Toggle' },
   ];
   private static readonly FOOTER_NOTES: Record<string, string> = {
     dot:     'A small live dot and the count — reads as status, not as a button.',
-    badge:   'The number is the marker: a yellow counter next to “unsaved changes”.',
     stepper: 'Arrows walk through the changes one by one and scroll to each, even if it’s out of view or in another group.',
     toggle:  'A switch narrows the table to changed rows only (parent folders stay for context).',
   };
   get footerNote(): string { return PermissionsDraftHighlightComponent.FOOTER_NOTES[this.footerVariant]; }
-  setFooterVariant(v: 'dot' | 'badge' | 'stepper' | 'toggle'): void {
+  setFooterVariant(v: 'dot' | 'stepper' | 'toggle'): void {
     this.footerVariant = v;
     this.onlyChanges = false;
     this.stepIdx = -1;
@@ -1815,6 +1812,9 @@ export class PermissionsDraftHighlightComponent implements OnInit, OnDestroy {
   isChanged(docId: number, groupId: number): boolean { return !!this.changeAt(docId, groupId); }
   /** Saved level of a changed cell — drawn as a dashed ghost; null when the cell is unchanged. */
   wasLevel(docId: number, groupId: number): number | null { return this.changeAt(docId, groupId)?.from ?? null; }
+  /** Width of the stepper's number slot, sized for "N/N" so the text after it never shifts. */
+  get stepSlotCh(): number { return String(this.changeCount).length * 2 + 1; }
+
   get unsavedLabel(): string { return `${this.changeCount} unsaved ${this.changeCount === 1 ? 'change' : 'changes'}`; }
 
   /** Rows of the table, narrowed to changed ones (plus folders that hold them) when the toggle is on. */
