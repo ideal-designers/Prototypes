@@ -414,7 +414,7 @@ function minutesAgo(m: number): Date { return new Date(Date.now() - m * 60_000);
             <fvdr-icon *ngIf="shownLevel(docId, groupId) === 0 || (!isBefore(docId, groupId) && wasLevel(docId, groupId) === 0)"
                        name="cancel" class="row-empty-icon" />
             <!-- Tooltip only on the saved level of a changed row -->
-            <div class="seg-tooltip" *ngIf="hoveredSeg === key(docId, groupId) + '-0' && wasLevel(docId, groupId) === 0">Saved permission</div>
+            <div class="seg-tooltip" *ngIf="hoveredSeg === key(docId, groupId) + '-0' && wasLevel(docId, groupId) === 0">Last saved</div>
           </span>
           <div class="slider-track" [ngClass]="'mk-' + markerVariant" [class.is-before]="isBefore(docId, groupId)">
             <div *ngFor="let pos of sliderRange"
@@ -428,7 +428,7 @@ function minutesAgo(m: number): Date { return new Date(Date.now() - m * 60_000);
                  (mouseenter)="hoveredSeg = key(docId, groupId) + '-' + pos"
                  (mouseleave)="hoveredSeg = null"
                  (click)="setLevel(docId, groupId, pos)">
-              <div class="seg-tooltip" *ngIf="hoveredSeg === key(docId, groupId) + '-' + pos && wasLevel(docId, groupId) === pos">Saved permission</div>
+              <div class="seg-tooltip" *ngIf="hoveredSeg === key(docId, groupId) + '-' + pos && wasLevel(docId, groupId) === pos">Last saved</div>
             </div>
           </div>
         </div>
@@ -1010,7 +1010,7 @@ function minutesAgo(m: number): Date { return new Date(Date.now() - m * 60_000);
     .before-pill fvdr-icon { font-size: 14px; }
 
     /* A · Saved (Figma 2059-100240) — a thin dashed frame inside the saved segment;
-       segments the draft takes away turn white; hover says "Saved permission" */
+       segments the draft takes away turn white; hover says "Last saved" */
     .mk-saved .s-was::after {
       content: '';
       position: absolute; inset: 3px 2px;
@@ -1468,7 +1468,7 @@ export class PermissionsDraftHighlightComponent implements OnInit, OnDestroy {
     { id: 'dot',   label: 'B · Dot' },
   ];
   private static readonly MARKER_NOTES: Record<string, string> = {
-    saved: 'A thin dashed frame marks the saved level inside the bar; access the draft removes shows as white segments. Hover the frame: “Saved permission”.',
+    saved: 'A thin dashed frame marks the saved level inside the bar; access the draft removes shows as white segments. Hover the frame: “Last saved”.',
     dot:   'A dot inside the saved segment. The lightest option.',
   };
   get markerNote(): string { return PermissionsDraftHighlightComponent.MARKER_NOTES[this.markerVariant]; }
@@ -1524,6 +1524,21 @@ export class PermissionsDraftHighlightComponent implements OnInit, OnDestroy {
     { id: 7,  index: '7',     name: 'Tax returns.pdf',                     type: 'pdf',    perms: [3,4,3,1,0,3] },
     { id: 8,  index: '8',     name: 'Registration with tax authorities',   type: 'doc',    perms: [6,7,5,4,3,6] },
     { id: 9,  index: '9',     name: 'Site walkthrough recording.mp4',      type: 'video',  perms: [0,2,7,5,0,7], restricted: [1,3,4,6] },
+    { id: 10,  index: '10',     name: 'Legal DD — Contracts',                type: 'folder', perms: [5,5,4,3,2,5], published: true },
+    { id: 101, index: '10.1',   name: 'Customer agreements',                 type: 'folder', perms: [5,5,4,3,2,5], published: true, parentId: 10 },
+    { id: 102, index: '10.1.1', name: 'Master services agreement.pdf',       type: 'pdf',    perms: [5,5,4,3,2,5], published: true, parentId: 101 },
+    { id: 103, index: '10.1.2', name: 'NDA template.docx',                   type: 'doc',    perms: [5,4,4,2,2,5], published: true, parentId: 101 },
+    { id: 104, index: '10.2',   name: 'Supplier contracts.xlsx',             type: 'xlsx',   perms: [5,5,3,3,1,5], published: true, parentId: 10 },
+    { id: 110, index: '11',     name: 'HR — People and compensation',        type: 'folder', perms: [6,3,2,0,0,4], published: true },
+    { id: 111, index: '11.1',   name: 'Employee census.xlsx',                type: 'xlsx',   perms: [6,3,2,0,0,4], published: true, parentId: 110 },
+    { id: 112, index: '11.2',   name: 'Bonus plan 2026.pdf',                 type: 'pdf',    perms: [6,2,1,0,0,3], parentId: 110 },
+    { id: 120, index: '12',     name: 'IP — Patents and trademarks',         type: 'folder', perms: [4,4,4,2,3,4], published: true },
+    { id: 121, index: '12.1',   name: 'Patent portfolio.pdf',                type: 'pdf',    perms: [4,4,4,2,3,4], published: true, parentId: 120 },
+    { id: 122, index: '12.2',   name: 'Trademark registrations.xlsx',        type: 'xlsx',   perms: [4,4,3,2,3,4], published: true, parentId: 120 },
+    { id: 13,  index: '13',     name: 'Management presentation.pdf',         type: 'pdf',    perms: [7,6,5,4,5,6], published: true },
+    { id: 14,  index: '14',     name: 'Board minutes 2025.docx',             type: 'doc',    perms: [6,2,2,1,1,2], published: true },
+    { id: 15,  index: '15',     name: 'Financial model.xlsx',                type: 'xlsx',   perms: [5,4,4,3,2,4] },
+    { id: 16,  index: '16',     name: 'Product demo.mp4',                    type: 'video',  perms: [2,2,2,0,2,2], published: true, restricted: [1,3,4,6] },
   ];
 
   history: SavedBatch[] = [
