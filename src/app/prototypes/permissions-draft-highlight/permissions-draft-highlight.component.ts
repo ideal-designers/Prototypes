@@ -357,41 +357,25 @@ function minutesAgo(m: number): Date { return new Date(Date.now() - m * 60_000);
             <fvdr-btn variant="secondary" label="Discard all" (clicked)="discardOpen = true" />
             <fvdr-btn variant="primary" label="Save" dataTrack="save" (clicked)="save()" />
           </div>
-          <!-- Footer status — prototype variants (see the switcher) -->
-          <div class="draft-status" [ngClass]="'fsv-' + footerVariant">
-
-            <!-- A · Dot: a live dot instead of an icon box -->
-            <ng-container *ngIf="footerVariant === 'dot'">
-              <span class="fs-dot"></span>
-              <strong class="fs-label">{{ unsavedLabel }}</strong>
-            </ng-container>
-
-
-            <!-- B · Stepper: walk through the changes, even the ones scrolled out of view.
-                 The sentence stays the same; only the number becomes "1/2", in a fixed-width slot. -->
-            <ng-container *ngIf="footerVariant === 'stepper'">
-              <span class="fs-dot"></span>
-              <strong class="fs-label">
-                <span class="fs-pos" [style.min-width.ch]="stepSlotCh">{{ stepIdx >= 0 && stepIdx < changeCount ? (stepIdx + 1) + '/' + changeCount : changeCount }}</span>
-                unsaved {{ changeCount === 1 ? 'change' : 'changes' }}
-              </strong>
-              <div class="fs-steps">
-                <button class="fs-step" fvdrTooltip="Previous change" aria-label="Previous change"
-                        data-track="footer-step-prev" (click)="step(-1)">
-                  <fvdr-icon name="chevron-up" />
-                </button>
-                <button class="fs-step" fvdrTooltip="Next change" aria-label="Next change"
-                        data-track="footer-step-next" (click)="step(1)">
-                  <fvdr-icon name="chevron-down" />
-                </button>
-              </div>
-            </ng-container>
-
-            <!-- C · Toggle: show only the changed rows -->
-            <ng-container *ngIf="footerVariant === 'toggle'">
-              <fvdr-toggle [(checked)]="onlyChanges" label="Show only changes" />
-              <span class="fs-count fs-count--muted">{{ changeCount }}</span>
-            </ng-container>
+          <!-- Footer status: the count + a stepper through the changes (works for rows scrolled out
+               of view or in another group). The sentence stays put; only the number turns into "1/2". -->
+          <div class="draft-status">
+            <span class="fs-dot"></span>
+            <strong class="fs-label">
+              <span class="fs-pos" [style.min-width.ch]="stepSlotCh">{{ stepIdx >= 0 && stepIdx < changeCount ? (stepIdx + 1) + '/' + changeCount : changeCount }}</span>
+              unsaved {{ changeCount === 1 ? 'change' : 'changes' }}
+            </strong>
+            <!-- Plain DS chevrons (Figma DS 5976-37087), no button chrome -->
+            <div class="fs-steps">
+              <button class="fs-step" fvdrTooltip="Previous change" aria-label="Previous change"
+                      data-track="footer-step-prev" (click)="step(-1)">
+                <fvdr-icon name="chevron-up" />
+              </button>
+              <button class="fs-step" fvdrTooltip="Next change" aria-label="Next change"
+                      data-track="footer-step-next" (click)="step(1)">
+                <fvdr-icon name="chevron-down" />
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -621,11 +605,6 @@ function minutesAgo(m: number): Date { return new Date(Date.now() - m * 60_000);
 
     <!-- Prototype-only: compare ways to show the saved level on a changed bar -->
     <div class="variant-switch">
-      <span class="variant-switch-label">Footer status</span>
-      <fvdr-segment variant="table" size="sm" [items]="footerItems" [activeId]="footerVariant"
-                    (activeIdChange)="setFooterVariant($any($event))" />
-      <span class="variant-switch-note">{{ footerNote }}</span>
-      <div class="variant-switch-divider"></div>
       <span class="variant-switch-label">Saved level on a changed bar</span>
       <fvdr-segment variant="table" size="sm" [items]="markerItems" [activeId]="markerVariant"
                     (activeIdChange)="markerVariant = $any($event)" />
@@ -1448,20 +1427,14 @@ function minutesAgo(m: number): Date { return new Date(Date.now() - m * 60_000);
       font-size: 13px; font-weight: 700;
     }
     .fs-count--muted { min-width: 20px; height: 20px; font-size: 12px; background: var(--chip-bg-yellow); color: var(--primitive-yellow-800); }
-    .fs-steps {
-      display: inline-flex;
-      border: 1px solid var(--color-stone-500);
-      border-radius: var(--radius-sm);
-      overflow: hidden;
-    }
+    .fs-steps { display: inline-flex; align-items: center; gap: var(--space-2); }
     .fs-step {
       display: inline-flex; align-items: center; justify-content: center;
-      width: 32px; height: 30px;
-      background: var(--color-stone-0); border: none; cursor: pointer;
-      color: var(--color-text-secondary); font-size: 16px;
+      padding: 0; background: none; border: none; cursor: pointer;
+      color: var(--color-text-secondary); font-size: 16px; line-height: 0;
     }
-    .fs-step + .fs-step { border-left: 1px solid var(--color-stone-500); }
-    .fs-step:hover { background: var(--color-stone-200); color: var(--color-text-primary); }
+    .fs-step:hover { color: var(--color-text-primary); }
+    .fs-step:focus-visible { outline: 2px solid var(--color-primary-500); outline-offset: 2px; border-radius: var(--radius-sm); }
     .variant-switch-divider { height: 1px; background: var(--color-divider); margin: var(--space-1) 0; }
     @media (prefers-reduced-motion: reduce) { .fs-dot { animation: none; } }
     .draft-open { margin-left: auto; }
@@ -1529,25 +1502,6 @@ export class PermissionsDraftHighlightComponent implements OnInit, OnDestroy {
 
   /** Prototype-only: how a changed bar shows its saved level. */
   markerVariant: 'saved' | 'dot' = 'saved';
-
-  /** Prototype-only: how the footer shows the draft. */
-  footerVariant: 'dot' | 'stepper' | 'toggle' = 'dot';
-  readonly footerItems: SegmentItem[] = [
-    { id: 'dot',     label: 'A · Dot' },
-    { id: 'stepper', label: 'B · Stepper' },
-    { id: 'toggle',  label: 'C · Toggle' },
-  ];
-  private static readonly FOOTER_NOTES: Record<string, string> = {
-    dot:     'A small live dot and the count — reads as status, not as a button.',
-    stepper: 'Arrows walk through the changes one by one and scroll to each, even if it’s out of view or in another group.',
-    toggle:  'A switch narrows the table to changed rows only (parent folders stay for context).',
-  };
-  get footerNote(): string { return PermissionsDraftHighlightComponent.FOOTER_NOTES[this.footerVariant]; }
-  setFooterVariant(v: 'dot' | 'stepper' | 'toggle'): void {
-    this.footerVariant = v;
-    this.onlyChanges = false;
-    this.stepIdx = -1;
-  }
 
   /** D · Toggle */
   onlyChanges = false;
