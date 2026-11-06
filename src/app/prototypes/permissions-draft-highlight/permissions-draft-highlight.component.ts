@@ -308,7 +308,7 @@ function minutesAgo(m: number): Date { return new Date(Date.now() - m * 60_000);
 
                 <!-- By groups: one row per group, for the selected document -->
                 <ng-container *ngIf="viewMode === 'by-groups'">
-                  <ng-container *ngFor="let g of groups">
+                  <ng-container *ngFor="let g of tableGroups">
                     <ng-container *ngTemplateOutlet="permRow; context: {
                       docId: selectedDocId, groupId: g.id, item: selectedDoc, group: g, kind: 'group'
                     }"></ng-container>
@@ -335,7 +335,7 @@ function minutesAgo(m: number): Date { return new Date(Date.now() - m * 60_000);
 
                 <!-- By documents: one row per document, for the selected group -->
                 <ng-container *ngIf="viewMode === 'by-documents'">
-                  <ng-container *ngFor="let item of visibleDocs">
+                  <ng-container *ngFor="let item of tableDocs">
                     <ng-container *ngTemplateOutlet="permRow; context: {
                       docId: item.id, groupId: selectedGroupId, item: item, group: selectedGroup, kind: 'doc'
                     }"></ng-container>
@@ -357,13 +357,42 @@ function minutesAgo(m: number): Date { return new Date(Date.now() - m * 60_000);
             <fvdr-btn variant="secondary" label="Discard all" (clicked)="discardOpen = true" />
             <fvdr-btn variant="primary" label="Save" dataTrack="save" (clicked)="save()" />
           </div>
-          <div class="draft-status">
-            <span class="draft-mark"><fvdr-icon name="edit" /></span>
-            <div class="draft-text">
-              <strong>{{ changeCount }} unsaved {{ changeCount === 1 ? 'change' : 'changes' }}</strong>
-              <span>{{ changedDocIds.length }} {{ changedDocIds.length === 1 ? 'document' : 'documents' }}
-                · {{ changedGroupIds.length }} {{ changedGroupIds.length === 1 ? 'group' : 'groups' }}</span>
-            </div>
+          <!-- Footer status — prototype variants (see the switcher) -->
+          <div class="draft-status" [ngClass]="'fsv-' + footerVariant">
+
+            <!-- A · Dot: a live dot instead of an icon box -->
+            <ng-container *ngIf="footerVariant === 'dot'">
+              <span class="fs-dot"></span>
+              <strong class="fs-label">{{ unsavedLabel }}</strong>
+            </ng-container>
+
+            <!-- B · Counter: the number itself is the marker -->
+            <ng-container *ngIf="footerVariant === 'badge'">
+              <span class="fs-count">{{ changeCount }}</span>
+              <strong class="fs-label">unsaved {{ changeCount === 1 ? 'change' : 'changes' }}</strong>
+            </ng-container>
+
+            <!-- C · Stepper: walk through the changes, even the ones scrolled out of view -->
+            <ng-container *ngIf="footerVariant === 'stepper'">
+              <span class="fs-dot"></span>
+              <strong class="fs-label">{{ stepIdx >= 0 && stepIdx < changeCount ? (stepIdx + 1) + ' of ' + changeCount : unsavedLabel }}</strong>
+              <div class="fs-steps">
+                <button class="fs-step" fvdrTooltip="Previous change" aria-label="Previous change"
+                        data-track="footer-step-prev" (click)="step(-1)">
+                  <fvdr-icon name="chevron-up" />
+                </button>
+                <button class="fs-step" fvdrTooltip="Next change" aria-label="Next change"
+                        data-track="footer-step-next" (click)="step(1)">
+                  <fvdr-icon name="chevron-down" />
+                </button>
+              </div>
+            </ng-container>
+
+            <!-- D · Toggle: show only the changed rows -->
+            <ng-container *ngIf="footerVariant === 'toggle'">
+              <fvdr-toggle [(checked)]="onlyChanges" label="Show only changes" />
+              <span class="fs-count fs-count--muted">{{ changeCount }}</span>
+            </ng-container>
           </div>
         </div>
       </div>
@@ -593,6 +622,11 @@ function minutesAgo(m: number): Date { return new Date(Date.now() - m * 60_000);
 
     <!-- Prototype-only: compare ways to show the saved level on a changed bar -->
     <div class="variant-switch">
+      <span class="variant-switch-label">Footer status</span>
+      <fvdr-segment variant="table" size="sm" [items]="footerItems" [activeId]="footerVariant"
+                    (activeIdChange)="setFooterVariant($any($event))" />
+      <span class="variant-switch-note">{{ footerNote }}</span>
+      <div class="variant-switch-divider"></div>
       <span class="variant-switch-label">Saved level on a changed bar</span>
       <fvdr-segment variant="table" size="sm" [items]="markerItems" [activeId]="markerVariant"
                     (activeIdChange)="markerVariant = $any($event)" />
@@ -1036,7 +1070,7 @@ function minutesAgo(m: number): Date { return new Date(Date.now() - m * 60_000);
     .variant-switch {
       position: fixed; left: 88px; bottom: 88px; z-index: 250;
       display: flex; flex-direction: column; gap: var(--space-2);
-      width: 340px;
+      width: 400px;
       padding: var(--space-3) var(--space-4);
       border-radius: var(--radius-md);
       background: var(--color-stone-0);
@@ -1393,7 +1427,44 @@ function minutesAgo(m: number): Date { return new Date(Date.now() - m * 60_000);
     @keyframes bar-in { from { transform: translateY(100%); } to { transform: none; } }
     .draft-status { display: flex; align-items: center; gap: var(--space-3); min-width: 0; }
     /* Status sits right after Save, split off by a divider */
-    .draft-status { padding-left: var(--space-4); border-left: 1px solid var(--color-divider); }
+    .draft-status { padding-left: var(--space-4); border-left: 1px solid var(--color-divider); min-height: 32px; }
+    .fs-label { font-size: 14px; font-weight: 600; color: var(--color-text-primary); white-space: nowrap; }
+    .fs-dot {
+      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+      background: var(--changed-bar);
+      animation: fs-pulse 1.8s ease-in-out infinite;
+    }
+    @keyframes fs-pulse {
+      0%   { box-shadow: 0 0 0 0 rgba(209, 178, 0, 0.35); }
+      70%  { box-shadow: 0 0 0 6px rgba(209, 178, 0, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(209, 178, 0, 0); }
+    }
+    .fs-count {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-width: 24px; height: 24px; padding: 0 var(--space-2);
+      border-radius: var(--radius-full, 999px);
+      background: var(--color-warning-500);
+      color: var(--color-text-primary);
+      font-size: 13px; font-weight: 700;
+    }
+    .fsv-badge { gap: var(--space-2); }
+    .fs-count--muted { min-width: 20px; height: 20px; font-size: 12px; background: var(--chip-bg-yellow); color: var(--primitive-yellow-800); }
+    .fs-steps {
+      display: inline-flex;
+      border: 1px solid var(--color-stone-500);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+    }
+    .fs-step {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 32px; height: 30px;
+      background: var(--color-stone-0); border: none; cursor: pointer;
+      color: var(--color-text-secondary); font-size: 16px;
+    }
+    .fs-step + .fs-step { border-left: 1px solid var(--color-stone-500); }
+    .fs-step:hover { background: var(--color-stone-200); color: var(--color-text-primary); }
+    .variant-switch-divider { height: 1px; background: var(--color-divider); margin: var(--space-1) 0; }
+    @media (prefers-reduced-motion: reduce) { .fs-dot { animation: none; } }
     .draft-open { margin-left: auto; }
     .draft-mark {
       width: 32px; height: 32px; flex-shrink: 0;
@@ -1459,6 +1530,32 @@ export class PermissionsDraftHighlightComponent implements OnInit, OnDestroy {
 
   /** Prototype-only: how a changed bar shows its saved level. */
   markerVariant: 'saved' | 'dot' = 'saved';
+
+  /** Prototype-only: how the footer shows the draft. */
+  footerVariant: 'dot' | 'badge' | 'stepper' | 'toggle' = 'dot';
+  readonly footerItems: SegmentItem[] = [
+    { id: 'dot',     label: 'A · Dot' },
+    { id: 'badge',   label: 'B · Counter' },
+    { id: 'stepper', label: 'C · Stepper' },
+    { id: 'toggle',  label: 'D · Toggle' },
+  ];
+  private static readonly FOOTER_NOTES: Record<string, string> = {
+    dot:     'A small live dot and the count — reads as status, not as a button.',
+    badge:   'The number is the marker: a yellow counter next to “unsaved changes”.',
+    stepper: 'Arrows walk through the changes one by one and scroll to each, even if it’s out of view or in another group.',
+    toggle:  'A switch narrows the table to changed rows only (parent folders stay for context).',
+  };
+  get footerNote(): string { return PermissionsDraftHighlightComponent.FOOTER_NOTES[this.footerVariant]; }
+  setFooterVariant(v: 'dot' | 'badge' | 'stepper' | 'toggle'): void {
+    this.footerVariant = v;
+    this.onlyChanges = false;
+    this.stepIdx = -1;
+  }
+
+  /** D · Toggle */
+  onlyChanges = false;
+  /** C · Stepper: index into stepOrder, -1 = not started */
+  stepIdx = -1;
   /** B · Compare: every bar shows its saved level while true (held button or \\ key). */
   comparing = false;
   /** B · Compare: one row previewed via its "was …" tag. */
@@ -1718,6 +1815,32 @@ export class PermissionsDraftHighlightComponent implements OnInit, OnDestroy {
   isChanged(docId: number, groupId: number): boolean { return !!this.changeAt(docId, groupId); }
   /** Saved level of a changed cell — drawn as a dashed ghost; null when the cell is unchanged. */
   wasLevel(docId: number, groupId: number): number | null { return this.changeAt(docId, groupId)?.from ?? null; }
+  get unsavedLabel(): string { return `${this.changeCount} unsaved ${this.changeCount === 1 ? 'change' : 'changes'}`; }
+
+  /** Rows of the table, narrowed to changed ones (plus folders that hold them) when the toggle is on. */
+  get tableDocs(): TreeItem[] {
+    if (!this.onlyChanges) return this.visibleDocs;
+    const g = this.selectedGroupId;
+    return this.treeItems.filter(d => this.isChanged(d.id, g) || this.innerChangeCount(d.id, g) > 0);
+  }
+  get tableGroups(): Group[] {
+    if (!this.onlyChanges) return this.groups;
+    return this.groups.filter(g => this.isChanged(this.selectedDocId, g.id));
+  }
+
+  /** Changes in the order they appear in the tree (then by group). */
+  private get stepOrder(): Change[] {
+    const pos = new Map(this.treeItems.map((t, i) => [t.id, i]));
+    return [...this.topChanges].sort((a, b) => (pos.get(a.docId)! - pos.get(b.docId)!) || a.groupId - b.groupId);
+  }
+  step(dir: 1 | -1): void {
+    const list = this.stepOrder;
+    if (!list.length) return;
+    this.stepIdx = this.stepIdx < 0 ? (dir === 1 ? 0 : list.length - 1) : (this.stepIdx + dir + list.length) % list.length;
+    this.jumpTo(list[this.stepIdx]);
+    setTimeout(() => document.querySelector('.pt-row--flash')?.scrollIntoView({ block: 'center', behavior: 'smooth' }), 30);
+  }
+
   /** Level drawn on the bar: the saved one while comparing / peeking, the draft otherwise. */
   shownLevel(docId: number, groupId: number): number {
     return this.isBefore(docId, groupId) ? this.savedLevel(docId, groupId) : this.level(docId, groupId);
@@ -2018,6 +2141,8 @@ export class PermissionsDraftHighlightComponent implements OnInit, OnDestroy {
   }
 
   discardAll(): void {
+    this.onlyChanges = false;
+    this.stepIdx = -1;
     const n = this.changeCount;
     this.pushLog({ kind: 'discarded', text: `Discarded ${n} unsaved ${n === 1 ? 'change' : 'changes'}` });
     this.closeSession();
@@ -2035,6 +2160,8 @@ export class PermissionsDraftHighlightComponent implements OnInit, OnDestroy {
   }
 
   save(): void {
+    this.onlyChanges = false;
+    this.stepIdx = -1;
     const changes = this.changes;
     for (const c of changes) this.doc(c.docId).perms[c.groupId] = c.to;
     this.history = [{
