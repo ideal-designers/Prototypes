@@ -413,7 +413,8 @@ function minutesAgo(m: number): Date { return new Date(Date.now() - m * 60_000);
                 (click)="setLevel(docId, groupId, 0)">
             <fvdr-icon *ngIf="shownLevel(docId, groupId) === 0 || (!isBefore(docId, groupId) && wasLevel(docId, groupId) === 0)"
                        name="cancel" class="row-empty-icon" />
-            <div class="seg-tooltip" *ngIf="hoveredSeg === key(docId, groupId) + '-0'">{{ permLevels[0].label }}</div>
+            <!-- Tooltip only on the saved level of a changed row -->
+            <div class="seg-tooltip" *ngIf="hoveredSeg === key(docId, groupId) + '-0' && wasLevel(docId, groupId) === 0">Saved permission</div>
           </span>
           <div class="slider-track" [ngClass]="'mk-' + markerVariant" [class.is-before]="isBefore(docId, groupId)">
             <div *ngFor="let pos of sliderRange"
@@ -427,10 +428,7 @@ function minutesAgo(m: number): Date { return new Date(Date.now() - m * 60_000);
                  (mouseenter)="hoveredSeg = key(docId, groupId) + '-' + pos"
                  (mouseleave)="hoveredSeg = null"
                  (click)="setLevel(docId, groupId, pos)">
-              <div class="seg-tooltip" *ngIf="hoveredSeg === key(docId, groupId) + '-' + pos">
-                <ng-container *ngIf="markerVariant === 'saved' && wasLevel(docId, groupId) === pos && !isBefore(docId, groupId); else lvlTip">Saved permission</ng-container>
-                <ng-template #lvlTip>{{ permLevels[pos].label }}<span *ngIf="wasLevel(docId, groupId) === pos"> · saved level</span></ng-template>
-              </div>
+              <div class="seg-tooltip" *ngIf="hoveredSeg === key(docId, groupId) + '-' + pos && wasLevel(docId, groupId) === pos">Saved permission</div>
             </div>
           </div>
         </div>
