@@ -624,7 +624,6 @@ function minutesAgo(m: number): Date { return new Date(Date.now() - m * 60_000);
                [class.s-loss]="pos > 1 && pos <= 5"></div>
         </div>
       </div>
-      <span class="variant-switch-note">{{ markerNote }}</span>
     </div>
 
     <fvdr-toast-host></fvdr-toast-host>
@@ -1512,8 +1511,8 @@ export class PermissionsDraftHighlightComponent implements OnInit, OnDestroy {
   /** B · Compare: one row previewed via its "was …" tag. */
   peekKey: string | null = null;
   readonly markerItems: SegmentItem[] = [
-    { id: 'saved', label: 'A · Saved' },
-    { id: 'dot',   label: 'B · Dot' },
+    { id: 'saved', label: 'Option 1 · Dashed mark' },
+    { id: 'dot',   label: 'Option 2 · Dot' },
   ];
   private static readonly MARKER_NOTES: Record<string, string> = {
     saved: 'A thin dashed frame marks the saved level inside the bar; access the draft removes shows as white segments. Hover the frame: “Last saved”.',
