@@ -212,7 +212,7 @@ export const PROTO_META: Record<string, ProtoMetaInfo> = {
     "author": "Yuliia Porokhivnyk"
   },
   "bulk-rename-original-names": {
-    "updated": "2026-11-09T14:02:24+01:00",
+    "updated": "2026-11-09T14:26:22+01:00",
     "author": "Nikita Tonkonozhenko"
   }
 };
