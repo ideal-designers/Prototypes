@@ -91,7 +91,7 @@ const DATA: Item[] = [
 
           <!-- Trees: one scroll area, so both columns scroll together and rows stay aligned -->
           <div class="scroll">
-            <div class="split" [class.split--b]="variant === 'B'" [class.split--on]="showOrig" [class.split--nohead]="!showHeader">
+            <div class="split" #split [style.--ow]="origShare" [class.split--b]="variant === 'B'" [class.split--on]="showOrig" [class.split--nohead]="!showHeader" [class.split--drag]="dragging">
               <section class="col col--new" aria-label="New names">
                 <div class="col__top"><div class="col__head"><span>New names</span></div></div>
                 <div class="rows">
@@ -114,6 +114,9 @@ const DATA: Item[] = [
                   </div>
                 </div>
               </section>
+
+              <div class="resizer" role="separator" aria-orientation="vertical" aria-label="Resize columns" tabindex="-1"
+                   (pointerdown)="startResize($event, split)" (dblclick)="origShare = 0.5"></div>
 
               <section class="col col--orig" aria-label="Original names" [attr.aria-hidden]="!showOrig">
                 <div class="col__top"><div class="col__head"><span>Original names</span></div></div>
@@ -179,13 +182,19 @@ const DATA: Item[] = [
     .col { min-width: 0; }
     .col--new { flex: 1 1 0; }
     .col--orig { flex: 0 0 0; width: 0; opacity: 0; overflow: clip; margin: 0; pointer-events: none;
-      transition: flex-basis var(--slide) ease-out, width var(--slide) ease-out, margin var(--slide) ease-out, opacity var(--slide) ease-out; }
-    .split--on .col--orig { flex-basis: calc(50% - var(--space-2)); width: calc(50% - var(--space-2)); opacity: 1; pointer-events: auto; }
-    /* A: original slides in from the right · B: original sits on the left */
-    .split:not(.split--b) .col--orig { margin-left: 0; }
-    .split:not(.split--b).split--on .col--orig { margin-left: var(--space-4); }
-    .split--b .col--orig { order: -1; }
-    .split--b.split--on .col--orig { margin-right: var(--space-4); }
+      transition: flex-basis var(--slide) ease-out, width var(--slide) ease-out, opacity var(--slide) ease-out; }
+    /* --ow = share of the (width minus the 16px gutter) taken by the original column; dragged via .resizer */
+    .split--on .col--orig { flex-basis: calc((100% - var(--space-4)) * var(--ow, 0.5)); width: calc((100% - var(--space-4)) * var(--ow, 0.5)); opacity: 1; pointer-events: auto; }
+    .resizer { flex: 0 0 0; width: 0; align-self: stretch; position: relative; overflow: visible; transition: flex-basis var(--slide) ease-out, width var(--slide) ease-out; }
+    .split--on .resizer { flex-basis: var(--space-4); width: var(--space-4); cursor: col-resize; touch-action: none; }
+    .split--on .resizer::before { content: ''; position: absolute; top: 0; bottom: 0; left: 50%; width: 2px; margin-left: -1px;
+      border-radius: var(--radius-sm); background: transparent; transition: background var(--slide) ease-out; }
+    .split--on .resizer:hover::before, .split--drag .resizer::before { background: var(--color-primary-500); }
+    .split--drag { cursor: col-resize; user-select: none; }
+    .split--drag .col--orig, .split--drag .resizer { transition: none; }
+    /* A: original on the right · B: original on the left */
+    .split--b .col--orig { order: -2; }
+    .split--b .resizer { order: -1; }
 
     /* column headers stay put while the rows scroll under them */
     .col__top { position: sticky; top: 0; z-index: 3; background: var(--color-bg-page); }
@@ -233,6 +242,9 @@ export class BulkRenameOriginalNamesComponent implements OnInit, OnDestroy {
   showOrig = false;
   /** Column headers (New names / Original names) on or off. */
   showHeader = true;
+  /** Share of the width taken by the Original names column (0.25–0.75). */
+  origShare = 0.5;
+  dragging = false;
   filter: FilterMode = 'all';
   open = new Set<string>(['2', '2.1', '2.2', '2.3', '2.4']);
   hot: string | null = null;
@@ -275,7 +287,23 @@ export class BulkRenameOriginalNamesComponent implements OnInit, OnDestroy {
     if (e.group === 'variant') this.variant = e.value as Variant;
     if (e.group === 'header') this.showHeader = e.value === 'yes';
   }
+  startResize(e: PointerEvent, split: HTMLElement): void {
+    e.preventDefault();
+    this.dragging = true;
+    const rect = split.getBoundingClientRect();
+    const gutter = 16;
+    const move = (ev: PointerEvent) => {
+      const usable = rect.width - gutter;
+      const share = this.variant === 'B' ? (ev.clientX - rect.left - gutter / 2) / usable : (rect.right - ev.clientX - gutter / 2) / usable;
+      this.origShare = Math.min(0.75, Math.max(0.25, share));
+    };
+    const up = () => { this.dragging = false; window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+  }
+
   restart(): void {
+    this.origShare = 0.5;
     this.items = DATA.map(i => ({ ...i }));
     this.open = new Set(['2', '2.1', '2.2', '2.3', '2.4']);
     this.showOrig = false;
