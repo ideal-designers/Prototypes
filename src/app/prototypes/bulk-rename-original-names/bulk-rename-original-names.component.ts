@@ -139,8 +139,8 @@ const DATA: Item[] = [
         <div class="bar">
           <fvdr-btn label="Back" variant="secondary"></fvdr-btn>
           <fvdr-btn label="Rename" variant="primary"></fvdr-btn>
-          <button type="button" class="chip" [class.chip--active]="filter === 'renamed'" (click)="setFilter('renamed')"><fvdr-icon name="rename"></fvdr-icon>{{ renamedCount }} items to rename</button>
-          <button type="button" class="chip chip--warn" *ngIf="lowCount" [class.chip--active]="filter === 'low'" (click)="setFilter('low')"><fvdr-icon name="warning"></fvdr-icon>{{ lowCount }} with low confidence</button>
+          <button type="button" class="chip" [class.chip--active]="filter === 'renamed'" (click)="setFilter(filter === 'renamed' ? 'all' : 'renamed')"><fvdr-icon name="rename"></fvdr-icon>{{ renamedCount }} items to rename</button>
+          <button type="button" class="chip chip--warn" *ngIf="lowCount" [class.chip--active]="filter === 'low'" (click)="setFilter(filter === 'low' ? 'all' : 'low')"><fvdr-icon name="warning"></fvdr-icon>{{ lowCount }} with low confidence</button>
           <span class="grow"></span>
           <span class="ai">AI-generated – check for accuracy</span>
         </div>
