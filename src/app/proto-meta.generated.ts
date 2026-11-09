@@ -210,5 +210,9 @@ export const PROTO_META: Record<string, ProtoMetaInfo> = {
   "qna-hover-variants": {
     "updated": "2026-10-26T11:36:31+02:00",
     "author": "Yuliia Porokhivnyk"
+  },
+  "bulk-rename-original-names": {
+    "updated": "2026-11-09T14:02:24+01:00",
+    "author": "Nikita Tonkonozhenko"
   }
 };
