@@ -279,6 +279,11 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./prototypes/qna-hover-variants/qna-hover-variants.component').then(m => m.QnaHoverVariantsComponent),
   },
+    {
+    path: 'bulk-rename-original-names',
+    loadComponent: () =>
+      import('./prototypes/bulk-rename-original-names/bulk-rename-original-names.component').then(m => m.BulkRenameOriginalNamesComponent),
+  },
   // PROTO_ROUTES_PLACEHOLDER
   {
     path: '**',

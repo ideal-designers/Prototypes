@@ -366,5 +366,13 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
     status: 'wip',
     description: 'Three hover patterns for user rows with team chips: reserved icon slot, left-aligned chips, overlay toolbar',
   },
+    {
+    slug: 'bulk-rename-original-names',
+    title: 'Bulk rename — original names',
+    module: 'Documents',
+    figma: 'https://www.figma.com/design/jCqXtPsLgRI4g7hqBGfxS6/Staging-Hub---FVDR---NT?node-id=39086-521410',
+    status: 'wip',
+    description: 'Bulk rename review: showing original names next to the new names (Variant A — original on the right, Variant B — original on the left)',
+  },
   // REGISTRY_PLACEHOLDER
 ];
