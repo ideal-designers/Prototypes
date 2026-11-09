@@ -25,7 +25,7 @@ interface Item {
 
 interface Row { item: Item; level: number; open: boolean; hasKids: boolean }
 
-const f = (id: string, index: string, name: string, orig: string, parent: string | null, level: number, kids = true): Item =>
+const f = (id: string, index: string, name: string, orig: string, parent: string | null, level: number, kids = false): Item =>
   ({ id, index, name, orig, kind: 'folder', parent, level, kids });
 const d = (id: string, index: string, name: string, orig: string, ext: Item['ext'], parent: string, level: number, low = false): Item =>
   ({ id, index, name, orig, kind: 'file', ext, parent, level, low });
