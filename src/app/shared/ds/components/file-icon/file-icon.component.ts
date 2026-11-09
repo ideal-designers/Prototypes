@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 export type FvdrFileType =
   | 'folder'
   | 'folder-colored'
+  | 'folder-dark'
   | 'folder-open'
   | 'folder-locked'
   | 'folder-files'
@@ -28,6 +29,7 @@ export type FvdrFileType =
 const ICON_MAP: Record<FvdrFileType, string> = {
   'folder':           'assets/file-icons/folder.svg',
   'folder-colored':   'assets/file-icons/folder-colored.svg',
+  'folder-dark':      'assets/file-icons/folder-dark.svg',
   'folder-open':      'assets/file-icons/folder-open.svg',
   'folder-locked':    'assets/file-icons/folder-locked.svg',
   'folder-files':     'assets/file-icons/folder-files.svg',

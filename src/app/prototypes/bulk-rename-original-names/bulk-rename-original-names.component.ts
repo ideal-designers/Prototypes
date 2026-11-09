@@ -7,7 +7,7 @@ import { TrackerService } from '../../services/tracker.service';
 import { ProtoGroup, VdrProtoSwitcherComponent } from '../_shared/proto-switcher.component';
 
 type Variant = 'A' | 'B';
-type FilterMode = 'all' | 'renamed';
+type FilterMode = 'all' | 'renamed' | 'low';
 
 interface Item {
   id: string;
@@ -85,15 +85,15 @@ const DATA: Item[] = [
             <fvdr-toggle *ngIf="variant === 'B'" class="toggle" label="Show original names" [checked]="showOrig" (checkedChange)="setShowOrig($event)"></fvdr-toggle>
             <span class="grow"></span>
             <fvdr-toggle *ngIf="variant === 'A'" class="toggle" label="Show original names" [checked]="showOrig" (checkedChange)="setShowOrig($event)"></fvdr-toggle>
-            <fvdr-dropdown class="filter" [options]="filterOptions" [value]="filter" [iconLeft]="filter === 'all' ? 'folder' : 'rename'"
+            <fvdr-dropdown class="filter" [options]="filterOptions" [value]="filter" [iconLeft]="filterIcon"
                            (valueChange)="setFilter($event)"></fvdr-dropdown>
           </div>
 
           <!-- Trees: one scroll area, so both columns scroll together and rows stay aligned -->
           <div class="scroll">
-            <div class="split" [class.split--b]="variant === 'B'" [class.split--on]="showOrig">
+            <div class="split" [class.split--b]="variant === 'B'" [class.split--on]="showOrig" [class.split--nohead]="!showHeader">
               <section class="col col--new" aria-label="New names">
-                <div class="col__head"><span>New names</span></div>
+                <div class="col__top"><div class="col__head"><span>New names</span></div></div>
                 <div class="rows">
                   <div class="row" *ngFor="let r of rows; trackBy: trackRow" [class.row--hot]="hot === r.item.id"
                        (mouseenter)="hot = r.item.id" (mouseleave)="hot = null">
@@ -116,7 +116,7 @@ const DATA: Item[] = [
               </section>
 
               <section class="col col--orig" aria-label="Original names" [attr.aria-hidden]="!showOrig">
-                <div class="col__head"><span>Original names</span></div>
+                <div class="col__top"><div class="col__head"><span>Original names</span></div></div>
                 <div class="rows rows--ref">
                   <div class="row" *ngFor="let r of rows; trackBy: trackRow" [class.row--hot]="hot === r.item.id"
                        (mouseenter)="hot = r.item.id" (mouseleave)="hot = null">
@@ -139,8 +139,8 @@ const DATA: Item[] = [
         <div class="bar">
           <fvdr-btn label="Back" variant="secondary"></fvdr-btn>
           <fvdr-btn label="Rename" variant="primary"></fvdr-btn>
-          <span class="chip"><fvdr-icon name="rename"></fvdr-icon>{{ renamedCount }} items to rename</span>
-          <span class="chip chip--warn" *ngIf="lowCount"><fvdr-icon name="warning"></fvdr-icon>{{ lowCount }} with low confidence</span>
+          <button type="button" class="chip" [class.chip--active]="filter === 'renamed'" (click)="setFilter('renamed')"><fvdr-icon name="rename"></fvdr-icon>{{ renamedCount }} items to rename</button>
+          <button type="button" class="chip chip--warn" *ngIf="lowCount" [class.chip--active]="filter === 'low'" (click)="setFilter('low')"><fvdr-icon name="warning"></fvdr-icon>{{ lowCount }} with low confidence</button>
           <span class="grow"></span>
           <span class="ai">AI-generated – check for accuracy</span>
         </div>
@@ -178,7 +178,7 @@ const DATA: Item[] = [
     .split { display: flex; align-items: flex-start; min-height: 100%; }
     .col { min-width: 0; }
     .col--new { flex: 1 1 0; }
-    .col--orig { flex: 0 0 0; width: 0; opacity: 0; overflow: hidden; margin: 0; pointer-events: none;
+    .col--orig { flex: 0 0 0; width: 0; opacity: 0; overflow: clip; margin: 0; pointer-events: none;
       transition: flex-basis var(--slide) ease-out, width var(--slide) ease-out, margin var(--slide) ease-out, opacity var(--slide) ease-out; }
     .split--on .col--orig { flex-basis: calc(50% - var(--space-2)); width: calc(50% - var(--space-2)); opacity: 1; pointer-events: auto; }
     /* A: original slides in from the right · B: original sits on the left */
@@ -187,10 +187,11 @@ const DATA: Item[] = [
     .split--b .col--orig { order: -1; }
     .split--b.split--on .col--orig { margin-right: var(--space-4); }
 
-    .col__head { display: flex; align-items: center; height: 0; opacity: 0; overflow: hidden; padding: 0 var(--space-4); margin-bottom: 0;
-      border-radius: var(--radius-sm); background: var(--color-bg-surface); font-weight: var(--font-weight-semi); white-space: nowrap;
-      transition: height var(--slide) ease-out, opacity var(--slide) ease-out, margin var(--slide) ease-out; }
-    .split--on .col__head { height: 40px; opacity: 1; margin-bottom: var(--space-2); }
+    /* column headers stay put while the rows scroll under them */
+    .col__top { position: sticky; top: 0; z-index: 3; background: var(--color-bg-page); }
+    .col__head { display: flex; align-items: center; height: 40px; overflow: hidden; padding: 0 var(--space-4); margin-bottom: var(--space-2);
+      border-radius: var(--radius-sm); background: var(--color-bg-surface); font-weight: var(--font-weight-semi); white-space: nowrap; }
+    .split--nohead .col__head { display: none; }
     .rows--ref { background: var(--color-stone-100); border-radius: var(--radius-sm); }
 
     .row { display: flex; align-items: center; justify-content: space-between; height: 40px; border-radius: var(--radius-sm); }
@@ -214,6 +215,8 @@ const DATA: Item[] = [
     .bar { display: flex; align-items: center; gap: var(--space-4); padding: var(--space-4) var(--space-6); flex-shrink: 0; border-top: 1px solid var(--color-divider); }
     .chip { display: inline-flex; align-items: center; gap: var(--space-2); height: 40px; padding: 0 var(--space-3); border-radius: var(--radius-sm);
       background: var(--color-bg-surface); }
+    .chip { border: 0; font: inherit; cursor: pointer; }
+    .chip--active { outline: 1px solid var(--color-stone-600); outline-offset: -1px; }
     .chip--warn { background: var(--warn-bg); }
     .chip--warn fvdr-icon { color: var(--color-alert-warning); }
     /* Low confidence: orange label on a dark amber tint (Figma "Badge · Document request") */
@@ -228,6 +231,8 @@ export class BulkRenameOriginalNamesComponent implements OnInit, OnDestroy {
 
   variant: Variant = 'A';
   showOrig = false;
+  /** Column headers (New names / Original names) on or off. */
+  showHeader = true;
   filter: FilterMode = 'all';
   open = new Set<string>(['2', '2.1', '2.2', '2.3', '2.4']);
   hot: string | null = null;
@@ -248,17 +253,28 @@ export class BulkRenameOriginalNamesComponent implements OnInit, OnDestroy {
     { id: 'archiving', label: 'Project archiving', icon: 'nav-archiving', iconActive: 'nav-archiving-active' },
     { id: 'recycle-bin', label: 'Recycle bin', icon: 'recycle-bin', iconActive: 'recycle-bin-active' },
   ];
-  readonly filterOptions: DropdownOption[] = [{ value: 'all', label: 'Full structure' }, { value: 'renamed', label: 'Renamed' }];
+  readonly filterOptions: DropdownOption[] = [
+    { value: 'all', label: 'Full structure', icon: 'folders-all' },
+    { value: 'renamed', label: 'Renamed', icon: 'rename' },
+    { value: 'low', label: 'Low confidence', icon: 'warning' },
+  ];
+  get filterIcon(): 'folders-all' | 'rename' | 'warning' { return this.filter === 'all' ? 'folders-all' : this.filter === 'renamed' ? 'rename' : 'warning'; }
 
   get groups(): ProtoGroup[] {
-    return [{ id: 'variant', label: 'Variant', value: this.variant, options: [
-      { id: 'A', label: 'A · Original on the right' }, { id: 'B', label: 'B · Original on the left' } ] }];
+    return [
+      { id: 'variant', label: 'Structure placement', value: this.variant, options: [
+        { id: 'A', label: 'Original on the right' }, { id: 'B', label: 'Original on the left' } ] },
+      { id: 'header', label: 'Header', value: this.showHeader ? 'yes' : 'no', options: [{ id: 'yes', label: 'Yes' }, { id: 'no', label: 'No' }] },
+    ];
   }
 
   ngOnInit(): void { this.tracker.trackPageView('bulk-rename-original-names'); }
   ngOnDestroy(): void { this.tracker.destroyListeners(); }
 
-  onOption(e: { group: string; value: string }): void { if (e.group === 'variant') this.variant = e.value as Variant; }
+  onOption(e: { group: string; value: string }): void {
+    if (e.group === 'variant') this.variant = e.value as Variant;
+    if (e.group === 'header') this.showHeader = e.value === 'yes';
+  }
   restart(): void {
     this.items = DATA.map(i => ({ ...i }));
     this.open = new Set(['2', '2.1', '2.2', '2.3', '2.4']);
@@ -272,14 +288,14 @@ export class BulkRenameOriginalNamesComponent implements OnInit, OnDestroy {
 
   // ── Tree ─────────────────────────────────────────────────────────────────
   changed = (i: Item): boolean => i.name !== i.orig;
-  icon = (i: Item): FvdrFileType => (i.kind === 'folder' ? 'folder-colored' : i.ext === 'ppt' ? 'ppt' : i.ext === 'xls' ? 'xls' : i.ext === 'doc' ? 'doc' : 'pdf');
+  icon = (i: Item): FvdrFileType => (i.kind === 'folder' ? 'folder-dark' : i.ext === 'ppt' ? 'ppt' : i.ext === 'xls' ? 'xls' : i.ext === 'doc' ? 'doc' : 'pdf');
   trackRow = (_: number, r: Row) => r.item.id;
   private hasChildren(id: string): boolean { return this.items.some(i => i.parent === id) || !!this.items.find(i => i.id === id)?.kids; }
 
   /** Visible rows — the same list drives both columns, so they can never drift apart. */
   get rows(): Row[] {
-    if (this.filter === 'renamed') {
-      return this.items.filter(i => this.changed(i)).map(item => ({ item, level: 0, open: false, hasKids: false }));
+    if (this.filter !== 'all') {
+      return this.items.filter(i => this.filter === 'low' ? !!i.low : this.changed(i)).map(item => ({ item, level: 0, open: false, hasKids: false }));
     }
     const out: Row[] = [];
     const visible = (i: Item): boolean => {
