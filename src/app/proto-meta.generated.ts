@@ -175,7 +175,10 @@ export const PROTO_META: Record<string, ProtoMetaInfo> = {
     "author": "Yuliia Porokhivnyk",
     "preview": true
   },
-  "qna-drawer-fullpage": {},
+  "qna-drawer-fullpage": {
+    "updated": "2026-11-10T12:24:37+02:00",
+    "author": "Yuliia Porokhivnyk"
+  },
   "qna-setup-canvas": {
     "updated": "2026-10-30T15:56:36+02:00",
     "author": "Yuliia Porokhivnyk"
