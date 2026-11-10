@@ -171,7 +171,7 @@ export const PROTO_META: Record<string, ProtoMetaInfo> = {
     "preview": true
   },
   "qna-column-resize": {
-    "updated": "2026-11-10T12:32:56+02:00",
+    "updated": "2026-11-10T12:41:38+02:00",
     "author": "Yuliia Porokhivnyk",
     "preview": true
   },
