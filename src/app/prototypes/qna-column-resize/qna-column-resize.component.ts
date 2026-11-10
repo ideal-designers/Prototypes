@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DS_COMPONENTS } from '../../shared/ds';
@@ -684,8 +684,9 @@ interface ColDef { id: ResizableColId; label: string; }
     .icon-btn--active, .icon-btn--active:hover { background: var(--color-stone-400); color: var(--color-text-primary); }
   `],
 })
-export class QnaColumnResizeComponent implements OnInit, OnDestroy {
+export class QnaColumnResizeComponent implements OnInit, AfterViewInit, OnDestroy {
   private tracker = inject(TrackerService);
+  private host: ElementRef<HTMLElement> = inject(ElementRef);
   @ViewChild('contentRow') contentRow?: ElementRef<HTMLElement>;
 
   sidebarCollapsed = true;
@@ -986,10 +987,13 @@ export class QnaColumnResizeComponent implements OnInit, OnDestroy {
   }
 
   // ── Reset-width onboarding hint ───────────────────────────────────────────
-  // Shown on a resize line only when its width differs from the default (that's the only time a
-  // reset does anything): on hover, and for a few seconds right after a drag ends. Once the user
+  // Idle state: visible by default on the first column's resize line (no hover needed), so the
+  // double-click affordance is discoverable on load. On hover, it moves to a line whose width
+  // differs from the default (that's the only time a reset does anything), and for a few seconds
+  // right after a drag ends. It falls back to the idle position afterwards. Once the user
   // double-clicks any line, they've learned it — the hint retires for the session.
   private readonly HINT_SEEN_KEY = 'fvdr-qna-column-resize:reset-hint-seen';
+  private readonly HINT_INITIAL_DELAY = 500;
   private readonly HINT_HOVER_DELAY = 300;
   private readonly HINT_AFTER_DRAG_MS = 4000;
   /** Header rows are 44px tall; the cursor tip sits on the line at the header's vertical middle. */
@@ -1014,6 +1018,15 @@ export class QnaColumnResizeComponent implements OnInit, OnDestroy {
   private clearHintTimer(): void {
     if (this.hintTimer) { clearTimeout(this.hintTimer); this.hintTimer = null; }
   }
+  /** Idle position: the first column's resize line. Hidden on mobile (no handles) and while dragging. */
+  private showIdleHint(): void {
+    const el = this.host.nativeElement.querySelector('.tbl-row--header .col-resize-handle') as HTMLElement | null;
+    if (this.resetHintSeen || this.isMobileViewport || this.isAnyResizing || !el) {
+      this.resetHint = null;
+      return;
+    }
+    this.showHintAt(el);
+  }
   onHandleEnter(event: MouseEvent, target: ResizableColId | 'panel' | 'thread'): void {
     if (this.resetHintSeen || this.isMobileViewport || this.isAnyResizing || !this.isChanged(target)) return;
     const el = event.currentTarget as HTMLElement;
@@ -1023,7 +1036,7 @@ export class QnaColumnResizeComponent implements OnInit, OnDestroy {
   onHandleLeave(): void {
     if (this.isAnyResizing) return;
     this.clearHintTimer();
-    this.resetHint = null;
+    this.showIdleHint();
   }
   private beginHandleDrag(event: MouseEvent): void {
     this.dragHandleEl = event.currentTarget as HTMLElement;
@@ -1033,14 +1046,17 @@ export class QnaColumnResizeComponent implements OnInit, OnDestroy {
   private afterHandleDrag(target: ResizableColId | 'panel' | 'thread'): void {
     const el = this.dragHandleEl;
     this.dragHandleEl = null;
-    if (!el || this.resetHintSeen || !this.isChanged(target)) return;
+    if (!el || this.resetHintSeen || !this.isChanged(target)) {
+      this.showIdleHint();
+      return;
+    }
     // Wait for change detection so the handle has moved to the new edge before measuring it.
     setTimeout(() => {
       // A double-click is two mousedown/mouseup pairs — if it already reset the width, stay quiet.
       if (!el.isConnected || this.resetHintSeen || !this.isChanged(target)) return;
       this.showHintAt(el);
       this.clearHintTimer();
-      this.hintTimer = setTimeout(() => this.resetHint = null, this.HINT_AFTER_DRAG_MS);
+      this.hintTimer = setTimeout(() => this.showIdleHint(), this.HINT_AFTER_DRAG_MS);
     }, 0);
   }
   private onResetDone(): void {
@@ -1071,6 +1087,8 @@ export class QnaColumnResizeComponent implements OnInit, OnDestroy {
   private onWindowResize = () => {
     this.isMobileViewport = window.innerWidth < 768;
     if (this.openThread) this.threadWidthPx = this.clampThreadWidth(this.threadWidthPx);
+    // The hint is position:fixed — re-anchor it to the handle's new position.
+    if (!this.resetHintSeen && !this.isAnyResizing) this.showIdleHint();
   };
 
   private loadState(): void {
@@ -1104,6 +1122,11 @@ export class QnaColumnResizeComponent implements OnInit, OnDestroy {
     try { this.resetHintSeen = sessionStorage.getItem(this.HINT_SEEN_KEY) === '1'; } catch { /* default: not seen */ }
     this.isMobileViewport = window.innerWidth < 768;
     window.addEventListener('resize', this.onWindowResize);
+  }
+  ngAfterViewInit(): void {
+    // Let the table lay out first so the handle has its final position.
+    this.clearHintTimer();
+    this.hintTimer = setTimeout(() => this.showIdleHint(), this.HINT_INITIAL_DELAY);
   }
   ngOnDestroy(): void {
     this.tracker.destroyListeners();
