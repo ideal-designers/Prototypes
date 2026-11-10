@@ -119,8 +119,8 @@ interface ColDef { id: ResizableColId; label: string; }
                    *ngIf="!panelCollapsed"
                    role="separator" aria-orientation="vertical" aria-label="Resize Quick access panel"
                    tabindex="0"
-                   (mouseenter)="panelHandleHovered = true; onHandleEnter($event, 'panel')"
-                   (mouseleave)="panelHandleHovered = false; onHandleLeave()"
+                   (mouseenter)="panelHandleHovered = true"
+                   (mouseleave)="panelHandleHovered = false"
                    (mousedown)="startPanelResize($event)"
                    (dblclick)="resetPanelWidth()"
                    (keydown)="onPanelResizeKeydown($event)"></div>
@@ -140,8 +140,6 @@ interface ColDef { id: ResizableColId; label: string; }
                         [class.col-resize-handle--active]="resizingCol === col.id"
                         role="separator" aria-orientation="vertical" [attr.aria-label]="'Resize column ' + col.label"
                         tabindex="0"
-                        (mouseenter)="onHandleEnter($event, col.id)"
-                        (mouseleave)="onHandleLeave()"
                         (mousedown)="startColResize($event, col.id)"
                         (keydown)="onColResizeKeydown($event, col.id)"
                         (dblclick)="resetColumnWidth(col.id)"></span>
@@ -206,8 +204,8 @@ interface ColDef { id: ResizableColId; label: string; }
               <div class="v-handle v-handle--left"
                    role="separator" aria-orientation="vertical" aria-label="Resize thread panel"
                    tabindex="0"
-                   (mouseenter)="threadHandleHovered = true; onHandleEnter($event, 'thread')"
-                   (mouseleave)="threadHandleHovered = false; onHandleLeave()"
+                   (mouseenter)="threadHandleHovered = true"
+                   (mouseleave)="threadHandleHovered = false"
                    (mousedown)="startThreadResize($event)"
                    (dblclick)="resetThreadWidth()"
                    (keydown)="onThreadResizeKeydown($event)"></div>
@@ -280,8 +278,7 @@ interface ColDef { id: ResizableColId; label: string; }
       </div>
     </div>
 
-    <!-- Onboarding: reset-width hint. Sits right on the resize line, only while that line's width
-         differs from its default, and retires after the user double-clicks a line once. -->
+    <!-- Reset-width hint. Plays once on the column line that was just dragged, then goes away. -->
     <div class="reset-hint" *ngIf="resetHint as hint"
          [style.left.px]="hint.x" [style.top.px]="hint.y" aria-hidden="true">
       <!-- Double-click animation: the cursor tip sits on the line and presses twice;
@@ -579,7 +576,7 @@ interface ColDef { id: ResizableColId; label: string; }
       pointer-events: none; /* the dblclick must land on the handle underneath */
       animation: reset-hint-in 0.16s ease-out;
     }
-    /* Timeline (1.6s loop): press at 8%, release 16%, press 24%, release 32%, then rest. */
+    /* Timeline (1.6s, plays once): press at 8%, release 16%, press 24%, release 32%, then rest. */
     .reset-hint__cursor {
       position: absolute;
       left: 0; top: 0;
@@ -590,7 +587,7 @@ interface ColDef { id: ResizableColId; label: string; }
         drop-shadow(1px 0 0 var(--color-stone-0)) drop-shadow(-1px 0 0 var(--color-stone-0))
         drop-shadow(0 1px 0 var(--color-stone-0)) drop-shadow(0 -1px 0 var(--color-stone-0))
         drop-shadow(0 2px 3px rgba(31, 33, 41, 0.25));
-      animation: reset-hint-press 1.6s ease-in-out infinite;
+      animation: reset-hint-press 1.6s ease-in-out 1 both;
     }
     .reset-hint__cursor-shape {
       display: block;
@@ -606,14 +603,14 @@ interface ColDef { id: ResizableColId; label: string; }
       border: 2px solid var(--color-primary-500);
       box-sizing: border-box;
       opacity: 0;
-      animation: reset-hint-ripple 1.6s ease-out infinite;
+      animation: reset-hint-ripple 1.6s ease-out 1 both;
     }
     /* Second press is 16% of the loop later */
     .reset-hint__ripple--second { animation-delay: 0.256s; }
     .reset-hint__marks {
       position: absolute;
       left: 0; top: 0;
-      animation: reset-hint-marks 1.6s ease-out infinite;
+      animation: reset-hint-marks 1.6s ease-out 1 both;
       opacity: 0;
     }
     .reset-hint__marks i {
@@ -825,7 +822,7 @@ export class QnaColumnResizeComponent implements OnInit, OnDestroy {
     event.preventDefault();
     event.stopPropagation();
     this.resizingCol = colId;
-    this.beginHandleDrag();
+    this.beginHandleDrag(event);
     this.colStartX = event.clientX;
     this.colStartWidth = this.colWidths[colId];
     this.lockBody();
@@ -851,6 +848,7 @@ export class QnaColumnResizeComponent implements OnInit, OnDestroy {
         this.colWidths = { ...this.colWidths, [this.resizingCol]: this.pendingColWidth };
       }
       this.saveState();
+      this.afterColumnDrag(this.resizingCol);
     }
     this.pendingColWidth = null;
     this.stopColResize();
@@ -892,7 +890,7 @@ export class QnaColumnResizeComponent implements OnInit, OnDestroy {
     if (this.isMobileViewport) return;
     event.preventDefault();
     this.isResizingPanel = true;
-    this.beginHandleDrag();
+    this.beginHandleDrag(event);
     this.panelStartX = event.clientX;
     this.panelStartWidth = this.panelWidthPx;
     this.lockBody();
@@ -953,7 +951,7 @@ export class QnaColumnResizeComponent implements OnInit, OnDestroy {
     if (this.isMobileViewport) return;
     event.preventDefault();
     this.isResizingThread = true;
-    this.beginHandleDrag();
+    this.beginHandleDrag(event);
     this.threadStartX = event.clientX;
     this.threadStartWidth = this.threadWidthPx;
     this.lockBody();
@@ -985,24 +983,17 @@ export class QnaColumnResizeComponent implements OnInit, OnDestroy {
   }
 
   // ── Reset-width onboarding hint ───────────────────────────────────────────
-  // Shown on a resize line only when its width differs from the default (that's the only time a
-  // reset does anything): on hover, and for a few seconds right after a drag ends. Once the user
-  // double-clicks any line, they've learned it — the hint retires for the session.
-  private readonly HINT_SEEN_KEY = 'fvdr-qna-column-resize:reset-hint-seen';
-  private readonly HINT_HOVER_DELAY = 300;
+  // After a column drag, the double-click cursor plays once on that line, where the drag ended.
+  // It keeps playing after the mouse leaves and goes away when the animation is done.
+  private readonly HINT_PLAY_MS = 1900; // 1.6s cycle + the second ripple's 0.256s delay
   /** Header rows are 44px tall; the cursor tip sits on the line at the header's vertical middle. */
   private readonly HINT_Y_OFFSET = 22;
   resetHint: { x: number; y: number } | null = null;
-  private resetHintSeen = false;
   private hintTimer: ReturnType<typeof setTimeout> | null = null;
+  private dragHandleEl: HTMLElement | null = null;
 
-  private isChanged(target: ResizableColId | 'panel' | 'thread'): boolean {
-    if (target === 'panel') return this.panelWidthPx !== this.PANEL_DEFAULT;
-    if (target === 'thread') return this.threadWidthPx !== this.clampThreadWidth(this.THREAD_DEFAULT);
-    return this.colWidths[target] !== this.COL_DEFAULTS[target];
-  }
-  private get isAnyResizing(): boolean {
-    return !!this.resizingCol || this.isResizingPanel || this.isResizingThread;
+  private isChanged(colId: ResizableColId): boolean {
+    return this.colWidths[colId] !== this.COL_DEFAULTS[colId];
   }
   private showHintAt(el: HTMLElement): void {
     const r = el.getBoundingClientRect();
@@ -1011,27 +1002,28 @@ export class QnaColumnResizeComponent implements OnInit, OnDestroy {
   private clearHintTimer(): void {
     if (this.hintTimer) { clearTimeout(this.hintTimer); this.hintTimer = null; }
   }
-  onHandleEnter(event: MouseEvent, target: ResizableColId | 'panel' | 'thread'): void {
-    if (this.resetHintSeen || this.isMobileViewport || this.isAnyResizing || !this.isChanged(target)) return;
-    const el = event.currentTarget as HTMLElement;
-    this.clearHintTimer();
-    this.hintTimer = setTimeout(() => this.showHintAt(el), this.HINT_HOVER_DELAY);
-  }
-  onHandleLeave(): void {
-    if (this.isAnyResizing) return;
+  private beginHandleDrag(event: MouseEvent): void {
+    this.dragHandleEl = event.currentTarget as HTMLElement;
     this.clearHintTimer();
     this.resetHint = null;
   }
-  private beginHandleDrag(): void {
-    this.clearHintTimer();
-    this.resetHint = null;
+  private afterColumnDrag(colId: ResizableColId): void {
+    const el = this.dragHandleEl;
+    this.dragHandleEl = null;
+    if (!el || !this.isChanged(colId)) return;
+    // Wait for change detection so the handle has moved to the new edge before measuring it.
+    setTimeout(() => {
+      // A double-click is two mousedown/mouseup pairs — if it already reset the width, stay quiet.
+      if (!el.isConnected || !this.isChanged(colId)) return;
+      this.showHintAt(el);
+      this.clearHintTimer();
+      this.hintTimer = setTimeout(() => this.resetHint = null, this.HINT_PLAY_MS);
+    }, 0);
   }
   private onResetDone(): void {
     this.saveState();
     this.clearHintTimer();
     this.resetHint = null;
-    this.resetHintSeen = true;
-    try { sessionStorage.setItem(this.HINT_SEEN_KEY, '1'); } catch { /* in-memory only */ }
   }
 
   // ── Shared ────────────────────────────────────────────────────────────────
@@ -1054,6 +1046,9 @@ export class QnaColumnResizeComponent implements OnInit, OnDestroy {
   private onWindowResize = () => {
     this.isMobileViewport = window.innerWidth < 768;
     if (this.openThread) this.threadWidthPx = this.clampThreadWidth(this.threadWidthPx);
+    // The hint is position:fixed — drop it rather than leave it misplaced after a resize.
+    this.clearHintTimer();
+    this.resetHint = null;
   };
 
   private loadState(): void {
@@ -1084,7 +1079,6 @@ export class QnaColumnResizeComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.tracker.trackPageView('qna-column-resize');
     this.loadState();
-    try { this.resetHintSeen = sessionStorage.getItem(this.HINT_SEEN_KEY) === '1'; } catch { /* default: not seen */ }
     this.isMobileViewport = window.innerWidth < 768;
     window.addEventListener('resize', this.onWindowResize);
   }
