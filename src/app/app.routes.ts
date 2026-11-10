@@ -235,6 +235,11 @@ export const routes: Routes = [
       import('./prototypes/qna-column-resize/qna-column-resize.component').then(m => m.QnaColumnResizeComponent),
   },
   {
+    path: 'qna-drawer-fullpage',
+    loadComponent: () =>
+      import('./prototypes/qna-drawer-fullpage/qna-drawer-fullpage.component').then(m => m.QnaDrawerFullpageComponent),
+  },
+  {
     path: 'qna-setup-canvas',
     loadComponent: () =>
       import('./prototypes/qna-setup-canvas/qna-setup-canvas.component').then(m => m.QnaSetupCanvasComponent),

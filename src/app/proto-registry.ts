@@ -296,6 +296,14 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
     description: 'Q&A threads page with the same resize behavior as the Documents Quick access panel: resizable Quick access panel, resizable table columns (drag or arrow keys), and when a thread is open the right thread panel is resizable from its left edge. Double-clicking any resize line resets it to the default width; an onboarding badge on the line teaches this after the first resize',
   },
   {
+    slug: 'qna-drawer-fullpage',
+    title: 'Q&A — Full-page thread drawer',
+    module: 'Q&A',
+    figma: 'https://www.figma.com/design/Ozvxv10oZM9KwGlCcjmOFO/Q-A-set-up?node-id=8467-476094',
+    status: 'wip',
+    description: 'Prod Q&A tab behaviour (Quick access, category filters, resizable panels and table columns, row selection) with the thread opened as a full-page-height right drawer: header with question number, status and priority / category / team row, Thread and History tabs, and a pinned Answer / Internal note composer',
+  },
+  {
     slug: 'qna-setup-canvas',
     title: 'Q&A — Setup canvas (Advanced flow)',
     module: 'Q&A',
