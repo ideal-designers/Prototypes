@@ -198,7 +198,7 @@ const DATA: Item[] = [
     .swap:hover { color: var(--color-text-primary); }
     .split--on .swap { display: flex; }
     .split--nohead .swap { top: 0; }
-    .split--on .resizer::before { content: ''; position: absolute; top: 0; bottom: 0; left: 50%; width: 2px; margin-left: -1px;
+    .split--on .resizer::before { content: ''; position: absolute; bottom: 0; left: 50%; width: 2px; margin-left: -1px; top: calc(var(--space-10) + var(--space-2));
       border-radius: var(--radius-sm); background: transparent; transition: background var(--slide) ease-out; }
     .split--on .resizer:hover::before, .split--drag .resizer::before { background: var(--color-primary-500); }
     .split--drag { cursor: col-resize; user-select: none; }
