@@ -116,7 +116,12 @@ const DATA: Item[] = [
               </section>
 
               <div class="resizer" role="separator" aria-orientation="vertical" aria-label="Resize columns" tabindex="-1"
-                   (pointerdown)="startResize($event, split)" (dblclick)="origShare = 0.5"></div>
+                   (pointerdown)="startResize($event, split)" (dblclick)="origShare = 0.5">
+                <button type="button" class="swap" aria-label="Swap columns" fvdrTooltip="Swap columns" tooltipPosition="top"
+                        (pointerdown)="$event.stopPropagation()" (dblclick)="$event.stopPropagation()" (click)="swap()">
+                  <fvdr-icon name="swap-horizontal"></fvdr-icon>
+                </button>
+              </div>
 
               <section class="col col--orig" aria-label="Original names" [attr.aria-hidden]="!showOrig">
                 <div class="col__top"><div class="col__head"><span>Original names</span></div></div>
@@ -178,15 +183,21 @@ const DATA: Item[] = [
 
     /* Trees */
     .scroll { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; }
-    .split { display: flex; align-items: flex-start; min-height: 100%; }
+    .split { --gutter: calc(var(--space-10) + var(--space-2)); display: flex; align-items: flex-start; min-height: 100%; }
     .col { min-width: 0; }
     .col--new { flex: 1 1 0; }
     .col--orig { flex: 0 0 0; width: 0; opacity: 0; overflow: clip; margin: 0; pointer-events: none;
       transition: flex-basis var(--slide) ease-out, width var(--slide) ease-out, opacity var(--slide) ease-out; }
     /* --ow = share of the (width minus the 16px gutter) taken by the original column; dragged via .resizer */
-    .split--on .col--orig { flex-basis: calc((100% - var(--space-4)) * var(--ow, 0.5)); width: calc((100% - var(--space-4)) * var(--ow, 0.5)); opacity: 1; pointer-events: auto; }
+    .split--on .col--orig { flex-basis: calc((100% - var(--gutter)) * var(--ow, 0.5)); width: calc((100% - var(--gutter)) * var(--ow, 0.5)); opacity: 1; pointer-events: auto; }
     .resizer { flex: 0 0 0; width: 0; align-self: stretch; position: relative; overflow: visible; transition: flex-basis var(--slide) ease-out, width var(--slide) ease-out; }
-    .split--on .resizer { flex-basis: var(--space-4); width: var(--space-4); cursor: col-resize; touch-action: none; }
+    .split--on .resizer { flex-basis: var(--gutter); width: var(--gutter); cursor: col-resize; touch-action: none; }
+    /* swap button: 40×40 in the gutter, level with the column headers (Figma 39117:521571) */
+    .swap { position: sticky; top: 0; display: none; align-items: center; justify-content: center; width: var(--space-10); height: var(--space-10);
+      margin: 0 auto; padding: 0; border: 0; background: transparent; color: var(--color-stone-600); font-size: var(--font-size-lg, 16px); cursor: pointer; z-index: 4; }
+    .swap:hover { color: var(--color-text-primary); }
+    .split--on .swap { display: flex; }
+    .split--nohead .swap { top: 0; }
     .split--on .resizer::before { content: ''; position: absolute; top: 0; bottom: 0; left: 50%; width: 2px; margin-left: -1px;
       border-radius: var(--radius-sm); background: transparent; transition: background var(--slide) ease-out; }
     .split--on .resizer:hover::before, .split--drag .resizer::before { background: var(--color-primary-500); }
@@ -287,11 +298,13 @@ export class BulkRenameOriginalNamesComponent implements OnInit, OnDestroy {
     if (e.group === 'variant') this.variant = e.value as Variant;
     if (e.group === 'header') this.showHeader = e.value === 'yes';
   }
+  swap(): void { this.variant = this.variant === 'A' ? 'B' : 'A'; }
+
   startResize(e: PointerEvent, split: HTMLElement): void {
     e.preventDefault();
     this.dragging = true;
     const rect = split.getBoundingClientRect();
-    const gutter = 16;
+    const gutter = 48;
     const move = (ev: PointerEvent) => {
       const usable = rect.width - gutter;
       const share = this.variant === 'B' ? (ev.clientX - rect.left - gutter / 2) / usable : (rect.right - ev.clientX - gutter / 2) / usable;
