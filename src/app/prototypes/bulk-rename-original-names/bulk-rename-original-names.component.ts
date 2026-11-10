@@ -79,19 +79,18 @@ const DATA: Item[] = [
             <a class="learn">Learn more <fvdr-icon name="link"></fvdr-icon></a>
           </div>
 
-          <!-- Toolbar: where the toggle sits is the difference between the variants -->
+          <!-- Toolbar: toggle + filter always on the right -->
           <div class="controls">
             <fvdr-btn label="Rebuild index" variant="secondary" iconName="action-list"></fvdr-btn>
-            <fvdr-toggle *ngIf="variant === 'B'" class="toggle" label="Show original names" [checked]="showOrig" (checkedChange)="setShowOrig($event)"></fvdr-toggle>
             <span class="grow"></span>
-            <fvdr-toggle *ngIf="variant === 'A'" class="toggle" label="Show original names" [checked]="showOrig" (checkedChange)="setShowOrig($event)"></fvdr-toggle>
+            <fvdr-toggle class="toggle" label="Show original names" [checked]="showOrig" (checkedChange)="setShowOrig($event)"></fvdr-toggle>
             <fvdr-dropdown class="filter" [options]="filterOptions" [value]="filter" [iconLeft]="filterIcon"
                            (valueChange)="setFilter($event)"></fvdr-dropdown>
           </div>
 
           <!-- Trees: one scroll area, so both columns scroll together and rows stay aligned -->
           <div class="scroll">
-            <div class="split" #split [style.--ow]="origShare" [class.split--b]="variant === 'B'" [class.split--on]="showOrig" [class.split--nohead]="!showHeader" [class.split--drag]="dragging">
+            <div class="split" #split [style.--ow]="origShare" [class.split--b]="variant === 'B'" [class.split--on]="showOrig" [class.split--nohead]="!showHeader" [class.split--drag]="dragging" [class.split--swap]="swapping">
               <section class="col col--new" aria-label="New names">
                 <div class="col__top"><div class="col__head"><span>New names</span></div></div>
                 <div class="rows">
@@ -202,7 +201,7 @@ const DATA: Item[] = [
       border-radius: var(--radius-sm); background: transparent; transition: background var(--slide) ease-out; }
     .split--on .resizer:hover::before, .split--drag .resizer::before { background: var(--color-primary-500); }
     .split--drag { cursor: col-resize; user-select: none; }
-    .split--drag .col--orig, .split--drag .resizer { transition: none; }
+    .split--drag .col--orig, .split--drag .resizer, .split--swap .col--orig, .split--swap .resizer { transition: none; }
     /* A: original on the right · B: original on the left */
     .split--b .col--orig { order: -2; }
     .split--b .resizer { order: -1; }
@@ -256,6 +255,8 @@ export class BulkRenameOriginalNamesComponent implements OnInit, OnDestroy {
   /** Share of the width taken by the Original names column (0.25–0.75). */
   origShare = 0.5;
   dragging = false;
+  /** True for one frame while sides are swapped, so the columns jump instead of sliding. */
+  swapping = false;
   filter: FilterMode = 'all';
   open = new Set<string>(['2', '2.1', '2.2', '2.3', '2.4']);
   hot: string | null = null;
@@ -295,10 +296,16 @@ export class BulkRenameOriginalNamesComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void { this.tracker.destroyListeners(); }
 
   onOption(e: { group: string; value: string }): void {
-    if (e.group === 'variant') this.variant = e.value as Variant;
+    if (e.group === 'variant' && e.value !== this.variant) this.swap();
     if (e.group === 'header') this.showHeader = e.value === 'yes';
   }
-  swap(): void { this.variant = this.variant === 'A' ? 'B' : 'A'; }
+  /** Swap sides but keep the divider where it was: each slot keeps its width, so the columns trade widths. */
+  swap(): void {
+    this.variant = this.variant === 'A' ? 'B' : 'A';
+    this.origShare = 1 - this.origShare;
+    this.swapping = true;
+    setTimeout(() => (this.swapping = false), 60);
+  }
 
   startResize(e: PointerEvent, split: HTMLElement): void {
     e.preventDefault();
