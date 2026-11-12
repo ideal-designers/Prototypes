@@ -218,7 +218,7 @@ function buildEmpty(): EmptyFolder[] {
                   <span class="ficon" [ngClass]="'ficon--' + g.type"></span>
                   <span class="row__txt">
                     <span class="row__name">{{ g.name }}</span>
-                    <span class="row__meta">{{ g.copies.length }} copies · location {{ g.location }}</span>
+                    <span class="row__meta">{{ g.copies.length }} copies</span>
                   </span>
                 </button>
                 <ng-container *ngIf="isOpen(g)">
@@ -245,7 +245,7 @@ function buildEmpty(): EmptyFolder[] {
                   <span class="ficon" [ngClass]="'ficon--' + g.type"></span>
                   <span class="row__txt">
                     <span class="row__name">{{ c.name }}</span>
-                    <span class="row__meta">{{ c.size }} · location {{ c.location }}</span>
+                    <span class="row__meta">location {{ c.location }}</span>
                   </span>
                   <button class="row__more" (click)="openMenu($event, c.id, c.name, g)"
                           [class.row__more--on]="menu?.key === c.id"><fvdr-icon name="more"></fvdr-icon></button>
@@ -676,14 +676,18 @@ export class InsightsCleanupDrawerComponent implements OnInit, OnDestroy {
   tip: { copy: FileCopy; group: DupGroup; top: number; left: number } | null = null;
   private tipTimer?: ReturnType<typeof setTimeout>;
 
-  /** Hover card appears to the left of the drawer row after a short delay. */
+  /** Hover card appears under the hovered row after a short delay. */
   showTip(ev: MouseEvent, copy: FileCopy, group: DupGroup): void {
     clearTimeout(this.tipTimer);
-    const r = (ev.currentTarget as HTMLElement).getBoundingClientRect();
+    const row = ev.currentTarget as HTMLElement;
+    const r = row.getBoundingClientRect();
+    const nameLeft = (row.querySelector('.row__txt') as HTMLElement | null)?.getBoundingClientRect().left ?? r.left;
     this.tipTimer = setTimeout(() => {
-      const w = 320, h = 200, gap = 8;
-      const top = Math.max(gap, Math.min(r.top, window.innerHeight - h - gap));
-      this.tip = { copy, group, top, left: r.left - w - gap };
+      const w = 320, h = 180, gap = 4;
+      // Under the row, starting at the file name (as in product); flip above near the bottom edge.
+      const top = r.bottom + h + gap > window.innerHeight ? r.top - h - gap : r.bottom + gap;
+      const left = Math.min(nameLeft, window.innerWidth - w - gap * 2);
+      this.tip = { copy, group, top, left };
     }, 400);
   }
   hideTip(): void { clearTimeout(this.tipTimer); this.tip = null; }
