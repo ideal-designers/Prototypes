@@ -382,5 +382,13 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
     status: 'wip',
     description: 'Bulk rename review: showing original names next to the new names (Variant A — original on the right, Variant B — original on the left)',
   },
+  {
+    slug: 'insights-cleanup-drawer',
+    title: 'Insights — Clean up drawer (Duplicated)',
+    module: 'Dashboard',
+    figma: 'https://www.figma.com/design/fChBFcd7WAfqxq73sduKrn/%E2%9C%A8-Insights?node-id=39853-242465',
+    status: 'wip',
+    description: 'Documents dashboard Clean up side panel: 3 options for grouping duplicated files',
+  },
   // REGISTRY_PLACEHOLDER
 ];

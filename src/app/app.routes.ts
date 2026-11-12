@@ -289,6 +289,11 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./prototypes/bulk-rename-original-names/bulk-rename-original-names.component').then(m => m.BulkRenameOriginalNamesComponent),
   },
+  {
+    path: 'insights-cleanup-drawer',
+    loadComponent: () =>
+      import('./prototypes/insights-cleanup-drawer/insights-cleanup-drawer.component').then(m => m.InsightsCleanupDrawerComponent),
+  },
   // PROTO_ROUTES_PLACEHOLDER
   {
     path: '**',
