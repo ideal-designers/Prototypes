@@ -220,7 +220,7 @@ export const PROTO_META: Record<string, ProtoMetaInfo> = {
     "author": "Nikita Tonkonozhenko"
   },
   "insights-cleanup-drawer": {
-    "updated": "2026-11-12T14:56:36+02:00",
+    "updated": "2026-11-12T15:18:27+02:00",
     "author": "Maryna Pinchuk"
   }
 };
