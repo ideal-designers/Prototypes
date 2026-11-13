@@ -14,7 +14,7 @@ import type { FvdrIconName } from '../../shared/ds/icons/icons';
 type Side = 'question' | 'answer';
 type Port = 'l' | 'r' | 't' | 'b';
 type EdgeKind = 'main' | 'return' | 'reject';
-type TemplateId = 'basic' | 'experts' | 'advanced' | 'advisory' | 'multilevel' | 'coordinator-final' | 'scratch';
+type TemplateId = 'basic' | 'experts' | 'advanced' | 'advisory' | 'multilevel' | 'coordinator-final' | 'by-category' | 'scratch';
 
 interface Person { id: string; name: string; initials: string; email: string; group: string; tone: number; /** invited by email, not a project participant yet */ external?: boolean; }
 interface Membership { personId: string; categories: string[]; /** question side: which question team this person acts for */ teamId?: string; }
@@ -183,7 +183,7 @@ const TONES = [
            #canvas
            [class.canvas--panning]="panning"
            [class.canvas--drop]="canvasDropActive"
-           [class.canvas--preview]="!templateConfirmed"
+           [class.canvas--preview]="!editable"
            (mousedown)="onCanvasMouseDown($event)"
            (wheel)="onWheel($event)"
            (dragover)="onCanvasDragOver($event)"
@@ -203,6 +203,33 @@ const TONES = [
             <fvdr-segment variant="table" size="sm" [items]="leadCaseItems" [activeId]="leadCase" (activeIdChange)="setLeadCase($any($event))"></fvdr-segment>
           </div>
           <!-- shown only when something needs attention -->
+          <!-- one workflow, or several: by category, by question team, or fully separate (e.g. one per deal) -->
+          <div class="wf-bar" *ngIf="templateConfirmed">
+            <fvdr-toggle size="s" label="Multiple workflows" [checked]="multiWf" (checkedChange)="setMultiWf($event)"></fvdr-toggle>
+            <ng-container *ngIf="multiWf">
+              <fvdr-segment variant="table" size="sm" [items]="splitItems" [activeId]="wfSplit" (activeIdChange)="setWfSplit($any($event))"></fvdr-segment>
+              <div class="wf-tabs" role="tablist" [attr.aria-label]="'Workflows ' + splitLabel">
+                <button class="wf-tab" role="tab" [attr.aria-selected]="activeWf === OVERVIEW" [class.wf-tab--on]="activeWf === OVERVIEW"
+                        fvdrTooltip="See every workflow on the canvas" (click)="switchWf(OVERVIEW)"><fvdr-icon name="overview"></fvdr-icon>All</button>
+                <button class="wf-tab" role="tab" *ngIf="wfSplit !== 'separate'" [attr.aria-selected]="activeWf === DEFAULT_WF" [class.wf-tab--on]="activeWf === DEFAULT_WF"
+                        [fvdrTooltip]="'Used by every ' + splitNoun + ' without its own workflow'" (click)="switchWf(DEFAULT_WF)">Default</button>
+                <button class="wf-tab" role="tab" *ngFor="let t of wfTabs(); trackBy: trackKey" [attr.aria-selected]="activeWf === t.key" [class.wf-tab--on]="activeWf === t.key"
+                        (click)="switchWf(t.key)">
+                  <fvdr-icon *ngIf="t.color" name="label" class="cat-ic" [ngClass]="'cat-ic--' + t.color"></fvdr-icon>
+                  <fvdr-icon *ngIf="!t.color" [name]="wfSplit === 'team' ? 'participants' : 'folder'"></fvdr-icon>{{ t.label }}
+                  <span class="wf-badge" *ngIf="wfSplit !== 'separate' && customWf.has(t.key)">Custom</span>
+                </button>
+                <button class="wf-tab wf-tab--add" *ngIf="wfSplit === 'separate'" fvdrTooltip="Add a separate workflow" (click)="addWorkspace()" aria-label="Add a separate workflow"><fvdr-icon name="plus"></fvdr-icon></button>
+              </div>
+              <button class="link-btn wf-reset" *ngIf="wfSplit !== 'separate' && activeWf !== DEFAULT_WF && customWf.has(activeWf)" (click)="resetWf(activeWf)">
+                <fvdr-icon name="undo"></fvdr-icon>Reset {{ wfLabel(activeWf) }} to default
+              </button>
+              <ng-container *ngIf="wfSplit === 'separate' && activeWorkspace as w">
+                <input class="wf-name" [value]="w.name" aria-label="Workflow name" (change)="renameWorkspace(w, $any($event.target).value)" (keydown.enter)="$any($event.target).blur()" />
+                <button class="icon-btn icon-btn--sm" *ngIf="workspaces.length > 1" [fvdrTooltip]="'Delete ' + w.name" (click)="deleteWorkspace(w)"><fvdr-icon name="trash"></fvdr-icon></button>
+              </ng-container>
+            </ng-container>
+          </div>
           <button class="health health--error" *ngIf="templateConfirmed && errorNodes.length" (click)="focusFirstError()">
             <fvdr-icon name="warning"></fvdr-icon>
             <span>{{ errorNodes.length }} {{ errorNodes.length === 1 ? 'role needs' : 'roles need' }} people</span>
@@ -212,6 +239,16 @@ const TONES = [
         <div class="world" [style.transform]="'translate(' + panX + 'px,' + panY + 'px) scale(' + zoom + ')'">
 
           <!-- lanes: question team always on the left -->
+          <!-- overview: one labelled frame per workflow -->
+          <div class="wf-group" *ngFor="let g of overviewGroups; trackBy: trackKey"
+               [style.left.px]="g.x" [style.top.px]="g.y" [style.width.px]="g.w" [style.height.px]="g.h">
+            <div class="wf-group-head" [style.font-size.px]="groupHeadPx" (mousedown)="$event.stopPropagation()">
+              <fvdr-icon *ngIf="g.color" name="label" class="cat-ic" [ngClass]="'cat-ic--' + g.color"></fvdr-icon>
+              <span class="wf-group-name">{{ g.label }}</span>
+              <span class="wf-group-sub" *ngIf="zoom >= 0.45">{{ g.sub }}</span>
+              <button class="wf-group-open" *ngIf="templateConfirmed" [fvdrTooltip]="'Open ' + g.label" [attr.aria-label]="'Open ' + g.label" (click)="switchWf(g.key)"><fvdr-icon name="edit"></fvdr-icon></button>
+            </div>
+          </div>
           <ng-container *ngIf="lanes as L">
             <div class="lane-divider" [style.left.px]="L.x" [style.top.px]="L.top" [style.height.px]="L.height"></div>
             <span class="lane-label lane-label--q" [style.left.px]="L.x - 16" [style.top.px]="L.top">Question side</span>
@@ -219,7 +256,7 @@ const TONES = [
           </ng-container>
 
           <!-- edges -->
-          <svg class="edges" width="4000" height="3000">
+          <svg class="edges" width="8000" height="6000">
             <defs>
               <marker id="qsc-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse">
                 <path d="M0,0 L10,5 L0,10 z" class="arrow-main"></path>
@@ -266,7 +303,7 @@ const TONES = [
                *ngFor="let n of nodes; trackBy: trackById"
                [style.left.px]="n.x" [style.top.px]="n.y"
                [class.node--selected]="selectedId === n.id"
-               [class.node--error]="templateConfirmed && !n.members.length"
+               [class.node--error]="editable && !n.members.length"
                [class.node--drop]="dropNodeId === n.id"
                [class.node--dragging]="dragNodeId === n.id && dragMoved"
                (mousedown)="onNodeMouseDown($event, n)"
@@ -359,8 +396,16 @@ const TONES = [
           </div>
           <div class="panel-body">
             <p class="tp-desc">{{ currentTemplate.description }}</p>
-            <span class="field-label">{{ nodes.length }} roles</span>
-            <div class="tp-role" *ngFor="let r of nodes; trackBy: trackById">
+            <ng-container *ngIf="overviewGroups.length">
+              <span class="field-label">{{ overviewGroups.length }} workflows on the canvas</span>
+              <div class="ov-row" *ngFor="let g of overviewGroups; trackBy: trackKey">
+                <fvdr-icon name="label" class="cat-ic" [ngClass]="'cat-ic--' + (g.color || 'grey')"></fvdr-icon>
+                <span class="role-text"><span class="role-name">{{ g.label }}</span><span class="role-desc">{{ g.sub }}</span></span>
+              </div>
+              <p class="hint">Zoom out to compare them, zoom in to read a workflow. After confirming, open any workflow to edit it.</p>
+            </ng-container>
+            <span class="field-label" *ngIf="!overviewGroups.length">{{ nodes.length }} roles</span>
+            <div class="tp-role" *ngFor="let r of overviewGroups.length ? [] : nodes; trackBy: trackById">
               <span class="node-icon" [class.node-icon--q]="r.side === 'question'" [class.node-icon--custom]="r.custom"><fvdr-icon [name]="r.icon"></fvdr-icon></span>
               <span class="role-text">
                 <span class="role-name">{{ r.name }}<span class="tp-req" *ngIf="isProtectedKey(r.roleKey)">Required</span></span>
@@ -376,6 +421,47 @@ const TONES = [
         </ng-container>
 
         <ng-template #editPanel>
+        <!-- a category or question team that still follows the default workflow -->
+        <ng-container *ngIf="activeWf === OVERVIEW">
+          <div class="panel-head panel-head--lib">
+            <div class="panel-titles">
+              <span class="lib-title">All workflows</span>
+              <span class="panel-sub">{{ overviewGroups.length }} on the canvas · {{ splitLabel }}</span>
+            </div>
+          </div>
+          <div class="panel-body">
+            <p class="hint">Each frame on the canvas is one workflow. Open one to change its roles, people or routing.</p>
+            <div class="ov-row" *ngFor="let g of overviewGroups; trackBy: trackKey">
+              <span class="role-text">
+                <span class="role-name">{{ g.label }}</span>
+                <span class="role-desc">{{ g.sub }}</span>
+              </span>
+              <button class="link-btn" (click)="switchWf(g.key)">Open</button>
+            </div>
+          </div>
+        </ng-container>
+        <ng-container *ngIf="activeWf !== OVERVIEW && inherited; else nodeOrLibraryOrNothing">
+          <div class="panel-head panel-head--lib">
+            <div class="panel-titles">
+              <span class="lib-title">{{ wfLabel(activeWf) }}</span>
+              <span class="panel-sub">Follows the default workflow</span>
+            </div>
+          </div>
+          <div class="panel-body">
+            <p class="tp-desc">{{ wfSplit === 'team' ? 'Questions from ' + wfLabel(activeWf) : wfLabel(activeWf) + ' questions' }} go through the default workflow shown on the canvas.</p>
+            <p class="hint">Customize it to give {{ wfLabel(activeWf) }} its own roles, people and routing — for example skip approval, or add a dedicated expert team. Everything else keeps using the default.</p>
+            <span class="field-label field-label--gap">{{ wfSplit === 'team' ? 'Question teams' : 'Categories' }} with their own workflow</span>
+            <p class="hint" *ngIf="!customKeys().length">None yet</p>
+            <div class="wf-list" *ngFor="let k of customKeys()">
+              <button class="link-btn" (click)="switchWf(k)"><fvdr-icon [name]="wfSplit === 'team' ? 'participants' : 'label'"></fvdr-icon>{{ wfLabel(k) }}</button>
+            </div>
+          </div>
+          <div class="panel-foot">
+            <fvdr-btn [label]="'Customize for ' + wfLabel(activeWf)" iconName="edit" (clicked)="customizeWf(activeWf)"></fvdr-btn>
+          </div>
+        </ng-container>
+        <ng-template #nodeOrLibraryOrNothing><ng-container *ngIf="activeWf !== OVERVIEW"><ng-container *ngTemplateOutlet="nodeOrLibrary"></ng-container></ng-container></ng-template>
+        <ng-template #nodeOrLibrary>
         <ng-container *ngIf="selectedNode as n; else libraryTpl">
           <div class="panel-head">
             <div class="avatar-pick">
@@ -557,6 +643,7 @@ const TONES = [
           </div>
         </ng-container>
 
+        </ng-template>
         </ng-template>
 
         <!-- Library panel -->
@@ -874,6 +961,26 @@ const TONES = [
     /* stepper */
     .tpl-bar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); background: var(--color-stone-0); border-radius: var(--radius-md); padding: var(--space-2) var(--space-2) var(--space-2) var(--space-3); box-shadow: var(--shadow-card); }
     .tpl-dd { width: 220px; }
+    .wf-bar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); background: var(--color-stone-0); border-radius: var(--radius-md); padding: var(--space-2) var(--space-3); box-shadow: var(--shadow-card); max-width: 100%; }
+    .wf-tabs { display: flex; flex-wrap: wrap; gap: var(--space-1); }
+    .wf-tab { display: inline-flex; align-items: center; gap: var(--space-1); height: var(--space-8); padding: 0 var(--space-3); border: 1px solid var(--color-divider); border-radius: var(--radius-sm); background: var(--color-stone-0); color: var(--color-text-primary); font: inherit; cursor: pointer; white-space: nowrap; }
+    .wf-tab:hover { background: var(--color-hover-bg); }
+    .wf-tab--on { border-color: var(--color-primary-500); background: var(--color-primary-50); }
+    .wf-badge { font-size: var(--text-caption1-size); color: var(--color-primary-700); background: var(--color-stone-0); border: 1px solid var(--color-primary-500); border-radius: var(--radius-lg); padding: 0 var(--space-1); }
+    .wf-reset { white-space: nowrap; }
+    .wf-group { position: absolute; border: 1px dashed var(--color-stone-500); border-radius: var(--radius-lg); background: var(--color-stone-0); pointer-events: none; }
+    .wf-group-head { position: absolute; left: var(--space-4); right: var(--space-4); top: var(--space-3); display: flex; align-items: center; gap: 0.5em; pointer-events: auto; white-space: nowrap; overflow: hidden; }
+    .wf-group-open { display: inline-flex; align-items: center; justify-content: center; border: none; background: none; padding: 0.15em; color: var(--color-primary-500); cursor: pointer; font-size: 1em; border-radius: var(--radius-sm); }
+    .wf-group-open:hover { background: var(--color-primary-50); }
+
+    .wf-group-name { font-size: 1.15em; font-weight: var(--font-weight-semi); overflow: hidden; text-overflow: ellipsis; }
+    .wf-group-sub { font-size: 0.9em; color: var(--color-text-secondary); overflow: hidden; text-overflow: ellipsis; }
+    .ov-row { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-2) 0; border-bottom: 1px solid var(--color-divider); }
+    .ov-row .link-btn { margin-left: auto; }
+    .wf-tab--add { padding: 0 var(--space-2); color: var(--color-primary-500); }
+    .wf-name { width: 10em; border: 1px solid var(--color-stone-400); border-radius: var(--radius-sm); padding: var(--space-1) var(--space-2); font: inherit; }
+    .wf-name:focus { outline: none; border-color: var(--color-primary-500); }
+    .wf-list { display: flex; }
     .tpl-bar-label { font-size: var(--text-caption1-size); color: var(--color-text-secondary); white-space: nowrap; }
     .canvas--preview .node, .canvas--preview .edge-label { cursor: default; }
     .canvas--preview .node-add, .canvas--preview .edge-actions { display: none; }
@@ -1276,6 +1383,7 @@ export class QnaSetupCanvasComponent {
     { id: 'advisory', name: 'Advisory', description: 'Advisors coordinate; after approval a separate Final sign-off role releases the answer.' },
     { id: 'multilevel', name: 'Multi-level approval', description: 'Answers pass two approval levels before the last approver releases them.' },
     { id: 'coordinator-final', name: 'Lead sign-off', description: 'One flow, two staffing examples: advisory leads or a CFO give final sign-off and can answer at any step.' },
+    { id: 'by-category', name: 'Workflow per category', description: 'Each question category follows its own route: Finance needs CFO approval, Legal goes straight to legal counsel, Tax runs a multi-step review. Other categories use the default.' },
     { id: 'scratch', name: 'Start from scratch', description: 'An empty flow with the two required roles. Add roles and people yourself.', note: 'No people are added yet.' },
   ];
   templateOptions: DropdownOption[] = this.templateCards.map(t => ({ value: t.id, label: t.name }));
@@ -1292,11 +1400,166 @@ export class QnaSetupCanvasComponent {
   }
   get currentTemplate() { return this.templateCards.find(t => t.id === this.templateId)!; }
   isProtectedKey(key: string) { return PROTECTED_ROLES.has(key); }
+  // ── multiple workflows ──
+  // Keys: DEFAULT_WF, 'cat:<name>', 'team:<id>', 'ws:<id>'. Category and team splits inherit the default
+  // until customized; separate workflows (one per deal) are always their own.
+  readonly DEFAULT_WF = '__default';
+  readonly OVERVIEW = '__all';
+  overviewGroups: { key: string; label: string; sub: string; x: number; y: number; w: number; h: number; color?: string }[] = [];
+  multiWf = false;
+  wfSplit: 'category' | 'team' | 'separate' = 'category';
+  readonly splitItems: SegmentItem[] = [
+    { id: 'category', label: 'By category', icon: 'label' },
+    { id: 'team', label: 'By question team', icon: 'participants' },
+    { id: 'separate', label: 'Separate', icon: 'folder' },
+  ];
+  get splitLabel() { return this.wfSplit === 'category' ? 'by category' : this.wfSplit === 'team' ? 'by question team' : 'separate'; }
+  get splitNoun() { return this.wfSplit === 'team' ? 'question team' : 'category'; }
+  activeWf = this.DEFAULT_WF;
+  customWf = new Map<string, { nodes: FlowNode[]; edges: FlowEdge[] }>();
+  private defaultWf: { nodes: FlowNode[]; edges: FlowEdge[] } | null = null;
+  workspaces: { id: string; name: string }[] = [];
+  private wsSeq = 1;
+  trackKey = (_: number, t: { key: string }) => t.key;
+  wfTabs(): { key: string; label: string; color?: string }[] {
+    const src = this.wfSplit === 'category' ? this.categories.map(c => ({ key: 'cat:' + c.name, label: c.name, color: c.color }))
+      : this.wfSplit === 'team' ? this.teams.map(t => ({ key: 'team:' + t.id, label: t.name }))
+      : this.workspaces.map(w => ({ key: 'ws:' + w.id, label: w.name }));
+    return this.stable('wfTabs', this.wfSplit + '|' + src.map(t => t.key + t.label).join(','), () => src);
+  }
+  wfLabel(key: string): string {
+    if (key === this.DEFAULT_WF) return 'Default';
+    const [kind, id] = [key.slice(0, key.indexOf(':')), key.slice(key.indexOf(':') + 1)];
+    if (kind === 'team') return this.teams.find(t => t.id === id)?.name ?? 'Team';
+    if (kind === 'ws') return this.workspaces.find(w => w.id === id)?.name ?? 'Workflow';
+    return id;
+  }
+  /** customized keys of the current split */
+  customKeys(): string[] {
+    const prefix = this.wfSplit === 'category' ? 'cat:' : 'team:';
+    const keys = [...this.customWf.keys()].filter(k => k.startsWith(prefix));
+    return this.stable('customKeys', keys.join('|'), () => keys);
+  }
+  get activeWorkspace() { return this.workspaces.find(w => 'ws:' + w.id === this.activeWf); }
+  /** a category or team that still follows the default — shown read-only */
+  get inherited(): boolean { return this.multiWf && this.activeWf !== this.DEFAULT_WF && this.activeWf !== this.OVERVIEW && !this.customWf.has(this.activeWf); }
+  /** frame titles keep the same on-screen size at any zoom, so workflows stay findable when zoomed out */
+  get groupHeadPx(): number { return Math.round(14 / this.zoom); }
+  get editable(): boolean { return this.templateConfirmed && !this.inherited && this.activeWf !== this.OVERVIEW; }
+  /** keep edits of the workflow on screen before switching away */
+  private stashActive() {
+    if (this.activeWf === this.DEFAULT_WF) this.defaultWf = { nodes: this.nodes, edges: this.edges };
+    else if (this.customWf.has(this.activeWf)) this.customWf.set(this.activeWf, { nodes: this.nodes, edges: this.edges });
+  }
+  private show(key: string) {
+    this.overviewGroups = [];
+    if (key === this.OVERVIEW) { this.activeWf = key; this.buildOverview(); return; }
+    this.activeWf = key;
+    const w = (key !== this.DEFAULT_WF && this.customWf.get(key)) || this.defaultWf;
+    if (w) { this.nodes = w.nodes; this.edges = w.edges; }
+    this.selectedId = null;
+    this.pendingInsert = null;
+    setTimeout(() => this.fit(), 0);
+  }
+  /** every workflow of the current split, stacked on one canvas, read-only */
+  private buildOverview() {
+    const def = this.defaultWf ?? { nodes: this.nodes, edges: this.edges };
+    const sets: { key: string; label: string; sub: string; wf: { nodes: FlowNode[]; edges: FlowEdge[] } }[] = [];
+    if (this.wfSplit === 'separate') {
+      this.workspaces.forEach(w => { const wf = this.customWf.get('ws:' + w.id); if (wf) sets.push({ key: 'ws:' + w.id, label: w.name, sub: 'Own people and questions', wf }); });
+    } else {
+      const tabs = this.wfTabs();
+      const inheriting = tabs.filter(t => !this.customWf.has(t.key)).map(t => t.label);
+      sets.push({ key: this.DEFAULT_WF, label: 'Default', sub: inheriting.length ? 'Used by ' + inheriting.join(', ') : 'Not used — every ' + this.splitNoun + ' has its own', wf: def });
+      tabs.filter(t => this.customWf.has(t.key)).forEach(t => sets.push({ key: t.key, label: t.label, sub: this.wfSplit === 'team' ? 'Questions from ' + t.label : t.label + ' questions only', wf: this.customWf.get(t.key)! }));
+    }
+    const nodes: FlowNode[] = [], edges: FlowEdge[] = [];
+    // two columns of frames; each row is as tall as its tallest frame
+    const GAP = 64, COLS = 2;
+    let rowTop = 40, rowH = 0, colX = 40;
+    sets.filter(set => set.wf.nodes.length).forEach((set, i) => {
+      if (i % COLS === 0 && i) { rowTop += rowH + GAP; rowH = 0; colX = 40; }
+      const minX = Math.min(...set.wf.nodes.map(n => n.x)), minY = Math.min(...set.wf.nodes.map(n => n.y));
+      const maxX = Math.max(...set.wf.nodes.map(n => n.x + NODE_W)), maxY = Math.max(...set.wf.nodes.map(n => n.y + NODE_H));
+      const w = Math.max(maxX - minX + 160, 980), h = maxY - minY + 96 + 120;
+      const dx = colX + 80 - minX, dy = rowTop + 120 - minY, p = i + '~';
+      set.wf.nodes.forEach(n => nodes.push({ ...n, id: p + n.id, x: n.x + dx, y: n.y + dy }));
+      set.wf.edges.forEach(e => edges.push({ ...e, id: p + e.id, from: p + e.from, to: p + e.to }));
+      this.overviewGroups.push({ key: set.key, label: set.label, sub: set.sub, x: colX, y: rowTop, w, h, color: set.key.startsWith('cat:') ? this.categories.find(c => 'cat:' + c.name === set.key)?.color : undefined });
+      colX += w + GAP;
+      rowH = Math.max(rowH, h);
+    });
+    this.nodes = nodes;
+    this.edges = edges;
+    this.selectedId = null;
+    this.pendingInsert = null;
+    setTimeout(() => this.fit(), 0);
+  }
+  switchWf(key: string) {
+    if (key === this.activeWf) return;
+    this.stashActive();
+    this.show(key);
+  }
+  setMultiWf(on: boolean) {
+    this.stashActive();
+    this.multiWf = on;
+    if (on && this.wfSplit === 'separate') { this.ensureWorkspace(); this.show('ws:' + this.workspaces[0].id); return; }
+    this.show(this.DEFAULT_WF);
+    if (!on && this.customWf.size) this.toast.show({ variant: 'info', message: 'One workflow for all questions now. Your other workflows are kept if you switch back.' });
+  }
+  setWfSplit(mode: 'category' | 'team' | 'separate') {
+    this.stashActive();
+    this.wfSplit = mode;
+    if (mode === 'separate') { this.ensureWorkspace(); this.show('ws:' + this.workspaces[0].id); }
+    else this.show(this.DEFAULT_WF);
+  }
+  /** the first separate workflow is the one already built */
+  private ensureWorkspace() {
+    if (this.workspaces.length) return;
+    const w = { id: 'w' + this.wsSeq++, name: 'Deal 1' };
+    this.workspaces = [w];
+    this.customWf.set('ws:' + w.id, this.defaultWf ?? { nodes: this.nodes, edges: this.edges });
+  }
+  addWorkspace() {
+    this.stashActive();
+    const w = { id: 'w' + this.wsSeq++, name: `Deal ${this.workspaces.length + 1}` };
+    // same roles and routing, nobody in them — each deal has its own people and questions
+    const base = this.customWf.get(this.activeWf) ?? { nodes: this.nodes, edges: this.edges };
+    const nodes: FlowNode[] = structuredClone(base.nodes).map((n: FlowNode) => ({ ...n, members: [] }));
+    this.workspaces = [...this.workspaces, w];
+    this.customWf.set('ws:' + w.id, { nodes, edges: structuredClone(base.edges) });
+    this.show('ws:' + w.id);
+    this.toast.show({ variant: 'success', message: `${w.name} created with the same roles — add its people. Its questions stay separate from other workflows.` });
+  }
+  renameWorkspace(w: { id: string; name: string }, value: string) {
+    const name = value.trim();
+    if (name) { w.name = name; this.workspaces = [...this.workspaces]; }
+  }
+  deleteWorkspace(w: { id: string; name: string }) {
+    this.customWf.delete('ws:' + w.id);
+    this.workspaces = this.workspaces.filter(x => x !== w);
+    this.show('ws:' + this.workspaces[0].id);
+    this.toast.show({ variant: 'info', message: `${w.name} deleted` });
+  }
+  customizeWf(key: string) {
+    const base = this.defaultWf ?? { nodes: this.nodes, edges: this.edges };
+    this.customWf.set(key, { nodes: structuredClone(base.nodes), edges: structuredClone(base.edges) });
+    this.show(key);
+    this.toast.show({ variant: 'success', message: `${this.wfLabel(key)} has its own workflow now — change its roles, people or routing` });
+  }
+  resetWf(key: string) {
+    this.customWf.delete(key);
+    this.show(key);
+    this.toast.show({ variant: 'info', message: `${this.wfLabel(key)} follows the default workflow again` });
+  }
+
   /** until confirmed the canvas is a read-only preview of the chosen template */
   templateConfirmed = false;
   confirmTemplate() {
     this.templateConfirmed = true;
     this.selectedId = null;
+    // the workflow toolbar appears now and takes space above the canvas
+    setTimeout(() => this.fit(), 0);
     this.toast.show({ variant: 'success', message: `${this.currentTemplate.name} workflow ready — add people and adjust roles` });
   }
   templateId: TemplateId = 'experts';
@@ -1385,6 +1648,7 @@ export class QnaSetupCanvasComponent {
 
   /** Divider between question side (left) and answer side (right). */
   get lanes(): { x: number; top: number; height: number } | null {
+    if (this.activeWf === this.OVERVIEW) return null;
     const q = this.nodes.filter(n => n.side === 'question'), a = this.nodes.filter(n => n.side === 'answer');
     if (!q.length || !a.length) return null;
     const qRight = Math.max(...q.map(n => n.x + NODE_W)), aLeft = Math.min(...a.map(n => n.x));
@@ -1416,8 +1680,19 @@ export class QnaSetupCanvasComponent {
   get selectedNode(): FlowNode | undefined { return this.selectedId ? this.nodeById(this.selectedId) : undefined; }
   get allRoles(): RoleDef[] { return [...STANDARD_ROLES, ...this.customRoles]; }
   roleDef(key: string) { return this.allRoles.find(r => r.key === key); }
-  get errorNodes(): FlowNode[] { return this.nodes.filter(n => !n.members.length); }
-  get errorNamesLabel(): string { return this.errorNodes.map(n => n.name).join(', '); }
+  /** empty roles in every workflow that is in use, not just the one on screen */
+  get wfErrors(): { key: string; label: string; node: FlowNode }[] {
+    if (!this.multiWf) return this.nodes.filter(n => !n.members.length).map(node => ({ key: this.activeWf, label: '', node }));
+    const live = (key: string, wf: { nodes: FlowNode[] } | null | undefined) =>
+      key === this.activeWf ? this.nodes : (wf?.nodes ?? []);
+    const sets: { key: string; nodes: FlowNode[] }[] = this.wfSplit === 'separate'
+      ? this.workspaces.map(w => ({ key: 'ws:' + w.id, nodes: live('ws:' + w.id, this.customWf.get('ws:' + w.id)) }))
+      : [{ key: this.DEFAULT_WF, nodes: live(this.DEFAULT_WF, this.defaultWf ?? { nodes: this.nodes }) },
+         ...this.wfTabs().filter(t => this.customWf.has(t.key)).map(t => ({ key: t.key, nodes: live(t.key, this.customWf.get(t.key)) }))];
+    return sets.flatMap(set => set.nodes.filter(n => !n.members.length).map(node => ({ key: set.key, label: this.wfLabel(set.key), node })));
+  }
+  get errorNodes(): FlowNode[] { return this.wfErrors.map(e => e.node); }
+  get errorNamesLabel(): string { return this.wfErrors.map(e => e.label ? `${e.node.name} (${e.label})` : e.node.name).join(', '); }
   permsFor(n: FlowNode): PermDef[] {
     const rp = this.rolePerms(n);
     if (rp) return [...rp.config, ...rp.open];
@@ -1791,10 +2066,14 @@ export class QnaSetupCanvasComponent {
     }
     const old = c.name;
     c.name = name;
+    const wf = this.customWf.get('cat:' + old);
+    if (wf) { this.customWf.delete('cat:' + old); this.customWf.set('cat:' + name, wf); }
+    if (this.activeWf === 'cat:' + old) this.activeWf = 'cat:' + name;
     this.nodes.forEach(n => n.members.forEach(m => m.categories = m.categories.map(x => x === old ? name : x)));
   }
   deleteCategory(c: { name: string; color: string }) {
     this.categories = this.categories.filter(x => x !== c);
+    if (this.customWf.delete('cat:' + c.name) && this.activeWf === 'cat:' + c.name) this.show(this.DEFAULT_WF);
     this.nodes.forEach(n => n.members.forEach(m => m.categories = m.categories.filter(x => x !== c.name)));
     this.toast.show({ variant: 'info', message: `Category ${c.name} deleted` });
   }
@@ -1850,6 +2129,14 @@ export class QnaSetupCanvasComponent {
   // ── templates ─────────────────────────────────────────────────────────────
   loadTemplate(id: TemplateId) {
     this.templateId = id;
+    // every template starts as a single workflow
+    this.multiWf = false;
+    this.wfSplit = 'category';
+    this.customWf = new Map();
+    this.defaultWf = null;
+    this.workspaces = [];
+    this.activeWf = this.DEFAULT_WF;
+    this.overviewGroups = [];
     this.rejectTo = id === 'coordinator-final' ? 'expert' : 'coordinator';
     this.rejectChain = 'previous';
     this.selectedId = null;
@@ -1951,6 +2238,63 @@ export class QnaSetupCanvasComponent {
       this.nodes = [s, c, x, a1, a2];
       this.edges = [ed(s, c, 'r', 'l', 'Submits question'), ed(c, x, 't', 'l', 'Assigns'), ed(x, a1, 'r', 'l', ''), ed(a1, a2, 'b', 't', '')];
       this.rebuildAnswerRoute();
+    } else if (id === 'by-category') {
+      // one workflow per category, all drawn on the canvas at once
+      const wf = (build: () => void) => { build(); return { nodes: this.nodes, edges: this.edges }; };
+      const def = wf(() => {
+        const s = mk('submitter', 0, 1, ['p9', 'p11']);
+        const c = mk('coordinator', 1, 1, ['p1', 'p2']);
+        const x = expertMembers(mk('expert', 2, 0, []));
+        this.nodes = [s, c, x];
+        this.edges = [
+          ed(s, c, 'r', 'l', 'Submits question'),
+          ed(c, x, 't', 'l', 'Assigns'),
+          ed(x, c, 'b', 'r', 'Proposes answer', 'return'),
+          ed(c, s, 'b', 'b', 'Sends answer', 'return'),
+        ];
+      });
+      const finance = wf(() => {
+        const s = mk('submitter', 0, 1, ['p9', 'p11']);
+        const c = mk('coordinator', 1, 1, ['p1', 'p2']);
+        const x = mk('expert', 2, 0, [], { name: 'Finance experts' });
+        x.members = [{ personId: 'p6', categories: ['Finance'] }, { personId: 'p14', categories: ['Finance'] }];
+        const a = mk('approver', 2, 2, ['p13'], { name: 'CFO' });
+        this.nodes = [s, c, x, a];
+        this.edges = [
+          ed(s, c, 'r', 'l', 'Submits question'),
+          ed(c, x, 't', 'l', 'Assigns'),
+          ed(x, c, 'b', 'r', 'Proposes answer', 'return'),
+          ed(c, a, 'b', 'l', 'Sends for approval'),
+          ed(a, c, 't', 'r', 'Rejects', 'reject'),
+          ed(a, s, 'b', 'b', 'CFO approves · sends answer', 'return'),
+        ];
+      });
+      const legal = wf(() => {
+        const s = mk('submitter', 0, 1, ['p9', 'p11']);
+        const l = mk('coordinator', 1, 1, ['p15'], { name: 'Legal counsel' });
+        this.nodes = [s, l];
+        this.edges = [ed(s, l, 'r', 'l', 'Submits question'), ed(l, s, 'b', 'b', 'Answers directly · no approval', 'return')];
+      });
+      const tax = wf(() => {
+        // submit → coordinator assigns → junior tax drafts → senior tax → lawyers → coordinator signs off
+        const s = mk('submitter', 0, 1, ['p9', 'p11']);
+        const c = mk('coordinator', 1, 1, ['p2', 'p3'], { name: 'Coordinator (advisory)' });
+        c.perms['finalSignoff'] = true;
+        const x = mk('expert', 2, 0, [], { name: 'Junior tax' });
+        x.members = [{ personId: 'p7', categories: ['Tax'] }, { personId: 'p8', categories: ['Tax'] }];
+        const a1 = mk('approver', 3, 0, ['p14'], { name: 'Senior tax' });
+        const a2 = mk('approver', 3, 2, ['p15'], { name: 'Lawyers' });
+        this.nodes = [s, c, x, a1, a2];
+        this.edges = [ed(s, c, 'r', 'l', 'Submits question'), ed(c, x, 't', 'l', 'Assigns')];
+        this.rejectTo = 'expert';
+        this.rebuildAnswerRoute(true);
+        this.rejectTo = 'coordinator';
+      });
+      this.defaultWf = def;
+      this.customWf = new Map([['cat:Finance', finance], ['cat:Legal', legal], ['cat:Tax', tax]]);
+      this.multiWf = true;
+      this.show(this.OVERVIEW);
+      return;
     } else if (id === 'multilevel') {
       const s = mk('submitter', 0, 1, ['p9', 'p11']);
       const c = mk('coordinator', 1, 1, ['p1']);
@@ -2143,7 +2487,7 @@ export class QnaSetupCanvasComponent {
   }
   onNodeMouseDown(ev: MouseEvent, n: FlowNode) {
     ev.stopPropagation();
-    if (ev.button !== 0 || !this.templateConfirmed) return;
+    if (ev.button !== 0 || !this.editable) return;
     this.dragNodeId = n.id;
     this.dragMoved = false;
     this.dragStart = { x: ev.clientX, y: ev.clientY, nx: n.x, ny: n.y };
@@ -2209,7 +2553,7 @@ export class QnaSetupCanvasComponent {
   private zoomAt(d: number, cx: number, cy: number) {
     const r = this.canvasRef?.nativeElement.getBoundingClientRect();
     if (!r) return;
-    const nz = Math.min(1.5, Math.max(0.4, +(this.zoom + d).toFixed(2)));
+    const nz = Math.min(1.5, Math.max(0.15, +(this.zoom + d).toFixed(2)));
     const wx = (cx - r.left - this.panX) / this.zoom, wy = (cy - r.top - this.panY) / this.zoom;
     this.zoom = nz;
     this.panX = cx - r.left - wx * nz;
@@ -2218,14 +2562,19 @@ export class QnaSetupCanvasComponent {
   fit() {
     const el = this.canvasRef?.nativeElement;
     if (!el || !this.nodes.length) return;
-    const minX = Math.min(...this.nodes.map(n => n.x)) - 40;
-    const minY = Math.min(...this.nodes.map(n => n.y)) - 70;
-    const maxX = Math.max(...this.nodes.map(n => n.x + NODE_W)) + 80;
-    const maxY = Math.max(...this.nodes.map(n => n.y + NODE_H)) + 110;
-    const w = el.clientWidth, h = el.clientHeight - 120;
-    this.zoom = Math.min(1.1, Math.max(0.4, Math.min(w / (maxX - minX), h / (maxY - minY))));
-    this.panX = (w - (maxX - minX) * this.zoom) / 2 - minX * this.zoom;
-    this.panY = 60 + (h - (maxY - minY) * this.zoom) / 2 - minY * this.zoom;
+    const g = this.overviewGroups;
+    // overview: fit the workflow frames, not just the roles
+    const minX = g.length ? Math.min(...g.map(f => f.x)) - 24 : Math.min(...this.nodes.map(n => n.x)) - 40;
+    const minY = g.length ? Math.min(...g.map(f => f.y)) - 24 : Math.min(...this.nodes.map(n => n.y)) - 70;
+    const maxX = g.length ? Math.max(...g.map(f => f.x + f.w)) + 24 : Math.max(...this.nodes.map(n => n.x + NODE_W)) + 80;
+    const maxY = g.length ? Math.max(...g.map(f => f.y + f.h)) + 24 : Math.max(...this.nodes.map(n => n.y + NODE_H)) + 110;
+    // leave room for the toolbar over the canvas, however many lines it wraps to
+    const bar = el.querySelector('.canvas-top') as HTMLElement | null;
+    const top = (bar ? bar.offsetTop + bar.offsetHeight : 40) + 16;
+    const w = el.clientWidth, h = el.clientHeight - top - 72;
+    this.zoom = Math.min(1.1, Math.max(g.length ? 0.15 : 0.4, Math.min(w / (maxX - minX), h / (maxY - minY))));
+    this.panX = Math.max(0, (w - (maxX - minX) * this.zoom) / 2) - minX * this.zoom;
+    this.panY = top + Math.max(0, (h - (maxY - minY) * this.zoom) / 2) - minY * this.zoom;
   }
   /** Auto-layout: column = depth along forward edges, row = order within column. */
   tidy() {
@@ -2267,8 +2616,11 @@ export class QnaSetupCanvasComponent {
     this.pendingInsert = null;
   }
   focusFirstError() {
-    const n = this.errorNodes[0];
-    if (n) { this.selectNode(n.id); this.nodeTab = 'people'; }
+    const e = this.wfErrors[0];
+    if (!e) return;
+    if (e.key !== this.activeWf) this.switchWf(e.key);
+    this.selectNode(e.node.id);
+    this.nodeTab = 'people';
   }
   isProtected(n: FlowNode) { return PROTECTED_ROLES.has(n.roleKey); }
   deleteNode(n: FlowNode) {
@@ -2474,7 +2826,7 @@ export class QnaSetupCanvasComponent {
   onRoleDragStart(ev: DragEvent, r: RoleDef) { ev.dataTransfer?.setData('text/plain', 'role:' + r.key); }
   onNodeDragOver(ev: DragEvent, n: FlowNode) { ev.preventDefault(); ev.stopPropagation(); this.dropNodeId = n.id; this.canvasDropActive = false; }
   onNodeDrop(ev: DragEvent, n: FlowNode) {
-    if (!this.templateConfirmed) return;
+    if (!this.editable) return;
     ev.preventDefault(); ev.stopPropagation();
     this.dropNodeId = null;
     const data = ev.dataTransfer?.getData('text/plain') ?? '';
@@ -2482,7 +2834,7 @@ export class QnaSetupCanvasComponent {
   }
   onCanvasDragOver(ev: DragEvent) { ev.preventDefault(); this.canvasDropActive = true; this.dropNodeId = null; }
   onCanvasDrop(ev: DragEvent) {
-    if (!this.templateConfirmed) return;
+    if (!this.editable) return;
     ev.preventDefault();
     this.canvasDropActive = false;
     const data = ev.dataTransfer?.getData('text/plain') ?? '';
