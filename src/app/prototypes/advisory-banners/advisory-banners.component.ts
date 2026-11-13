@@ -36,12 +36,12 @@ interface DocRow { index: number; name: string; kind: 'folder' | 'pdf' | 'doc'; 
             <div class="big__body">
               <h2 class="big__title">
                 <fvdr-icon name="trophy-gradient"></fvdr-icon>
-                <span><ap-roll-number [value]="points" [duration]="rollMs" [replay]="bigTick"></ap-roll-number> Ideals points ready to use</span>
+                <span><ap-roll-number [value]="points" [duration]="rollMs" [firstDuration]="firstRollMs" [replay]="bigTick"></ap-roll-number> Ideals points ready to use</span>
               </h2>
               <p class="big__text">Every project pays off – put your team's points toward exclusive rewards in the advisory suite</p>
               <button type="button" class="cta"><span class="cta__label">Explore rewards<fvdr-icon name="arrow-right"></fvdr-icon></span><span class="cta__shine" aria-hidden="true"></span></button>
             </div>
-            <button type="button" class="x" aria-label="Close" fvdrTooltip="Close" tooltipPosition="left" (click)="bigOpen = false"><fvdr-icon name="close"></fvdr-icon></button>
+            <button type="button" class="x" aria-label="Close" fvdrTooltip="Close" tooltipPosition="left" (click)="bigOpen = false"><fvdr-icon name="close-banner"></fvdr-icon></button>
           </section>
 
           <fvdr-tabs [tabs]="tabs" [(activeId)]="tab"></fvdr-tabs>
@@ -67,8 +67,8 @@ interface DocRow { index: number; name: string; kind: 'folder' | 'pdf' | 'doc'; 
           <aside class="mini" *ngIf="miniOpen" (mouseenter)="miniTick = miniTick + 1" aria-label="Rewards">
             <div class="mini__head">
               <fvdr-icon name="trophy-gradient"></fvdr-icon>
-              <span class="mini__title"><ap-roll-number [value]="points" [duration]="rollMs" [replay]="miniTick" style="--roll-h: 20px"></ap-roll-number> Ideals points ready to use</span>
-              <button type="button" class="x x--mini" aria-label="Close" (click)="miniOpen = false"><fvdr-icon name="close"></fvdr-icon></button>
+              <span class="mini__title"><ap-roll-number [value]="points" [duration]="rollMs" [firstDuration]="firstRollMs" [replay]="miniTick" style="--roll-h: 20px"></ap-roll-number> Ideals points ready to use</span>
+              <button type="button" class="x x--mini" aria-label="Close" (click)="miniOpen = false"><fvdr-icon name="close-banner"></fvdr-icon></button>
             </div>
             <div class="mini__more">
               <p>Every project pays off – put your team's points toward exclusive rewards in the advisory suite</p>
@@ -125,7 +125,8 @@ interface DocRow { index: number; name: string; kind: 'folder' | 'pdf' | 'doc'; 
       --ap-from: color-mix(in srgb, var(--primitive-green-800) 36%, black); --ap-to: color-mix(in srgb, var(--primitive-green-800) 76%, black);
       --roll-ms: 500ms;
       --ap-open: 300ms;
-      --ap-bounce: cubic-bezier(0.34, 1.3, 0.64, 1);
+      /* ease-out that overshoots to ~1.05 (≈5px, 3.6% of 142) at ~70% and settles: a gentle bounce */
+      --ap-bounce: linear(0, 0.34 14%, 0.68 32%, 0.92 50%, 1.05 70%, 1.025 82%, 1.006 92%, 1);
     }
     .app { display: flex; height: 100%; background: var(--color-bg-page); color: var(--color-text-primary); font-family: var(--font-family); font-size: var(--font-size-base); }
     .main { position: relative; flex: 1; min-width: 0; display: flex; flex-direction: column; overflow: auto; }
@@ -142,7 +143,7 @@ interface DocRow { index: number; name: string; kind: 'folder' | 'pdf' | 'doc'; 
     .big__title ap-roll-number { --roll-h: 28px; }
     .big__text { margin: var(--space-3) 0 var(--space-5); font-size: var(--font-size-base); line-height: 20px; }
     .x { position: absolute; top: var(--space-6); right: var(--space-6); display: grid; place-items: center; width: var(--space-5); height: var(--space-5);
-      padding: 0; border: 0; background: transparent; color: inherit; font-size: var(--font-size-lg, 16px); cursor: pointer; opacity: 0.85; }
+      padding: 0; border: 0; background: transparent; color: inherit; font-size: var(--font-size-2xl); cursor: pointer; opacity: 0.85; }
     .x:hover { opacity: 1; }
 
     /* CTA: DS primary look + a shine that sweeps until the pointer is on the button */
@@ -167,19 +168,21 @@ interface DocRow { index: number; name: string; kind: 'folder' | 'pdf' | 'doc'; 
     .card__txt span { color: var(--color-text-secondary); font-size: 12px; }
     .card__star { color: var(--color-icon); }
 
-    /* ── Compact banner in the header ── */
+    /* ── Compact banner in the header (Figma 341×40 → 341×142) ──
+       Only the box grows: its bottom edge overshoots ~3.5% (5px of 142) and settles back. The text never moves —
+       it is pinned to the top and just fades in while the background slides out underneath it. */
     .mini { position: absolute; z-index: 150; top: var(--space-3); right: 304px; width: 341px; height: 40px; overflow: hidden;
       border-radius: var(--radius-sm); color: var(--color-stone-0); background: linear-gradient(90deg, var(--ap-from) 0%, var(--ap-to) 84%);
-      transition: width var(--ap-open) var(--ap-bounce), height var(--ap-open) var(--ap-bounce), box-shadow var(--ap-open) ease-out; }
-    .mini:hover, .mini:focus-within { width: 377px; height: 142px; box-shadow: var(--shadow-popup); }
+      transition: height 200ms ease-out, box-shadow 200ms ease-out; }
+    .mini:hover, .mini:focus-within { height: 142px; box-shadow: var(--shadow-popup);
+      transition: height var(--ap-open) var(--ap-bounce), box-shadow var(--ap-open) ease-out; }
     .mini__head { display: flex; align-items: center; gap: var(--space-2); height: 40px; padding: 0 var(--space-4); }
-    .mini__head fvdr-icon { font-size: var(--font-size-2xl); flex-shrink: 0; }
+    .mini__head > fvdr-icon { font-size: var(--font-size-2xl); flex-shrink: 0; }
     .mini__title { flex: 1; white-space: nowrap; font-weight: var(--font-weight-semi); line-height: 20px; }
     .x--mini { position: static; flex-shrink: 0; }
-    .mini__more { padding: 0 var(--space-4); opacity: 0; transform: translateY(calc(var(--space-2) * -1));
-      transition: opacity var(--ap-open) ease-out, transform var(--ap-open) ease-out; }
-    .mini:hover .mini__more, .mini:focus-within .mini__more { opacity: 1; transform: none; transition-delay: 60ms; }
-    .mini__more p { width: 345px; margin: 0 0 var(--space-3); line-height: 20px; }
+    .mini__more { padding: 2px var(--space-4) 0; opacity: 0; transition: opacity 120ms ease-out; }
+    .mini:hover .mini__more, .mini:focus-within .mini__more { opacity: 1; transition: opacity var(--ap-open) ease-out 60ms; }
+    .mini__more p { width: 309px; margin: 0 0 var(--space-3); line-height: 20px; }
     .cta--s { height: 32px; padding: 0 var(--space-3); font-size: var(--font-size-base); }
 
     /* ── Page 2 body ── */
@@ -209,9 +212,10 @@ export class AdvisoryBannersComponent implements OnInit, OnDestroy {
   tab = 'projects';
   bigOpen = true;
   miniOpen = true;
-  readonly points = 700;
-  /** Counter roll time in ms — the whole feel is tuned here (brief: ~500ms, may go a bit longer). */
+  readonly points = '1,700';
+  /** Counter roll time in ms — hover replay 500, first show 1000 (the feel is tuned here). */
   rollMs = 500;
+  firstRollMs = 1000;
   bigTick = 0;
   miniTick = 0;
 

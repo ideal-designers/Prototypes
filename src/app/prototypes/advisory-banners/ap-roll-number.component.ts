@@ -30,9 +30,12 @@ import { CommonModule } from '@angular/common';
   `],
 })
 export class RollNumberComponent implements AfterViewInit, OnChanges {
-  @Input() value = 0;
-  /** Roll time of the first digit in ms; later digits start a little after it. */
+  /** Number or ready text (e.g. "1,700"); only digits roll. */
+  @Input() value: number | string = 0;
+  /** Roll time of the first digit in ms on a replay (hover); later digits start a little after it. */
   @Input() duration = 500;
+  /** Same, but for the very first roll when the page/banner appears. */
+  @Input() firstDuration = 1000;
   @Input() stagger = 70;
   /** Change this value to roll the number again. */
   @Input() replay = 0;
@@ -47,14 +50,14 @@ export class RollNumberComponent implements AfterViewInit, OnChanges {
   /** Resting position of a column (also what you see with reduced motion). */
   rest(d: number): string { return `translateY(calc(${-(d === 0 ? 10 : d)} * var(--roll-h, 1.4em)))`; }
 
-  ngAfterViewInit(): void { this.ready = true; this.play(); }
+  ngAfterViewInit(): void { this.ready = true; this.play(this.firstDuration); }
 
   ngOnChanges(c: SimpleChanges): void {
     if (c['value'] || !this.chars.length) this.chars = String(this.value).split('').map(ch => ({ text: ch, digit: /\d/.test(ch) ? Number(ch) : null }));
-    if (this.ready && c['replay'] && !c['replay'].firstChange) this.play();
+    if (this.ready && c['replay'] && !c['replay'].firstChange) this.play(this.duration);
   }
 
-  play(): void {
+  play(duration = this.duration): void {
     if (this.playing || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     const cols = this.cols.toArray();
     if (!cols.length) return;
@@ -67,7 +70,7 @@ export class RollNumberComponent implements AfterViewInit, OnChanges {
       const h = el.firstElementChild!.getBoundingClientRect().height;
       last = el.animate(
         [{ transform: 'translateY(0)' }, { transform: `translateY(${-target * h}px)` }],
-        { duration: this.duration + i * this.stagger, easing: 'cubic-bezier(0.3, 0.7, 0.3, 1)', fill: 'both' },
+        { duration: duration + i * this.stagger, easing: 'cubic-bezier(0.3, 0.7, 0.3, 1)', fill: 'both' },
       );
     });
     (last as Animation | null)?.finished.then(() => (this.playing = false)).catch(() => (this.playing = false));
