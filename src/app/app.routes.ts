@@ -294,6 +294,11 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./prototypes/insights-cleanup-drawer/insights-cleanup-drawer.component').then(m => m.InsightsCleanupDrawerComponent),
   },
+    {
+    path: 'advisory-banners',
+    loadComponent: () =>
+      import('./prototypes/advisory-banners/advisory-banners.component').then(m => m.AdvisoryBannersComponent),
+  },
   // PROTO_ROUTES_PLACEHOLDER
   {
     path: '**',

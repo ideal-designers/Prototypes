@@ -390,5 +390,13 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
     status: 'wip',
     description: 'Documents dashboard Clean up side panel: 3 options for grouping duplicated files',
   },
+    {
+    slug: 'advisory-banners',
+    title: 'Advisory rewards banners',
+    module: 'General Exploration',
+    figma: 'https://www.figma.com/design/qz9CuvZeRHDSnuXIcZq6hT/Advisory-programs?node-id=2988-46204',
+    status: 'wip',
+    description: 'Ideals points banners: large dashboard banner and compact project banner, with counter roll-up, hover and shine effects',
+  },
   // REGISTRY_PLACEHOLDER
 ];
