@@ -146,8 +146,7 @@ interface DocRow { index: number; name: string; kind: 'folder' | 'pdf' | 'doc'; 
     .big__title ap-roll-number { --roll-h: 28px; }
     .big__text { margin: var(--space-3) 0 var(--space-5); font-size: var(--font-size-base); line-height: 20px; }
     .x { position: absolute; top: var(--space-6); right: var(--space-6); display: grid; place-items: center; width: var(--space-5); height: var(--space-5);
-      padding: 0; border: 0; background: transparent; color: inherit; font-size: var(--font-size-2xl); cursor: pointer; opacity: 0.85; }
-    .x:hover { opacity: 1; }
+      padding: 0; border: 0; background: transparent; color: var(--color-stone-0); font-size: var(--font-size-2xl); cursor: pointer; }
 
     /* CTA: DS primary look */
     .cta { position: relative; display: inline-flex; height: 40px; padding: 0 var(--space-4); border: 0; border-radius: var(--radius-sm);
