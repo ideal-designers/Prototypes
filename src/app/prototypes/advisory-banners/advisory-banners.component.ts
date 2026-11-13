@@ -126,9 +126,9 @@ interface DocRow { index: number; name: string; kind: 'folder' | 'pdf' | 'doc'; 
       /* banner gradient ≈ Figma #022E34 → #106156 (no such tokens yet, so derived from green-800) */
       --ap-from: color-mix(in srgb, var(--primitive-green-800) 36%, black); --ap-to: color-mix(in srgb, var(--primitive-green-800) 76%, black);
       --roll-ms: 500ms;
-      --ap-open: 300ms;
-      /* ease-out that overshoots to ~1.05 (≈5px, 3.6% of 142) at ~70% and settles: a gentle bounce */
-      --ap-bounce: linear(0, 0.34 14%, 0.68 32%, 0.92 50%, 1.05 70%, 1.025 82%, 1.006 92%, 1);
+      --ap-open: 450ms;
+      /* damped spring (zeta .62): overshoots ~8px (≈6% of 142) past the open height and settles, smooth all the way */
+      --ap-bounce: linear(0, 0.0195, 0.0712, 0.1459, 0.2357, 0.3338, 0.4346, 0.5338, 0.6281, 0.715, 0.7929, 0.861, 0.9189, 0.9668, 1.0052, 1.0347, 1.0562, 1.0708, 1.0795, 1.0832, 1.083, 1.0797, 1.0742, 1.0672, 1.0592, 1.0508, 1.0425, 1.0344, 1.0268, 1.02, 1.0139, 1.0087, 1.0044, 1.0008, 0.9981, 0.996, 1);
     }
     .app { display: flex; height: 100%; background: var(--color-bg-page); color: var(--color-text-primary); font-family: var(--font-family); font-size: var(--font-size-base); }
     .main { position: relative; flex: 1; min-width: 0; display: flex; flex-direction: column; overflow: auto; }
@@ -167,11 +167,11 @@ interface DocRow { index: number; name: string; kind: 'folder' | 'pdf' | 'doc'; 
     .card__star { color: var(--color-icon); }
 
     /* ── Compact banner in the header (Figma 341×40 → 341×142) ──
-       Only the box grows: its bottom edge overshoots ~3.5% (5px of 142) and settles back. The text never moves —
-       it is pinned to the top and just fades in while the background slides out underneath it. */
+       Only the box grows: its bottom edge overshoots ~8px and settles back (damped spring, ~450ms). The title row stays put; the lower
+       part (text + button) rides the same curve together with the background. */
     .mini { position: absolute; z-index: 150; top: var(--space-3); right: 200px; width: 341px; height: 40px; overflow: hidden;
       border-radius: var(--radius-sm); color: var(--color-stone-0); background: var(--ap-to);
-      transition: height 200ms ease-out, box-shadow 200ms ease-out; }
+      transition: height 260ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 260ms ease-out; }
     .mini:hover, .mini:focus-within { height: 142px; box-shadow: var(--shadow-popup);
       transition: height var(--ap-open) var(--ap-bounce), box-shadow var(--ap-open) ease-out; }
     /* gradient layer is fixed at the expanded size so it never morphs while the box grows (Figma: light bottom-left, dark top-right) */
@@ -182,9 +182,9 @@ interface DocRow { index: number; name: string; kind: 'folder' | 'pdf' | 'doc'; 
     .mini__title { flex: 1; white-space: nowrap; font-weight: var(--font-weight-semi); line-height: 20px; }
     .x--mini { position: static; flex-shrink: 0; }
     /* lower part: clipped under the title row; its content rides the same bounce as the box edge
-       (starts one box-growth above its place, so it overshoots ~5px down and comes back together with the background) */
+       (starts one box-growth above its place, so it overshoots ~8px down and comes back together with the background) */
     .mini__more { position: absolute; left: 0; right: 0; top: 40px; bottom: 0; overflow: hidden; z-index: 1; }
-    .mini__more-in { padding: 2px var(--space-4) 0; transform: translateY(-102px); transition: transform 200ms ease-out; }
+    .mini__more-in { padding: 2px var(--space-4) 0; transform: translateY(-102px); transition: transform 260ms cubic-bezier(0.4, 0, 0.2, 1); }
     .mini:hover .mini__more-in, .mini:focus-within .mini__more-in { transform: none; transition: transform var(--ap-open) var(--ap-bounce); }
     .mini__more p { width: 309px; margin: 0 0 var(--space-3); line-height: 20px; }
     .cta--s { height: 32px; padding: 0 var(--space-3); font-size: var(--font-size-base); }
