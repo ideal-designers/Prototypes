@@ -196,6 +196,7 @@ export type FvdrIconName =
   | 'arrow-right'
   | 'close-banner'
   | 'trophy-gradient'
+  | 'trophy'
   | 'folder-outline'
   | 'delete-mark'
   | 'delete-all-pages'
@@ -466,6 +467,7 @@ export const FVDR_ICONS: Record<FvdrIconName, string> = {
   // Rename (text field with cursor) — Bulk rename review (Figma Staging Hub / FVDR / NT)
   'close-banner': `<svg viewBox="0 0 20 20" fill="none"><path d="M15.25 5.8075L14.1925 4.75L10 8.9425L5.8075 4.75L4.75 5.8075L8.9425 10L4.75 14.1925L5.8075 15.25L10 11.0575L14.1925 15.25L15.25 14.1925L11.0575 10L15.25 5.8075Z" fill="currentColor"/></svg>`,
   'arrow-right': `<svg viewBox="0 0 16 16" fill="none"><path d="M9 2.5L14.5 8L9 13.5L7.95 12.45L11.65 8.75H1.5V7.25H11.65L7.95 3.55L9 2.5Z" fill="currentColor"/></svg>`,
+  'trophy': `<svg viewBox="0 0 24 24" fill="none"><path d="M18 4.5H22V7C22 9.38052 20.1514 11.3272 17.8115 11.4873C17.2301 13.765 15.3473 15.5211 13 15.915V20H17V22H7V20H11V15.915C8.65255 15.5211 6.76778 13.7653 6.18652 11.4873C3.84755 11.3263 2 9.37986 2 7V4.5H6V2H18V4.5ZM8 10C8 12.2091 9.79086 14 12 14C14.2091 14 16 12.2091 16 10V4H8V10ZM4 6.5V7C4 8.20943 4.85895 9.21753 6 9.44922V6.5H4ZM18 9.44922C19.141 9.21753 20 8.20943 20 7V6.5H18V9.44922Z" fill="currentColor"/></svg>`,
   'trophy-gradient': `<svg viewBox="0 0 24 24" fill="none"><path d="M18 4.5H22V7C22 9.38052 20.1514 11.3272 17.8115 11.4873C17.2301 13.765 15.3473 15.5211 13 15.915V20H17V22H7V20H11V15.915C8.65255 15.5211 6.76778 13.7653 6.18652 11.4873C3.84755 11.3263 2 9.37986 2 7V4.5H6V2H18V4.5ZM8 10C8 12.2091 9.79086 14 12 14C14.2091 14 16 12.2091 16 10V4H8V10ZM4 6.5V7C4 8.20943 4.85895 9.21753 6 9.44922V6.5H4ZM18 9.44922C19.141 9.21753 20 8.20943 20 7V6.5H18V9.44922Z" fill="url(#fvdrTrophyGrad)"/><defs><linearGradient id="fvdrTrophyGrad" x1="21.0004" y1="22.2039" x2="2.39967" y2="4.20319" gradientUnits="userSpaceOnUse"><stop stop-color="#C3C4E8"/><stop offset="0.293989" stop-color="#D8D8F1"/><stop offset="0.659744" stop-color="#F8EB81"/><stop offset="1" stop-color="#93F6A4"/></linearGradient></defs></svg>`,
   'swap-horizontal': `<svg viewBox="0 0 16 16" fill="none"><path d="M1 11.125H11.6484L9.5 9L10.625 8L15 12L10.625 16L9.5 15L11.6484 12.875H1V11.125ZM5.375 0L6.5 1L4.35156 3.125H15V4.875H4.35156L6.5 7L5.375 8L1 4L5.375 0Z" fill="currentColor"/></svg>`,
   'folders-all': `<svg viewBox="0 0 16 16" fill="none"><path d="M1.5 4.5V13.3955H12.7998V15H1.38574C0.623837 15 0 14.329 0 13.5088V4.5H1.5ZM9.59961 2.75H14.3994C15.1613 2.75 16 3.36732 16 4.1875V10.0088C16 10.829 15.3762 11.5 14.6143 11.5H4.58496C3.82315 11.4999 3.2002 10.8289 3.2002 10.0088L3.20703 2.49121C3.20715 1.67121 3.82322 1.00012 4.58496 1H7.61914L9.59961 2.75ZM4.69141 9.88281H14.5V4.2998H9.2002L7.2002 2.59961H4.69141V9.88281Z" fill="currentColor"/></svg>`,

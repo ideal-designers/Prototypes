@@ -39,7 +39,7 @@ interface DocRow { index: number; name: string; kind: 'folder' | 'pdf' | 'doc'; 
                 <span><ap-roll-number [value]="points" [duration]="rollMs" [firstDuration]="firstRollMs" [replay]="bigTick"></ap-roll-number> Ideals points ready to use</span>
               </h2>
               <p class="big__text">Every project pays off – put your team's points toward exclusive rewards in the advisory suite</p>
-              <button type="button" class="cta"><span class="cta__label">Explore rewards<fvdr-icon name="arrow-right"></fvdr-icon></span><span class="cta__shine" aria-hidden="true"></span></button>
+              <button type="button" class="cta"><span class="cta__label">Explore rewards<fvdr-icon name="arrow-right"></fvdr-icon></span></button>
             </div>
             <button type="button" class="x" aria-label="Close" fvdrTooltip="Close" tooltipPosition="left" (click)="bigOpen = false"><fvdr-icon name="close-banner"></fvdr-icon></button>
           </section>
@@ -71,8 +71,10 @@ interface DocRow { index: number; name: string; kind: 'folder' | 'pdf' | 'doc'; 
               <button type="button" class="x x--mini" aria-label="Close" (click)="miniOpen = false"><fvdr-icon name="close-banner"></fvdr-icon></button>
             </div>
             <div class="mini__more">
-              <p>Every project pays off – put your team's points toward exclusive rewards in the advisory suite</p>
-              <button type="button" class="cta cta--s"><span class="cta__label">Explore rewards<fvdr-icon name="arrow-right"></fvdr-icon></span><span class="cta__shine" aria-hidden="true"></span></button>
+              <div class="mini__more-in">
+                <p>Every project pays off – put your team's points toward exclusive rewards in the advisory suite</p>
+                <button type="button" class="cta cta--s"><span class="cta__label">Explore rewards<fvdr-icon name="arrow-right"></fvdr-icon></span></button>
+              </div>
             </div>
           </aside>
 
@@ -135,7 +137,8 @@ interface DocRow { index: number; name: string; kind: 'folder' | 'pdf' | 'doc'; 
 
     /* ── Large banner ── */
     .big { position: relative; flex: 0 0 168px; height: 168px; border-radius: var(--radius-md); overflow: hidden; color: var(--color-stone-0);
-      background: linear-gradient(100deg, var(--ap-from) 8%, var(--ap-to) 84%); }
+      /* Figma gradient transform → 187.6deg, light bottom-left / dark top-right */
+      background: linear-gradient(187.6deg, var(--ap-from) -20.3%, var(--ap-to) 93.2%); }
     .big__art { position: absolute; left: 0; top: 0; height: 168px; width: auto; pointer-events: none; }
     .big__body { position: absolute; left: 208px; top: var(--space-6); right: 80px; display: flex; flex-direction: column; align-items: flex-start; }
     .big__title { display: flex; align-items: center; gap: var(--space-2); margin: 0; font-size: var(--font-size-2xl); line-height: 28px; font-weight: var(--font-weight-semi); }
@@ -146,17 +149,12 @@ interface DocRow { index: number; name: string; kind: 'folder' | 'pdf' | 'doc'; 
       padding: 0; border: 0; background: transparent; color: inherit; font-size: var(--font-size-2xl); cursor: pointer; opacity: 0.85; }
     .x:hover { opacity: 1; }
 
-    /* CTA: DS primary look + a shine that sweeps until the pointer is on the button */
+    /* CTA: DS primary look */
     .cta { position: relative; display: inline-flex; height: 40px; padding: 0 var(--space-4); border: 0; border-radius: var(--radius-sm);
       background: var(--color-primary-500); color: var(--color-stone-0); font: inherit; font-size: 15px; cursor: pointer; overflow: hidden; transition: background 0.15s; }
     .cta:hover { background: var(--color-primary-600); }
     .cta:active { background: var(--color-primary-700); }
     .cta__label { position: relative; z-index: 1; display: inline-flex; align-items: center; gap: var(--space-2); }
-    .cta__shine { position: absolute; top: 0; bottom: 0; left: 0; width: 45%; pointer-events: none; opacity: 0;
-      background: linear-gradient(100deg, transparent 0%, color-mix(in srgb, var(--color-stone-0) 55%, transparent) 50%, transparent 100%);
-      transform: translateX(-160%) skewX(-18deg); animation: ap-shine 3.2s ease-in-out 0.8s infinite; }
-    .cta:hover .cta__shine, .cta:focus-visible .cta__shine { animation: none; opacity: 0; }
-    @keyframes ap-shine { 0% { transform: translateX(-160%) skewX(-18deg); opacity: 0; } 4% { opacity: 1; } 24% { transform: translateX(330%) skewX(-18deg); opacity: 1; } 28%, 100% { transform: translateX(330%) skewX(-18deg); opacity: 0; } }
 
     /* ── Page 1 body ── */
     .bar { display: flex; align-items: center; gap: var(--space-2); }
@@ -171,17 +169,23 @@ interface DocRow { index: number; name: string; kind: 'folder' | 'pdf' | 'doc'; 
     /* ── Compact banner in the header (Figma 341×40 → 341×142) ──
        Only the box grows: its bottom edge overshoots ~3.5% (5px of 142) and settles back. The text never moves —
        it is pinned to the top and just fades in while the background slides out underneath it. */
-    .mini { position: absolute; z-index: 150; top: var(--space-3); right: 304px; width: 341px; height: 40px; overflow: hidden;
-      border-radius: var(--radius-sm); color: var(--color-stone-0); background: linear-gradient(90deg, var(--ap-from) 0%, var(--ap-to) 84%);
+    .mini { position: absolute; z-index: 150; top: var(--space-3); right: 200px; width: 341px; height: 40px; overflow: hidden;
+      border-radius: var(--radius-sm); color: var(--color-stone-0); background: var(--ap-to);
       transition: height 200ms ease-out, box-shadow 200ms ease-out; }
     .mini:hover, .mini:focus-within { height: 142px; box-shadow: var(--shadow-popup);
       transition: height var(--ap-open) var(--ap-bounce), box-shadow var(--ap-open) ease-out; }
-    .mini__head { display: flex; align-items: center; gap: var(--space-2); height: 40px; padding: 0 var(--space-4); }
+    /* gradient layer is fixed at the expanded size so it never morphs while the box grows (Figma: light bottom-left, dark top-right) */
+    .mini::before { content: ''; position: absolute; left: 0; top: 0; width: 341px; height: 150px; pointer-events: none;
+      background: linear-gradient(207.8deg, var(--ap-from) -29.6%, var(--ap-to) 92.8%); }
+    .mini__head { position: relative; display: flex; align-items: center; gap: var(--space-2); height: 40px; padding: 0 var(--space-4); }
     .mini__head > fvdr-icon { font-size: var(--font-size-2xl); flex-shrink: 0; }
     .mini__title { flex: 1; white-space: nowrap; font-weight: var(--font-weight-semi); line-height: 20px; }
     .x--mini { position: static; flex-shrink: 0; }
-    .mini__more { padding: 2px var(--space-4) 0; opacity: 0; transition: opacity 120ms ease-out; }
-    .mini:hover .mini__more, .mini:focus-within .mini__more { opacity: 1; transition: opacity var(--ap-open) ease-out 60ms; }
+    /* lower part: clipped under the title row; its content rides the same bounce as the box edge
+       (starts one box-growth above its place, so it overshoots ~5px down and comes back together with the background) */
+    .mini__more { position: absolute; left: 0; right: 0; top: 40px; bottom: 0; overflow: hidden; z-index: 1; }
+    .mini__more-in { padding: 2px var(--space-4) 0; transform: translateY(-102px); transition: transform 200ms ease-out; }
+    .mini:hover .mini__more-in, .mini:focus-within .mini__more-in { transform: none; transition: transform var(--ap-open) var(--ap-bounce); }
     .mini__more p { width: 309px; margin: 0 0 var(--space-3); line-height: 20px; }
     .cta--s { height: 32px; padding: 0 var(--space-3); font-size: var(--font-size-base); }
 
@@ -200,7 +204,6 @@ interface DocRow { index: number; name: string; kind: 'folder' | 'pdf' | 'doc'; 
     .tr--sel { background: var(--color-primary-50); }
     .sortcol { display: inline-flex; align-items: center; gap: var(--space-2); }
     @media (prefers-reduced-motion: reduce) {
-      .cta__shine { animation: none; }
       .mini { transition: none; }
     }
   `],
@@ -227,7 +230,7 @@ export class AdvisoryBannersComponent implements OnInit, OnDestroy {
   readonly caNav: SidebarNavItem[] = [
     { id: 'projects', label: 'All projects', icon: 'nav-projects', iconActive: 'nav-projects-active', active: true },
     { id: 'overview', label: 'Overview', icon: 'nav-overview', iconActive: 'nav-overview-active' },
-    { id: 'rewards', label: 'Rewards', icon: 'trophy-gradient', iconActive: 'trophy-gradient' },
+    { id: 'rewards', label: 'Rewards', icon: 'trophy', iconActive: 'trophy' },
     { id: 'settings', label: 'Settings', icon: 'nav-settings', iconActive: 'nav-settings-active' },
   ];
   readonly vdrNav: SidebarNavItem[] = [
