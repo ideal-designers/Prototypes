@@ -240,8 +240,8 @@ const TONES = [
                 </span>
                 <!-- rename, delete and add categories in one place -->
                 <span class="wf-add-wrap">
-                  <button class="wf-tab wf-tab--add" fvdrTooltip="Manage categories" aria-label="Manage categories" [attr.aria-expanded]="managingCats" (click)="toggleManage()"><fvdr-icon name="more"></fvdr-icon></button>
-                  <div class="wf-pop wf-pop--wide" *ngIf="managingCats" role="dialog" aria-label="Manage categories">
+                  <button class="wf-tab wf-tab--add" fvdrTooltip="Category settings" aria-label="Category settings" [attr.aria-expanded]="managingCats" (click)="toggleManage()"><fvdr-icon name="settings"></fvdr-icon></button>
+                  <div class="wf-pop wf-pop--wide" *ngIf="managingCats" role="dialog" aria-label="Category settings">
                     <span class="field-label">All categories · {{ manageCats(false).length }}</span>
                     <ng-container *ngTemplateOutlet="catRows; context: { list: manageCats(false), own: false }"></ng-container>
                     <span class="wf-mrow">
