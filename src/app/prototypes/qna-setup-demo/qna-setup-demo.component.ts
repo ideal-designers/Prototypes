@@ -198,42 +198,35 @@ const TONES = [
         <div class="canvas-top" (mousedown)="$event.stopPropagation()">
           <!-- one workflow, or several: by category, by question team, or fully separate (e.g. one per deal) -->
           <div class="wf-bar" *ngIf="templateConfirmed">
-            <fvdr-toggle size="s" label="Multiple workflows" [checked]="multiWf" (checkedChange)="setMultiWf($event)"></fvdr-toggle>
+            <fvdr-toggle size="s" label="Workflow by category" [checked]="multiWf" (checkedChange)="setMultiWf($event)"></fvdr-toggle>
             <ng-container *ngIf="multiWf">
               <div class="wf-tabs" role="tablist" aria-label="Workflows by category">
                 <button class="wf-tab" role="tab" [attr.aria-selected]="activeWf === OVERVIEW" [class.wf-tab--on]="activeWf === OVERVIEW"
                         fvdrTooltip="See every workflow on the canvas" (click)="switchWf(OVERVIEW)"><fvdr-icon name="overview"></fvdr-icon>All</button>
-                <!-- Default: the default workflow and every category that still follows it -->
-                <div class="wf-set" role="group" aria-label="Default">
-                  <button class="wf-tab" role="tab" [attr.aria-selected]="activeWf === DEFAULT_WF" [class.wf-tab--on]="activeWf === DEFAULT_WF"
-                          fvdrTooltip="The workflow every category below follows" (click)="switchWf(DEFAULT_WF)">
-                    Default<span class="wf-count">{{ defaultCats().length }}</span>
-                  </button>
-                  <button class="wf-tab wf-tab--chip" role="tab" *ngFor="let t of defaultCats(); trackBy: trackKey" [attr.aria-selected]="activeWf === t.key" [class.wf-tab--on]="activeWf === t.key"
-                          (click)="switchWf(t.key)">
-                    <fvdr-icon name="label" class="cat-ic" [ngClass]="'cat-ic--' + t.color"></fvdr-icon>{{ t.label }}
-                  </button>
-                  <button class="wf-tab wf-tab--chip wf-tab--add" *ngIf="!addingCat" fvdrTooltip="Add category" aria-label="Add category" (click)="addingCat = true"><fvdr-icon name="plus"></fvdr-icon></button>
-                  <span class="wf-new" *ngIf="addingCat">
-                    <input class="wf-name" placeholder="Category name" aria-label="New category name" [(ngModel)]="newCategory" autofocus
-                           (keydown.enter)="addWfCategory()" (keydown.escape)="addingCat = false; newCategory = ''" />
-                    <button class="icon-btn icon-btn--sm" fvdrTooltip="Add" [disabled]="!newCategory.trim()" (click)="addWfCategory()"><fvdr-icon name="check"></fvdr-icon></button>
-                    <button class="icon-btn icon-btn--sm" fvdrTooltip="Cancel" (click)="addingCat = false; newCategory = ''"><fvdr-icon name="close"></fvdr-icon></button>
-                  </span>
-                </div>
-                <!-- Customised: categories with their own workflow — no longer part of Default -->
-                <div class="wf-set" role="group" aria-label="Customised">
-                  <span class="wf-set-title">Customised<span class="wf-count">{{ customCats().length }}</span></span>
-                  <button class="wf-tab wf-tab--chip" role="tab" *ngFor="let t of customCats(); trackBy: trackKey" [attr.aria-selected]="activeWf === t.key" [class.wf-tab--on]="activeWf === t.key"
-                          (click)="switchWf(t.key)">
-                    <fvdr-icon name="label" class="cat-ic" [ngClass]="'cat-ic--' + t.color"></fvdr-icon>{{ t.label }}
-                  </button>
-                  <span class="wf-empty" *ngIf="!customCats().length">None yet — open a category and customize it</span>
-                </div>
+                <!-- All categories: the shared workflow; hover lists the categories that follow it -->
+                <button class="wf-tab" role="tab" [attr.aria-selected]="activeWf === DEFAULT_WF" [class.wf-tab--on]="activeWf === DEFAULT_WF"
+                        [fvdrTooltip]="defaultCatsLabel()" (click)="switchWf(DEFAULT_WF)">
+                  All categories<span class="wf-count">{{ defaultCats().length }}</span>
+                </button>
+                <!-- categories with their own workflow -->
+                <button class="wf-tab" role="tab" *ngFor="let t of customCats(); trackBy: trackKey" [attr.aria-selected]="activeWf === t.key" [class.wf-tab--on]="activeWf === t.key"
+                        (click)="switchWf(t.key)">
+                  <fvdr-icon name="label" class="cat-ic" [ngClass]="'cat-ic--' + t.color"></fvdr-icon>{{ t.label }}
+                </button>
+                <button class="wf-tab wf-tab--add" *ngIf="!addingCat" fvdrTooltip="Give a category its own workflow" aria-label="Give a category its own workflow" (click)="addingCat = true"><fvdr-icon name="plus"></fvdr-icon></button>
+                <span class="wf-new" *ngIf="addingCat">
+                  <fvdr-dropdown class="wf-pick" size="s" [options]="defaultCatOptions()" [value]="''" placeholder="Pick a category"
+                                 (valueChange)="customizeFromBar($event)"></fvdr-dropdown>
+                  <span class="wf-or">or</span>
+                  <input class="wf-name" placeholder="New category" aria-label="New category name" [(ngModel)]="newCategory"
+                         (keydown.enter)="addWfCategory()" (keydown.escape)="addingCat = false; newCategory = ''" />
+                  <button class="icon-btn icon-btn--sm" fvdrTooltip="Add" [disabled]="!newCategory.trim()" (click)="addWfCategory()"><fvdr-icon name="check"></fvdr-icon></button>
+                  <button class="icon-btn icon-btn--sm" fvdrTooltip="Cancel" (click)="addingCat = false; newCategory = ''"><fvdr-icon name="close"></fvdr-icon></button>
+                </span>
               </div>
               <ng-container *ngIf="activeCategory as c">
                 <button class="link-btn wf-reset" *ngIf="customWf.has(activeWf)" (click)="resetWf(activeWf)">
-                  <fvdr-icon name="undo"></fvdr-icon>Reset {{ c.name }} to default
+                  <fvdr-icon name="undo"></fvdr-icon>Use the All categories workflow
                 </button>
                 <button class="icon-btn icon-btn--sm" [fvdrTooltip]="'Delete ' + c.name" [attr.aria-label]="'Delete category ' + c.name" (click)="catToDelete = c"><fvdr-icon name="trash"></fvdr-icon></button>
               </ng-container>
@@ -421,11 +414,11 @@ const TONES = [
           <div class="panel-head panel-head--lib">
             <div class="panel-titles">
               <span class="lib-title">{{ wfLabel(activeWf) }}</span>
-              <span class="panel-sub">Follows the default workflow</span>
+              <span class="panel-sub">Follows the All categories workflow</span>
             </div>
           </div>
           <div class="panel-body">
-            <p class="tp-desc">{{ wfSplit === 'team' ? 'Questions from ' + wfLabel(activeWf) : wfLabel(activeWf) + ' questions' }} go through the default workflow shown on the canvas.</p>
+            <p class="tp-desc">{{ wfSplit === 'team' ? 'Questions from ' + wfLabel(activeWf) : wfLabel(activeWf) + ' questions' }} go through the All categories workflow shown on the canvas.</p>
             <p class="hint">Customize it to give {{ wfLabel(activeWf) }} its own roles, people and routing — for example skip approval, or add a dedicated expert team. Everything else keeps using the default.</p>
             <span class="field-label field-label--gap">{{ wfSplit === 'team' ? 'Question teams' : 'Categories' }} with their own workflow</span>
             <p class="hint" *ngIf="!customKeys().length">None yet</p>
@@ -540,6 +533,8 @@ const TONES = [
                 <div class="rt-setting perm-after" *ngIf="n.roleKey === 'approver'">
                   <span class="field-label">After approval, the answer goes</span>
                   <fvdr-radio [options]="afterApproveOptions" [value]="afterApprove" layout="vertical" (valueChange)="setAfterApprove($any($event))"></fvdr-radio>
+                  <span class="field-label">When an answer is rejected, it goes back to</span>
+                  <span class="rt-fixed"><fvdr-icon name="lock-close"></fvdr-icon>{{ hasExpert ? 'The expert' : 'The answer coordinator' }}</span>
                 </div>
                 <ng-container *ngIf="rp.fixed.length">
                   <span class="field-label">Always included</span>
@@ -607,7 +602,7 @@ const TONES = [
                 </div>
                 <div class="rt-setting">
                   <span class="rt-q">When an answer is rejected, it goes back to</span>
-                  <fvdr-radio [options]="rejectToOptions" [value]="rejectTo" layout="vertical" (valueChange)="setRejectTo($any($event))"></fvdr-radio>
+                  <span class="rt-fixed"><fvdr-icon name="lock-close"></fvdr-icon>{{ hasExpert ? 'The expert' : 'The answer coordinator' }}</span>
                 </div>
                 <div class="rt-setting" *ngIf="approvers().length > 1">
                   <span class="rt-q">With several approvers, a rejection from a later approver goes back to</span>
@@ -813,7 +808,7 @@ const TONES = [
             confirmLabel="Delete category" confirmVariant="danger" cancelLabel="Cancel"
             (confirmed)="catToDelete && deleteCategory(catToDelete); catToDelete = null" (cancelled)="catToDelete = null" (closed)="catToDelete = null">
   <p class="modal-text">Experts and approvers assigned to {{ catToDelete?.name }} lose it.
-    <ng-container *ngIf="catToDelete && customWf.has('cat:' + catToDelete.name)">Its own workflow is deleted too, and its questions follow the default workflow.</ng-container></p>
+    <ng-container *ngIf="catToDelete && customWf.has('cat:' + catToDelete.name)">Its own workflow is deleted too.</ng-container></p>
 </fvdr-modal>
 
 <fvdr-modal [visible]="!!teamToDelete" [title]="'Delete ' + (teamToDelete?.name || 'team') + '?'" size="s"
@@ -966,12 +961,11 @@ const TONES = [
     .wf-new { display: inline-flex; align-items: center; gap: var(--space-1); }
     .role--used { cursor: default; opacity: 0.6; }
     .role--used:hover { background: none; }
+    .rt-fixed { display: inline-flex; align-items: center; gap: var(--space-2); }
     .perm-after { padding-bottom: var(--space-3); border-bottom: 1px solid var(--color-divider); }
-    .wf-set { display: inline-flex; flex-wrap: wrap; align-items: center; gap: var(--space-1); padding: var(--space-1); border: 1px dashed var(--color-stone-400); border-radius: var(--radius-md); }
-    .wf-set-title { display: inline-flex; align-items: center; gap: var(--space-1); padding: 0 var(--space-2); font-weight: var(--font-weight-semi); white-space: nowrap; }
+    .wf-pick { width: 180px; }
+    .wf-or { font-size: var(--text-caption1-size); color: var(--color-text-secondary); }
     .wf-count { display: inline-flex; align-items: center; justify-content: center; min-width: var(--space-5); padding: 0 var(--space-1); margin-left: var(--space-1); border-radius: var(--radius-lg); background: var(--color-stone-300); color: var(--color-text-secondary); font-size: var(--text-caption1-size); font-weight: normal; }
-    .wf-tab--chip { height: var(--space-6); padding: 0 var(--space-2); font-size: var(--text-caption1-size); }
-    .wf-empty { padding: 0 var(--space-2); font-size: var(--text-caption1-size); color: var(--color-text-secondary); white-space: nowrap; }
     .wf-tab--add { padding: 0 var(--space-2); color: var(--color-primary-500); }
     .wf-name { width: 10em; border: 1px solid var(--color-stone-400); border-radius: var(--radius-sm); padding: var(--space-1) var(--space-2); font: inherit; }
     .wf-name:focus { outline: none; border-color: var(--color-primary-500); }
@@ -979,9 +973,6 @@ const TONES = [
     .canvas--preview .node, .canvas--preview .edge-label { cursor: default; }
     .canvas--preview .node-add, .canvas--preview .edge-actions { display: none; }
     .tp-desc { margin: 0 0 var(--space-2); }
-    .tp-role { display: flex; align-items: flex-start; gap: var(--space-3); padding: var(--space-2) 0; }
-    .tp-req { margin-left: var(--space-2); font-size: var(--text-caption1-size); font-weight: normal; color: var(--color-text-secondary); background: var(--color-stone-300); border-radius: var(--radius-lg); padding: 0 var(--space-2); }
-    .footer-hint.footer-hint--info { color: var(--color-text-secondary); }
     .stepper { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-4) var(--space-6); border-bottom: 1px solid var(--color-divider); flex-shrink: 0; }
     .step { display: flex; align-items: center; gap: var(--space-2); border: 0; background: none; padding: 0; cursor: pointer; color: var(--color-text-secondary); font-size: var(--font-size-base); }
     .step:disabled { cursor: not-allowed; }
@@ -1393,7 +1384,7 @@ export class QnaSetupDemoComponent {
     return this.stable('wfTabs', this.wfSplit + '|' + src.map(t => t.key + t.label).join(','), () => src);
   }
   wfLabel(key: string): string {
-    if (key === this.DEFAULT_WF) return 'Default';
+    if (key === this.DEFAULT_WF) return 'All categories';
     const [kind, id] = [key.slice(0, key.indexOf(':')), key.slice(key.indexOf(':') + 1)];
     if (kind === 'team') return this.teams.find(t => t.id === id)?.name ?? 'Team';
     if (kind === 'ws') return this.workspaces.find(w => w.id === id)?.name ?? 'Workflow';
@@ -1434,7 +1425,7 @@ export class QnaSetupDemoComponent {
     } else {
       const tabs = this.wfTabs();
       const inheriting = tabs.filter(t => !this.customWf.has(t.key)).map(t => t.label);
-      sets.push({ key: this.DEFAULT_WF, label: 'Default', sub: inheriting.length ? 'Used by ' + inheriting.join(', ') : 'Not used — every ' + this.splitNoun + ' has its own', wf: def });
+      sets.push({ key: this.DEFAULT_WF, label: 'All categories', sub: inheriting.length ? 'Used by ' + inheriting.join(', ') : 'Not used — every ' + this.splitNoun + ' has its own', wf: def });
       tabs.filter(t => this.customWf.has(t.key)).forEach(t => sets.push({ key: t.key, label: t.label, sub: this.wfSplit === 'team' ? 'Questions from ' + t.label : t.label + ' questions only', wf: this.customWf.get(t.key)! }));
     }
     const nodes: FlowNode[] = [], edges: FlowEdge[] = [];
@@ -1481,7 +1472,7 @@ export class QnaSetupDemoComponent {
   resetWf(key: string) {
     this.customWf.delete(key);
     this.show(key);
-    this.toast.show({ variant: 'info', message: `${this.wfLabel(key)} follows the default workflow again` });
+    this.toast.show({ variant: 'info', message: `${this.wfLabel(key)} follows the All categories workflow again` });
   }
 
   /** the demo has one standard template, applied up front */
@@ -1508,7 +1499,11 @@ export class QnaSetupDemoComponent {
   categories = [
     { name: 'Finance', color: 'teal' },
     { name: 'Legal', color: 'green' },
-    { name: 'Tax', color: 'blue' },
+    { name: 'Taxes', color: 'blue' },
+    { name: 'HR', color: 'orange' },
+    { name: 'Accounting', color: 'red' },
+    { name: 'Marketing', color: 'grey' },
+    { name: 'Corporate', color: 'teal' },
   ];
   sideOptions: RadioOption[] = [{ value: 'question', label: 'Question side' }, { value: 'answer', label: 'Answer side' }];
 
@@ -1545,19 +1540,27 @@ export class QnaSetupDemoComponent {
 
   constructor() {
     this.loadTemplate('experts');
-    this.seedFinance();
+    this.seedCategoryWorkflows();
   }
-  /** Finance has its own workflow from the start: Finance experts, an approver, the coordinator sends the final answer */
-  private seedFinance() {
+  /** Finance and Legal start with their own workflows; every other category follows All categories */
+  private seedCategoryWorkflows() {
     const def = { nodes: this.nodes, edges: this.edges };
-    this.nodes = structuredClone(def.nodes);
-    this.edges = structuredClone(def.edges);
-    this.scopeToCategory(this.nodes, 'Finance');
-    const a = this.newNode(this.roleDef('approver')!, 0, 0);
-    a.members = [{ personId: 'p13', categories: ['Finance'] }];
-    this.nodes = [...this.nodes, a];
-    this.routeApprovedToCoordinator();
-    this.customWf.set('cat:Finance', { nodes: this.nodes, edges: this.edges });
+    const own = (cat: string, extra: () => void = () => {}) => {
+      this.nodes = structuredClone(def.nodes);
+      this.edges = structuredClone(def.edges);
+      this.scopeToCategory(this.nodes, cat);
+      extra();
+      this.customWf.set('cat:' + cat, { nodes: this.nodes, edges: this.edges });
+    };
+    // Finance: Finance experts, an approver, the coordinator sends the final answer
+    own('Finance', () => {
+      const a = this.newNode(this.roleDef('approver')!, 0, 0);
+      a.members = [{ personId: 'p13', categories: ['Finance'] }];
+      this.nodes = [...this.nodes, a];
+      this.routeApprovedToCoordinator();
+    });
+    // Legal: same route as the default, legal experts only
+    own('Legal');
     this.nodes = def.nodes;
     this.edges = def.edges;
     this.defaultWf = def;
@@ -1670,7 +1673,10 @@ export class QnaSetupDemoComponent {
    *   otherwise             → expert → coordinator → approvers → bidder (sign-off approver last)
    * Only for the standard chain (one coordinator, one expert role, approvers); returns false otherwise.
    */
+  /** a rejected answer always goes back to whoever drafted it: the expert when there is one */
+  get hasExpert(): boolean { return this.nodes.some(n => n.roleKey === 'expert'); }
   private rebuildAnswerRoute(quiet = false): boolean {
+    this.rejectTo = this.hasExpert ? 'expert' : 'coordinator';
     const a = this.nodes.filter(x => x.side === 'answer' && x.roleKey !== 'viewer');
     const cs = a.filter(x => x.roleKey === 'coordinator'), xs = a.filter(x => x.roleKey === 'expert');
     const order = this.stepMap();
@@ -1735,10 +1741,6 @@ export class QnaSetupDemoComponent {
     { value: 'direct', label: 'Straight to the question side' },
     { value: 'coordinator', label: 'Back to the answer coordinator, who sends it' },
   ];
-  readonly rejectToOptions: RadioOption[] = [
-    { value: 'expert', label: 'The expert' },
-    { value: 'coordinator', label: 'The answer coordinator' },
-  ];
   rejectChainOptions(): RadioOption[] {
     return this.stable('rejectChain', this.rejectTo, () => [
       { value: 'previous', label: 'The previous approver' },
@@ -1752,7 +1754,6 @@ export class QnaSetupDemoComponent {
     const c = this.coordinator();
     if (c && (v === 'coordinator') !== !!c.perms['finalSignoff']) this.setPerm(c, 'finalSignoff', v === 'coordinator');
   }
-  setRejectTo(v: string) { this.rejectTo = v as 'expert' | 'coordinator'; this.applyRouting(); }
   setRejectChain(v: string) { this.rejectChain = v as 'previous' | 'first'; this.applyRouting(); }
   /** standard flows are re-drawn; anything else just gets its reject arrows re-pointed */
   private applyRouting() {
@@ -2015,6 +2016,22 @@ export class QnaSetupDemoComponent {
       n.members = (inCat.length ? inCat : n.members).map(m => ({ ...m, categories: [cat] }));
     });
   }
+  defaultCatsLabel(): string {
+    const names = this.defaultCats().map(t => t.label);
+    return names.length ? names.join(', ') : 'Every category has its own workflow';
+  }
+  defaultCatOptions(): DropdownOption[] {
+    const tabs = this.defaultCats();
+    return this.stable('defaultCatOpts', tabs.map(t => t.key).join('|'), () => tabs.map(t => ({ value: t.label, label: t.label })));
+  }
+  /** pick a category that follows All categories and give it its own workflow */
+  customizeFromBar(v: string | string[]) {
+    const name = Array.isArray(v) ? v[0] : v;
+    if (!name) return;
+    this.addingCat = false;
+    this.stashActive();
+    this.customizeWf('cat:' + name);
+  }
   get activeCategory() { return this.categories.find(c => 'cat:' + c.name === this.activeWf); }
   /** add from the workflow bar and open it — it follows the default until customized */
   addWfCategory() {
@@ -2023,8 +2040,8 @@ export class QnaSetupDemoComponent {
     this.addCategory();
     if (this.categories.length === before) return;
     this.addingCat = false;
-    this.switchWf('cat:' + name);
-    this.toast.show({ variant: 'success', message: `${name} added — it follows the default workflow until you customize it` });
+    this.stashActive();
+    this.customizeWf('cat:' + name);
   }
   addCategory() {
     const name = this.newCategory.trim();
@@ -2139,9 +2156,9 @@ export class QnaSetupDemoComponent {
     const expertMembers = (n: FlowNode) => {
       n.assignMode = 'auto';
       n.members = [
-        { personId: 'p6', categories: ['Finance', 'Tax', 'Legal'] },
+        { personId: 'p6', categories: ['Finance', 'Taxes', 'Legal'] },
         { personId: 'p7', categories: ['Legal'] },
-        { personId: 'p8', categories: ['Tax'] },
+        { personId: 'p8', categories: ['Taxes'] },
       ];
       return n;
     };
