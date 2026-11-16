@@ -2,6 +2,7 @@ import { Component, ElementRef, HostListener, ViewChild, inject } from '@angular
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DS_COMPONENTS, ToastService } from '../../shared/ds';
+import { QnaUsersStepComponent } from './qna-users-step.component';
 import type { SidebarNavItem, HeaderAction, TabItem, SegmentItem, DropdownOption, RadioOption } from '../../shared/ds';
 import type { FvdrIconName } from '../../shared/ds/icons/icons';
 
@@ -20,14 +21,14 @@ type Port = 'l' | 'r' | 't' | 'b';
 type EdgeKind = 'main' | 'return' | 'reject';
 type TemplateId = 'experts';
 
-interface Person { id: string; name: string; initials: string; email: string; group: string; tone: number; /** invited by email, not a project participant yet */ external?: boolean; }
-interface Membership { personId: string; categories: string[]; /** question side: which question team this person acts for */ teamId?: string; }
-interface QuestionTeam { id: string; name: string; }
+export interface Person { id: string; name: string; initials: string; email: string; group: string; tone: number; /** invited by email, not a project participant yet */ external?: boolean; }
+export interface Membership { personId: string; categories: string[]; /** question side: which question team this person acts for */ teamId?: string; }
+export interface QuestionTeam { id: string; name: string; }
 interface RoleDef {
   key: string; name: string; side: Side; icon: FvdrIconName; description: string;
   perms: Record<string, boolean>; custom?: boolean;
 }
-interface FlowNode {
+export interface FlowNode {
   id: string; roleKey: string; name: string; side: Side; icon: FvdrIconName;
   x: number; y: number; members: Membership[]; perms: Record<string, boolean>;
   custom: boolean; assignMode: 'manual' | 'auto';
@@ -171,7 +172,7 @@ const TONES = [
 @Component({
   selector: 'fvdr-qna-setup-demo',
   standalone: true,
-  imports: [CommonModule, FormsModule, ...DS_COMPONENTS],
+  imports: [CommonModule, FormsModule, ...DS_COMPONENTS, QnaUsersStepComponent],
   template: `
 <div class="page-layout">
   <fvdr-sidebar-nav variant="vdr" accountName="Project Nova" [items]="navItems" [(collapsed)]="sidebarCollapsed" />
@@ -181,13 +182,18 @@ const TONES = [
 
     <!-- ── Stepper ── -->
     <div class="stepper">
-      <button class="step" [class.step--active]="step === 1" [class.step--done]="step === 2" (click)="step = 1">
-        <span class="step-num"><fvdr-icon *ngIf="step === 2" name="check"></fvdr-icon><ng-container *ngIf="step === 1">1</ng-container></span>
+      <button class="step" [class.step--active]="step === 1" [class.step--done]="step > 1" (click)="toStep(1)">
+        <span class="step-num"><fvdr-icon *ngIf="step > 1" name="check"></fvdr-icon><ng-container *ngIf="step === 1">1</ng-container></span>
         Workflow &amp; people
       </button>
       <span class="step-sep"></span>
-      <button class="step" [class.step--active]="step === 2" [disabled]="!templateConfirmed || errorNodes.length > 0" (click)="goNext()">
-        <span class="step-num">2</span> Preferences
+      <button class="step" [class.step--active]="step === 2" [class.step--done]="step > 2" [disabled]="errorNodes.length > 0" (click)="toStep(2)">
+        <span class="step-num"><fvdr-icon *ngIf="step > 2" name="check"></fvdr-icon><ng-container *ngIf="step <= 2">2</ng-container></span>
+        Users
+      </button>
+      <span class="step-sep"></span>
+      <button class="step" [class.step--active]="step === 3" [disabled]="errorNodes.length > 0" (click)="toStep(3)">
+        <span class="step-num">3</span> Preferences
       </button>
     </div>
 
@@ -721,7 +727,10 @@ const TONES = [
     </div>
 
     <!-- ══════════════ STEP 2 — Preferences ══════════════ -->
-    <div class="prefs" *ngIf="step === 2">
+    <!-- ══════════════ STEP 2 — Users: check every team and role before inviting ══════════════ -->
+    <fvdr-qna-users-step *ngIf="step === 2" [demo]="this"></fvdr-qna-users-step>
+
+    <div class="prefs" *ngIf="step === 3">
       <div class="prefs-inner">
         <h2 class="prefs-title">Preferences</h2>
         <div class="pref" *ngFor="let p of prefs">
@@ -749,10 +758,10 @@ const TONES = [
     <!-- footer -->
     <div class="footer">
       <fvdr-btn *ngIf="step === 1" label="Cancel" variant="secondary"></fvdr-btn>
-      <fvdr-btn *ngIf="step === 2" label="Back" variant="secondary" (clicked)="step = 1"></fvdr-btn>
-      <fvdr-btn *ngIf="step === 1" label="Next" [disabled]="!templateConfirmed || errorNodes.length > 0" (clicked)="goNext()"></fvdr-btn>
-      <fvdr-btn *ngIf="step === 2" label="Activate Q&A" (clicked)="activate()"></fvdr-btn>
-      <span class="footer-hint" *ngIf="step === 1 && templateConfirmed && errorNodes.length">Add people to {{ errorNamesLabel }} to continue</span>
+      <fvdr-btn *ngIf="step > 1" label="Back" variant="secondary" (clicked)="toStep(step === 3 ? 2 : 1)"></fvdr-btn>
+      <fvdr-btn *ngIf="step < 3" label="Next" [disabled]="!templateConfirmed || errorNodes.length > 0" (clicked)="goNext()"></fvdr-btn>
+      <fvdr-btn *ngIf="step === 3" label="Activate Q&A" (clicked)="activate()"></fvdr-btn>
+      <span class="footer-hint" *ngIf="step < 3 && templateConfirmed && errorNodes.length">Add people to {{ errorNamesLabel }} to continue</span>
     </div>
   </div>
 </div>
@@ -1280,7 +1289,7 @@ const TONES = [
 })
 export class QnaSetupDemoComponent {
   @ViewChild('canvas') canvasRef?: ElementRef<HTMLDivElement>;
-  private toast = inject(ToastService);
+  readonly toast = inject(ToastService);
 
   readonly qPerms = Q_PERMS;
   readonly aPerms = A_PERMS;
@@ -1309,7 +1318,7 @@ export class QnaSetupDemoComponent {
     { id: 'help', icon: 'help' },
   ];
 
-  step: 1 | 2 = 1;
+  step: 1 | 2 | 3 = 1;
 
   // ── multiple workflows ──
   // Keys: DEFAULT_WF, 'cat:<name>', 'team:<id>', 'ws:<id>'. Category and team splits inherit the default
@@ -1817,7 +1826,8 @@ export class QnaSetupDemoComponent {
   deleteTeam() {
     const t = this.teamToDelete;
     if (!t) return;
-    this.nodes.forEach(n => n.members = n.members.filter(m => m.teamId !== t.id));
+    [this.nodes, this.defaultWf?.nodes ?? [], ...[...this.customWf.values()].map(w => w.nodes)]
+      .forEach(list => list.forEach(n => n.members = n.members.filter(m => m.teamId !== t.id)));
     this.teams = this.teams.filter(x => x.id !== t.id);
     this.teamToDelete = null;
     this.toast.show({ variant: 'info', message: `${t.name} deleted` });
@@ -1854,24 +1864,25 @@ export class QnaSetupDemoComponent {
   togglePanelWide() { this.panelW = this.panelW > this.PANEL_MIN ? this.PANEL_MIN : this.clampPanel(window.innerWidth * 0.5); }
 
   // ── add-people modal ──
-  peopleModal: { nodeId: string; teamId?: string; category?: string } | null = null;
+  peopleModal: { nodeId: string; node?: FlowNode; targets?: FlowNode[]; scope?: string; teamId?: string; category?: string } | null = null;
   peopleSel = new Set<string>();
   pmQuery = '';
-  openPeopleModal(n: FlowNode, ctx: { teamId?: string; category?: string } = {}) {
+  openPeopleModal(n: FlowNode, ctx: { teamId?: string; category?: string; targets?: FlowNode[]; scope?: string } = {}) {
     if (n.side === 'question' && !ctx.teamId) ctx.teamId = this.teams[0]?.id ?? this.teamFor('Team 1').id;
-    this.peopleModal = { nodeId: n.id, ...ctx };
+    // keep the node itself: workflows share node ids, so an id alone is ambiguous on step 2
+    this.peopleModal = { nodeId: n.id, node: n, ...ctx };
     this.peopleSel = new Set();
     this.pmQuery = '';
   }
   get peopleModalTitle(): string {
-    const m = this.peopleModal, n = m && this.nodeById(m.nodeId);
+    const m = this.peopleModal, n = m && (m.node ?? this.nodeById(m.nodeId));
     if (!m || !n) return '';
     if (m.category) return `Add ${this.roleWord(n, true)} to ${m.category}`;
-    if (n.side === 'question') return `Add people to ${this.teams.find(t => t.id === m.teamId)?.name ?? 'team'}`;
+    if (n.side === 'question') return `Add ${n.roleKey === 'drafter' ? 'question drafters' : 'question submitters'} to ${this.teams.find(t => t.id === m.teamId)?.name ?? 'team'}`;
     return `Add people to ${n.name}`;
   }
   pmIsIn(id: string): boolean {
-    const m = this.peopleModal, n = m && this.nodeById(m.nodeId);
+    const m = this.peopleModal, n = m && (m.node ?? this.nodeById(m.nodeId));
     if (!m || !n) return false;
     if (m.category) return n.members.some(x => x.personId === id && x.categories.includes(m.category!));
     if (n.side === 'question') return n.members.some(x => x.personId === id && x.teamId === m.teamId);
@@ -1888,12 +1899,14 @@ export class QnaSetupDemoComponent {
   pmGroupChecked(ps: Person[]) { return ps.every(p => this.pmIsIn(p.id) || this.peopleSel.has(p.id)); }
   pmToggleGroup(ps: Person[], on: boolean) { ps.filter(p => !this.pmIsIn(p.id)).forEach(p => this.pmToggle(p.id, on)); }
   confirmPeople() {
-    const m = this.peopleModal, n = m && this.nodeById(m.nodeId);
+    const m = this.peopleModal, n = m && (m.node ?? this.nodeById(m.nodeId));
     if (!m || !n) return;
     const ids = [...this.peopleSel];
     ids.forEach(id => {
-      this.addMember(n, id, false, m.teamId);
+      (m.targets ?? [n]).forEach(t => this.addMember(t, id, false, m.teamId));
       if (m.category) this.toggleCategory(n.members.find(x => x.personId === id)!, m.category, true);
+      // a category's own workflow: its experts and approvers only hold that category
+      if (m.scope && (n.roleKey === 'expert' || n.roleKey === 'approver')) n.members.find(x => x.personId === id)!.categories = [m.scope];
     });
     const where = m.category ?? (n.side === 'question' ? this.teams.find(t => t.id === m.teamId)?.name : n.name);
     this.toast.show({ variant: 'success', message: ids.length === 1 ? `${this.person(ids[0]).name} added to ${where}` : `${ids.length} people added to ${where}` });
@@ -2789,9 +2802,53 @@ export class QnaSetupDemoComponent {
 
   // ── steps ─────────────────────────────────────────────────────────────────
   goNext() {
-    if (this.errorNodes.length) { this.focusFirstError(); return; }
-    this.step = 2;
+    if (this.errorNodes.length) { if (this.step === 1) this.focusFirstError(); return; }
+    this.toStep(this.step === 1 ? 2 : 3);
   }
+  toStep(to: 1 | 2 | 3) {
+    if (to > 1 && this.errorNodes.length) return;
+    if (this.step === 1 && to !== 1) this.stashActive();
+    // back on the canvas: redraw from the stored workflows, people may have changed on step 2
+    if (to === 1 && this.step !== 1) this.show(this.activeWf);
+    this.step = to;
+  }
+
+  // ── step 2: users ──
+  /** every workflow in use, with its roles; the canvas keeps the same objects */
+  usersWorkflows(): { key: string; label: string; color?: string; nodes: FlowNode[] }[] {
+    const def = this.defaultWf ?? { nodes: this.nodes, edges: this.edges };
+    const list: { key: string; label: string; color?: string; nodes: FlowNode[] }[] = [{ key: this.DEFAULT_WF, label: this.multiWf ? 'All categories' : '', nodes: def.nodes }];
+    if (this.multiWf) this.customCats().forEach(t => list.push({ key: t.key, label: t.label, color: t.color, nodes: this.customWf.get(t.key)!.nodes }));
+    return this.stable('usersWf', list.map(w => w.key + ':' + w.nodes.map(n => n.id + n.members.length).join(',')).join('|'), () => list);
+  }
+  /** question-side roles are shared: the same people in every workflow */
+  questionNodes(roleKey: string): FlowNode[] { return this.usersWorkflows().flatMap(w => w.nodes.filter(n => n.roleKey === roleKey)); }
+  questionRoleKeys(): string[] {
+    const keys = ['drafter', 'submitter'].filter(k => this.questionNodes(k).length);
+    return this.stable('qKeys', keys.join(','), () => keys);
+  }
+  teamPeopleIn(roleKey: string, teamId: string): string[] {
+    const ids = [...new Set(this.questionNodes(roleKey).flatMap(n => n.members.filter(m => m.teamId === teamId).map(m => m.personId)))];
+    return this.stable('tp:' + roleKey + teamId, ids.join(','), () => ids);
+  }
+  removeFromTeamRole(roleKey: string, teamId: string, personId: string) {
+    this.questionNodes(roleKey).forEach(n => n.members = n.members.filter(m => !(m.personId === personId && m.teamId === teamId)));
+    this.toast.show({ variant: 'info', message: `${this.person(personId).name} removed from ${this.teams.find(t => t.id === teamId)?.name}` });
+  }
+  addToTeamRole(roleKey: string, teamId: string) {
+    const nodes = this.questionNodes(roleKey);
+    if (nodes.length) this.openPeopleModal(nodes[0], { teamId, targets: nodes });
+  }
+  /** adds a question team without any people; step 1 seeds teams from people instead */
+  addTeam(name: string): QuestionTeam | null {
+    const n = name.trim();
+    if (!n) return null;
+    if (this.teams.some(t => t.name.toLowerCase() === n.toLowerCase())) { this.toast.show({ variant: 'warning', message: `${n} already exists` }); return null; }
+    const t = { id: 'qt' + this.teamSeqNext(), name: n };
+    this.teams = [...this.teams, t];
+    return t;
+  }
+  private teamSeqNext() { let i = this.teams.length + 1; while (this.teams.some(t => t.id === 'qt' + i)) i++; return i; }
   activate() {
     this.toast.show({ variant: 'success', title: 'Q&A is active', message: `${this.nodes.length} roles and ${new Set(this.nodes.flatMap(n => n.members.map(m => m.personId))).size} people are set up` });
   }
