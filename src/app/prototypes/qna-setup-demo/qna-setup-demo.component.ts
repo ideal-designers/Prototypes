@@ -542,10 +542,11 @@ const TONES = [
               </ng-container>
 
               <ng-container *ngIf="n.side === 'answer'">
-                <div class="assign-mode" *ngIf="n.roleKey === 'expert'">
+                <div class="assign-mode" *ngIf="n.roleKey === 'expert' && !prevExpert(n)">
                   <span class="field-label">Assignment</span>
                   <fvdr-segment variant="table" size="sm" [items]="assignItems" [activeId]="n.assignMode" (activeIdChange)="setAssignMode(n, $any($event))"></fvdr-segment>
                 </div>
+                <p class="hint" *ngIf="prevExpert(n) as pe">Gets the draft from {{ pe.name }}. Manual or auto assignment is set on {{ orderedExperts()[0].name }}.</p>
                 <!-- approver: any approver signs off, or approvers grouped by category -->
                 <ng-container *ngIf="n.roleKey === 'approver'">
                   <div class="assign-mode">
@@ -1775,8 +1776,15 @@ export class QnaSetupDemoComponent {
     const order = this.stepMap();
     return this.experts().sort((p, q) => (order.get(p.id)?.[0] ?? 99) - (order.get(q.id)?.[0] ?? 99));
   }
+  /** the expert before this one in the chain — only the first expert has the manual / auto assignment setting */
+  prevExpert(n: FlowNode): FlowNode | undefined {
+    if (n.roleKey !== 'expert') return undefined;
+    const xs = this.orderedExperts(), i = xs.indexOf(n);
+    return i > 0 ? xs[i - 1] : undefined;
+  }
   /** a second Expert or Approver gets a number: Expert 2, Answer approver 2 … */
   private renumberRoles() {
+    this.orderedExperts().slice(1).forEach(x => x.assignMode = 'manual');
     const list = (k: string) => k === 'expert' ? this.orderedExperts() : this.orderedApprovers();
     ['expert', 'approver'].forEach(k => {
       const base = this.roleDef(k)!.name;
@@ -2171,6 +2179,7 @@ export class QnaSetupDemoComponent {
 
 
   nodeSubtitle(n: FlowNode): string {
+    if (n.roleKey === 'expert' && this.prevExpert(n)) return `Gets the draft from ${this.prevExpert(n)!.name}`;
     if (n.roleKey === 'expert') return n.assignMode === 'auto' ? 'Auto-assign by category' : 'Assigned manually';
     if (n.roleKey === 'approver' && n.assignMode === 'auto') return 'Approves by category';
     if (n.side === 'question') return n.members.length ? `${this.teamsOf(n).length} question ${this.teamsOf(n).length === 1 ? 'team' : 'teams'}` : 'Question side';
