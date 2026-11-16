@@ -311,6 +311,13 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
     description: 'One-screen Q&A setup built as an n8n-style node canvas: start from a template (Basic, Advanced, Advisory, Multi-level approval), insert standard or custom roles on any connection, drop people and question teams straight onto roles, edit permissions and reject routing per role, and see validation on the canvas instead of a separate Users step',
   },
   {
+    slug: 'qna-setup-demo',
+    title: 'Q&A Set up demo',
+    module: 'Q&A',
+    status: 'wip',
+    description: 'Demo of the Q&A setup canvas: the standard flow (Question submitter → Answer coordinator → Expert) with roles you can add or remove, and a Multiple workflows toggle that gives Finance, Legal and Tax their own workflows, all visible on one zoomable canvas',
+  },
+  {
     slug: 'checklist-matching',
     title: 'Due diligence checklist — AI matching',
     module: 'General Exploration',
