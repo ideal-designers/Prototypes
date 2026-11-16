@@ -536,6 +536,11 @@ const TONES = [
             <!-- Permissions -->
             <ng-container *ngIf="nodeTab === 'permissions'">
               <ng-container *ngIf="rolePerms(n) as rp; else flatPerms">
+                <!-- approver: where an approved answer goes next -->
+                <div class="rt-setting perm-after" *ngIf="n.roleKey === 'approver'">
+                  <span class="field-label">After approval, the answer goes</span>
+                  <fvdr-radio [options]="afterApproveOptions" [value]="afterApprove" layout="vertical" (valueChange)="setAfterApprove($any($event))"></fvdr-radio>
+                </div>
                 <ng-container *ngIf="rp.fixed.length">
                   <span class="field-label">Always included</span>
                   <div class="perm perm--fixed" *ngFor="let p of rp.fixed">
@@ -769,13 +774,14 @@ const TONES = [
 
 <!-- role row (library) -->
 <ng-template #roleRow let-r="r">
-  <button class="role" draggable="true" (dragstart)="onRoleDragStart($event, r)" (click)="addRole(r)">
+  <button class="role" [class.role--used]="roleMaxed(r)" [disabled]="roleMaxed(r)" [attr.draggable]="!roleMaxed(r)"
+          (dragstart)="onRoleDragStart($event, r)" (click)="addRole(r)">
     <span class="node-icon" [class.node-icon--q]="r.side === 'question'" [class.node-icon--custom]="r.custom"><fvdr-icon [name]="r.icon"></fvdr-icon></span>
     <span class="role-text">
       <span class="role-name">{{ r.name }}<span class="role-tag" *ngIf="r.custom">Custom</span></span>
-      <span class="role-desc">{{ r.description }}</span>
+      <span class="role-desc">{{ roleMaxed(r) ? 'Already in this workflow — only one per workflow' : r.description }}</span>
     </span>
-    <fvdr-icon name="plus" class="role-plus"></fvdr-icon>
+    <fvdr-icon [name]="roleMaxed(r) ? 'check' : 'plus'" class="role-plus"></fvdr-icon>
   </button>
 </ng-template>
 
@@ -867,13 +873,13 @@ const TONES = [
         <button class="icon-btn icon-btn--sm ct-remove" [fvdrTooltip]="'Remove from ' + n.name" tooltipPosition="left" (click)="removeMember(n, m)"><fvdr-icon name="user-remove"></fvdr-icon></button>
       </div>
       <div class="ex-edit" *ngIf="catEdit === m.personId">
-        <fvdr-checkbox *ngFor="let c of categories" [label]="c.name" [checked]="m.categories.includes(c.name)" (checkedChange)="toggleCategory(m, c.name, $event)"></fvdr-checkbox>
+        <fvdr-checkbox *ngFor="let c of wfCategories()" [label]="c.name" [checked]="m.categories.includes(c.name)" (checkedChange)="toggleCategory(m, c.name, $event)"></fvdr-checkbox>
       </div>
     </div>
   </div>
 
   <div class="ctree" *ngIf="expertView === 'categories'">
-    <div class="ct-group" *ngFor="let c of categories">
+    <div class="ct-group" *ngFor="let c of wfCategories()">
       <div class="ct-row ct-row--cat">
         <button class="ct-toggle" [attr.aria-expanded]="!catCollapsed.has(c.name)" [attr.aria-label]="(catCollapsed.has(c.name) ? 'Expand ' : 'Collapse ') + c.name" (click)="toggleCat(c.name)">
           <fvdr-icon [name]="catCollapsed.has(c.name) ? 'chevron-right' : 'chevron-down'"></fvdr-icon>
@@ -882,7 +888,7 @@ const TONES = [
         <input class="cat-input" [value]="c.name" aria-label="Category name"
                (change)="renameCategory(c, $any($event.target).value, $any($event.target))"
                (keydown.enter)="$any($event.target).blur()" />
-        <button class="icon-btn icon-btn--sm ct-del" fvdrTooltip="Delete category" tooltipPosition="left" (click)="deleteCategory(c)"><fvdr-icon name="trash"></fvdr-icon></button>
+        <button class="icon-btn icon-btn--sm ct-del" *ngIf="!scopedCategory" fvdrTooltip="Delete category" tooltipPosition="left" (click)="deleteCategory(c)"><fvdr-icon name="trash"></fvdr-icon></button>
         <button class="ct-add" (click)="openPeopleModal(n, { category: c.name })"><fvdr-icon name="user-add"></fvdr-icon>Add</button>
       </div>
       <ng-container *ngIf="!catCollapsed.has(c.name)">
@@ -915,7 +921,7 @@ const TONES = [
       </ng-container>
     </div>
 
-    <div class="ct-row ct-row--new">
+    <div class="ct-row ct-row--new" *ngIf="!scopedCategory">
       <fvdr-icon name="plus" class="ct-new-ic"></fvdr-icon>
       <input class="cat-input" placeholder="Add category" [(ngModel)]="newCategory" (keydown.enter)="addCategory()" aria-label="New category name" />
       <button class="ct-add" *ngIf="newCategory.trim()" (click)="addCategory()">Add</button>
@@ -958,6 +964,9 @@ const TONES = [
     .ov-row { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-2) 0; border-bottom: 1px solid var(--color-divider); }
     .ov-row .link-btn { margin-left: auto; }
     .wf-new { display: inline-flex; align-items: center; gap: var(--space-1); }
+    .role--used { cursor: default; opacity: 0.6; }
+    .role--used:hover { background: none; }
+    .perm-after { padding-bottom: var(--space-3); border-bottom: 1px solid var(--color-divider); }
     .wf-set { display: inline-flex; flex-wrap: wrap; align-items: center; gap: var(--space-1); padding: var(--space-1); border: 1px dashed var(--color-stone-400); border-radius: var(--radius-md); }
     .wf-set-title { display: inline-flex; align-items: center; gap: var(--space-1); padding: 0 var(--space-2); font-weight: var(--font-weight-semi); white-space: nowrap; }
     .wf-count { display: inline-flex; align-items: center; justify-content: center; min-width: var(--space-5); padding: 0 var(--space-1); margin-left: var(--space-1); border-radius: var(--radius-lg); background: var(--color-stone-300); color: var(--color-text-secondary); font-size: var(--text-caption1-size); font-weight: normal; }
@@ -1463,7 +1472,9 @@ export class QnaSetupDemoComponent {
   }
   customizeWf(key: string) {
     const base = this.defaultWf ?? { nodes: this.nodes, edges: this.edges };
-    this.customWf.set(key, { nodes: structuredClone(base.nodes), edges: structuredClone(base.edges) });
+    const nodes: FlowNode[] = structuredClone(base.nodes);
+    if (key.startsWith('cat:')) this.scopeToCategory(nodes, key.slice(4));
+    this.customWf.set(key, { nodes, edges: structuredClone(base.edges) });
     this.show(key);
     this.toast.show({ variant: 'success', message: `${this.wfLabel(key)} has its own workflow now — change its roles, people or routing` });
   }
@@ -1534,6 +1545,22 @@ export class QnaSetupDemoComponent {
 
   constructor() {
     this.loadTemplate('experts');
+    this.seedFinance();
+  }
+  /** Finance has its own workflow from the start: Finance experts, an approver, the coordinator sends the final answer */
+  private seedFinance() {
+    const def = { nodes: this.nodes, edges: this.edges };
+    this.nodes = structuredClone(def.nodes);
+    this.edges = structuredClone(def.edges);
+    this.scopeToCategory(this.nodes, 'Finance');
+    const a = this.newNode(this.roleDef('approver')!, 0, 0);
+    a.members = [{ personId: 'p13', categories: ['Finance'] }];
+    this.nodes = [...this.nodes, a];
+    this.routeApprovedToCoordinator();
+    this.customWf.set('cat:Finance', { nodes: this.nodes, edges: this.edges });
+    this.nodes = def.nodes;
+    this.edges = def.edges;
+    this.defaultWf = def;
   }
 
   // ── lookups ───────────────────────────────────────────────────────────────
@@ -1747,7 +1774,9 @@ export class QnaSetupDemoComponent {
     const sig = this.edges.map(e => e.from + '>' + e.to + ':' + e.kind + ':' + e.label).join('|') + '#' + this.nodes.map(n => n.id + n.name).join(',');
     return this.stable('routePath', sig, () => {
       const out: { node: FlowNode; label: string; end?: boolean }[] = [];
-      let cur = this.nodes.find(n => n.roleKey !== 'viewer' && !this.edges.some(e => e.to === n.id && e.kind !== 'reject'));
+      // the start has no incoming step; when the answer returns to the submitter, start from the question side
+      let cur = this.nodes.find(n => n.roleKey !== 'viewer' && !this.edges.some(e => e.to === n.id && e.kind !== 'reject'))
+        ?? this.nodes.find(n => n.side === 'question');
       const used = new Set<string>();
       for (let i = 0; cur && i < 20; i++) {
         const next = this.edges.find(e => e.from === cur!.id && e.kind !== 'reject' && !used.has(e.id));
@@ -1971,6 +2000,20 @@ export class QnaSetupDemoComponent {
   customCats() {
     const tabs = this.wfTabs().filter(t => this.customWf.has(t.key));
     return this.stable('customCats', tabs.map(t => t.key).join('|'), () => tabs);
+  }
+  /** in a category's own workflow, experts and approvers can only hold that category */
+  get scopedCategory(): string | null { return this.activeWf.startsWith('cat:') ? this.activeWf.slice(4) : null; }
+  wfCategories() {
+    const only = this.scopedCategory;
+    const list = only ? this.categories.filter(c => c.name === only) : this.categories;
+    return this.stable('wfCats', (only ?? '*') + '|' + this.categories.map(c => c.name).join(','), () => list);
+  }
+  /** keep only the people of that category in expert and approver roles, and only that category on them */
+  private scopeToCategory(nodes: FlowNode[], cat: string) {
+    nodes.filter(n => n.roleKey === 'expert' || n.roleKey === 'approver').forEach(n => {
+      const inCat = n.members.filter(m => m.categories.includes(cat));
+      n.members = (inCat.length ? inCat : n.members).map(m => ({ ...m, categories: [cat] }));
+    });
   }
   get activeCategory() { return this.categories.find(c => 'cat:' + c.name === this.activeWf); }
   /** add from the workflow bar and open it — it follows the default until customized */
@@ -2575,7 +2618,13 @@ export class QnaSetupDemoComponent {
       members: [], perms: { ...r.perms }, custom: !!r.custom, assignMode: 'manual',
     };
   }
+  /** roles a workflow can hold only once */
+  roleMaxed(r: RoleDef): boolean { return r.key === 'coordinator' && this.nodes.some(n => n.roleKey === 'coordinator'); }
   addRole(r: RoleDef, at?: { x: number; y: number }) {
+    if (this.roleMaxed(r)) {
+      this.toast.show({ variant: 'warning', message: 'A workflow has one Answer coordinator — add more people to it instead' });
+      return;
+    }
     const p = this.pendingInsert;
     let node: FlowNode;
     if (p && 'edgeId' in p) {
@@ -2608,8 +2657,17 @@ export class QnaSetupDemoComponent {
       this.enforceLanes();
     }
     this.pendingInsert = null;
+    if (r.key === 'approver') this.routeApprovedToCoordinator();
     this.selectNode(node.id);
     if (!at) setTimeout(() => this.fit(), 0);
+  }
+  /** by default an approved answer goes back to the coordinator, who sends it; the approver's Permissions can change that */
+  private routeApprovedToCoordinator() {
+    const c = this.nodes.find(n => n.roleKey === 'coordinator');
+    if (!c || c.perms['finalSignoff']) return;
+    this.nodes.filter(n => n.perms['finalSignoff']).forEach(n => n.perms['finalSignoff'] = false);
+    c.perms['finalSignoff'] = true;
+    this.rebuildAnswerRoute(true);
   }
   private freeSpot(side: Side) {
     const maxY = Math.max(90, ...this.nodes.map(n => n.y));
@@ -2624,7 +2682,10 @@ export class QnaSetupDemoComponent {
 
   // ── drag & drop from library ──────────────────────────────────────────────
   onPersonDragStart(ev: DragEvent, p: Person) { ev.dataTransfer?.setData('text/plain', 'person:' + p.id); }
-  onRoleDragStart(ev: DragEvent, r: RoleDef) { ev.dataTransfer?.setData('text/plain', 'role:' + r.key); }
+  onRoleDragStart(ev: DragEvent, r: RoleDef) {
+    if (this.roleMaxed(r)) { ev.preventDefault(); return; }
+    ev.dataTransfer?.setData('text/plain', 'role:' + r.key);
+  }
   onNodeDragOver(ev: DragEvent, n: FlowNode) { ev.preventDefault(); ev.stopPropagation(); this.dropNodeId = n.id; this.canvasDropActive = false; }
   onNodeDrop(ev: DragEvent, n: FlowNode) {
     if (!this.editable) return;
