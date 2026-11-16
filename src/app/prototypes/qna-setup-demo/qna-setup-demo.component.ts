@@ -87,6 +87,7 @@ const AP = {
   reviewAnswers:   { key: 'approve',         label: 'Review answers',                          hint: 'Approve or reject answers and send them back for revision' },
   approverSeeAll:  { key: 'seeAll',          label: 'See all questions',                       hint: 'When off, only questions sent for approval' },
   anyStage:        { key: 'anyStage',        label: 'Answer at any stage',                     hint: 'Send a final answer or move a question at any stage' },
+  anyStageLastAp:  { key: 'anyStage',        label: 'Answer at any stage',                     hint: 'Send a final answer at any stage. When off, approved answers go back to the coordinator, who sends them' },
   coordSeeAll:     { key: 'seeAll',          label: 'See all questions',                       hint: 'See questions from all question teams' },
   assignExperts:   { key: 'assign',          label: 'Assign to experts',                       hint: 'Send incoming questions to the experts' },
   provideAnswers:  { key: 'draftA',          label: 'Provide answers',                         hint: "Send an answer or edit an expert's draft" },
@@ -105,7 +106,7 @@ const AP = {
 const ROLE_PERMS: Record<string, RolePerms> = {
   coordinator: { fixed: [AP.coordSeeAll, AP.assignExperts, AP.provideAnswers], config: [AP.anyStage], open: [] },
   expert:      { fixed: [AP.draftExpert], config: [AP.seeAll, AP.seeFinal, AP.seeTeam, AP.reassignExperts], open: [] },
-  approver:    { fixed: [AP.reviewAnswers], config: [AP.approverSeeAll, AP.anyStage], open: [] },
+  approver:    { fixed: [AP.reviewAnswers], config: [AP.approverSeeAll, AP.anyStageLastAp], open: [] },
   drafter:     { fixed: [AP.draftQ, AP.draftFollowUp], config: [], open: [] },
   submitter:   { fixed: [AP.draftSubmitQ], config: [], open: [] },
   viewer:      { fixed: [AP.viewAllQ, AP.viewAllA], config: [], open: [] },
@@ -135,7 +136,7 @@ const STANDARD_ROLES: RoleDef[] = [
     perms: { seeAll: false, assign: false, draftA: true, seeFinal: true, reassignExperts: true, seeTeam: true, answerDirect: false } },
   { key: 'approver',    name: 'Answer approver',    side: 'answer',   icon: 'finished',
     description: 'Approves answers before they are released',
-    perms: { seeAll: true, approve: true, draftA: true, finalSignoff: false, anyStage: true, seeFinal: true, seeTeam: true } },
+    perms: { seeAll: true, approve: true, draftA: true, finalSignoff: false, anyStage: false, seeFinal: true, seeTeam: true } },
   { key: 'viewer',      name: 'Viewer',             side: 'answer',   icon: 'eye',
     description: 'Views all questions and answers, read-only',
     perms: { seeAll: true, seeFinal: true } },
@@ -570,7 +571,7 @@ const TONES = [
                   <fvdr-toggle size="s" [checked]="!fixedLimited(n, p)" [disabled]="true" fvdrTooltip="Always on for this role" tooltipPosition="left"></fvdr-toggle>
                 </div>
                 <ng-container *ngFor="let p of rp.config">
-                  <ng-container *ngTemplateOutlet="permRow; context: { n: n, p: p }"></ng-container>
+                  <ng-container *ngIf="permShown(n, p)"><ng-container *ngTemplateOutlet="permRow; context: { n: n, p: p }"></ng-container></ng-container>
                 </ng-container>
                 <ng-container *ngFor="let p of rp.open">
                   <ng-container *ngTemplateOutlet="permRow; context: { n: n, p: p }"></ng-container>
@@ -1621,6 +1622,11 @@ export class QnaSetupDemoComponent {
   }
   setPerm(n: FlowNode, key: string, on: boolean) {
     n.perms[key] = on;
+    if (key === 'anyStage' && n.roleKey === 'approver') {
+      this.syncApproverRoute();
+      this.toast.show({ variant: 'success', message: on ? `Routing updated: ${n.name} sends the final answer to the bidder` : 'Routing updated: approved answers go back to the coordinator, who sends them' });
+      return;
+    }
     if (key !== 'finalSignoff') return;
     if (on) {
       // only one role can give final sign-off
@@ -1722,6 +1728,8 @@ export class QnaSetupDemoComponent {
   private coordinator(): FlowNode | undefined { return this.nodes.find(x => x.roleKey === 'coordinator'); }
   get afterApprove(): 'direct' | 'coordinator' { return this.coordinator()?.perms['finalSignoff'] ? 'coordinator' : 'direct'; }
   setAfterApprove(v: string) {
+    const last = this.lastApprover();
+    if (last) { if (!!last.perms['anyStage'] !== (v === 'direct')) this.setPerm(last, 'anyStage', v === 'direct'); return; }
     const c = this.coordinator();
     if (c && (v === 'coordinator') !== !!c.perms['finalSignoff']) this.setPerm(c, 'finalSignoff', v === 'coordinator');
   }
@@ -1784,6 +1792,7 @@ export class QnaSetupDemoComponent {
     if (!def) return;
     const hadFinal = !!n.perms['finalSignoff'];
     n.perms = { ...def.perms };
+    if (n.roleKey === 'approver') { this.syncApproverRoute(); return; }
     if (hadFinal !== !!n.perms['finalSignoff']) this.rebuildAnswerRoute();
   }
 
@@ -2116,8 +2125,9 @@ export class QnaSetupDemoComponent {
   }
   private stepMap(): Map<string, number[]> {
     const map = new Map<string, number[]>();
-    const starts = this.nodes.filter(n => n.roleKey !== 'viewer' && !this.edges.some(e => e.to === n.id && e.kind !== 'reject'));
-    let cur = starts[0] ?? this.nodes[0];
+    // a role that isn't connected yet is never the start; when the answer returns to the submitter, start from the question side
+    const starts = this.nodes.filter(n => n.roleKey !== 'viewer' && !this.edges.some(e => e.to === n.id && e.kind !== 'reject') && this.edges.some(e => e.from === n.id));
+    let cur = starts[0] ?? this.nodes.find(n => n.side === 'question') ?? this.nodes[0];
     const used = new Set<string>();
     let i = 1;
     while (cur && i < 20) {
@@ -2521,6 +2531,7 @@ export class QnaSetupDemoComponent {
     this.edges = [...this.edges.filter(e => e.from !== n.id && e.to !== n.id), ...bridges];
     this.nodes = this.nodes.filter(x => x.id !== n.id);
     this.selectedId = null;
+    if (n.roleKey === 'approver') this.syncApproverRoute();
     this.toast.show({ variant: 'info', message: `${n.name} removed from the flow` });
   }
   deleteEdge(e: FlowEdge) {
@@ -2702,11 +2713,32 @@ export class QnaSetupDemoComponent {
     if (!at) setTimeout(() => this.fit(), 0);
   }
   /** by default an approved answer goes back to the coordinator, who sends it; the approver's Permissions can change that */
-  private routeApprovedToCoordinator() {
-    const c = this.nodes.find(n => n.roleKey === 'coordinator');
-    if (!c || c.perms['finalSignoff']) return;
-    this.nodes.filter(n => n.perms['finalSignoff']).forEach(n => n.perms['finalSignoff'] = false);
-    c.perms['finalSignoff'] = true;
+  private routeApprovedToCoordinator() { this.syncApproverRoute(); }
+  /** approvers in the order the answer reaches them */
+  private orderedApprovers(): FlowNode[] {
+    const order = this.stepMap();
+    return this.approvers().sort((p, q) => (order.get(p.id)?.[0] ?? 99) - (order.get(q.id)?.[0] ?? 99));
+  }
+  lastApprover(): FlowNode | undefined { return this.orderedApprovers().at(-1); }
+  /** 'Answer at any stage' belongs to the last approver only */
+  permShown(n: FlowNode, p: PermDef): boolean {
+    return !(n.roleKey === 'approver' && p.key === 'anyStage' && n !== this.lastApprover());
+  }
+  /**
+   * Approvers form a chain: approver 1 → 2 → … → last.
+   * The last approver hands the answer back to the coordinator, who sends it —
+   * unless the last approver can answer at any stage, then it goes straight to the bidder.
+   */
+  private syncApproverRoute() {
+    const c = this.coordinator();
+    const aps = this.orderedApprovers();
+    if (!c || !aps.length) return;
+    const last = aps[aps.length - 1];
+    aps.slice(0, -1).forEach(p => { p.perms['anyStage'] = false; p.perms['finalSignoff'] = false; });
+    const direct = !!last.perms['anyStage'];
+    this.nodes.filter(x => x !== c && x !== last).forEach(x => x.perms['finalSignoff'] = false);
+    last.perms['finalSignoff'] = direct;
+    c.perms['finalSignoff'] = !direct;
     this.rebuildAnswerRoute(true);
   }
   private freeSpot(side: Side) {
