@@ -82,6 +82,14 @@ const AP = {
   finalApprover:   { key: 'finalSignoff',    label: 'Answer directly at any step',
                      hint: 'CFO case: re-assign, answer directly and give final sign-off. The final answer goes from this approver to the bidder.' },
   approvalOnly:    { key: 'seeApprovalOnly', label: 'See only questions sent for approval',    hint: "Replaces 'See all questions'" },
+  // demo wording
+  reviewAnswers:   { key: 'approve',         label: 'Review answers',                          hint: 'Approve or reject answers and send them back for revision' },
+  approverSeeAll:  { key: 'seeAll',          label: 'See all questions',                       hint: 'When off, only questions sent for approval' },
+  anyStage:        { key: 'anyStage',        label: 'Answer at any stage',                     hint: 'Send a final answer or move a question at any stage' },
+  coordSeeAll:     { key: 'seeAll',          label: 'See all questions',                       hint: 'See questions from all question teams' },
+  assignExperts:   { key: 'assign',          label: 'Assign to experts',                       hint: 'Send incoming questions to the experts' },
+  provideAnswers:  { key: 'draftA',          label: 'Provide answers',                         hint: "Send an answer or edit an expert's draft" },
+  provideNoExpert: { key: 'draftA',          label: 'Provide answers',                         hint: 'Send an answer' },
   // question side
   draftQ:          { key: 'draftQ',          label: 'Draft questions',                         hint: 'Prepare questions that someone else submits' },
   draftFollowUp:   { key: 'followUp',        label: 'Draft follow-up questions',               hint: 'Prepare a follow-up after an answer' },
@@ -94,13 +102,15 @@ const AP = {
   viewAllA:        { key: 'seeFinal',        label: 'View all answers',                        hint: 'Read-only — cannot answer, assign, edit or delete anything' },
 } satisfies Record<string, PermDef>;
 const ROLE_PERMS: Record<string, RolePerms> = {
-  coordinator: { fixed: [AP.seeAll, AP.assign, AP.draftCoord], config: [AP.assignCoord, AP.finalCoord], open: [] },
+  coordinator: { fixed: [AP.coordSeeAll, AP.assignExperts, AP.provideAnswers], config: [AP.anyStage], open: [] },
   expert:      { fixed: [AP.draftExpert], config: [AP.seeAll, AP.seeFinal, AP.seeTeam, AP.reassignExperts], open: [] },
-  approver:    { fixed: [AP.seeAll, AP.approve], config: [AP.finalApprover], open: [AP.approvalOnly] },
+  approver:    { fixed: [AP.reviewAnswers], config: [AP.approverSeeAll, AP.anyStage], open: [] },
   drafter:     { fixed: [AP.draftQ, AP.draftFollowUp], config: [], open: [] },
   submitter:   { fixed: [AP.draftSubmitQ], config: [], open: [] },
   viewer:      { fixed: [AP.viewAllQ, AP.viewAllA], config: [], open: [] },
 };
+/** roles a workflow holds once — add people to them instead of a second role */
+const SINGLE_ROLES = new Set(['submitter', 'drafter', 'coordinator', 'expert', 'viewer']);
 /** roles every flow needs — they can't be removed */
 const PROTECTED_ROLES = new Set(['submitter', 'coordinator']);
 /** custom answer-side roles can switch anything */
@@ -118,13 +128,13 @@ const STANDARD_ROLES: RoleDef[] = [
     perms: { draftQ: true, submitQ: true, followUp: true } },
   { key: 'coordinator', name: 'Answer coordinator', side: 'answer',   icon: 'comment',
     description: 'Manages incoming questions and assigns them',
-    perms: { seeAll: true, assign: true, draftA: true, assignCoord: false, finalSignoff: false, seeFinal: true, seeTeam: true } },
+    perms: { seeAll: true, assign: true, draftA: true, assignCoord: false, finalSignoff: false, anyStage: true, seeFinal: true, seeTeam: true } },
   { key: 'expert',      name: 'Expert',             side: 'answer',   icon: 'user-check',
     description: 'Answers questions assigned to them',
     perms: { seeAll: false, assign: false, draftA: true, seeFinal: true, reassignExperts: true, seeTeam: true, answerDirect: false } },
   { key: 'approver',    name: 'Answer approver',    side: 'answer',   icon: 'finished',
     description: 'Approves answers before they are released',
-    perms: { seeAll: true, approve: true, draftA: true, finalSignoff: false, seeApprovalOnly: false, seeFinal: true, seeTeam: true } },
+    perms: { seeAll: true, approve: true, draftA: true, finalSignoff: false, anyStage: true, seeFinal: true, seeTeam: true } },
   { key: 'viewer',      name: 'Viewer',             side: 'answer',   icon: 'eye',
     description: 'Views all questions and answers, read-only',
     perms: { seeAll: true, seeFinal: true } },
@@ -829,15 +839,9 @@ const TONES = [
 <ng-template #catAssign let-n="n">
   <div class="ct-bar">
     <span class="field-label">{{ roleWord(n, true, true) }}</span>
-    <span class="hint ct-optional">Categories are optional</span>
-    <div class="view-switch" role="group" [attr.aria-label]="'Group ' + roleWord(n, true)">
-      <button class="view-btn" [class.view-btn--on]="expertView === 'experts'" [attr.aria-pressed]="expertView === 'experts'"
-              [fvdrTooltip]="'By ' + roleWord(n, true)" (click)="expertView = 'experts'"><fvdr-icon name="user"></fvdr-icon></button>
-      <button class="view-btn" [class.view-btn--on]="expertView === 'categories'" [attr.aria-pressed]="expertView === 'categories'"
-              fvdrTooltip="By categories" (click)="expertView = 'categories'"><fvdr-icon name="label"></fvdr-icon></button>
-    </div>
+    <span class="hint ct-optional">{{ scopedCategory ? scopedCategory + ' only' : 'Categories are optional' }}</span>
   </div>
-  <div class="ex-list" *ngIf="expertView === 'experts'">
+  <div class="ex-list">
     <div class="ex ex--stack" *ngFor="let m of n.members" [class.ex--open]="catEdit === m.personId">
       <div class="ex-row">
         <span class="av av--xs" [style.background]="tone(m.personId).bg" [style.color]="tone(m.personId).fg">{{ person(m.personId).initials }}</span>
@@ -848,7 +852,7 @@ const TONES = [
               <fvdr-icon name="label" class="cat-ic" [ngClass]="'cat-ic--' + c.color"></fvdr-icon>{{ c.name }}
               <button class="ex-tag-x" [attr.aria-label]="'Remove ' + c.name" (click)="toggleCategory(m, c.name, false)"><fvdr-icon name="close"></fvdr-icon></button>
             </span>
-            <button class="ex-tag ex-tag--add" (click)="toggleCatEdit(m)"><fvdr-icon name="plus"></fvdr-icon>Category</button>
+            <button class="ex-tag ex-tag--add" *ngIf="!scopedCategory" (click)="toggleCatEdit(m)"><fvdr-icon name="plus"></fvdr-icon>Category</button>
           </div>
         </div>
         <button class="icon-btn icon-btn--sm ct-remove" [fvdrTooltip]="'Remove from ' + n.name" tooltipPosition="left" (click)="removeMember(n, m)"><fvdr-icon name="user-remove"></fvdr-icon></button>
@@ -859,55 +863,6 @@ const TONES = [
     </div>
   </div>
 
-  <div class="ctree" *ngIf="expertView === 'categories'">
-    <div class="ct-group" *ngFor="let c of wfCategories()">
-      <div class="ct-row ct-row--cat">
-        <button class="ct-toggle" [attr.aria-expanded]="!catCollapsed.has(c.name)" [attr.aria-label]="(catCollapsed.has(c.name) ? 'Expand ' : 'Collapse ') + c.name" (click)="toggleCat(c.name)">
-          <fvdr-icon [name]="catCollapsed.has(c.name) ? 'chevron-right' : 'chevron-down'"></fvdr-icon>
-        </button>
-        <fvdr-icon name="label" class="cat-ic" [ngClass]="'cat-ic--' + c.color"></fvdr-icon>
-        <input class="cat-input" [value]="c.name" aria-label="Category name"
-               (change)="renameCategory(c, $any($event.target).value, $any($event.target))"
-               (keydown.enter)="$any($event.target).blur()" />
-        <button class="icon-btn icon-btn--sm ct-del" *ngIf="!scopedCategory" fvdrTooltip="Delete category" tooltipPosition="left" (click)="deleteCategory(c)"><fvdr-icon name="trash"></fvdr-icon></button>
-        <button class="ct-add" (click)="openPeopleModal(n, { category: c.name })"><fvdr-icon name="user-add"></fvdr-icon>Add</button>
-      </div>
-      <ng-container *ngIf="!catCollapsed.has(c.name)">
-        <div class="ct-row ct-row--person" *ngFor="let m of membersIn(n, c.name)">
-          <span class="av av--xs" [style.background]="tone(m.personId).bg" [style.color]="tone(m.personId).fg">{{ person(m.personId).initials }}</span>
-          <span class="ct-name">{{ person(m.personId).name }}</span>
-          <button class="icon-btn icon-btn--sm ct-remove" [fvdrTooltip]="'Remove from ' + c.name" tooltipPosition="left" (click)="toggleCategory(m, c.name, false)"><fvdr-icon name="user-remove"></fvdr-icon></button>
-        </div>
-      </ng-container>
-    </div>
-
-    <!-- people without a category -->
-    <div class="ct-group">
-      <div class="ct-row ct-row--cat">
-        <button class="ct-toggle" [attr.aria-expanded]="!catCollapsed.has(UNASSIGNED)" [attr.aria-label]="'Toggle unassigned ' + roleWord(n, true)" (click)="toggleCat(UNASSIGNED)">
-          <fvdr-icon [name]="catCollapsed.has(UNASSIGNED) ? 'chevron-right' : 'chevron-down'"></fvdr-icon>
-        </button>
-        <fvdr-icon name="label" class="cat-ic cat-ic--grey"></fvdr-icon>
-        <span class="ct-label">Without a category</span>
-        <span class="ct-info" [fvdrTooltip]="n.roleKey === 'approver' ? 'Categories are optional — they approve answers of any category nobody else covers' : 'Categories are optional — they get questions when a coordinator assigns them'"><fvdr-icon name="info"></fvdr-icon></span>
-        <button class="ct-add" (click)="openPeopleModal(n)"><fvdr-icon name="user-add"></fvdr-icon>Add</button>
-      </div>
-      <ng-container *ngIf="!catCollapsed.has(UNASSIGNED)">
-        <div class="ct-row ct-row--person" *ngFor="let m of unassignedIn(n)">
-          <span class="av av--xs" [style.background]="tone(m.personId).bg" [style.color]="tone(m.personId).fg">{{ person(m.personId).initials }}</span>
-          <span class="ct-name">{{ person(m.personId).name }}</span>
-          <button class="icon-btn icon-btn--sm ct-remove" [fvdrTooltip]="'Remove from ' + n.name" tooltipPosition="left" (click)="removeMember(n, m)"><fvdr-icon name="user-remove"></fvdr-icon></button>
-        </div>
-        <span class="ct-empty" *ngIf="!unassignedIn(n).length">Every {{ roleWord(n) }} has a category</span>
-      </ng-container>
-    </div>
-
-    <div class="ct-row ct-row--new" *ngIf="!scopedCategory">
-      <fvdr-icon name="plus" class="ct-new-ic"></fvdr-icon>
-      <input class="cat-input" placeholder="Add category" [(ngModel)]="newCategory" (keydown.enter)="addCategory()" aria-label="New category name" />
-      <button class="ct-add" *ngIf="newCategory.trim()" (click)="addCategory()">Add</button>
-    </div>
-  </div>
 </ng-template>
 
 <ng-template #permRow let-n="n" let-p="p">
@@ -1166,32 +1121,15 @@ const TONES = [
     .invite-actions { display: flex; gap: var(--space-2); }
     .modal-text { margin: 0; color: var(--color-text-secondary); }
     .ct-bar { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); margin: var(--space-2) 0; }
-    .ctree { display: flex; flex-direction: column; }
     .ct-row { display: flex; align-items: center; gap: var(--space-2); min-height: var(--space-10); border-radius: var(--radius-sm); }
-    .ct-row--cat { padding-right: var(--space-1); }
     .ct-row--person { padding-left: var(--space-10); padding-right: var(--space-1); }
     .ct-row--person:hover { background: var(--color-hover-bg); }
-    .ct-row--new { padding-left: var(--space-1); color: var(--color-primary-500); }
-    .ct-toggle { display: inline-flex; align-items: center; justify-content: center; width: var(--space-6); height: var(--space-6); border: none; background: none; border-radius: var(--radius-sm); color: var(--color-text-secondary); cursor: pointer; padding: 0; }
-    .ct-toggle:hover { background: var(--color-hover-bg); }
-    .ct-label { font-size: var(--font-size-base); }
     .ct-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .ct-info { display: inline-flex; color: var(--color-text-secondary); }
     .ct-add { margin-left: auto; display: inline-flex; align-items: center; gap: var(--space-1); border: none; background: none; padding: var(--space-1); font: inherit; color: var(--color-primary-500); cursor: pointer; white-space: nowrap; }
     .ct-add:hover { color: var(--color-primary-600); }
-    .ct-row--cat .cat-input { flex: 0 1 auto; width: 9em; }
-    .ct-del { opacity: 0; transition: opacity 0.15s; }
-    .ct-row:hover .ct-del, .ct-del:focus-visible { opacity: 1; }
     .ct-remove { opacity: 0; color: var(--color-error-600); transition: opacity 0.15s; }
     .ct-row:hover .ct-remove, .ct-remove:focus-visible { opacity: 1; }
-    .ct-empty { display: block; padding: var(--space-2) 0 var(--space-2) var(--space-10); font-size: var(--text-caption1-size); color: var(--color-text-secondary); }
-    .ct-new-ic { margin: 0 var(--space-1); }
     .ct-optional { margin: 0; }
-    .view-switch { margin-left: auto; display: inline-flex; border: 1px solid var(--color-divider); border-radius: var(--radius-sm); overflow: hidden; }
-    .view-btn { display: inline-flex; align-items: center; justify-content: center; width: var(--space-8); height: var(--space-8); border: none; background: var(--color-stone-0); color: var(--color-text-secondary); cursor: pointer; padding: 0; }
-    .view-btn + .view-btn { border-left: 1px solid var(--color-divider); }
-    .view-btn:hover { background: var(--color-hover-bg); }
-    .view-btn--on { background: var(--color-primary-50); color: var(--color-primary-600); }
     .ex-list { display: flex; flex-direction: column; }
     .ex { border-radius: var(--radius-sm); }
     .ex--open { background: var(--color-stone-100); }
@@ -1624,7 +1562,13 @@ export class QnaSetupDemoComponent {
     if (rp) return [...rp.config, ...rp.open];
     return n.side === 'question' ? Q_PERMS : A_PERMS;
   }
-  rolePerms(n: FlowNode): RolePerms | null { return n.custom ? null : ROLE_PERMS[n.roleKey] ?? null; }
+  rolePerms(n: FlowNode): RolePerms | null {
+    if (n.custom) return null;
+    // a coordinator assigns to experts and edits their drafts only when the workflow has experts
+    if (n.roleKey === 'coordinator' && !this.hasExpert) return this.coordinatorSolo;
+    return ROLE_PERMS[n.roleKey] ?? null;
+  }
+  private readonly coordinatorSolo: RolePerms = { fixed: [AP.coordSeeAll, AP.provideNoExpert], config: [AP.anyStage], open: [] };
   fixedLimited(n: FlowNode, p: PermDef) { return p.key === 'seeAll' && n.roleKey === 'approver' && !!n.perms['seeApprovalOnly']; }
   categoryOptions() {
     return this.stable('catOpts', this.categories.map(c => c.name).join('|'), () => this.categories.map(c => ({ value: c.name, label: c.name })));
@@ -1962,7 +1906,6 @@ export class QnaSetupDemoComponent {
     const w = (n.roleKey === 'approver' ? 'approver' : 'expert') + (plural ? 's' : '');
     return cap ? w[0].toUpperCase() + w.slice(1) : w;
   }
-  expertView: 'experts' | 'categories' = 'categories';
   catCollapsed = new Set<string>();
   catEdit: string | null = null;
   toggleCatEdit(m: Membership) { this.catEdit = this.catEdit === m.personId ? null : m.personId; }
@@ -2562,7 +2505,8 @@ export class QnaSetupDemoComponent {
       teamId = teamId ?? this.teams.find(t => t.name === this.person(personId).group)?.id ?? this.teams[0]?.id ?? this.teamFor('Team 1').id;
       if (n.members.some(m => m.personId === personId && m.teamId === teamId)) return;
     } else if (n.members.some(m => m.personId === personId)) return;
-    n.members = [...n.members, { personId, categories: [], teamId: n.side === 'question' ? teamId : undefined }];
+    const cats = this.scopedCategory && (n.roleKey === 'expert' || n.roleKey === 'approver') ? [this.scopedCategory] : [];
+    n.members = [...n.members, { personId, categories: cats, teamId: n.side === 'question' ? teamId : undefined }];
     const other = this.otherRoles(personId, n);
     if (notify) {
       this.toast.show(other
@@ -2641,10 +2585,10 @@ export class QnaSetupDemoComponent {
     };
   }
   /** roles a workflow can hold only once */
-  roleMaxed(r: RoleDef): boolean { return r.key === 'coordinator' && this.nodes.some(n => n.roleKey === 'coordinator'); }
+  roleMaxed(r: RoleDef): boolean { return SINGLE_ROLES.has(r.key) && this.nodes.some(n => n.roleKey === r.key); }
   addRole(r: RoleDef, at?: { x: number; y: number }) {
     if (this.roleMaxed(r)) {
-      this.toast.show({ variant: 'warning', message: 'A workflow has one Answer coordinator — add more people to it instead' });
+      this.toast.show({ variant: 'warning', message: `A workflow has one ${r.name} role — add more people to it instead` });
       return;
     }
     const p = this.pendingInsert;
