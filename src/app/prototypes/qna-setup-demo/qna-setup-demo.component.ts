@@ -208,7 +208,6 @@ const TONES = [
                 <button class="wf-tab" role="tab" *ngFor="let t of wfTabs(); trackBy: trackKey" [attr.aria-selected]="activeWf === t.key" [class.wf-tab--on]="activeWf === t.key"
                         (click)="switchWf(t.key)">
                   <fvdr-icon name="label" class="cat-ic" [ngClass]="'cat-ic--' + t.color"></fvdr-icon>{{ t.label }}
-                  <span class="wf-badge" *ngIf="customWf.has(t.key)">Custom</span>
                 </button>
                 <!-- add a category right here -->
                 <button class="wf-tab wf-tab--add" *ngIf="!addingCat" fvdrTooltip="Add category" aria-label="Add category" (click)="addingCat = true"><fvdr-icon name="plus"></fvdr-icon></button>
@@ -935,7 +934,6 @@ const TONES = [
     .wf-tab { display: inline-flex; align-items: center; gap: var(--space-1); height: var(--space-8); padding: 0 var(--space-3); border: 1px solid var(--color-divider); border-radius: var(--radius-sm); background: var(--color-stone-0); color: var(--color-text-primary); font: inherit; cursor: pointer; white-space: nowrap; }
     .wf-tab:hover { background: var(--color-hover-bg); }
     .wf-tab--on { border-color: var(--color-primary-500); background: var(--color-primary-50); }
-    .wf-badge { font-size: var(--text-caption1-size); color: var(--color-primary-700); background: var(--color-stone-0); border: 1px solid var(--color-primary-500); border-radius: var(--radius-lg); padding: 0 var(--space-1); }
     .wf-reset { white-space: nowrap; }
     .wf-group { position: absolute; border: 1px dashed var(--color-stone-500); border-radius: var(--radius-lg); background: var(--color-stone-0); pointer-events: none; }
     .wf-group-head { position: absolute; left: var(--space-4); right: var(--space-4); top: var(--space-3); display: flex; align-items: center; gap: 0.5em; pointer-events: auto; white-space: nowrap; overflow: hidden; }
