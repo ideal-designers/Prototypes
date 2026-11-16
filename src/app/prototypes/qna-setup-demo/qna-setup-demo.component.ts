@@ -67,16 +67,16 @@ const Q_PERMS: PermDef[] = [
  *  open — still being validated with customers */
 interface RolePerms { fixed: PermDef[]; config: PermDef[]; open: PermDef[]; }
 const AP = {
-  seeAll:          { key: 'seeAll',          label: 'See all questions',                       hint: 'Not only the questions assigned to them' },
+  seeAll:          { key: 'seeAll',          label: 'See all questions',                       hint: 'Not just ones assigned to them' },
   assign:          { key: 'assign',          label: 'Assign questions to experts',             hint: 'Route incoming questions to experts' },
   draftCoord:      { key: 'draftA',          label: 'Draft and edit answers',                  hint: 'Write an answer or change a proposed one' },
   assignCoord:     { key: 'assignCoord',     label: 'Assign to other coordinators',            hint: 'Hand a question to another coordinator, not only to experts' },
   finalCoord:      { key: 'finalSignoff',    label: 'Final sign-off & answer directly at any step',
                      hint: 'Approved answers come back to coordinators, who send them to the bidder. They can also take a question back at any step to answer or re-assign it.' },
-  draftExpert:     { key: 'draftA',          label: 'Draft answers to assigned questions',     hint: 'Propose an answer for review' },
-  seeFinal:        { key: 'seeFinal',        label: 'See final answers',                       hint: 'See what was sent to the question side' },
-  reassignExperts: { key: 'reassignExperts', label: 'Re-assign to other experts',              hint: 'Pass a question to a colleague who knows the topic better' },
-  seeTeam:         { key: 'seeTeam',         label: 'See question team name',                  hint: 'Show which question team asked' },
+  draftExpert:     { key: 'draftA',          label: 'Draft answers',                           hint: 'Propose answers for review' },
+  seeFinal:        { key: 'seeFinal',        label: 'See final answers',                       hint: 'See the answer sent to the question team' },
+  reassignExperts: { key: 'reassignExperts', label: 'Reassign to experts',                     hint: 'Allow experts to assign questions to other experts' },
+  seeTeam:         { key: 'seeTeam',         label: 'See who asked',                           hint: "Show the question team's name" },
   answerDirect:    { key: 'answerDirect',    label: 'Answer directly to the question side',    hint: 'Skip review and send the answer to the bidder' },
   approve:         { key: 'approve',         label: 'Approve or reject answers, propose own',  hint: 'Sign off, send back, or write a better answer' },
   finalApprover:   { key: 'finalSignoff',    label: 'Answer directly at any step',
@@ -87,6 +87,7 @@ const AP = {
   draftFollowUp:   { key: 'followUp',        label: 'Draft follow-up questions',               hint: 'Prepare a follow-up after an answer' },
   draftQOwn:       { key: 'draftQ',          label: 'Draft questions',                         hint: 'Prepare questions before sending them' },
   submitQ:         { key: 'submitQ',         label: 'Submit questions to the answer side',     hint: 'Send questions without extra review' },
+  draftSubmitQ:    { key: 'submitQ',         label: 'Draft and submit questions',              hint: 'Including follow-ups after an answer' },
   answerFollowUp:  { key: 'followUp',        label: 'Answer follow-up questions',              hint: 'Continue a thread after an answer' },
   // viewer
   viewAllQ:        { key: 'seeAll',          label: 'View all questions',                      hint: 'Every question in the project' },
@@ -94,10 +95,10 @@ const AP = {
 } satisfies Record<string, PermDef>;
 const ROLE_PERMS: Record<string, RolePerms> = {
   coordinator: { fixed: [AP.seeAll, AP.assign, AP.draftCoord], config: [AP.assignCoord, AP.finalCoord], open: [] },
-  expert:      { fixed: [AP.draftExpert], config: [AP.seeFinal, AP.reassignExperts, AP.seeTeam], open: [AP.seeAll, AP.answerDirect] },
+  expert:      { fixed: [AP.draftExpert], config: [AP.seeAll, AP.seeFinal, AP.seeTeam, AP.reassignExperts], open: [] },
   approver:    { fixed: [AP.seeAll, AP.approve], config: [AP.finalApprover], open: [AP.approvalOnly] },
   drafter:     { fixed: [AP.draftQ, AP.draftFollowUp], config: [], open: [] },
-  submitter:   { fixed: [AP.draftQOwn, AP.submitQ, AP.answerFollowUp], config: [], open: [] },
+  submitter:   { fixed: [AP.draftSubmitQ], config: [], open: [] },
   viewer:      { fixed: [AP.viewAllQ, AP.viewAllA], config: [], open: [] },
 };
 /** roles every flow needs — they can't be removed */
@@ -120,7 +121,7 @@ const STANDARD_ROLES: RoleDef[] = [
     perms: { seeAll: true, assign: true, draftA: true, assignCoord: false, finalSignoff: false, seeFinal: true, seeTeam: true } },
   { key: 'expert',      name: 'Expert',             side: 'answer',   icon: 'user-check',
     description: 'Answers questions assigned to them',
-    perms: { seeAll: false, assign: false, draftA: true, seeFinal: false, reassignExperts: false, seeTeam: true, answerDirect: false } },
+    perms: { seeAll: false, assign: false, draftA: true, seeFinal: true, reassignExperts: true, seeTeam: true, answerDirect: false } },
   { key: 'approver',    name: 'Answer approver',    side: 'answer',   icon: 'finished',
     description: 'Approves answers before they are released',
     perms: { seeAll: true, approve: true, draftA: true, finalSignoff: false, seeApprovalOnly: false, seeFinal: true, seeTeam: true } },
@@ -213,23 +214,21 @@ const TONES = [
                         (click)="switchWf(t.key)">
                   <fvdr-icon name="label" class="cat-ic" [ngClass]="'cat-ic--' + t.color"></fvdr-icon>{{ t.label }}
                 </button>
-                <button class="wf-tab wf-tab--add" *ngIf="!addingCat" fvdrTooltip="Give a category its own workflow" aria-label="Give a category its own workflow" (click)="addingCat = true"><fvdr-icon name="plus"></fvdr-icon></button>
-                <span class="wf-new" *ngIf="addingCat">
-                  <fvdr-dropdown class="wf-pick" size="s" [options]="defaultCatOptions()" [value]="''" placeholder="Pick a category"
-                                 (valueChange)="customizeFromBar($event)"></fvdr-dropdown>
-                  <span class="wf-or">or</span>
-                  <input class="wf-name" placeholder="New category" aria-label="New category name" [(ngModel)]="newCategory"
-                         (keydown.enter)="addWfCategory()" (keydown.escape)="addingCat = false; newCategory = ''" />
-                  <button class="icon-btn icon-btn--sm" fvdrTooltip="Add" [disabled]="!newCategory.trim()" (click)="addWfCategory()"><fvdr-icon name="check"></fvdr-icon></button>
-                  <button class="icon-btn icon-btn--sm" fvdrTooltip="Cancel" (click)="addingCat = false; newCategory = ''"><fvdr-icon name="close"></fvdr-icon></button>
+                <!-- one popover to pick a category or create a new one -->
+                <span class="wf-add-wrap">
+                  <button class="wf-tab wf-tab--add" fvdrTooltip="Select or create category" aria-label="Select or create category" [attr.aria-expanded]="addingCat" (click)="toggleCatPop()"><fvdr-icon name="plus"></fvdr-icon></button>
+                  <div class="wf-pop" *ngIf="addingCat" role="dialog" aria-label="Select or create category">
+                    <span class="field-label">Select or create category</span>
+                    <input class="wf-name wf-pop-search" placeholder="Search or type a new name" aria-label="Select or create category" [(ngModel)]="newCategory"
+                           (keydown.enter)="pickOrCreate()" (keydown.escape)="closeCatPop()" />
+                    <button class="wf-pop-item" *ngFor="let t of filteredDefaultCats(); trackBy: trackKey" (click)="customizeFromBar(t.label)">
+                      <fvdr-icon name="label" class="cat-ic" [ngClass]="'cat-ic--' + t.color"></fvdr-icon>{{ t.label }}
+                    </button>
+                    <button class="wf-pop-item wf-pop-item--new" *ngIf="canCreateCat" (click)="addWfCategory()"><fvdr-icon name="plus"></fvdr-icon>Create “{{ newCategory.trim() }}”</button>
+                    <span class="hint wf-pop-item" *ngIf="!filteredDefaultCats().length && !canCreateCat">Type a name to create a category</span>
+                  </div>
                 </span>
               </div>
-              <ng-container *ngIf="activeCategory as c">
-                <button class="link-btn wf-reset" *ngIf="customWf.has(activeWf)" (click)="resetWf(activeWf)">
-                  <fvdr-icon name="undo"></fvdr-icon>Use the All categories workflow
-                </button>
-                <button class="icon-btn icon-btn--sm" [fvdrTooltip]="'Delete ' + c.name" [attr.aria-label]="'Delete category ' + c.name" (click)="catToDelete = c"><fvdr-icon name="trash"></fvdr-icon></button>
-              </ng-container>
             </ng-container>
           </div>
           <button class="health health--error" *ngIf="templateConfirmed && errorNodes.length" (click)="focusFirstError()">
@@ -451,10 +450,6 @@ const TONES = [
             </div>
             <div class="panel-titles">
               <input class="name-input" [(ngModel)]="n.name" aria-label="Role name" />
-              <span class="panel-sub">
-                {{ n.side === 'question' ? 'Question side' : 'Answer side' }} ·
-                {{ n.custom ? 'Custom role' : (isCustomized(n) ? 'Customized' : 'Standard role') }}
-              </span>
             </div>
             <button class="icon-btn" [fvdrTooltip]="panelW > PANEL_MIN ? 'Collapse panel' : 'Expand panel'" tooltipPosition="bottom" (click)="togglePanelWide()"><fvdr-icon [name]="panelW > PANEL_MIN ? 'angle-double-right' : 'angle-double-left'"></fvdr-icon></button>
             <button class="icon-btn" fvdrTooltip="Close" tooltipPosition="bottom" (click)="selectedId = null"><fvdr-icon name="close"></fvdr-icon></button>
@@ -536,30 +531,21 @@ const TONES = [
                   <span class="field-label">When an answer is rejected, it goes back to</span>
                   <span class="rt-fixed"><fvdr-icon name="lock-close"></fvdr-icon>{{ hasExpert ? 'The expert' : 'The answer coordinator' }}</span>
                 </div>
-                <ng-container *ngIf="rp.fixed.length">
-                  <span class="field-label">Always included</span>
-                  <div class="perm perm--fixed" *ngFor="let p of rp.fixed">
-                    <div class="perm-text">
-                      <span class="perm-label">{{ p.label }}</span>
-                      <span class="perm-hint">{{ fixedLimited(n, p) ? 'Limited — only questions sent for approval' : p.hint }}</span>
-                    </div>
-                    <fvdr-icon class="perm-fixed-ic" [class.perm-fixed-ic--off]="fixedLimited(n, p)" [name]="fixedLimited(n, p) ? 'minus' : 'check'"></fvdr-icon>
+                <!-- every permission in one list; the ones that come with the role are on and locked -->
+                <div class="perm" *ngFor="let p of rp.fixed">
+                  <div class="perm-text">
+                    <span class="perm-label">{{ p.label }}</span>
+                    <span class="perm-hint">{{ fixedLimited(n, p) ? 'Limited — only questions sent for approval' : p.hint }}</span>
                   </div>
+                  <fvdr-toggle size="s" [checked]="!fixedLimited(n, p)" [disabled]="true" fvdrTooltip="Always on for this role" tooltipPosition="left"></fvdr-toggle>
+                </div>
+                <ng-container *ngFor="let p of rp.config">
+                  <ng-container *ngTemplateOutlet="permRow; context: { n: n, p: p }"></ng-container>
                 </ng-container>
-                <ng-container *ngIf="rp.config.length">
-                  <span class="field-label field-label--gap">Configurable</span>
-                  <ng-container *ngFor="let p of rp.config">
-                    <ng-container *ngTemplateOutlet="permRow; context: { n: n, p: p }"></ng-container>
-                  </ng-container>
-                </ng-container>
-                <ng-container *ngIf="rp.open.length">
-                  <span class="field-label field-label--gap perm-open-head">To validate <fvdr-badge label="Open question" variant="warning"></fvdr-badge></span>
-                  <ng-container *ngFor="let p of rp.open">
-                    <ng-container *ngTemplateOutlet="permRow; context: { n: n, p: p }"></ng-container>
-                  </ng-container>
+                <ng-container *ngFor="let p of rp.open">
+                  <ng-container *ngTemplateOutlet="permRow; context: { n: n, p: p }"></ng-container>
                 </ng-container>
                 <p class="hint perm-route" *ngIf="routeHint(n) as h"><fvdr-icon name="info"></fvdr-icon>{{ h }}</p>
-                <p class="hint perm-route" *ngIf="!rp.config.length && !rp.open.length"><fvdr-icon name="lock-close"></fvdr-icon>These permissions come with the role and can't be changed.</p>
               </ng-container>
               <ng-template #flatPerms>
                 <ng-container *ngFor="let p of permsFor(n)">
@@ -948,7 +934,6 @@ const TONES = [
     .wf-tab { display: inline-flex; align-items: center; gap: var(--space-1); height: var(--space-8); padding: 0 var(--space-3); border: 1px solid var(--color-divider); border-radius: var(--radius-sm); background: var(--color-stone-0); color: var(--color-text-primary); font: inherit; cursor: pointer; white-space: nowrap; }
     .wf-tab:hover { background: var(--color-hover-bg); }
     .wf-tab--on { border-color: var(--color-primary-500); background: var(--color-primary-50); }
-    .wf-reset { white-space: nowrap; }
     .wf-group { position: absolute; border: 1px dashed var(--color-stone-500); border-radius: var(--radius-lg); background: var(--color-stone-0); pointer-events: none; }
     .wf-group-head { position: absolute; left: var(--space-4); right: var(--space-4); top: var(--space-3); display: flex; align-items: center; gap: 0.5em; pointer-events: auto; white-space: nowrap; overflow: hidden; }
     .wf-group-open { display: inline-flex; align-items: center; justify-content: center; border: none; background: none; padding: 0.15em; color: var(--color-primary-500); cursor: pointer; font-size: 1em; border-radius: var(--radius-sm); }
@@ -958,13 +943,16 @@ const TONES = [
     .wf-group-sub { font-size: 0.9em; color: var(--color-text-secondary); overflow: hidden; text-overflow: ellipsis; }
     .ov-row { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-2) 0; border-bottom: 1px solid var(--color-divider); }
     .ov-row .link-btn { margin-left: auto; }
-    .wf-new { display: inline-flex; align-items: center; gap: var(--space-1); }
     .role--used { cursor: default; opacity: 0.6; }
     .role--used:hover { background: none; }
+    .wf-add-wrap { position: relative; }
+    .wf-pop { position: absolute; right: 0; top: calc(100% + var(--space-1)); z-index: 30; width: 240px; padding: var(--space-2); display: flex; flex-direction: column; gap: 2px; background: var(--color-stone-0); border-radius: var(--radius-md); box-shadow: var(--shadow-card); }
+    .wf-pop .wf-pop-search { width: 100%; box-sizing: border-box; margin-bottom: var(--space-1); }
+    .wf-pop-item { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-1) var(--space-2); border: none; border-radius: var(--radius-sm); background: none; font: inherit; text-align: left; cursor: pointer; }
+    .wf-pop-item:hover { background: var(--color-hover-bg); }
+    .wf-pop-item--new { color: var(--color-primary-500); }
     .rt-fixed { display: inline-flex; align-items: center; gap: var(--space-2); }
     .perm-after { padding-bottom: var(--space-3); border-bottom: 1px solid var(--color-divider); }
-    .wf-pick { width: 180px; }
-    .wf-or { font-size: var(--text-caption1-size); color: var(--color-text-secondary); }
     .wf-count { display: inline-flex; align-items: center; justify-content: center; min-width: var(--space-5); padding: 0 var(--space-1); margin-left: var(--space-1); border-radius: var(--radius-lg); background: var(--color-stone-300); color: var(--color-text-secondary); font-size: var(--text-caption1-size); font-weight: normal; }
     .wf-tab--add { padding: 0 var(--space-2); color: var(--color-primary-500); }
     .wf-name { width: 10em; border: 1px solid var(--color-stone-400); border-radius: var(--radius-sm); padding: var(--space-1) var(--space-2); font: inherit; }
@@ -1147,7 +1135,7 @@ const TONES = [
     .panel-titles { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
     .lib-title { font-size: var(--text-sub1-size); font-weight: var(--font-weight-semi); }
     .panel-sub { font-size: var(--text-caption1-size); color: var(--color-text-secondary); }
-    .name-input { border: 1px solid transparent; border-radius: var(--radius-sm); padding: 2px var(--space-1); margin-left: calc(var(--space-1) * -1); font: inherit; font-size: var(--text-sub1-size); font-weight: var(--font-weight-semi); color: var(--color-text-primary); background: none; width: 100%; box-sizing: border-box; }
+    .name-input { border: 1px solid transparent; border-radius: var(--radius-sm); padding: 2px var(--space-1); margin-left: calc(var(--space-1) * -1); font: inherit; font-size: var(--font-size-lg); font-weight: var(--font-weight-semi); color: var(--color-text-primary); background: none; width: 100%; box-sizing: border-box; }
     .name-input:hover { border-color: var(--color-stone-400); }
     .name-input:focus { outline: none; border-color: var(--color-primary-500); }
     .panel-tabs { padding: 0 var(--space-4); border-bottom: 1px solid var(--color-divider); }
@@ -1281,10 +1269,6 @@ const TONES = [
     .pm-person { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-1) 0 var(--space-1) var(--space-6); }
     .pm-sub { margin-left: auto; font-size: var(--text-caption1-size); color: var(--color-text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .perm-hint { font-size: var(--text-caption1-size); color: var(--color-text-secondary); }
-    .perm--fixed .perm-label { color: var(--color-text-secondary); }
-    .perm-fixed-ic { font-size: var(--space-4); color: var(--color-primary-500); }
-    .perm-fixed-ic--off { color: var(--color-stone-600); }
-    .perm-open-head { display: flex; align-items: center; gap: var(--space-2); }
     .perm-sub { padding: var(--space-2) 0 var(--space-3); border-bottom: 1px solid var(--color-divider); }
     .perm-route { display: flex; gap: var(--space-2); align-items: flex-start; margin-top: var(--space-3); }
     .perm-route fvdr-icon { flex: none; margin-top: 2px; color: var(--color-info-500); }
@@ -2020,15 +2004,36 @@ export class QnaSetupDemoComponent {
     const names = this.defaultCats().map(t => t.label);
     return names.length ? names.join(', ') : 'Every category has its own workflow';
   }
-  defaultCatOptions(): DropdownOption[] {
-    const tabs = this.defaultCats();
-    return this.stable('defaultCatOpts', tabs.map(t => t.key).join('|'), () => tabs.map(t => ({ value: t.label, label: t.label })));
+  toggleCatPop() {
+    this.addingCat = !this.addingCat;
+    this.newCategory = '';
+    if (this.addingCat) setTimeout(() => (this.canvasRef?.nativeElement.querySelector('.wf-pop-search') as HTMLInputElement | null)?.focus());
+  }
+  closeCatPop() { this.addingCat = false; this.newCategory = ''; }
+  filteredDefaultCats() {
+    const q = this.newCategory.trim().toLowerCase();
+    const list = this.defaultCats().filter(t => !q || t.label.toLowerCase().includes(q));
+    return this.stable('popCats', q + '|' + list.map(t => t.key).join(','), () => list);
+  }
+  get canCreateCat(): boolean {
+    const name = this.newCategory.trim().toLowerCase();
+    return !!name && !this.categories.some(c => c.name.toLowerCase() === name);
+  }
+  /** Enter: create the typed category, or take the only match */
+  pickOrCreate() {
+    if (this.canCreateCat) { this.addWfCategory(); return; }
+    const hit = this.filteredDefaultCats()[0];
+    if (hit) this.customizeFromBar(hit.label);
+  }
+  @HostListener('document:mousedown', ['$event'])
+  onDocMouseDown(ev: MouseEvent) {
+    if (this.addingCat && !(ev.target as HTMLElement).closest?.('.wf-add-wrap')) this.closeCatPop();
   }
   /** pick a category that follows All categories and give it its own workflow */
   customizeFromBar(v: string | string[]) {
     const name = Array.isArray(v) ? v[0] : v;
     if (!name) return;
-    this.addingCat = false;
+    this.closeCatPop();
     this.stashActive();
     this.customizeWf('cat:' + name);
   }
