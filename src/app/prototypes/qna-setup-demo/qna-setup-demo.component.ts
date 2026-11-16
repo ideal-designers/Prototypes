@@ -203,20 +203,33 @@ const TONES = [
               <div class="wf-tabs" role="tablist" aria-label="Workflows by category">
                 <button class="wf-tab" role="tab" [attr.aria-selected]="activeWf === OVERVIEW" [class.wf-tab--on]="activeWf === OVERVIEW"
                         fvdrTooltip="See every workflow on the canvas" (click)="switchWf(OVERVIEW)"><fvdr-icon name="overview"></fvdr-icon>All</button>
-                <button class="wf-tab" role="tab" [attr.aria-selected]="activeWf === DEFAULT_WF" [class.wf-tab--on]="activeWf === DEFAULT_WF"
-                        fvdrTooltip="Used by every category without its own workflow" (click)="switchWf(DEFAULT_WF)">Default</button>
-                <button class="wf-tab" role="tab" *ngFor="let t of wfTabs(); trackBy: trackKey" [attr.aria-selected]="activeWf === t.key" [class.wf-tab--on]="activeWf === t.key"
-                        (click)="switchWf(t.key)">
-                  <fvdr-icon name="label" class="cat-ic" [ngClass]="'cat-ic--' + t.color"></fvdr-icon>{{ t.label }}
-                </button>
-                <!-- add a category right here -->
-                <button class="wf-tab wf-tab--add" *ngIf="!addingCat" fvdrTooltip="Add category" aria-label="Add category" (click)="addingCat = true"><fvdr-icon name="plus"></fvdr-icon></button>
-                <span class="wf-new" *ngIf="addingCat">
-                  <input class="wf-name" placeholder="Category name" aria-label="New category name" [(ngModel)]="newCategory" autofocus
-                         (keydown.enter)="addWfCategory()" (keydown.escape)="addingCat = false; newCategory = ''" />
-                  <button class="icon-btn icon-btn--sm" fvdrTooltip="Add" [disabled]="!newCategory.trim()" (click)="addWfCategory()"><fvdr-icon name="check"></fvdr-icon></button>
-                  <button class="icon-btn icon-btn--sm" fvdrTooltip="Cancel" (click)="addingCat = false; newCategory = ''"><fvdr-icon name="close"></fvdr-icon></button>
-                </span>
+                <!-- Default: the default workflow and every category that still follows it -->
+                <div class="wf-set" role="group" aria-label="Default">
+                  <button class="wf-tab" role="tab" [attr.aria-selected]="activeWf === DEFAULT_WF" [class.wf-tab--on]="activeWf === DEFAULT_WF"
+                          fvdrTooltip="The workflow every category below follows" (click)="switchWf(DEFAULT_WF)">
+                    Default<span class="wf-count">{{ defaultCats().length }}</span>
+                  </button>
+                  <button class="wf-tab wf-tab--chip" role="tab" *ngFor="let t of defaultCats(); trackBy: trackKey" [attr.aria-selected]="activeWf === t.key" [class.wf-tab--on]="activeWf === t.key"
+                          (click)="switchWf(t.key)">
+                    <fvdr-icon name="label" class="cat-ic" [ngClass]="'cat-ic--' + t.color"></fvdr-icon>{{ t.label }}
+                  </button>
+                  <button class="wf-tab wf-tab--chip wf-tab--add" *ngIf="!addingCat" fvdrTooltip="Add category" aria-label="Add category" (click)="addingCat = true"><fvdr-icon name="plus"></fvdr-icon></button>
+                  <span class="wf-new" *ngIf="addingCat">
+                    <input class="wf-name" placeholder="Category name" aria-label="New category name" [(ngModel)]="newCategory" autofocus
+                           (keydown.enter)="addWfCategory()" (keydown.escape)="addingCat = false; newCategory = ''" />
+                    <button class="icon-btn icon-btn--sm" fvdrTooltip="Add" [disabled]="!newCategory.trim()" (click)="addWfCategory()"><fvdr-icon name="check"></fvdr-icon></button>
+                    <button class="icon-btn icon-btn--sm" fvdrTooltip="Cancel" (click)="addingCat = false; newCategory = ''"><fvdr-icon name="close"></fvdr-icon></button>
+                  </span>
+                </div>
+                <!-- Customised: categories with their own workflow — no longer part of Default -->
+                <div class="wf-set" role="group" aria-label="Customised">
+                  <span class="wf-set-title">Customised<span class="wf-count">{{ customCats().length }}</span></span>
+                  <button class="wf-tab wf-tab--chip" role="tab" *ngFor="let t of customCats(); trackBy: trackKey" [attr.aria-selected]="activeWf === t.key" [class.wf-tab--on]="activeWf === t.key"
+                          (click)="switchWf(t.key)">
+                    <fvdr-icon name="label" class="cat-ic" [ngClass]="'cat-ic--' + t.color"></fvdr-icon>{{ t.label }}
+                  </button>
+                  <span class="wf-empty" *ngIf="!customCats().length">None yet — open a category and customize it</span>
+                </div>
               </div>
               <ng-container *ngIf="activeCategory as c">
                 <button class="link-btn wf-reset" *ngIf="customWf.has(activeWf)" (click)="resetWf(activeWf)">
@@ -945,6 +958,11 @@ const TONES = [
     .ov-row { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-2) 0; border-bottom: 1px solid var(--color-divider); }
     .ov-row .link-btn { margin-left: auto; }
     .wf-new { display: inline-flex; align-items: center; gap: var(--space-1); }
+    .wf-set { display: inline-flex; flex-wrap: wrap; align-items: center; gap: var(--space-1); padding: var(--space-1); border: 1px dashed var(--color-stone-400); border-radius: var(--radius-md); }
+    .wf-set-title { display: inline-flex; align-items: center; gap: var(--space-1); padding: 0 var(--space-2); font-weight: var(--font-weight-semi); white-space: nowrap; }
+    .wf-count { display: inline-flex; align-items: center; justify-content: center; min-width: var(--space-5); padding: 0 var(--space-1); margin-left: var(--space-1); border-radius: var(--radius-lg); background: var(--color-stone-300); color: var(--color-text-secondary); font-size: var(--text-caption1-size); font-weight: normal; }
+    .wf-tab--chip { height: var(--space-6); padding: 0 var(--space-2); font-size: var(--text-caption1-size); }
+    .wf-empty { padding: 0 var(--space-2); font-size: var(--text-caption1-size); color: var(--color-text-secondary); white-space: nowrap; }
     .wf-tab--add { padding: 0 var(--space-2); color: var(--color-primary-500); }
     .wf-name { width: 10em; border: 1px solid var(--color-stone-400); border-radius: var(--radius-sm); padding: var(--space-1) var(--space-2); font: inherit; }
     .wf-name:focus { outline: none; border-color: var(--color-primary-500); }
@@ -1944,6 +1962,16 @@ export class QnaSetupDemoComponent {
   private readonly catColors = ['teal', 'green', 'blue', 'orange', 'red', 'grey'];
   addingCat = false;
   catToDelete: { name: string; color: string } | null = null;
+  /** categories that follow the default workflow */
+  defaultCats() {
+    const tabs = this.wfTabs().filter(t => !this.customWf.has(t.key));
+    return this.stable('defaultCats', tabs.map(t => t.key).join('|'), () => tabs);
+  }
+  /** categories with their own workflow — they no longer count towards Default */
+  customCats() {
+    const tabs = this.wfTabs().filter(t => this.customWf.has(t.key));
+    return this.stable('customCats', tabs.map(t => t.key).join('|'), () => tabs);
+  }
   get activeCategory() { return this.categories.find(c => 'cat:' + c.name === this.activeWf); }
   /** add from the workflow bar and open it — it follows the default until customized */
   addWfCategory() {
