@@ -39,6 +39,7 @@ export interface FlowNode {
 }
 interface FlowEdge { id: string; from: string; to: string; fs: Port; ts: Port; label: string; kind: EdgeKind; /** label before an approver switched to routing by category */ manualLabel?: string; /** ports follow geometry (edges added by the user) */ auto?: boolean; }
 interface PermDef { key: string; label: string; hint: string; }
+interface LinkOpt { label: string; apply: () => void; }
 type AvatarColor = 'green' | 'teal' | 'blue' | 'orange' | 'red' | 'grey' | 'dark';
 const AVATAR_COLORS: { id: AvatarColor; label: string; bg: string; fg: string }[] = [
   { id: 'green',  label: 'Green',  bg: 'var(--color-primary-50)',    fg: 'var(--color-primary-600)' },
@@ -112,7 +113,7 @@ const ROLE_PERMS: Record<string, RolePerms> = {
   viewer:      { fixed: [AP.viewAllQ, AP.viewAllA], config: [], open: [] },
 };
 /** roles a workflow holds once — add people to them instead of a second role */
-const SINGLE_ROLES = new Set(['submitter', 'drafter', 'coordinator', 'expert', 'viewer']);
+const SINGLE_ROLES = new Set(['submitter', 'drafter', 'coordinator', 'viewer']);
 /** roles every flow needs — they can't be removed */
 const PROTECTED_ROLES = new Set(['submitter', 'coordinator']);
 /** custom answer-side roles can switch anything */
@@ -315,6 +316,7 @@ const TONES = [
               <circle *ngIf="edgeStart(e) as p" [attr.cx]="p.x" [attr.cy]="p.y" r="4.5" class="edge-start"
                       [class.edge-start--reject]="e.kind === 'reject'" [class.edge-start--active]="e.kind !== 'reject' && isEdgeActive(e)"></circle>
             </g>
+            <path *ngIf="link" [attr.d]="linkPath()" class="edge edge--draft" marker-end="url(#qsc-arrow-active)"></path>
           </svg>
 
           <!-- edge labels (+ insert / delete on hover) -->
@@ -340,6 +342,8 @@ const TONES = [
                [class.node--error]="editable && !n.members.length"
                [class.node--drop]="dropNodeId === n.id"
                [class.node--dragging]="dragNodeId === n.id && dragMoved"
+               [class.node--link-target]="link && linkTarget(n)"
+               [attr.data-node-id]="n.id"
                (mousedown)="onNodeMouseDown($event, n)"
                (dragover)="onNodeDragOver($event, n)"
                (dragleave)="dropNodeId = null"
@@ -389,6 +393,8 @@ const TONES = [
               </ng-template>
             </div>
 
+            <button class="node-link" *ngIf="canDrawFrom(n)" fvdrTooltip="Drag to another role to draw an arrow"
+                    (mousedown)="startLink($event, n)"><fvdr-icon name="chevron-right"></fvdr-icon></button>
             <button class="node-add" *ngFor="let s of freeSides(n); trackBy: trackSelf" [ngClass]="'node-add--' + s"
                     fvdrTooltip="Add a role here" (mousedown)="$event.stopPropagation()" (click)="startInsertAfter(n, s)">
               <span class="node-add-dot"><fvdr-icon name="plus"></fvdr-icon></span>
@@ -405,9 +411,15 @@ const TONES = [
           <span class="zoom-val">{{ (zoom * 100) | number:'1.0-0' }}%</span>
         </div>
 
+        <div class="link-menu" *ngIf="linkMenu as lm" [style.left.px]="lm.x" [style.top.px]="lm.y" (mousedown)="$event.stopPropagation()">
+          <span class="link-menu-head">What does this arrow do?</span>
+          <button *ngFor="let o of lm.opts" (click)="applyLink(o)">{{ o.label }}</button>
+        </div>
+
         <div class="legend" (mousedown)="$event.stopPropagation()">
           <span><i class="lg lg--main"></i>Question / answer moves</span>
           <span><i class="lg lg--reject"></i>Rejected</span>
+          <span *ngIf="editable"><i class="lg-link"><fvdr-icon name="chevron-right"></fvdr-icon></i>Drag from a coordinator or approver to draw an arrow</span>
           <span><i class="lg lg--dual"></i>Person with 2+ roles</span>
         </div>
       </div>
@@ -619,7 +631,7 @@ const TONES = [
                 </div>
                 <div class="rt-setting">
                   <span class="rt-q">When an answer is rejected, it goes back to</span>
-                  <fvdr-radio *ngIf="hasExpert; else onlyCoordinator" [options]="rejectToOptions" [value]="rejectTo" layout="vertical" (valueChange)="setRejectTo($any($event))"></fvdr-radio>
+                  <fvdr-radio *ngIf="hasExpert; else onlyCoordinator" [options]="rejectToOptions()" [value]="rejectTo" layout="vertical" (valueChange)="setRejectTo($any($event))"></fvdr-radio>
                   <ng-template #onlyCoordinator><span class="rt-fixed"><fvdr-icon name="lock-close"></fvdr-icon>The answer coordinator</span></ng-template>
                 </div>
                 <div class="rt-setting" *ngIf="approvers().length > 1">
@@ -1079,6 +1091,21 @@ const TONES = [
     .lane-label--q { transform: translate(-100%, -50%); color: var(--color-info-500); }
     .lane-label--a { color: var(--color-primary-600); }
     /* hit area starts at the card edge so the cursor never leaves hover on the way to "+" */
+    .node-link {
+      position: absolute; top: -10px; right: -10px; z-index: 3; width: 20px; height: 20px; padding: 0; border-radius: 50%;
+      border: 1px solid var(--color-primary-500); background: var(--color-stone-0); color: var(--color-primary-600);
+      display: inline-flex; align-items: center; justify-content: center; font-size: 12px; cursor: crosshair;
+      opacity: 0; transition: opacity 0.15s;
+    }
+    .node:hover .node-link, .node--selected .node-link { opacity: 1; }
+    .node-link:hover { background: var(--color-primary-50); }
+    .node--link-target { border-color: var(--color-primary-500); box-shadow: 0 0 0 3px var(--color-primary-50); }
+    .edge--draft { stroke: var(--color-primary-500); stroke-dasharray: 6 4; }
+    .link-menu { position: absolute; z-index: 30; min-width: 240px; padding: var(--space-2); display: flex; flex-direction: column; gap: 2px; background: var(--color-stone-0); border-radius: var(--radius-md); box-shadow: var(--shadow-card); }
+    .link-menu-head { padding: var(--space-1) var(--space-2); font-size: var(--text-caption1-size); color: var(--color-text-secondary); }
+    .link-menu button { text-align: left; padding: var(--space-2); border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--color-text-primary); cursor: pointer; }
+    .link-menu button:hover { background: var(--color-hover-bg); }
+    .lg-link { display: inline-flex; width: 14px; height: 14px; border-radius: 50%; border: 1px solid var(--color-primary-500); color: var(--color-primary-600); font-size: 10px; align-items: center; justify-content: center; font-style: normal; }
     .node-add {
       position: absolute; display: inline-flex; padding: 0; border: 0; background: transparent; cursor: pointer;
       opacity: 0; visibility: hidden; pointer-events: none;
@@ -1646,85 +1673,117 @@ export class QnaSetupDemoComponent {
    */
   /** a rejected answer always goes back to whoever drafted it: the expert when there is one */
   get hasExpert(): boolean { return this.nodes.some(n => n.roleKey === 'expert'); }
-  private rebuildAnswerRoute(quiet = false): boolean {
+  private rebuildAnswerRoute(quiet = false, expertOrder?: FlowNode[]): boolean {
     // without an expert there is only the coordinator to send it back to
     if (!this.hasExpert) this.rejectTo = 'coordinator';
+    if (this.rejectTo === 'lastExpert' && this.experts().length < 2) this.rejectTo = 'expert';
     const a = this.nodes.filter(x => x.side === 'answer' && x.roleKey !== 'viewer');
-    const cs = a.filter(x => x.roleKey === 'coordinator'), xs = a.filter(x => x.roleKey === 'expert');
-    const order = this.stepMap();
-    const first = (x: FlowNode) => order.get(x.id)?.[0] ?? 99;
-    let aps = a.filter(x => x.roleKey === 'approver').sort((p, q) => first(p) - first(q));
+    const cs = a.filter(x => x.roleKey === 'coordinator');
+    const xs = expertOrder ?? this.orderedExperts();
+    let aps = this.orderedApprovers();
     const s = this.nodes.find(x => x.side === 'question' && this.edges.some(e => e.from === x.id && e.to === cs[0]?.id));
-    if (cs.length !== 1 || xs.length !== 1 || !aps.length || !s || a.length !== 2 + aps.length) {
+    if (cs.length !== 1 || !xs.length || !s || a.length !== 1 + xs.length + aps.length) {
       if (!quiet) this.toast.show({ variant: 'warning', message: 'This flow has extra roles — update the connections on the canvas by hand' });
       return false;
     }
-    const c = cs[0], x = xs[0];
+    const c = cs[0], x = xs[0], xl = xs[xs.length - 1], K = xs.length;
     const fin = this.finalOwner();
     if (fin?.roleKey === 'approver') aps = [...aps.filter(p => p !== fin), fin];
-    const coordFinal = fin === c;
+    const coordFinal = !aps.length || fin === c;
     const N = aps.length;
+    // a rejected answer goes back to the first expert, the last expert, or the coordinator
+    const back = this.rejectTo === 'coordinator' ? c : this.rejectTo === 'lastExpert' ? xl : x;
     const col = (k: number) => c.x + k * COL_W, row = (r: number) => 90 + r * ROW_H;
     const ed = (from: FlowNode, to: FlowNode, fs: Port, ts: Port, label: string, kind: EdgeKind = 'main'): FlowEdge =>
       ({ id: 'e' + this.seq++, from: from.id, to: to.id, fs, ts, label, kind });
     const keep = this.edges.filter(e => this.nodeById(e.from)?.side === 'question' && this.nodeById(e.to)?.side === 'question' || (e.to === c.id && e.from === s.id));
     const out: FlowEdge[] = [ed(c, x, 't', 'l', x.assignMode === 'auto' ? 'Auto-assigns by category' : 'Assigns')];
-    c.y = row(1); x.x = col(1); x.y = row(0);
-    if (coordFinal) {
-      // approvers on the top row after the expert, the last one drops below and hands back to the coordinator
+    // experts run along the top row, each passing the draft to the next
+    c.y = row(1);
+    xs.forEach((e, i) => { e.x = col(i + 1); e.y = row(0); });
+    xs.slice(1).forEach((e, i) => out.push(ed(xs[i], e, 'r', 'l', 'Passes draft')));
+    if (!N) {
+      out.push(ed(xl, c, 'b', K > 1 ? 't' : 'r', 'Proposes answer', 'return'));
+      out.push(ed(c, s, 'b', 'b', 'Sends answer', 'return'));
+    } else if (coordFinal) {
+      // approvers on the top row after the experts, the last one drops below and hands back to the coordinator
       aps.forEach((p, i) => {
         const last = i === N - 1;
-        p.x = N === 1 ? col(1) : col(last ? N : i + 2); p.y = last ? row(2) : row(0);
+        p.x = N === 1 ? col(K) : col(last ? K + N - 1 : K + i + 1); p.y = last ? row(2) : row(0);
       });
-      out.push(N === 1 ? ed(x, aps[0], 'b', 't', 'Suggests draft') : ed(x, aps[0], 'r', 'l', 'Suggests draft'));
+      out.push(N === 1 ? ed(xl, aps[0], 'b', 't', 'Suggests draft') : ed(xl, aps[0], 'r', 'l', 'Suggests draft'));
       aps.slice(1).forEach((p, i) => out.push(i + 1 === N - 1 ? ed(aps[i], p, 'b', 't', `Approved · level ${i + 1}`) : ed(aps[i], p, 'r', 'l', `Approved · level ${i + 1}`)));
       out.push(ed(aps[N - 1], c, 'l', 'r', N > 1 ? `Approved · level ${N}` : 'Approved'));
-      out.push(this.rejectTo === 'expert'
-        ? (N === 1 ? ed(aps[0], x, 'r', 'r', 'Rejects', 'reject') : ed(aps[0], x, 't', 't', 'Rejects', 'reject'))
-        : { ...ed(aps[0], c, 'l', 'r', 'Rejects', 'reject'), auto: true });
+      out.push(back === c
+        ? { ...ed(aps[0], c, 'l', 'r', 'Rejects', 'reject'), auto: true }
+        : back === x && K === 1 && N === 1 ? ed(aps[0], x, 'r', 'r', 'Rejects', 'reject')
+        : back === x && K === 1 ? ed(aps[0], x, 't', 't', 'Rejects', 'reject')
+        : { ...ed(aps[0], back, 't', 't', 'Rejects', 'reject'), auto: true });
       aps.slice(1).forEach((p, i) => out.push(this.rejectChain === 'previous'
         ? ed(p, aps[i], 'r', 'r', 'Rejects', 'reject')
-        : { ...ed(p, this.rejectTo === 'expert' ? x : c, 'l', 'r', 'Rejects', 'reject'), auto: true }));
+        : { ...ed(p, back, 'l', 'r', 'Rejects', 'reject'), auto: true }));
       out.push(ed(c, s, 'b', 'b', 'Submits final answer', 'return'));
     } else {
-      // expert hands back to the coordinator, approvers run along the bottom row, the last one releases
+      // the last expert hands back to the coordinator, approvers run along the bottom row, the last one releases
       aps.forEach((p, i) => { p.x = col(i + 1); p.y = row(2); });
-      out.push(ed(x, c, 'b', 'r', 'Proposes answer', 'return'));
+      out.push(ed(xl, c, 'b', K > 1 ? 't' : 'r', 'Proposes answer', 'return'));
       out.push(ed(c, aps[0], 'b', 'l', 'Sends for approval'));
       aps.slice(1).forEach((p, i) => out.push(ed(aps[i], p, 'r', 'l', `Approved · level ${i + 1}`)));
-      out.push(this.rejectTo === 'coordinator'
+      out.push(back === c
         ? ed(aps[0], c, 't', 'r', 'Rejects', 'reject')
-        : { ...ed(aps[0], x, 't', 'b', 'Rejects', 'reject'), auto: true });
+        : { ...ed(aps[0], back, 't', 'b', 'Rejects', 'reject'), auto: true });
       aps.slice(1).forEach((p, i) => out.push(this.rejectChain === 'previous'
         ? ed(p, aps[i], 't', 'b', 'Rejects', 'reject')
-        : { ...ed(p, this.rejectTo === 'expert' ? x : c, 't', 'r', 'Rejects', 'reject'), auto: true }));
+        : { ...ed(p, back, 't', 'r', 'Rejects', 'reject'), auto: true }));
       out.push(ed(aps[N - 1], s, 'b', 'b', fin ? 'Final sign-off · sends answer' : 'Final answer', 'return'));
     }
     this.edges = [...keep, ...out];
     this.autoPorts();
+    this.renumberRoles();
     setTimeout(() => this.fit(), 0);
     return true;
   }
 
   // ── routing settings ──
-  rejectTo: 'expert' | 'coordinator' = 'coordinator';
+  rejectTo: 'expert' | 'lastExpert' | 'coordinator' = 'coordinator';
   rejectChain: 'previous' | 'first' = 'previous';
   readonly afterApproveOptions: RadioOption[] = [
     { value: 'direct', label: 'Straight to the question side' },
     { value: 'coordinator', label: 'Back to the answer coordinator, who sends it' },
   ];
-  readonly rejectToOptions: RadioOption[] = [
-    { value: 'expert', label: 'The expert' },
-    { value: 'coordinator', label: 'The answer coordinator' },
-  ];
-  setRejectTo(v: string) { this.rejectTo = v as 'expert' | 'coordinator'; this.applyRouting(); }
+  rejectToOptions(): RadioOption[] {
+    const many = this.experts().length > 1;
+    return this.stable('rejectTo', String(many), () => many
+      ? [{ value: 'expert', label: 'The first expert' }, { value: 'lastExpert', label: 'The last expert' }, { value: 'coordinator', label: 'The answer coordinator' }]
+      : [{ value: 'expert', label: 'The expert' }, { value: 'coordinator', label: 'The answer coordinator' }]);
+  }
+  setRejectTo(v: string) { this.rejectTo = v as 'expert' | 'lastExpert' | 'coordinator'; this.applyRouting(); }
+  private rejectTargetLabel(): string {
+    return this.rejectTo === 'coordinator' ? 'The answer coordinator'
+      : this.experts().length < 2 ? 'The expert' : this.rejectTo === 'lastExpert' ? 'The last expert' : 'The first expert';
+  }
   rejectChainOptions(): RadioOption[] {
-    return this.stable('rejectChain', this.rejectTo, () => [
+    return this.stable('rejectChain', this.rejectTo + this.experts().length, () => [
       { value: 'previous', label: 'The previous approver' },
-      { value: 'first', label: this.rejectTo === 'expert' ? 'The expert' : 'The answer coordinator' },
+      { value: 'first', label: this.rejectTargetLabel() },
     ]);
   }
   approvers(): FlowNode[] { return this.nodes.filter(x => x.roleKey === 'approver'); }
+  experts(): FlowNode[] { return this.nodes.filter(x => x.roleKey === 'expert'); }
+  /** experts in the order the draft reaches them */
+  orderedExperts(): FlowNode[] {
+    const order = this.stepMap();
+    return this.experts().sort((p, q) => (order.get(p.id)?.[0] ?? 99) - (order.get(q.id)?.[0] ?? 99));
+  }
+  /** a second Expert or Approver gets a number: Expert 2, Answer approver 2 … */
+  private renumberRoles() {
+    const list = (k: string) => k === 'expert' ? this.orderedExperts() : this.orderedApprovers();
+    ['expert', 'approver'].forEach(k => {
+      const base = this.roleDef(k)!.name;
+      const re = new RegExp('^' + base + '( \\d+)?$');
+      list(k).forEach((n, i) => { if (re.test(n.name)) n.name = i ? `${base} ${i + 1}` : base; });
+    });
+  }
   private coordinator(): FlowNode | undefined { return this.nodes.find(x => x.roleKey === 'coordinator'); }
   get afterApprove(): 'direct' | 'coordinator' { return this.coordinator()?.perms['finalSignoff'] ? 'coordinator' : 'direct'; }
   setAfterApprove(v: string) {
@@ -1739,7 +1798,8 @@ export class QnaSetupDemoComponent {
     if (this.rebuildAnswerRoute(true)) return;
     const order = this.stepMap();
     const aps = this.approvers().sort((p, q) => (order.get(p.id)?.[0] ?? 99) - (order.get(q.id)?.[0] ?? 99));
-    const target = this.nodes.find(x => x.roleKey === this.rejectTo);
+    const xs = this.orderedExperts();
+    const target = this.rejectTo === 'coordinator' ? this.coordinator() : this.rejectTo === 'lastExpert' ? xs[xs.length - 1] : xs[0];
     if (!target) return;
     this.edges = this.edges.filter(e => !(e.kind === 'reject' && aps.some(p => p.id === e.from)));
     aps.forEach((p, i) => {
@@ -2407,13 +2467,24 @@ export class QnaSetupDemoComponent {
         n.y = Math.round((this.dragStart.ny + dy) / 10) * 10;
         this.autoPorts();
       }
+    } else if (this.link) {
+      const w = this.toWorld(ev.clientX, ev.clientY);
+      this.link.x = w.x; this.link.y = w.y;
     } else if (this.panning) {
       this.panX = this.panStart.px + ev.clientX - this.panStart.x;
       this.panY = this.panStart.py + ev.clientY - this.panStart.y;
     }
   }
-  @HostListener('document:mouseup')
-  onUp() {
+  @HostListener('document:mouseup', ['$event'])
+  onUp(ev?: MouseEvent) {
+    if (this.link && ev) {
+      const from = this.link.from;
+      this.link = null;
+      const id = (document.elementFromPoint(ev.clientX, ev.clientY) as HTMLElement | null)?.closest('[data-node-id]')?.getAttribute('data-node-id');
+      const to = id ? this.nodeById(id) : undefined;
+      if (to && to !== from) this.finishLink(from, to, ev.clientX, ev.clientY);
+      return;
+    }
     if (this.dragNodeId && !this.dragMoved) this.selectNode(this.dragNodeId);
     this.dragNodeId = null;
     this.panning = false;
@@ -2421,6 +2492,7 @@ export class QnaSetupDemoComponent {
   @HostListener('document:mousedown', ['$event'])
   onDocDown(ev: MouseEvent) {
     if (this.colorOpen && !(ev.target as HTMLElement).closest?.('.avatar-pick')) this.colorOpen = false;
+    if (this.linkMenu && !(ev.target as HTMLElement).closest?.('.link-menu')) this.linkMenu = null;
   }
   @HostListener('document:keydown', ['$event'])
   onKey(ev: KeyboardEvent) {
@@ -2532,6 +2604,7 @@ export class QnaSetupDemoComponent {
     this.nodes = this.nodes.filter(x => x.id !== n.id);
     this.selectedId = null;
     if (n.roleKey === 'approver') this.syncApproverRoute();
+    else if (n.roleKey === 'expert' && this.hasExpert) { this.rebuildAnswerRoute(true); this.renumberRoles(); }
     this.toast.show({ variant: 'info', message: `${n.name} removed from the flow` });
   }
   deleteEdge(e: FlowEdge) {
@@ -2676,6 +2749,12 @@ export class QnaSetupDemoComponent {
       this.toast.show({ variant: 'warning', message: `A workflow has one ${r.name} role — add more people to it instead` });
       return;
     }
+    if (r.key === 'expert' && this.hasExpert) {
+      const added = this.addExpert(r);
+      this.pendingInsert = null;
+      if (added) this.selectNode(added.id);
+      return;
+    }
     const p = this.pendingInsert;
     let node: FlowNode;
     if (p && 'edgeId' in p) {
@@ -2709,11 +2788,110 @@ export class QnaSetupDemoComponent {
     }
     this.pendingInsert = null;
     if (r.key === 'approver') this.routeApprovedToCoordinator();
+    this.renumberRoles();
     this.selectNode(node.id);
     if (!at) setTimeout(() => this.fit(), 0);
   }
   /** by default an approved answer goes back to the coordinator, who sends it; the approver's Permissions can change that */
   private routeApprovedToCoordinator() { this.syncApproverRoute(); }
+  /** another expert joins the expert chain — only right after an existing expert */
+  private addExpert(r: RoleDef): FlowNode | null {
+    const xs = this.orderedExperts();
+    const p = this.pendingInsert;
+    const src = p && 'afterNodeId' in p ? this.nodeById(p.afterNodeId)
+      : p && 'edgeId' in p ? this.nodeById(this.edges.find(e => e.id === p.edgeId)?.from ?? '')
+      : xs[xs.length - 1];
+    if (!src || src.roleKey !== 'expert') {
+      this.toast.show({ variant: 'warning', message: 'A new expert can be added only after an existing expert' });
+      return null;
+    }
+    const node = this.newNode(r, src.x + COL_W, src.y);
+    const next = this.edges.find(e => e.from === src.id && e.kind !== 'reject');
+    this.nodes = [...this.nodes, node];
+    this.edges = [
+      ...this.edges.filter(e => e !== next),
+      { id: 'e' + this.seq++, from: src.id, to: node.id, fs: 'r', ts: 'l', label: 'Passes draft', kind: 'main', auto: true },
+      ...(next ? [{ ...next, id: 'e' + this.seq++, from: node.id, auto: true }] : []),
+    ];
+    const order = [...xs];
+    order.splice(order.indexOf(src) + 1, 0, node);
+    if (!this.rebuildAnswerRoute(true, order)) { this.renumberRoles(); this.tidy(); }
+    return node;
+  }
+
+  // ── drawing arrows ──
+  link: { from: FlowNode; x: number; y: number } | null = null;
+  linkMenu: { x: number; y: number; opts: LinkOpt[] } | null = null;
+  canDrawFrom(n: FlowNode): boolean {
+    return this.editable && (n.roleKey === 'approver' || n.roleKey === 'coordinator' && this.approvers().length > 0);
+  }
+  private toWorld(cx: number, cy: number) {
+    const r = this.canvasRef?.nativeElement.getBoundingClientRect();
+    return r ? { x: (cx - r.left - this.panX) / this.zoom, y: (cy - r.top - this.panY) / this.zoom } : { x: 0, y: 0 };
+  }
+  startLink(ev: MouseEvent, n: FlowNode) {
+    ev.stopPropagation(); ev.preventDefault();
+    this.linkMenu = null;
+    const w = this.toWorld(ev.clientX, ev.clientY);
+    this.link = { from: n, x: w.x, y: w.y };
+  }
+  linkPath(): string {
+    const l = this.link!;
+    const n = l.from, cx = n.x + NODE_W / 2, cy = n.y + NODE_H / 2;
+    const dx = l.x - cx, dy = l.y - cy;
+    const p = this.portPoint(n, Math.abs(dx) * (NODE_H / NODE_W) >= Math.abs(dy) ? (dx >= 0 ? 'r' : 'l') : (dy >= 0 ? 'b' : 't'));
+    return `M${p.x},${p.y} L${l.x},${l.y}`;
+  }
+  linkTarget(n: FlowNode): boolean { return !!this.link && n !== this.link.from && this.linkOptions(this.link.from, n).opts.length > 0; }
+  /**
+   * What an arrow between two roles can mean:
+   *   coordinator / last approver → question side: who sends the final answer
+   *   approver → first or last expert, coordinator, previous approver: where a rejected answer goes
+   *   last approver → coordinator: the coordinator sends the final answer
+   */
+  linkOptions(a: FlowNode, b: FlowNode): { opts: LinkOpt[]; reason?: string } {
+    const c = this.coordinator(), aps = this.orderedApprovers(), xs = this.orderedExperts();
+    const last = aps[aps.length - 1], ai = aps.indexOf(a);
+    const opts: LinkOpt[] = [];
+    if (b.side === 'question') {
+      if (a === c) opts.push({ label: 'The coordinator sends the final answer', apply: () => this.setAfterApprove('coordinator') });
+      else if (a === last) opts.push({ label: `${a.name} sends the final answer`, apply: () => this.setAfterApprove('direct') });
+      else return { opts, reason: 'Only the coordinator or the last approver can send the final answer' };
+      return { opts };
+    }
+    if (a.roleKey !== 'approver') return { opts, reason: 'From the coordinator, draw an arrow to the question side to have it send the final answer' };
+    const reject = (to: 'expert' | 'lastExpert' | 'coordinator', label: string): LinkOpt => ({
+      label, apply: () => {
+        this.rejectTo = to;
+        if (ai > 0) this.rejectChain = 'first';
+        this.applyRouting();
+        this.toast.show({ variant: 'success', message: `Routing updated: rejected answers go back to ${this.rejectTargetLabel().toLowerCase()}` });
+      },
+    });
+    if (b.roleKey === 'expert') {
+      if (b === xs[0]) opts.push(reject('expert', xs.length > 1 ? 'Rejects — back to the first expert' : 'Rejects — back to the expert'));
+      else if (b === xs[xs.length - 1]) opts.push(reject('lastExpert', 'Rejects — back to the last expert'));
+      else return { opts, reason: 'A rejected answer goes back to the first or the last expert' };
+    } else if (b === c) {
+      if (a === last && !c.perms['finalSignoff']) opts.push({ label: 'Approved — the coordinator sends the final answer', apply: () => this.setAfterApprove('coordinator') });
+      opts.push(reject('coordinator', 'Rejects — back to the coordinator'));
+    } else if (b.roleKey === 'approver') {
+      if (ai > 0 && aps[ai - 1] === b) opts.push({
+        label: 'Rejects — back to the previous approver',
+        apply: () => { this.rejectChain = 'previous'; this.applyRouting(); this.toast.show({ variant: 'success', message: 'Routing updated: a rejection goes back to the previous approver' }); },
+      });
+      else return { opts, reason: 'A rejection can go back only to the previous approver' };
+    } else return { opts, reason: "This arrow isn't supported" };
+    return { opts };
+  }
+  private finishLink(a: FlowNode, b: FlowNode, cx: number, cy: number) {
+    const { opts, reason } = this.linkOptions(a, b);
+    if (!opts.length) { if (reason) this.toast.show({ variant: 'warning', message: reason }); return; }
+    if (opts.length === 1) { opts[0].apply(); return; }
+    const r = this.canvasRef?.nativeElement.getBoundingClientRect();
+    this.linkMenu = { x: cx - (r?.left ?? 0) + 8, y: cy - (r?.top ?? 0) + 8, opts };
+  }
+  applyLink(o: LinkOpt) { this.linkMenu = null; o.apply(); }
   /** approvers in the order the answer reaches them */
   private orderedApprovers(): FlowNode[] {
     const order = this.stepMap();
