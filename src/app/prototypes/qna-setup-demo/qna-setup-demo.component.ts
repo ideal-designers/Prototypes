@@ -238,6 +238,22 @@ const TONES = [
                     <span class="hint wf-pop-item" *ngIf="!filteredDefaultCats().length && !canCreateCat">Type a name to create a category</span>
                   </div>
                 </span>
+                <!-- rename, delete and add categories in one place -->
+                <span class="wf-add-wrap">
+                  <button class="wf-tab wf-tab--add" fvdrTooltip="Manage categories" aria-label="Manage categories" [attr.aria-expanded]="managingCats" (click)="toggleManage()"><fvdr-icon name="more"></fvdr-icon></button>
+                  <div class="wf-pop wf-pop--wide" *ngIf="managingCats" role="dialog" aria-label="Manage categories">
+                    <span class="field-label">All categories · {{ manageCats(false).length }}</span>
+                    <ng-container *ngTemplateOutlet="catRows; context: { list: manageCats(false), own: false }"></ng-container>
+                    <span class="wf-mrow">
+                      <fvdr-icon name="plus" class="wf-m-add"></fvdr-icon>
+                      <input class="cat-input" placeholder="New category" aria-label="New category name" [(ngModel)]="manageNew" (keydown.enter)="addManagedCategory()" />
+                      <button class="icon-btn icon-btn--sm" *ngIf="manageNew.trim()" fvdrTooltip="Add" (click)="addManagedCategory()"><fvdr-icon name="check"></fvdr-icon></button>
+                    </span>
+                    <span class="field-label field-label--gap">Own workflow · {{ manageCats(true).length }}</span>
+                    <ng-container *ngTemplateOutlet="catRows; context: { list: manageCats(true), own: true }"></ng-container>
+                    <span class="hint" *ngIf="!manageCats(true).length">None yet</span>
+                  </div>
+                </span>
               </div>
             </ng-container>
           </div>
@@ -538,8 +554,6 @@ const TONES = [
                 <div class="rt-setting perm-after" *ngIf="n.roleKey === 'approver'">
                   <span class="field-label">After approval, the answer goes</span>
                   <fvdr-radio [options]="afterApproveOptions" [value]="afterApprove" layout="vertical" (valueChange)="setAfterApprove($any($event))"></fvdr-radio>
-                  <span class="field-label">When an answer is rejected, it goes back to</span>
-                  <span class="rt-fixed"><fvdr-icon name="lock-close"></fvdr-icon>{{ hasExpert ? 'The expert' : 'The answer coordinator' }}</span>
                 </div>
                 <!-- every permission in one list; the ones that come with the role are on and locked -->
                 <div class="perm" *ngFor="let p of rp.fixed">
@@ -598,7 +612,8 @@ const TONES = [
                 </div>
                 <div class="rt-setting">
                   <span class="rt-q">When an answer is rejected, it goes back to</span>
-                  <span class="rt-fixed"><fvdr-icon name="lock-close"></fvdr-icon>{{ hasExpert ? 'The expert' : 'The answer coordinator' }}</span>
+                  <fvdr-radio *ngIf="hasExpert; else onlyCoordinator" [options]="rejectToOptions" [value]="rejectTo" layout="vertical" (valueChange)="setRejectTo($any($event))"></fvdr-radio>
+                  <ng-template #onlyCoordinator><span class="rt-fixed"><fvdr-icon name="lock-close"></fvdr-icon>The answer coordinator</span></ng-template>
                 </div>
                 <div class="rt-setting" *ngIf="approvers().length > 1">
                   <span class="rt-q">With several approvers, a rejection from a later approver goes back to</span>
@@ -836,6 +851,16 @@ const TONES = [
   </div>
 </fvdr-modal>
 
+<ng-template #catRows let-list="list" let-own="own">
+  <span class="wf-mrow" *ngFor="let c of list; trackBy: trackName">
+    <fvdr-icon name="label" class="cat-ic" [ngClass]="'cat-ic--' + c.color"></fvdr-icon>
+    <input class="cat-input" [value]="c.name" [attr.aria-label]="'Rename ' + c.name"
+           (change)="renameCategory(c, $any($event.target).value, $any($event.target))" (keydown.enter)="$any($event.target).blur()" />
+    <button class="icon-btn icon-btn--sm" *ngIf="own" [fvdrTooltip]="'Use the All categories workflow for ' + c.name" tooltipPosition="left" (click)="resetWf('cat:' + c.name)"><fvdr-icon name="undo"></fvdr-icon></button>
+    <button class="icon-btn icon-btn--sm" [fvdrTooltip]="'Delete ' + c.name" tooltipPosition="left" (click)="catToDelete = c"><fvdr-icon name="trash"></fvdr-icon></button>
+  </span>
+</ng-template>
+
 <ng-template #catAssign let-n="n">
   <div class="ct-bar">
     <span class="field-label">{{ roleWord(n, true, true) }}</span>
@@ -906,6 +931,9 @@ const TONES = [
     .wf-pop-item { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-1) var(--space-2); border: none; border-radius: var(--radius-sm); background: none; font: inherit; text-align: left; cursor: pointer; }
     .wf-pop-item:hover { background: var(--color-hover-bg); }
     .wf-pop-item--new { color: var(--color-primary-500); }
+    .wf-pop--wide { width: 280px; max-height: 60vh; overflow-y: auto; }
+    .wf-mrow { display: flex; align-items: center; gap: var(--space-1); }
+    .wf-m-add { color: var(--color-primary-500); margin: 0 2px; }
     .rt-fixed { display: inline-flex; align-items: center; gap: var(--space-2); }
     .perm-after { padding-bottom: var(--space-3); border-bottom: 1px solid var(--color-divider); }
     .wf-count { display: inline-flex; align-items: center; justify-content: center; min-width: var(--space-5); padding: 0 var(--space-1); margin-left: var(--space-1); border-radius: var(--radius-lg); background: var(--color-stone-300); color: var(--color-text-secondary); font-size: var(--text-caption1-size); font-weight: normal; }
@@ -1604,7 +1632,8 @@ export class QnaSetupDemoComponent {
   /** a rejected answer always goes back to whoever drafted it: the expert when there is one */
   get hasExpert(): boolean { return this.nodes.some(n => n.roleKey === 'expert'); }
   private rebuildAnswerRoute(quiet = false): boolean {
-    this.rejectTo = this.hasExpert ? 'expert' : 'coordinator';
+    // without an expert there is only the coordinator to send it back to
+    if (!this.hasExpert) this.rejectTo = 'coordinator';
     const a = this.nodes.filter(x => x.side === 'answer' && x.roleKey !== 'viewer');
     const cs = a.filter(x => x.roleKey === 'coordinator'), xs = a.filter(x => x.roleKey === 'expert');
     const order = this.stepMap();
@@ -1669,6 +1698,11 @@ export class QnaSetupDemoComponent {
     { value: 'direct', label: 'Straight to the question side' },
     { value: 'coordinator', label: 'Back to the answer coordinator, who sends it' },
   ];
+  readonly rejectToOptions: RadioOption[] = [
+    { value: 'expert', label: 'The expert' },
+    { value: 'coordinator', label: 'The answer coordinator' },
+  ];
+  setRejectTo(v: string) { this.rejectTo = v as 'expert' | 'coordinator'; this.applyRouting(); }
   rejectChainOptions(): RadioOption[] {
     return this.stable('rejectChain', this.rejectTo, () => [
       { value: 'previous', label: 'The previous approver' },
@@ -1947,7 +1981,29 @@ export class QnaSetupDemoComponent {
     const names = this.defaultCats().map(t => t.label);
     return names.length ? names.join(', ') : 'Every category has its own workflow';
   }
+  managingCats = false;
+  manageNew = '';
+  trackName = (_: number, c: { name: string }) => c.name;
+  toggleManage() { this.managingCats = !this.managingCats; this.addingCat = false; this.manageNew = ''; }
+  /** categories split by whether they have their own workflow */
+  manageCats(own: boolean) {
+    const list = this.categories.filter(c => this.customWf.has('cat:' + c.name) === own);
+    return this.stable('manage' + own, list.map(c => c.name).join('|'), () => list);
+  }
+  /** a new category joins All categories */
+  addManagedCategory() {
+    const name = this.manageNew.trim();
+    if (!name) return;
+    if (this.categories.some(c => c.name.toLowerCase() === name.toLowerCase())) {
+      this.toast.show({ variant: 'warning', message: `${name} already exists` });
+      return;
+    }
+    this.categories = [...this.categories, { name, color: this.catColors[this.categories.length % this.catColors.length] }];
+    this.manageNew = '';
+    this.toast.show({ variant: 'success', message: `${name} added to All categories` });
+  }
   toggleCatPop() {
+    this.managingCats = false;
     this.addingCat = !this.addingCat;
     this.newCategory = '';
     if (this.addingCat) setTimeout(() => (this.canvasRef?.nativeElement.querySelector('.wf-pop-search') as HTMLInputElement | null)?.focus());
@@ -1970,7 +2026,10 @@ export class QnaSetupDemoComponent {
   }
   @HostListener('document:mousedown', ['$event'])
   onDocMouseDown(ev: MouseEvent) {
-    if (this.addingCat && !(ev.target as HTMLElement).closest?.('.wf-add-wrap')) this.closeCatPop();
+    const inside = (ev.target as HTMLElement).closest?.('.wf-add-wrap, fvdr-modal');
+    if (inside) return;
+    if (this.addingCat) this.closeCatPop();
+    this.managingCats = false;
   }
   /** pick a category that follows All categories and give it its own workflow */
   customizeFromBar(v: string | string[]) {
@@ -2012,7 +2071,9 @@ export class QnaSetupDemoComponent {
     const wf = this.customWf.get('cat:' + old);
     if (wf) { this.customWf.delete('cat:' + old); this.customWf.set('cat:' + name, wf); }
     if (this.activeWf === 'cat:' + old) this.activeWf = 'cat:' + name;
-    this.nodes.forEach(n => n.members.forEach(m => m.categories = m.categories.map(x => x === old ? name : x)));
+    [this.nodes, this.defaultWf?.nodes ?? [], ...[...this.customWf.values()].map(w => w.nodes)]
+      .forEach(list => list.forEach(n => n.members.forEach(m => m.categories = m.categories.map(x => x === old ? name : x))));
+    this.categories = [...this.categories];
   }
   deleteCategory(c: { name: string; color: string }) {
     const key = 'cat:' + c.name;
@@ -2085,7 +2146,7 @@ export class QnaSetupDemoComponent {
     this.workspaces = [];
     this.activeWf = this.DEFAULT_WF;
     this.overviewGroups = [];
-    this.rejectTo = 'coordinator';
+    this.rejectTo = 'expert';
     this.rejectChain = 'previous';
     this.selectedId = null;
     this.pendingInsert = null;
