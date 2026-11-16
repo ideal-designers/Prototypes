@@ -200,21 +200,31 @@ const TONES = [
           <div class="wf-bar" *ngIf="templateConfirmed">
             <fvdr-toggle size="s" label="Multiple workflows" [checked]="multiWf" (checkedChange)="setMultiWf($event)"></fvdr-toggle>
             <ng-container *ngIf="multiWf">
-              <div class="wf-tabs" role="tablist" [attr.aria-label]="'Workflows ' + splitLabel">
+              <div class="wf-tabs" role="tablist" aria-label="Workflows by category">
                 <button class="wf-tab" role="tab" [attr.aria-selected]="activeWf === OVERVIEW" [class.wf-tab--on]="activeWf === OVERVIEW"
                         fvdrTooltip="See every workflow on the canvas" (click)="switchWf(OVERVIEW)"><fvdr-icon name="overview"></fvdr-icon>All</button>
-                <button class="wf-tab" role="tab" *ngIf="wfSplit !== 'separate'" [attr.aria-selected]="activeWf === DEFAULT_WF" [class.wf-tab--on]="activeWf === DEFAULT_WF"
-                        [fvdrTooltip]="'Used by every ' + splitNoun + ' without its own workflow'" (click)="switchWf(DEFAULT_WF)">Default</button>
+                <button class="wf-tab" role="tab" [attr.aria-selected]="activeWf === DEFAULT_WF" [class.wf-tab--on]="activeWf === DEFAULT_WF"
+                        fvdrTooltip="Used by every category without its own workflow" (click)="switchWf(DEFAULT_WF)">Default</button>
                 <button class="wf-tab" role="tab" *ngFor="let t of wfTabs(); trackBy: trackKey" [attr.aria-selected]="activeWf === t.key" [class.wf-tab--on]="activeWf === t.key"
                         (click)="switchWf(t.key)">
-                  <fvdr-icon *ngIf="t.color" name="label" class="cat-ic" [ngClass]="'cat-ic--' + t.color"></fvdr-icon>
-                  <fvdr-icon *ngIf="!t.color" [name]="wfSplit === 'team' ? 'participants' : 'folder'"></fvdr-icon>{{ t.label }}
-                  <span class="wf-badge" *ngIf="wfSplit !== 'separate' && customWf.has(t.key)">Custom</span>
+                  <fvdr-icon name="label" class="cat-ic" [ngClass]="'cat-ic--' + t.color"></fvdr-icon>{{ t.label }}
+                  <span class="wf-badge" *ngIf="customWf.has(t.key)">Custom</span>
                 </button>
+                <!-- add a category right here -->
+                <button class="wf-tab wf-tab--add" *ngIf="!addingCat" fvdrTooltip="Add category" aria-label="Add category" (click)="addingCat = true"><fvdr-icon name="plus"></fvdr-icon></button>
+                <span class="wf-new" *ngIf="addingCat">
+                  <input class="wf-name" placeholder="Category name" aria-label="New category name" [(ngModel)]="newCategory" autofocus
+                         (keydown.enter)="addWfCategory()" (keydown.escape)="addingCat = false; newCategory = ''" />
+                  <button class="icon-btn icon-btn--sm" fvdrTooltip="Add" [disabled]="!newCategory.trim()" (click)="addWfCategory()"><fvdr-icon name="check"></fvdr-icon></button>
+                  <button class="icon-btn icon-btn--sm" fvdrTooltip="Cancel" (click)="addingCat = false; newCategory = ''"><fvdr-icon name="close"></fvdr-icon></button>
+                </span>
               </div>
-              <button class="link-btn wf-reset" *ngIf="wfSplit !== 'separate' && activeWf !== DEFAULT_WF && customWf.has(activeWf)" (click)="resetWf(activeWf)">
-                <fvdr-icon name="undo"></fvdr-icon>Reset {{ wfLabel(activeWf) }} to default
-              </button>
+              <ng-container *ngIf="activeCategory as c">
+                <button class="link-btn wf-reset" *ngIf="customWf.has(activeWf)" (click)="resetWf(activeWf)">
+                  <fvdr-icon name="undo"></fvdr-icon>Reset {{ c.name }} to default
+                </button>
+                <button class="icon-btn icon-btn--sm" [fvdrTooltip]="'Delete ' + c.name" [attr.aria-label]="'Delete category ' + c.name" (click)="catToDelete = c"><fvdr-icon name="trash"></fvdr-icon></button>
+              </ng-container>
             </ng-container>
           </div>
           <button class="health health--error" *ngIf="templateConfirmed && errorNodes.length" (click)="focusFirstError()">
@@ -781,6 +791,13 @@ const TONES = [
   </div>
 </fvdr-modal>
 
+<fvdr-modal [visible]="!!catToDelete" [title]="'Delete ' + (catToDelete?.name || 'category') + '?'" size="s"
+            confirmLabel="Delete category" confirmVariant="danger" cancelLabel="Cancel"
+            (confirmed)="catToDelete && deleteCategory(catToDelete); catToDelete = null" (cancelled)="catToDelete = null" (closed)="catToDelete = null">
+  <p class="modal-text">Experts and approvers assigned to {{ catToDelete?.name }} lose it.
+    <ng-container *ngIf="catToDelete && customWf.has('cat:' + catToDelete.name)">Its own workflow is deleted too, and its questions follow the default workflow.</ng-container></p>
+</fvdr-modal>
+
 <fvdr-modal [visible]="!!teamToDelete" [title]="'Delete ' + (teamToDelete?.name || 'team') + '?'" size="s"
             confirmLabel="Delete team" confirmVariant="danger" cancelLabel="Cancel"
             (confirmed)="deleteTeam()" (cancelled)="teamToDelete = null" (closed)="teamToDelete = null">
@@ -929,6 +946,7 @@ const TONES = [
     .wf-group-sub { font-size: 0.9em; color: var(--color-text-secondary); overflow: hidden; text-overflow: ellipsis; }
     .ov-row { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-2) 0; border-bottom: 1px solid var(--color-divider); }
     .ov-row .link-btn { margin-left: auto; }
+    .wf-new { display: inline-flex; align-items: center; gap: var(--space-1); }
     .wf-tab--add { padding: 0 var(--space-2); color: var(--color-primary-500); }
     .wf-name { width: 10em; border: 1px solid var(--color-stone-400); border-radius: var(--radius-sm); padding: var(--space-1) var(--space-2); font: inherit; }
     .wf-name:focus { outline: none; border-color: var(--color-primary-500); }
@@ -1926,6 +1944,19 @@ export class QnaSetupDemoComponent {
     m.categories = on ? [...new Set([...m.categories, cat])] : m.categories.filter(c => c !== cat);
   }
   private readonly catColors = ['teal', 'green', 'blue', 'orange', 'red', 'grey'];
+  addingCat = false;
+  catToDelete: { name: string; color: string } | null = null;
+  get activeCategory() { return this.categories.find(c => 'cat:' + c.name === this.activeWf); }
+  /** add from the workflow bar and open it — it follows the default until customized */
+  addWfCategory() {
+    const name = this.newCategory.trim();
+    const before = this.categories.length;
+    this.addCategory();
+    if (this.categories.length === before) return;
+    this.addingCat = false;
+    this.switchWf('cat:' + name);
+    this.toast.show({ variant: 'success', message: `${name} added — it follows the default workflow until you customize it` });
+  }
   addCategory() {
     const name = this.newCategory.trim();
     if (!name) return;
@@ -1950,9 +1981,14 @@ export class QnaSetupDemoComponent {
     this.nodes.forEach(n => n.members.forEach(m => m.categories = m.categories.map(x => x === old ? name : x)));
   }
   deleteCategory(c: { name: string; color: string }) {
+    const key = 'cat:' + c.name;
     this.categories = this.categories.filter(x => x !== c);
-    if (this.customWf.delete('cat:' + c.name) && this.activeWf === 'cat:' + c.name) this.show(this.DEFAULT_WF);
-    this.nodes.forEach(n => n.members.forEach(m => m.categories = m.categories.filter(x => x !== c.name)));
+    this.customWf.delete(key);
+    if (this.activeWf === key) this.show(this.DEFAULT_WF);
+    else if (this.activeWf === this.OVERVIEW) this.show(this.OVERVIEW);
+    // people keep no trace of the category in any workflow
+    [this.nodes, this.defaultWf?.nodes ?? [], ...[...this.customWf.values()].map(w => w.nodes)]
+      .forEach(list => list.forEach(n => n.members.forEach(m => m.categories = m.categories.filter(x => x !== c.name))));
     this.toast.show({ variant: 'info', message: `Category ${c.name} deleted` });
   }
 
