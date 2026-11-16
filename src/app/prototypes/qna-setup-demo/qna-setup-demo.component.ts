@@ -36,6 +36,8 @@ export interface FlowNode {
   approveCategories?: string[];
   /** avatar colour; falls back to the side/custom default */
   color?: AvatarColor;
+  /** width of the viewer bar, which spans the answer side */
+  w?: number;
 }
 interface FlowEdge { id: string; from: string; to: string; fs: Port; ts: Port; label: string; kind: EdgeKind; /** label before an approver switched to routing by category */ manualLabel?: string; /** ports follow geometry (edges added by the user) */ auto?: boolean; }
 interface PermDef { key: string; label: string; hint: string; }
@@ -56,6 +58,7 @@ const NODE_W = 272;
 const NODE_H = 136;
 const COL_W = 390;
 const ROW_H = 200;
+const VIEWER_H = 72;
 
 const Q_PERMS: PermDef[] = [
   { key: 'draftQ',      label: 'Draft questions',                    hint: 'Prepare questions that someone else submits' },
@@ -186,7 +189,7 @@ const TONES = [
     <div class="stepper">
       <button class="step" [class.step--active]="step === 1" [class.step--done]="step > 1" (click)="toStep(1)">
         <span class="step-num"><fvdr-icon *ngIf="step > 1" name="check"></fvdr-icon><ng-container *ngIf="step === 1">1</ng-container></span>
-        Workflow &amp; people
+        Workflow
       </button>
       <span class="step-sep"></span>
       <button class="step" [class.step--active]="step === 2" [class.step--done]="step > 2" [disabled]="errorNodes.length > 0" (click)="toStep(2)">
@@ -344,6 +347,7 @@ const TONES = [
                [class.node--dragging]="dragNodeId === n.id && dragMoved"
                [class.node--link-target]="link && linkTarget(n)"
                [attr.data-node-id]="n.id"
+               [class.node--viewer]="n.roleKey === 'viewer'" [style.width.px]="n.roleKey === 'viewer' ? n.w : null"
                (mousedown)="onNodeMouseDown($event, n)"
                (dragover)="onNodeDragOver($event, n)"
                (dragleave)="dropNodeId = null"
@@ -758,14 +762,6 @@ const TONES = [
           <span class="perm-label">Automatic question indexing</span>
           <fvdr-radio [options]="indexingOptions" [value]="indexing" layout="horizontal" (valueChange)="indexing = $event"></fvdr-radio>
         </div>
-        <div class="summary">
-          <span class="field-label">Your flow</span>
-          <div class="summary-row">
-            <span class="sum-chip" *ngFor="let n of orderedNodes()">
-              <fvdr-icon [name]="n.icon"></fvdr-icon>{{ n.name }} <b>{{ n.members.length }}</b>
-            </span>
-          </div>
-        </div>
       </div>
     </div>
 
@@ -1037,6 +1033,8 @@ const TONES = [
     .node--error { border-color: var(--color-error-300); }
     .node--error.node--selected { border-color: var(--color-error-600); }
     .node--drop { border: 2px dashed var(--color-primary-500); background: var(--color-primary-50); padding: calc(var(--space-3) - 1px); }
+    .node--viewer { height: ${VIEWER_H}px; flex-direction: row; align-items: center; justify-content: space-between; cursor: pointer; }
+    .node--viewer .node-step { display: none; }
     .node--dragging { cursor: grabbing; box-shadow: var(--shadow-popover); z-index: 5; }
     .node-head { display: flex; align-items: center; gap: var(--space-2); }
     .node-icon { width: 32px; height: 32px; flex-shrink: 0; border-radius: var(--radius-md); display: inline-flex; align-items: center; justify-content: center; background: var(--color-primary-50); color: var(--color-primary-600); font-size: 16px; }
@@ -1305,9 +1303,6 @@ const TONES = [
     .prefs-title { margin: 0 0 var(--space-4); font-size: var(--text-h3-size); }
     .pref { display: flex; align-items: center; gap: var(--space-6); padding: var(--space-4) 0; border-bottom: 1px solid var(--color-divider); }
     .pref--col { flex-direction: column; align-items: flex-start; gap: var(--space-2); }
-    .summary { margin-top: var(--space-6); display: flex; flex-direction: column; gap: var(--space-2); }
-    .summary-row { display: flex; flex-wrap: wrap; gap: var(--space-2); }
-    .sum-chip { display: inline-flex; align-items: center; gap: var(--space-2); padding: var(--space-1) var(--space-3); border-radius: var(--radius-full); background: var(--color-stone-200); }
 
     .footer { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-4) var(--space-6); border-top: 1px solid var(--color-divider); flex-shrink: 0; }
     .footer-hint { font-size: var(--text-caption1-size); color: var(--color-error-600); }
@@ -1423,7 +1418,7 @@ export class QnaSetupDemoComponent {
     sets.filter(set => set.wf.nodes.length).forEach((set, i) => {
       if (i % COLS === 0 && i) { rowTop += rowH + GAP; rowH = 0; colX = 40; }
       const minX = Math.min(...set.wf.nodes.map(n => n.x)), minY = Math.min(...set.wf.nodes.map(n => n.y));
-      const maxX = Math.max(...set.wf.nodes.map(n => n.x + NODE_W)), maxY = Math.max(...set.wf.nodes.map(n => n.y + NODE_H));
+      const maxX = Math.max(...set.wf.nodes.map(n => n.x + this.nw(n))), maxY = Math.max(...set.wf.nodes.map(n => n.y + NODE_H));
       const w = Math.max(maxX - minX + 160, 980), h = maxY - minY + 96 + 120;
       const dx = colX + 80 - minX, dy = rowTop + 120 - minY, p = i + '~';
       set.wf.nodes.forEach(n => nodes.push({ ...n, id: p + n.id, x: n.x + dx, y: n.y + dy }));
@@ -1574,7 +1569,21 @@ export class QnaSetupDemoComponent {
   /** Sides where a message leaves this role. */
   outPorts(n: FlowNode): Port[] { return this.portsOf(n).out; }
   /** Sides with no connection — the "+" appears there on hover. */
-  freeSides(n: FlowNode): Port[] { return this.portsOf(n).free; }
+  freeSides(n: FlowNode): Port[] { return n.roleKey === 'viewer' ? [] : this.portsOf(n).free; }
+  nw(n: FlowNode) { return n.roleKey === 'viewer' ? n.w ?? NODE_W : NODE_W; }
+  nh(n: FlowNode) { return n.roleKey === 'viewer' ? VIEWER_H : NODE_H; }
+  /** the viewer isn't part of the route: a bar over the whole answer side, never connected */
+  private placeViewer() {
+    if (this.activeWf === this.OVERVIEW) return;
+    const a = this.nodes.filter(n => n.side === 'answer' && n.roleKey !== 'viewer');
+    this.nodes.filter(n => n.roleKey === 'viewer').forEach(v => {
+      if (this.edges.some(e => e.from === v.id || e.to === v.id)) this.edges = this.edges.filter(e => e.from !== v.id && e.to !== v.id);
+      if (!a.length) { v.w = NODE_W; return; }
+      v.x = Math.min(...a.map(n => n.x));
+      v.w = Math.max(NODE_W, Math.max(...a.map(n => n.x + NODE_W)) - v.x);
+      v.y = Math.min(...a.map(n => n.y)) - VIEWER_H - 56;
+    });
+  }
 
   /** Divider between question side (left) and answer side (right). */
   get lanes(): { x: number; top: number; height: number } | null {
@@ -1589,6 +1598,7 @@ export class QnaSetupDemoComponent {
   }
   /** Re-pick ports of user-made edges from geometry so the arrow points the way the message travels. */
   private autoPorts() {
+    this.placeViewer();
     this.edges.forEach(e => {
       if (!e.auto) return;
       const a = this.nodeById(e.from), b = this.nodeById(e.to);
@@ -2347,7 +2357,7 @@ export class QnaSetupDemoComponent {
     const a = this.nodeById(e.from), b = this.nodeById(e.to);
     if (!a || !b) return null;
     const M = 24;                         // clearance around cards
-    const rects = this.nodes.map(n => ({ x1: n.x - M, y1: n.y - M, x2: n.x + NODE_W + M, y2: n.y + NODE_H + M }));
+    const rects = this.nodes.map(n => ({ x1: n.x - M, y1: n.y - M, x2: n.x + this.nw(n) + M, y2: n.y + this.nh(n) + M }));
     const p0 = this.slotPoint(a, e.fs, e.id), p3 = this.slotPoint(b, e.ts, e.id);
     const d0 = this.dir(e.fs), d3 = this.dir(e.ts);
     const s = { x: p0.x + d0.x * M, y: p0.y + d0.y * M };
@@ -2461,7 +2471,7 @@ export class QnaSetupDemoComponent {
       const dy = (ev.clientY - this.dragStart.y) / this.zoom;
       if (Math.abs(dx) + Math.abs(dy) > 3) this.dragMoved = true;
       const n = this.nodeById(this.dragNodeId);
-      if (n && this.dragMoved) {
+      if (n && this.dragMoved && n.roleKey !== 'viewer') {
         let x = Math.round((this.dragStart.nx + dx) / 10) * 10;
         // keep each role in its lane: question side left, answer side right
         const others = this.nodes.filter(o => o.id !== n.id);
@@ -2474,6 +2484,14 @@ export class QnaSetupDemoComponent {
         }
         n.x = x;
         n.y = Math.round((this.dragStart.ny + dy) / 10) * 10;
+        // line up with a connected role when close, so the arrow between them runs straight
+        const linked = this.edges.filter(e => e.from === n.id || e.to === n.id);
+        const near = others.filter(o => o.roleKey !== 'viewer' && linked.some(e => e.from === o.id || e.to === o.id));
+        const sy = near.find(o => Math.abs(o.y - n.y) < 28), sx = near.find(o => o.side === n.side && Math.abs(o.x - n.x) < 28);
+        if (sy) n.y = sy.y;
+        if (sx) n.x = sx.x;
+        // arrows of a moved role follow its position
+        linked.forEach(e => e.auto = true);
         this.autoPorts();
       }
     } else if (this.link) {
@@ -2540,7 +2558,7 @@ export class QnaSetupDemoComponent {
     // overview: fit the workflow frames, not just the roles
     const minX = g.length ? Math.min(...g.map(f => f.x)) - 24 : Math.min(...this.nodes.map(n => n.x)) - 40;
     const minY = g.length ? Math.min(...g.map(f => f.y)) - 24 : Math.min(...this.nodes.map(n => n.y)) - 70;
-    const maxX = g.length ? Math.max(...g.map(f => f.x + f.w)) + 24 : Math.max(...this.nodes.map(n => n.x + NODE_W)) + 80;
+    const maxX = g.length ? Math.max(...g.map(f => f.x + f.w)) + 24 : Math.max(...this.nodes.map(n => n.x + this.nw(n))) + 80;
     const maxY = g.length ? Math.max(...g.map(f => f.y + f.h)) + 24 : Math.max(...this.nodes.map(n => n.y + NODE_H)) + 110;
     // leave room for the toolbar over the canvas, however many lines it wraps to
     const bar = el.querySelector('.canvas-top') as HTMLElement | null;
@@ -2756,6 +2774,15 @@ export class QnaSetupDemoComponent {
   addRole(r: RoleDef, at?: { x: number; y: number }) {
     if (this.roleMaxed(r)) {
       this.toast.show({ variant: 'warning', message: `A workflow has one ${r.name} role — add more people to it instead` });
+      return;
+    }
+    if (r.key === 'viewer') {
+      const v = this.newNode(r, 0, 0);
+      this.nodes = [...this.nodes, v];
+      this.pendingInsert = null;
+      this.enforceLanes();
+      this.autoPorts();
+      this.selectNode(v.id);
       return;
     }
     if (r.key === 'expert' && this.hasExpert) {
