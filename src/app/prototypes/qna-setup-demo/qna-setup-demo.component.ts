@@ -136,13 +136,13 @@ const STANDARD_ROLES: RoleDef[] = [
     description: 'Manages incoming questions and assigns them',
     perms: { seeAll: true, assign: true, draftA: true, assignCoord: false, finalSignoff: false, anyStage: true, seeFinal: true, seeTeam: true } },
   { key: 'expert',      name: 'Expert',             side: 'answer',   icon: 'user-check',
-    description: 'Answers questions assigned to them',
+    description: 'Draft answers for assigned questions',
     perms: { seeAll: false, assign: false, draftA: true, seeFinal: true, reassignExperts: true, seeTeam: true, answerDirect: false } },
   { key: 'approver',    name: 'Answer approver',    side: 'answer',   icon: 'finished',
-    description: 'Approves answers before they are released',
+    description: 'Approve or reject draft answers',
     perms: { seeAll: true, approve: true, draftA: true, finalSignoff: false, anyStage: false, seeFinal: true, seeTeam: true } },
   { key: 'viewer',      name: 'Viewer',             side: 'answer',   icon: 'eye',
-    description: 'Views all questions and answers, read-only',
+    description: 'Cannot manage anything, only read all questions and answers',
     perms: { seeAll: true, seeFinal: true } },
 ];
 
@@ -423,8 +423,6 @@ const TONES = [
         <div class="legend" (mousedown)="$event.stopPropagation()">
           <span><i class="lg lg--main"></i>Question / answer moves</span>
           <span><i class="lg lg--reject"></i>Rejected</span>
-          <span *ngIf="editable"><i class="lg-link"><fvdr-icon name="chevron-right"></fvdr-icon></i>Drag from a coordinator or approver to draw an arrow</span>
-          <span><i class="lg lg--dual"></i>Person with 2+ roles</span>
         </div>
       </div>
 
@@ -551,16 +549,8 @@ const TONES = [
                   <fvdr-segment variant="table" size="sm" [items]="assignItems" [activeId]="n.assignMode" (activeIdChange)="setAssignMode(n, $any($event))"></fvdr-segment>
                 </div>
                 <p class="hint" *ngIf="prevExpert(n) as pe">Gets the draft from {{ pe.name }}. Manual or auto assignment is set on {{ orderedExperts()[0].name }}.</p>
-                <!-- approver: any approver signs off, or approvers grouped by category -->
-                <ng-container *ngIf="n.roleKey === 'approver'">
-                  <div class="assign-mode">
-                    <span class="field-label">Who approves</span>
-                    <fvdr-segment variant="table" size="sm" [items]="approveModeItems" [activeId]="n.assignMode" (activeIdChange)="setAssignMode(n, $any($event))"></fvdr-segment>
-                  </div>
-                  <p class="hint">{{ approverAssignHint(n) }}</p>
-                </ng-container>
                 <!-- Auto-assign: list or category tree (Figma 392:77972) -->
-                <ng-container *ngIf="(n.roleKey === 'expert' || n.roleKey === 'approver') && n.assignMode === 'auto'; else plainMembers">
+                <ng-container *ngIf="n.roleKey === 'expert' && n.assignMode === 'auto'; else plainMembers">
                   <ng-container *ngTemplateOutlet="catAssign; context: { n: n }"></ng-container>
                 </ng-container>
                 <ng-template #plainMembers>
@@ -593,7 +583,6 @@ const TONES = [
                 <ng-container *ngFor="let p of rp.open">
                   <ng-container *ngTemplateOutlet="permRow; context: { n: n, p: p }"></ng-container>
                 </ng-container>
-                <p class="hint perm-route" *ngIf="routeHint(n) as h"><fvdr-icon name="info"></fvdr-icon>{{ h }}</p>
               </ng-container>
               <ng-template #flatPerms>
                 <ng-container *ngFor="let p of permsFor(n)">
@@ -605,7 +594,6 @@ const TONES = [
 
             <!-- Routing -->
             <ng-container *ngIf="nodeTab === 'routing'">
-              <span class="field-label">How a question travels</span>
               <ol class="rt">
                 <li class="rt-step" *ngFor="let st of routePath(); let i = index"
                     [class.rt-step--here]="st.node.id === n.id && !st.end" [class.rt-step--end]="st.end">
@@ -618,15 +606,6 @@ const TONES = [
               </ol>
               <p class="hint" *ngIf="n.roleKey === 'viewer'">Viewers aren't part of the route — they only read questions and answers.</p>
 
-              <ng-container *ngIf="rejectEdges().length">
-                <span class="field-label field-label--gap">Sent back when rejected</span>
-                <div class="route" *ngFor="let e of rejectEdges()">
-                  <span class="route-dot route-dot--reject"></span>
-                  <span class="route-node">{{ nodeById(e.from)?.name }}</span>
-                  <fvdr-icon name="chevron-right" class="route-arrow"></fvdr-icon>
-                  <span class="route-node">{{ nodeById(e.to)?.name }}</span>
-                </div>
-              </ng-container>
 
               <span class="field-label field-label--gap rt-settings-head">Routing settings</span>
               <ng-container *ngIf="approvers().length; else noApprover">
@@ -675,7 +654,6 @@ const TONES = [
           <div class="panel-body">
             <!-- Roles -->
             <ng-container *ngIf="libTab === 'roles' || pendingInsert">
-              <div class="lib-search"><fvdr-search placeholder="Search roles" size="s" [(ngModel)]="roleQuery"></fvdr-search></div>
 
               <!-- when inserting, only roles of the lane the insertion point is in -->
               <ng-container *ngIf="insertSide !== 'answer'">
@@ -896,13 +874,22 @@ const TONES = [
               <fvdr-icon name="label" class="cat-ic" [ngClass]="'cat-ic--' + c.color"></fvdr-icon>{{ c.name }}
               <button class="ex-tag-x" [attr.aria-label]="'Remove ' + c.name" (click)="toggleCategory(m, c.name, false)"><fvdr-icon name="close"></fvdr-icon></button>
             </span>
-            <button class="ex-tag ex-tag--add" *ngIf="!scopedCategory" (click)="toggleCatEdit(m)"><fvdr-icon name="plus"></fvdr-icon>Category</button>
+            <span class="wf-add-wrap cat-pop-wrap" *ngIf="!scopedCategory">
+              <button class="ex-tag ex-tag--add" fvdrTooltip="Add category" aria-label="Add category" [attr.aria-expanded]="catEdit === m.personId" (click)="toggleCatEdit(m)"><fvdr-icon name="plus"></fvdr-icon></button>
+              <div class="wf-pop" *ngIf="catEdit === m.personId" role="dialog" aria-label="Select or create category">
+                <span class="field-label">Select or create category</span>
+                <input class="wf-name wf-pop-search" placeholder="Search or type a new name" aria-label="Select or create category" [(ngModel)]="catQuery"
+                       (keydown.enter)="memberCatEnter(m)" (keydown.escape)="catEdit = null" />
+                <button class="wf-pop-item" *ngFor="let c of catPopOptions(m)" (click)="pickMemberCat(m, c.name)">
+                  <fvdr-icon name="label" class="cat-ic" [ngClass]="'cat-ic--' + c.color"></fvdr-icon>{{ c.name }}
+                </button>
+                <button class="wf-pop-item wf-pop-item--new" *ngIf="canCreateMemberCat" (click)="createMemberCat(m)"><fvdr-icon name="plus"></fvdr-icon>Create “{{ catQuery.trim() }}”</button>
+                <span class="hint wf-pop-item" *ngIf="!catPopOptions(m).length && !canCreateMemberCat">Type a name to create a category</span>
+              </div>
+            </span>
           </div>
         </div>
         <button class="icon-btn icon-btn--sm ct-remove" [fvdrTooltip]="'Remove from ' + n.name" tooltipPosition="left" (click)="removeMember(n, m)"><fvdr-icon name="user-remove"></fvdr-icon></button>
-      </div>
-      <div class="ex-edit" *ngIf="catEdit === m.personId">
-        <fvdr-checkbox *ngFor="let c of wfCategories()" [label]="c.name" [checked]="m.categories.includes(c.name)" (checkedChange)="toggleCategory(m, c.name, $event)"></fvdr-checkbox>
       </div>
     </div>
   </div>
@@ -1104,7 +1091,6 @@ const TONES = [
     .link-menu-head { padding: var(--space-1) var(--space-2); font-size: var(--text-caption1-size); color: var(--color-text-secondary); }
     .link-menu button { text-align: left; padding: var(--space-2); border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--color-text-primary); cursor: pointer; }
     .link-menu button:hover { background: var(--color-hover-bg); }
-    .lg-link { display: inline-flex; width: 14px; height: 14px; border-radius: 50%; border: 1px solid var(--color-primary-500); color: var(--color-primary-600); font-size: 10px; align-items: center; justify-content: center; font-style: normal; }
     .node-add {
       position: absolute; display: inline-flex; padding: 0; border: 0; background: transparent; cursor: pointer;
       opacity: 0; visibility: hidden; pointer-events: none;
@@ -1145,7 +1131,6 @@ const TONES = [
     .legend span { display: inline-flex; align-items: center; gap: var(--space-1); }
     .lg { display: inline-block; width: 18px; height: 0; border-top: 2px solid var(--color-stone-600); }
     .lg--reject { border-top: 2px dashed var(--color-error-500); }
-    .lg--dual { width: 9px; height: 9px; border: 0; border-radius: var(--radius-full); background: var(--color-warning-500); }
 
     /* right panel */
     .panel { position: relative; width: 392px; flex-shrink: 0; border-left: 1px solid var(--color-divider); display: flex; flex-direction: column; background: var(--color-stone-0); min-height: 0; }
@@ -1210,7 +1195,6 @@ const TONES = [
     .ex-tag--add { padding: 2px var(--space-2); border: 1px dashed var(--color-stone-500); border-radius: var(--radius-lg); background: none; color: var(--color-primary-500); cursor: pointer; font: inherit; font-size: var(--text-caption1-size); }
     .ex-tag-x { display: inline-flex; border: none; background: none; padding: 0; color: var(--color-text-secondary); cursor: pointer; font-size: var(--space-3); }
     .ex-tag-x:hover { color: var(--color-error-600); }
-    .ex-edit { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2); padding: var(--space-2) var(--space-3) var(--space-3) var(--space-10); }
     .cat-input { flex: 1; min-width: 0; border: 1px solid transparent; border-radius: var(--radius-sm); padding: 2px var(--space-1); font: inherit; color: var(--color-text-primary); background: none; }
     .cat-input:hover { border-color: var(--color-stone-400); }
     .cat-input:focus { outline: none; border-color: var(--color-primary-500); background: var(--color-stone-0); }
@@ -1240,7 +1224,6 @@ const TONES = [
     .cat-ic--grey { color: var(--color-stone-500); }
     .assign-mode { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); margin: var(--space-2) 0; }
     .group { display: flex; flex-direction: column; gap: 2px; margin-bottom: var(--space-2); }
-    .lib-search { margin-bottom: var(--space-2); }
 
     .perm { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-2) 0; border-bottom: 1px solid var(--color-divider); }
     .perm--compact { padding: var(--space-1) 0; }
@@ -1272,8 +1255,6 @@ const TONES = [
     .pm-sub { margin-left: auto; font-size: var(--text-caption1-size); color: var(--color-text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .perm-hint { font-size: var(--text-caption1-size); color: var(--color-text-secondary); }
     .perm-sub { padding: var(--space-2) 0 var(--space-3); border-bottom: 1px solid var(--color-divider); }
-    .perm-route { display: flex; gap: var(--space-2); align-items: flex-start; margin-top: var(--space-3); }
-    .perm-route fvdr-icon { flex: none; margin-top: 2px; color: var(--color-info-500); }
     .link-btn { align-self: flex-start; border: 0; background: none; padding: var(--space-2) 0; color: var(--color-primary-600); cursor: pointer; font-size: var(--text-caption1-size); }
 
     .route { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-1) 0; }
@@ -2042,7 +2023,33 @@ export class QnaSetupDemoComponent {
   }
   catCollapsed = new Set<string>();
   catEdit: string | null = null;
-  toggleCatEdit(m: Membership) { this.catEdit = this.catEdit === m.personId ? null : m.personId; }
+  catQuery = '';
+  toggleCatEdit(m: Membership) {
+    this.catEdit = this.catEdit === m.personId ? null : m.personId;
+    this.catQuery = '';
+    if (this.catEdit) setTimeout(() => (document.querySelector('.cat-pop-wrap .wf-pop-search') as HTMLInputElement | null)?.focus());
+  }
+  /** categories this person doesn't hold yet, matching the search */
+  catPopOptions(m: Membership) {
+    const q = this.catQuery.trim().toLowerCase();
+    return this.wfCategories().filter(c => !m.categories.includes(c.name) && c.name.toLowerCase().includes(q));
+  }
+  get canCreateMemberCat(): boolean {
+    const q = this.catQuery.trim().toLowerCase();
+    return !!q && !this.categories.some(c => c.name.toLowerCase() === q);
+  }
+  pickMemberCat(m: Membership, name: string) { this.toggleCategory(m, name, true); this.catEdit = null; this.catQuery = ''; }
+  createMemberCat(m: Membership) {
+    const name = this.catQuery.trim();
+    this.categories = [...this.categories, { name, color: this.catColors[this.categories.length % this.catColors.length] }];
+    this.toast.show({ variant: 'success', message: `${name} added to All categories` });
+    this.pickMemberCat(m, name);
+  }
+  memberCatEnter(m: Membership) {
+    if (this.canCreateMemberCat) { this.createMemberCat(m); return; }
+    const hit = this.catPopOptions(m)[0];
+    if (hit) this.pickMemberCat(m, hit.name);
+  }
   memberCats(m: Membership) { return this.categories.filter(c => m.categories.includes(c.name)); }
   toggleCat(name: string) { this.catCollapsed.has(name) ? this.catCollapsed.delete(name) : this.catCollapsed.add(name); }
   membersIn(n: FlowNode, cat: string): Membership[] { return n.members.filter(m => m.categories.includes(cat)); }
@@ -2520,6 +2527,7 @@ export class QnaSetupDemoComponent {
   onDocDown(ev: MouseEvent) {
     if (this.colorOpen && !(ev.target as HTMLElement).closest?.('.avatar-pick')) this.colorOpen = false;
     if (this.linkMenu && !(ev.target as HTMLElement).closest?.('.link-menu')) this.linkMenu = null;
+    if (this.catEdit && !(ev.target as HTMLElement).closest?.('.cat-pop-wrap')) this.catEdit = null;
   }
   @HostListener('document:keydown', ['$event'])
   onKey(ev: KeyboardEvent) {
