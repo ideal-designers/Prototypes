@@ -184,7 +184,7 @@ export const PROTO_META: Record<string, ProtoMetaInfo> = {
     "author": "Yuliia Porokhivnyk"
   },
   "qna-setup-demo": {
-    "updated": "2026-11-16T17:15:28+02:00",
+    "updated": "2026-11-17T10:39:17+02:00",
     "author": "Yuliia Porokhivnyk"
   },
   "checklist-matching": {
