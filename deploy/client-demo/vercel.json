@@ -1,0 +1,6 @@
+{
+  "routes": [
+    { "handle": "filesystem" },
+    { "src": "/(.*)", "headers": { "X-Frame-Options": "DENY", "X-Robots-Tag": "noindex, nofollow" }, "dest": "/index.html" }
+  ]
+}
