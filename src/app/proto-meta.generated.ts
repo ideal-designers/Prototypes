@@ -180,7 +180,11 @@ export const PROTO_META: Record<string, ProtoMetaInfo> = {
     "author": "Yuliia Porokhivnyk"
   },
   "qna-setup-canvas": {
-    "updated": "2026-10-30T15:56:36+02:00",
+    "updated": "2026-11-13T15:22:51+02:00",
+    "author": "Yuliia Porokhivnyk"
+  },
+  "qna-setup-demo": {
+    "updated": "2026-11-17T10:39:17+02:00",
     "author": "Yuliia Porokhivnyk"
   },
   "checklist-matching": {
@@ -222,5 +226,9 @@ export const PROTO_META: Record<string, ProtoMetaInfo> = {
   "insights-cleanup-drawer": {
     "updated": "2026-11-12T15:18:27+02:00",
     "author": "Maryna Pinchuk"
+  },
+  "advisory-banners": {
+    "updated": "2026-11-13T13:13:10+01:00",
+    "author": "Nikita Tonkonozhenko"
   }
 };
