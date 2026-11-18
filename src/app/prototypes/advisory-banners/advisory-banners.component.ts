@@ -143,6 +143,12 @@ interface DocRow { index: number; name: string; kind: 'folder' | 'pdf' | 'doc'; 
     .big__body { position: absolute; left: 208px; top: var(--space-6); right: 80px; display: flex; flex-direction: column; align-items: flex-start; }
     .big__title { display: flex; align-items: center; gap: var(--space-2); margin: 0; font-size: var(--font-size-2xl); line-height: 28px; font-weight: var(--font-weight-semi); }
     .big__title fvdr-icon { font-size: var(--font-size-4xl); flex-shrink: 0; }
+    .big__title fvdr-icon, .mini__head > fvdr-icon { display: inline-flex; transform-style: preserve-3d; backface-visibility: visible; animation: ap-trophy-spin 2.7s cubic-bezier(0.45, 0, 0.25, 1) infinite; }
+    @keyframes ap-trophy-spin {
+      0%   { transform: perspective(120px) rotateY(0deg); }
+      74.07%, 100% { transform: perspective(120px) rotateY(360deg); }
+    }
+    @media (prefers-reduced-motion: reduce) { .big__title fvdr-icon, .mini__head > fvdr-icon { animation: none; } }
     .big__title ap-roll-number { --roll-h: 28px; }
     .big__text { margin: var(--space-3) 0 var(--space-5); font-size: var(--font-size-base); line-height: 20px; }
     .x { position: absolute; top: var(--space-6); right: var(--space-6); display: grid; place-items: center; width: var(--space-5); height: var(--space-5);
@@ -214,9 +220,9 @@ export class AdvisoryBannersComponent implements OnInit, OnDestroy {
   tab = 'projects';
   bigOpen = true;
   miniOpen = true;
-  readonly points = '1,700';
+  readonly points = '2,754';
   /** Counter roll time in ms — hover replay 500, first show 1000 (the feel is tuned here). */
-  rollMs = 500;
+  rollMs = 1000;
   firstRollMs = 1000;
   bigTick = 0;
   miniTick = 0;
