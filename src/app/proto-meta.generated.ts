@@ -228,7 +228,7 @@ export const PROTO_META: Record<string, ProtoMetaInfo> = {
     "author": "Maryna Pinchuk"
   },
   "advisory-banners": {
-    "updated": "2026-11-18T12:05:38+01:00",
+    "updated": "2026-11-18T12:35:18+01:00",
     "author": "Nikita Tonkonozhenko"
   }
 };
