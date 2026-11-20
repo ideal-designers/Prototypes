@@ -1,46 +1,44 @@
 import { Component, HostListener, OnDestroy, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { DS_COMPONENTS, FvdrIconName, SidebarNavItem, ToastService } from '../../shared/ds';
+import { DS_COMPONENTS, FvdrIconName, SegmentItem, SidebarNavItem, ToastService } from '../../shared/ds';
 import { TrackerService } from '../../services/tracker.service';
 
 const SLUG = 'permissions-file-type-rules';
 
 /**
- * Permissions — Documents entry and File type rules, built from the Figma
- * "Permissions by file type — Rules on page, no modals (v3)" frames.
+ * Permissions — File type rules, three interaction versions behind a switcher.
  *
- * Flow: the Documents page shows a "File type rules" button with the number of
- * active rules. The rules page lists one row per rule (status, file types, groups,
- * and a 7-step permission level). Adding or editing a rule happens inline in the
- * table — no modals — and the footer bar holds Cancel / Save.
+ *  A · Read-only + Edit   Rules table is read-only. The row "…" menu opens Edit,
+ *                         which turns that row's cells into inputs. No status column.
+ *  B · Inline inputs      Every cell is an input. Status, file types, groups and the
+ *                         permission bar change on the fly.
+ *  C · Click to edit      The table stays read-only until you click a status toggle, a
+ *                         permission segment or the edit icon next to the chips.
+ *
+ * All versions share one draft model: a change creates a draft for its row, and the
+ * footer's Cancel / Save applies every draft at once.
  */
 
 type View = 'documents' | 'rules';
-type PickerKind = 'types' | 'groups';
+type Variant = 'read' | 'inline' | 'click';
+type FieldKind = 'types' | 'groups';
 
 interface PermCol { label: string; icon: FvdrIconName }
 
-interface FileTypeRule {
-  id: number;
+interface RuleState {
   enabled: boolean;
   types: string[];
   groups: string[];   // group names, or [ALL_GROUPS]
   level: number;      // 0–7, cumulative across PERM_COLS
 }
 
-interface RuleDraft {
-  id: number | null;  // null → new rule
-  enabled: boolean;
-  types: string[];
-  groups: string[];
-  level: number;
-}
+interface FileTypeRule extends RuleState { id: number }
 
 interface TableRow {
   key: number;        // stable key for trackBy (0 = new rule)
-  editing: boolean;
   rule: FileTypeRule | null;
+  editing: boolean;
 }
 
 interface DocRow {
@@ -53,6 +51,8 @@ interface DocRow {
 }
 
 interface Cell { on: boolean; top: boolean }
+
+interface FieldErrors { types?: string; groups?: string }
 
 const ALL_GROUPS = 'All groups';
 
@@ -77,6 +77,12 @@ const PERM_COLS: PermCol[] = [
 const LEVEL_LABELS = ['No access', ...PERM_COLS.map(c => c.label)];
 
 const DEFAULT_LEVEL = 2;
+
+const VARIANTS: SegmentItem[] = [
+  { id: 'read',   label: 'A · Read-only + Edit' },
+  { id: 'inline', label: 'B · Inline inputs' },
+  { id: 'click',  label: 'C · Click to edit' },
+];
 
 const DOCUMENT_GROUPS = ['Yellow Co.', 'Red Co.', 'Green Co.', 'Blue Co.', 'White team'];
 
@@ -206,7 +212,11 @@ const SEED_RULES: FileTypeRule[] = [
           <div class="content">
 
             <div class="rules-top">
-              <fvdr-btn label="Add rule" iconName="plus" [disabled]="!!draft" (clicked)="addRule()" />
+              <fvdr-btn label="Add rule" iconName="plus" [disabled]="!!drafts[0]" (clicked)="addRule()" />
+              <div class="variant-switch">
+                <span class="variant-caption">Prototype version</span>
+                <fvdr-segment [items]="variantItems" [activeId]="variant" (activeIdChange)="setVariant($event)" />
+              </div>
             </div>
 
             <fvdr-info-banner
@@ -214,10 +224,10 @@ const SEED_RULES: FileTypeRule[] = [
               message="Rules apply to every new upload of the selected file types. Existing files are updated when you save a rule."
             />
 
-            <div class="rules-table" *ngIf="rules.length || draft; else emptyState">
+            <div class="rules-table" *ngIf="tableRows.length; else emptyState">
 
-              <div class="tbl-head rule-grid">
-                <span>Status</span>
+              <div class="tbl-head rule-grid" [ngClass]="gridClass">
+                <span *ngIf="variant !== 'read'">Status</span>
                 <span>File type</span>
                 <span>Groups</span>
                 <div class="perm-heads">
@@ -226,58 +236,60 @@ const SEED_RULES: FileTypeRule[] = [
                     <span>{{ c.label }}</span>
                   </div>
                 </div>
+                <span *ngIf="variant === 'read'"></span>
               </div>
 
               <div
                 *ngFor="let row of tableRows; trackBy: trackRow"
                 class="tbl-row rule-grid"
+                [ngClass]="gridClass"
                 [class.is-editing]="row.editing"
-                [class.is-muted]="!!draft && !row.editing"
-                [class.is-clickable]="!draft && !!row.rule"
-                (click)="onRowClick(row)"
+                [class.is-muted]="variant !== 'inline' && hasDrafts && !row.editing"
               >
-                <!-- Status -->
-                <div class="cell-status" (click)="$event.stopPropagation()">
+                <!-- Status (B and C) -->
+                <div class="cell-status" *ngIf="variant !== 'read'">
                   <fvdr-toggle
-                    [checked]="row.editing ? !!draft?.enabled : !!row.rule?.enabled"
-                    [disabled]="!!draft && !row.editing"
+                    [checked]="stateOf(row).enabled"
                     (checkedChange)="onToggle(row, $event)"
                   />
                 </div>
 
                 <!-- File types -->
-                <div class="cell-picker">
-                  <ng-container *ngIf="row.editing && draft; else typeTags">
-                    <button
-                      type="button"
-                      class="picker-trigger"
-                      [class.is-open]="openPicker === 'types'"
-                      [class.is-error]="!!errors.types"
-                      (click)="togglePicker('types')"
+                <div class="cell-field">
+                  <ng-container *ngIf="inputMode(row); else staticTypes">
+                    <div
+                      class="field"
+                      [class.is-open]="isPicker(row, 'types')"
+                      [class.is-error]="!!errors[row.key]?.types"
+                      (click)="openPicker(row, 'types')"
                     >
-                      <span [class.placeholder]="!draft.types.length">
-                        {{ draft.types.length ? draft.types.join(', ') : 'Select' }}
+                      <span class="chip" *ngFor="let t of stateOf(row).types">
+                        {{ t }}
+                        <button type="button" class="chip-x" [attr.aria-label]="'Remove ' + t" (click)="removeChip(row, 'types', t, $event)">
+                          <fvdr-icon name="close" />
+                        </button>
                       </span>
-                      <fvdr-icon name="chevron-down" />
-                    </button>
-                    <div class="field-error" *ngIf="errors.types">{{ errors.types }}</div>
+                      <span class="field-placeholder" *ngIf="!stateOf(row).types.length">Select</span>
+                      <fvdr-icon name="chevron-down" class="field-chev" />
+                    </div>
+                    <div class="field-error" *ngIf="errors[row.key]?.types">{{ errors[row.key]?.types }}</div>
 
-                    <div class="picker" *ngIf="openPicker === 'types'">
+                    <div class="picker" *ngIf="isPicker(row, 'types')">
                       <fvdr-search placeholder="Search" [(ngModel)]="pickerQuery" />
                       <div class="picker-list">
                         <div class="picker-cat" *ngFor="let cat of filteredCategories">
                           <fvdr-checkbox
                             [label]="cat.label"
-                            [checked]="allTypesOf(cat.types)"
-                            [indeterminate]="someTypesOf(cat.types)"
-                            (checkedChange)="toggleCategory(cat.types, $event)"
+                            [checked]="allTypesOf(row.key, cat.types)"
+                            [indeterminate]="someTypesOf(row.key, cat.types)"
+                            (checkedChange)="toggleCategory(row.key, cat.types, $event)"
                           />
                           <div class="picker-sub">
                             <fvdr-checkbox
                               *ngFor="let t of cat.types"
                               [label]="t"
-                              [checked]="isTypeSelected(t)"
-                              (checkedChange)="toggleType(t)"
+                              [checked]="isTypeSelected(row.key, t)"
+                              (checkedChange)="toggleType(row.key, t)"
                             />
                           </div>
                         </div>
@@ -285,72 +297,117 @@ const SEED_RULES: FileTypeRule[] = [
                     </div>
                   </ng-container>
 
-                  <ng-template #typeTags>
-                    <div class="tags">
-                      <span class="tag" *ngFor="let t of row.rule?.types">{{ t }}</span>
+                  <ng-template #staticTypes>
+                    <div class="static">
+                      <span class="tag" *ngFor="let t of stateOf(row).types">{{ t }}</span>
+                      <button
+                        *ngIf="pencilVisible(row)"
+                        type="button"
+                        class="edit-ic"
+                        aria-label="Edit file types"
+                        fvdrTooltip="Edit file types"
+                        tooltipPosition="top"
+                        (click)="openPicker(row, 'types')"
+                      >
+                        <fvdr-icon name="edit" />
+                      </button>
                     </div>
                   </ng-template>
                 </div>
 
                 <!-- Groups -->
-                <div class="cell-picker">
-                  <ng-container *ngIf="row.editing && draft; else groupTags">
-                    <button
-                      type="button"
-                      class="picker-trigger"
-                      [class.is-open]="openPicker === 'groups'"
-                      [class.is-error]="!!errors.groups"
-                      (click)="togglePicker('groups')"
+                <div class="cell-field">
+                  <ng-container *ngIf="inputMode(row); else staticGroups">
+                    <div
+                      class="field"
+                      [class.is-open]="isPicker(row, 'groups')"
+                      [class.is-error]="!!errors[row.key]?.groups"
+                      (click)="openPicker(row, 'groups')"
                     >
-                      <span [class.placeholder]="!draft.groups.length">
-                        {{ draft.groups.length ? draft.groups.join(', ') : 'Select' }}
+                      <span class="chip chip--group" *ngFor="let g of stateOf(row).groups">
+                        <fvdr-icon [name]="g === allGroupsLabel ? 'users-groups' : 'nav-participants'" />
+                        {{ g }}
+                        <button type="button" class="chip-x" [attr.aria-label]="'Remove ' + g" (click)="removeChip(row, 'groups', g, $event)">
+                          <fvdr-icon name="close" />
+                        </button>
                       </span>
-                      <fvdr-icon name="chevron-down" />
-                    </button>
-                    <div class="field-error" *ngIf="errors.groups">{{ errors.groups }}</div>
+                      <span class="field-placeholder" *ngIf="!stateOf(row).groups.length">Select</span>
+                      <fvdr-icon name="chevron-down" class="field-chev" />
+                    </div>
+                    <div class="field-error" *ngIf="errors[row.key]?.groups">{{ errors[row.key]?.groups }}</div>
 
-                    <div class="picker picker--groups" *ngIf="openPicker === 'groups'">
+                    <div class="picker picker--groups" *ngIf="isPicker(row, 'groups')">
                       <div class="picker-list">
                         <fvdr-checkbox
                           [label]="allGroupsLabel"
-                          [checked]="isGroupSelected(allGroupsLabel)"
-                          (checkedChange)="toggleGroup(allGroupsLabel)"
+                          [checked]="isGroupSelected(row.key, allGroupsLabel)"
+                          (checkedChange)="toggleGroup(row.key, allGroupsLabel)"
                         />
                         <fvdr-checkbox
                           *ngFor="let g of groupOptions"
                           [label]="g"
-                          [checked]="isGroupSelected(g)"
-                          [disabled]="isGroupSelected(allGroupsLabel)"
-                          (checkedChange)="toggleGroup(g)"
+                          [checked]="isGroupSelected(row.key, g)"
+                          [disabled]="isGroupSelected(row.key, allGroupsLabel)"
+                          (checkedChange)="toggleGroup(row.key, g)"
                         />
                       </div>
                     </div>
                   </ng-container>
 
-                  <ng-template #groupTags>
-                    <div class="tags">
-                      <span class="tag tag--group" *ngFor="let g of row.rule?.groups">
+                  <ng-template #staticGroups>
+                    <div class="static">
+                      <span class="tag tag--group" *ngFor="let g of stateOf(row).groups">
                         <fvdr-icon [name]="g === allGroupsLabel ? 'users-groups' : 'nav-participants'" />
                         {{ g }}
                       </span>
+                      <button
+                        *ngIf="pencilVisible(row)"
+                        type="button"
+                        class="edit-ic"
+                        aria-label="Edit groups"
+                        fvdrTooltip="Edit groups"
+                        tooltipPosition="top"
+                        (click)="openPicker(row, 'groups')"
+                      >
+                        <fvdr-icon name="edit" />
+                      </button>
                     </div>
                   </ng-template>
                 </div>
 
-                <!-- Permission levels: cumulative bar; in edit mode each segment sets the level -->
+                <!-- Permission levels: cumulative bar. Clickable where the version allows editing. -->
                 <div class="bar">
                   <span
                     *ngFor="let c of cells(levelOf(row)); let i = index"
                     class="bar-cell"
                     [class.on]="c.on"
                     [class.top]="c.top"
-                    [class.editable]="row.editing"
-                    [attr.role]="row.editing ? 'button' : null"
-                    [attr.aria-label]="row.editing ? levelLabels[i + 1] : null"
-                    [fvdrTooltip]="row.editing ? levelLabels[i + 1] : ''"
+                    [class.editable]="isLive(row)"
+                    [attr.role]="isLive(row) ? 'button' : null"
+                    [attr.aria-label]="isLive(row) ? levelLabels[i + 1] : null"
+                    [fvdrTooltip]="isLive(row) ? levelLabels[i + 1] : ''"
                     tooltipPosition="top"
                     (click)="onLevelClick(row, i + 1, $event)"
                   ></span>
+                </div>
+
+                <!-- Row actions (A only) -->
+                <div class="cell-actions" *ngIf="variant === 'read'">
+                  <ng-container *ngIf="row.rule && !row.editing">
+                    <button type="button" class="more-btn" aria-label="Rule actions" (click)="toggleMenu(row.key, $event)">
+                      <fvdr-icon name="more" />
+                    </button>
+                    <div class="menu" *ngIf="menuFor === row.key">
+                      <button type="button" class="menu-item" (click)="startEdit(row, $event)">
+                        <fvdr-icon name="edit" />
+                        Edit
+                      </button>
+                      <button type="button" class="menu-item menu-item--danger" (click)="deleteRule(row.key, $event)">
+                        <fvdr-icon name="trash" />
+                        Delete
+                      </button>
+                    </div>
+                  </ng-container>
                 </div>
               </div>
             </div>
@@ -368,16 +425,13 @@ const SEED_RULES: FileTypeRule[] = [
 
           </div>
 
-          <footer class="edit-bar" *ngIf="draft">
-            <fvdr-btn variant="secondary" label="Cancel" (clicked)="cancelDraft()" />
-            <fvdr-btn label="Save" (clicked)="saveDraft()" />
-            <span class="spacer"></span>
-            <fvdr-btn
-              *ngIf="draft.id !== null"
-              variant="danger-secondary"
-              label="Delete rule"
-              (clicked)="deleteDraft()"
-            />
+          <footer class="edit-bar" *ngIf="hasDrafts">
+            <fvdr-btn variant="secondary" label="Cancel" (clicked)="cancelAll()" />
+            <fvdr-btn label="Save" (clicked)="saveAll()" />
+            <div class="warn" *ngIf="lowerAccessWarning as warning">
+              <fvdr-icon name="warning" />
+              <span>{{ warning }}</span>
+            </div>
           </footer>
         </ng-template>
 
@@ -505,13 +559,20 @@ const SEED_RULES: FileTypeRule[] = [
     .bar-cell.editable:hover { outline: 1px solid var(--color-primary-500); outline-offset: 1px; }
 
     /* ── Rules page ── */
-    .rules-top { display: flex; align-items: center; }
+    .rules-top { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); flex-wrap: wrap; }
+    .variant-switch { display: flex; align-items: center; gap: var(--space-3); }
+    .variant-caption { font-size: var(--text-caption1-size); color: var(--color-text-secondary); }
     .rules-table { display: flex; flex-direction: column; }
     .rule-grid {
       display: grid;
-      grid-template-columns: 64px minmax(170px, 1fr) minmax(200px, 1.3fr) 434px;
       align-items: center; column-gap: var(--space-4);
       padding: 0 var(--space-4);
+    }
+    .rule-grid.grid--full {
+      grid-template-columns: 64px minmax(190px, 1fr) minmax(220px, 1.3fr) 434px;
+    }
+    .rule-grid.grid--read {
+      grid-template-columns: minmax(190px, 1fr) minmax(220px, 1.3fr) 434px 40px;
     }
     .tbl-head {
       min-height: 48px;
@@ -523,12 +584,13 @@ const SEED_RULES: FileTypeRule[] = [
       border-bottom: 1px solid var(--color-divider);
       position: relative;
     }
-    .tbl-row.is-clickable { cursor: pointer; }
-    .tbl-row.is-clickable:hover { background: var(--color-hover-bg); }
+    .tbl-row:hover { background: var(--color-hover-bg); }
     .tbl-row.is-editing { background: var(--color-primary-50); }
+    .tbl-row.is-editing:hover { background: var(--color-primary-50); }
     .tbl-row.is-muted { opacity: 0.6; }
 
-    .cell-picker { position: relative; min-width: 0; padding: var(--space-2) 0; }
+    .cell-field { position: relative; min-width: 0; padding: var(--space-2) 0; }
+    .static { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1); min-height: 36px; }
     .tags { display: flex; flex-wrap: wrap; gap: var(--space-1); }
     .tag {
       display: inline-flex; align-items: center; gap: var(--space-1);
@@ -541,21 +603,48 @@ const SEED_RULES: FileTypeRule[] = [
     .tag--group { background: var(--color-stone-200); border: 1px solid var(--color-stone-400); }
     .tag--group fvdr-icon { color: var(--color-info-500); }
 
-    .picker-trigger {
-      width: 100%; height: 36px; min-width: 0;
-      display: flex; align-items: center; justify-content: space-between; gap: var(--space-2);
-      padding: 0 var(--space-3);
+    .edit-ic {
+      background: none; border: none; padding: 0 var(--space-1); cursor: pointer;
+      color: var(--color-primary-500); display: inline-flex; align-items: center;
+      opacity: 0;
+    }
+    .tbl-row:hover .edit-ic,
+    .edit-ic:focus-visible { opacity: 1; }
+
+    /* Input-style field: chips with remove buttons, chevron on the right */
+    .field {
+      position: relative;
+      min-height: 36px;
+      display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1);
+      padding: var(--space-1) var(--space-8) var(--space-1) var(--space-2);
       background: var(--color-stone-0);
       border: 1px solid var(--color-stone-400);
       border-radius: var(--radius-sm);
-      font: inherit; font-size: var(--font-size-base); color: var(--color-text-primary);
-      text-align: left; cursor: pointer;
+      cursor: text;
+      font-size: var(--font-size-base);
     }
-    .picker-trigger span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
-    .picker-trigger .placeholder { color: var(--color-text-placeholder); }
-    .picker-trigger:hover,
-    .picker-trigger.is-open { border-color: var(--color-primary-500); }
-    .picker-trigger.is-error { border-color: var(--color-error-600); }
+    .field:hover,
+    .field.is-open { border-color: var(--color-primary-500); }
+    .field.is-error { border-color: var(--color-error-600); }
+    .field-placeholder { color: var(--color-text-placeholder); padding: 0 var(--space-1); }
+    .field-chev {
+      position: absolute; right: var(--space-2); top: 50%;
+      color: var(--color-stone-600);
+    }
+    .chip {
+      display: inline-flex; align-items: center; gap: var(--space-1);
+      height: 24px; padding: 0 var(--space-1) 0 var(--space-2);
+      background: var(--color-stone-300);
+      border-radius: var(--radius-sm);
+      white-space: nowrap;
+    }
+    .chip--group { background: var(--color-stone-200); border: 1px solid var(--color-stone-400); }
+    .chip--group fvdr-icon { color: var(--color-info-500); }
+    .chip-x {
+      background: none; border: none; padding: 0; cursor: pointer;
+      display: inline-flex; color: var(--color-stone-600);
+    }
+    .chip-x:hover { color: var(--color-text-primary); }
     .field-error {
       margin-top: var(--space-1);
       font-size: var(--text-caption1-size); color: var(--color-error-600);
@@ -573,6 +662,33 @@ const SEED_RULES: FileTypeRule[] = [
     .picker--groups { width: 280px; }
     .picker-list { display: flex; flex-direction: column; gap: var(--space-2); }
     .picker-sub { display: flex; flex-direction: column; gap: var(--space-2); padding-left: var(--space-6); }
+
+    /* ── Row actions (A) ── */
+    .cell-actions { position: relative; display: flex; justify-content: flex-end; }
+    .more-btn {
+      background: none; border: none; cursor: pointer;
+      width: 32px; height: 32px; padding: 0;
+      display: inline-flex; align-items: center; justify-content: center;
+      color: var(--color-text-secondary); border-radius: var(--radius-sm);
+    }
+    .more-btn:hover { background: var(--color-hover-bg); color: var(--color-text-primary); }
+    .menu {
+      position: absolute; top: calc(100% + var(--space-1)); right: 0; z-index: 30;
+      min-width: 160px;
+      display: flex; flex-direction: column;
+      background: var(--color-stone-0);
+      border: 1px solid var(--color-divider);
+      border-radius: var(--radius-md);
+      padding: var(--space-1) 0;
+    }
+    .menu-item {
+      display: flex; align-items: center; gap: var(--space-2);
+      padding: var(--space-2) var(--space-3);
+      background: none; border: none; cursor: pointer;
+      font: inherit; color: var(--color-text-primary); text-align: left; white-space: nowrap;
+    }
+    .menu-item:hover { background: var(--color-hover-bg); }
+    .menu-item--danger { color: var(--color-error-600); }
 
     /* ── Empty state ── */
     .empty {
@@ -598,7 +714,7 @@ const SEED_RULES: FileTypeRule[] = [
     .empty-text { margin: 0; color: var(--color-text-secondary); }
     .empty fvdr-btn { margin-top: var(--space-3); }
 
-    /* ── Footer for inline editing ── */
+    /* ── Footer for pending changes ── */
     .edit-bar {
       flex-shrink: 0;
       display: flex; align-items: center; gap: var(--space-3);
@@ -606,7 +722,15 @@ const SEED_RULES: FileTypeRule[] = [
       background: var(--color-stone-0);
       border-top: 1px solid var(--color-divider);
     }
-    .spacer { flex: 1; }
+    .warn {
+      flex: 1; min-width: 0;
+      display: flex; align-items: center; gap: var(--space-2);
+      padding: var(--space-2) var(--space-3);
+      background: var(--color-stone-200);
+      border-radius: var(--radius-sm);
+      font-size: var(--text-caption1-size);
+    }
+    .warn fvdr-icon { color: var(--color-warning-600); flex-shrink: 0; }
   `],
 })
 export class PermissionsFileTypeRulesComponent implements OnInit, OnDestroy {
@@ -620,6 +744,7 @@ export class PermissionsFileTypeRulesComponent implements OnInit, OnDestroy {
   readonly allGroupsLabel = ALL_GROUPS;
   readonly documentGroups = DOCUMENT_GROUPS;
   readonly documents = DOCUMENTS;
+  readonly variantItems = VARIANTS;
   /** Precomputed bar states per level (0–7) — keeps template bindings stable. */
   private readonly levelCells: Cell[][] = Array.from({ length: PERM_COLS.length + 1 }, (_, level) =>
     Array.from({ length: PERM_COLS.length }, (_, i) => ({ on: i < level, top: i === level - 1 })),
@@ -627,17 +752,20 @@ export class PermissionsFileTypeRulesComponent implements OnInit, OnDestroy {
 
   // ── State ─────────────────────────────────────────────────
   view: View = 'documents';
+  variant: Variant = 'read';
   sidebarCollapsed = false;
 
   rules: FileTypeRule[] = SEED_RULES.map(r => ({ ...r, types: [...r.types], groups: [...r.groups] }));
   private nextRuleId = SEED_RULES.length + 1;
 
-  /** Inline edit state: a draft for an existing rule (id set) or a new one (id null). */
-  draft: RuleDraft | null = null;
-  errors: { types?: string; groups?: string } = {};
-
-  openPicker: PickerKind | null = null;
+  /** Pending edits per row. Key 0 is a new rule. */
+  drafts: Record<number, RuleState> = {};
+  errors: Record<number, FieldErrors> = {};
+  /** Open type/group picker, if any. */
+  picker: { id: number; kind: FieldKind } | null = null;
   pickerQuery = '';
+  /** Open row actions menu (version A). */
+  menuFor: number | null = null;
 
   navItems: SidebarNavItem[] = [];
 
@@ -648,6 +776,10 @@ export class PermissionsFileTypeRulesComponent implements OnInit, OnDestroy {
   // ── Derived ───────────────────────────────────────────────
 
   get enabledRuleCount(): number { return this.rules.filter(r => r.enabled).length; }
+
+  get hasDrafts(): boolean { return Object.keys(this.drafts).length > 0; }
+
+  get gridClass(): string { return this.variant === 'read' ? 'grid--read' : 'grid--full'; }
 
   get breadcrumbs(): { id: string; label: string }[] {
     return this.view === 'documents'
@@ -666,18 +798,47 @@ export class PermissionsFileTypeRulesComponent implements OnInit, OnDestroy {
   /** Rows for the rules table: the new draft (if any) on top, then the saved rules. */
   get tableRows(): TableRow[] {
     const rows: TableRow[] = [];
-    if (this.draft && this.draft.id === null) rows.push({ key: 0, editing: true, rule: null });
+    if (this.drafts[0]) rows.push({ key: 0, rule: null, editing: true });
     for (const rule of this.rules) {
-      rows.push({ key: rule.id, editing: this.draft?.id === rule.id, rule });
+      rows.push({ key: rule.id, rule, editing: !!this.drafts[rule.id] });
     }
     return rows;
   }
 
+  /** Warning shown in version C when a pending change lowers access for existing files. */
+  get lowerAccessWarning(): string | null {
+    if (this.variant !== 'click') return null;
+    for (const rule of this.rules) {
+      const d = this.drafts[rule.id];
+      if (d && d.level < rule.level) {
+        return `Lowering access updates existing files of ${rule.types.join(', ')} when you save.`;
+      }
+    }
+    return null;
+  }
+
   cells(level: number): Cell[] { return this.levelCells[level] ?? this.levelCells[0]; }
 
-  levelOf(row: TableRow): number {
-    if (row.editing && this.draft) return this.draft.level;
-    return row.rule?.level ?? 0;
+  /** Current values for a row: its draft if one exists, otherwise the saved rule. */
+  stateOf(row: TableRow): RuleState {
+    return this.drafts[row.key] ?? (row.rule as RuleState);
+  }
+
+  levelOf(row: TableRow): number { return this.stateOf(row).level; }
+
+  /** Fields render as inputs: always in B, only while editing in A and C. */
+  inputMode(row: TableRow): boolean {
+    return this.variant === 'inline' || row.editing;
+  }
+
+  /** Edit icon next to chips — only in C, only on rows that are not being edited. */
+  pencilVisible(row: TableRow): boolean {
+    return this.variant === 'click' && !row.editing && !!row.rule;
+  }
+
+  /** Permission segments respond to clicks: always in B and C, while editing in A. */
+  isLive(row: TableRow): boolean {
+    return this.variant !== 'read' || row.editing;
   }
 
   trackRow = (_: number, row: TableRow): number => row.key;
@@ -714,138 +875,211 @@ export class PermissionsFileTypeRulesComponent implements OnInit, OnDestroy {
 
   setView(view: View): void {
     if (this.view === view) return;
-    this.cancelDraft();
+    this.cancelAll();
     this.view = view;
     this.buildNav();
   }
 
-  // ── Rule editing ──────────────────────────────────────────
+  setVariant(id: string): void {
+    this.variant = id as Variant;
+    this.cancelAll();
+  }
+
+  // ── Editing model ─────────────────────────────────────────
+
+  private blank(): RuleState {
+    // Version A has no status control, so new rules start active there.
+    return { enabled: this.variant === 'read', types: [], groups: [], level: DEFAULT_LEVEL };
+  }
+
+  /** Create a draft for a row (copying its saved values) if it does not have one yet. */
+  private ensure(key: number, rule: FileTypeRule | null): void {
+    if (this.drafts[key]) return;
+    const base = rule ?? this.blank();
+    this.drafts = {
+      ...this.drafts,
+      [key]: { enabled: base.enabled, types: [...base.types], groups: [...base.groups], level: base.level },
+    };
+  }
+
+  private patch(key: number, change: Partial<RuleState>): void {
+    const current = this.drafts[key];
+    if (!current) return;
+    this.drafts = { ...this.drafts, [key]: { ...current, ...change } };
+  }
+
+  private clearError(key: number, field: keyof FieldErrors): void {
+    if (this.errors[key]?.[field]) {
+      this.errors = { ...this.errors, [key]: { ...this.errors[key], [field]: undefined } };
+    }
+  }
 
   addRule(): void {
-    if (this.draft) return;
-    this.draft = { id: null, enabled: false, types: [], groups: [], level: DEFAULT_LEVEL };
-    this.errors = {};
+    if (this.drafts[0]) return;
+    this.menuFor = null;
+    this.ensure(0, null);
   }
 
-  editRule(rule: FileTypeRule): void {
-    if (this.draft) return;
-    this.draft = { id: rule.id, enabled: rule.enabled, types: [...rule.types], groups: [...rule.groups], level: rule.level };
-    this.errors = {};
+  startEdit(row: TableRow, event: MouseEvent): void {
+    event.stopPropagation();
+    this.menuFor = null;
+    if (row.rule) this.ensure(row.key, row.rule);
   }
 
-  onRowClick(row: TableRow): void {
-    if (!this.draft && row.rule) this.editRule(row.rule);
+  toggleMenu(key: number, event: MouseEvent): void {
+    event.stopPropagation();
+    this.menuFor = this.menuFor === key ? null : key;
+  }
+
+  deleteRule(key: number, event: MouseEvent): void {
+    event.stopPropagation();
+    this.menuFor = null;
+    this.rules = this.rules.filter(r => r.id !== key);
+    const remaining = { ...this.drafts };
+    delete remaining[key];
+    this.drafts = remaining;
+    this.toast.show({ variant: 'info', message: 'File type rule deleted' });
   }
 
   onToggle(row: TableRow, checked: boolean): void {
-    if (row.editing && this.draft) {
-      this.draft.enabled = checked;
-    } else if (row.rule) {
-      row.rule.enabled = checked;
-    }
+    this.ensure(row.key, row.rule);
+    this.patch(row.key, { enabled: checked });
   }
 
   onLevelClick(row: TableRow, level: number, event: MouseEvent): void {
-    if (!row.editing || !this.draft) return;
     event.stopPropagation();
-    this.draft.level = level;
+    if (!this.isLive(row)) return;
+    this.ensure(row.key, row.rule);
+    this.patch(row.key, { level });
   }
 
-  togglePicker(kind: PickerKind): void {
-    this.openPicker = this.openPicker === kind ? null : kind;
-    if (this.openPicker === 'types') this.pickerQuery = '';
+  openPicker(row: TableRow, kind: FieldKind): void {
+    if (!this.isLive(row) && !row.editing) return;
+    this.ensure(row.key, row.rule);
+    if (this.picker && this.picker.id === row.key && this.picker.kind === kind) {
+      this.picker = null;
+    } else {
+      this.picker = { id: row.key, kind };
+      this.pickerQuery = '';
+    }
   }
 
-  isTypeSelected(type: string): boolean {
-    return !!this.draft?.types.includes(type);
+  isPicker(row: TableRow, kind: FieldKind): boolean {
+    return this.picker?.id === row.key && this.picker.kind === kind;
   }
 
-  allTypesOf(types: string[]): boolean {
-    return types.length > 0 && types.every(t => this.isTypeSelected(t));
+  removeChip(row: TableRow, kind: FieldKind, value: string, event: MouseEvent): void {
+    event.stopPropagation();
+    this.ensure(row.key, row.rule);
+    const current = this.drafts[row.key];
+    if (kind === 'types') {
+      this.patch(row.key, { types: current.types.filter(t => t !== value) });
+    } else {
+      this.patch(row.key, { groups: current.groups.filter(g => g !== value) });
+    }
   }
 
-  someTypesOf(types: string[]): boolean {
-    return types.some(t => this.isTypeSelected(t)) && !this.allTypesOf(types);
+  isTypeSelected(key: number, type: string): boolean {
+    return !!this.drafts[key]?.types.includes(type);
   }
 
-  toggleType(type: string): void {
-    if (!this.draft) return;
-    const list = this.draft.types;
-    this.draft.types = list.includes(type) ? list.filter(t => t !== type) : [...list, type];
-    this.errors = { ...this.errors, types: undefined };
+  allTypesOf(key: number, types: string[]): boolean {
+    return types.length > 0 && types.every(t => this.isTypeSelected(key, t));
   }
 
-  toggleCategory(types: string[], checked: boolean): void {
-    if (!this.draft) return;
-    const rest = this.draft.types.filter(t => !types.includes(t));
-    this.draft.types = checked ? [...rest, ...types] : rest;
-    this.errors = { ...this.errors, types: undefined };
+  someTypesOf(key: number, types: string[]): boolean {
+    return types.some(t => this.isTypeSelected(key, t)) && !this.allTypesOf(key, types);
   }
 
-  isGroupSelected(group: string): boolean {
-    return !!this.draft?.groups.includes(group);
+  toggleType(key: number, type: string): void {
+    const current = this.drafts[key];
+    if (!current) return;
+    const list = current.types;
+    this.patch(key, { types: list.includes(type) ? list.filter(t => t !== type) : [...list, type] });
+    this.clearError(key, 'types');
   }
 
-  toggleGroup(group: string): void {
-    if (!this.draft) return;
-    const list = this.draft.groups;
+  toggleCategory(key: number, types: string[], checked: boolean): void {
+    const current = this.drafts[key];
+    if (!current) return;
+    const rest = current.types.filter(t => !types.includes(t));
+    this.patch(key, { types: checked ? [...rest, ...types] : rest });
+    this.clearError(key, 'types');
+  }
+
+  isGroupSelected(key: number, group: string): boolean {
+    return !!this.drafts[key]?.groups.includes(group);
+  }
+
+  toggleGroup(key: number, group: string): void {
+    const current = this.drafts[key];
+    if (!current) return;
+    const list = current.groups;
     if (group === ALL_GROUPS) {
-      this.draft.groups = list.includes(ALL_GROUPS) ? [] : [ALL_GROUPS];
+      this.patch(key, { groups: list.includes(ALL_GROUPS) ? [] : [ALL_GROUPS] });
     } else {
       const without = list.filter(g => g !== ALL_GROUPS);
-      this.draft.groups = without.includes(group) ? without.filter(g => g !== group) : [...without, group];
+      this.patch(key, { groups: without.includes(group) ? without.filter(g => g !== group) : [...without, group] });
     }
-    this.errors = { ...this.errors, groups: undefined };
+    this.clearError(key, 'groups');
   }
 
-  cancelDraft(): void {
-    this.draft = null;
+  cancelAll(): void {
+    this.drafts = {};
     this.errors = {};
-    this.openPicker = null;
+    this.picker = null;
+    this.menuFor = null;
   }
 
-  saveDraft(): void {
-    if (!this.draft) return;
-    const errors: { types?: string; groups?: string } = {};
-    if (!this.draft.types.length) errors.types = 'Choose at least one file type';
-    if (!this.draft.groups.length) errors.groups = 'Choose at least one group';
-    this.errors = errors;
-    if (errors.types || errors.groups) return;
+  saveAll(): void {
+    const keys = Object.keys(this.drafts).map(Number);
+    if (!keys.length) return;
 
-    const { id, enabled, types, groups, level } = this.draft;
-    if (id === null) {
-      this.rules = [{ id: this.nextRuleId++, enabled, types, groups, level }, ...this.rules];
-    } else {
-      this.rules = this.rules.map(r => (r.id === id ? { id, enabled, types, groups, level } : r));
+    const nextErrors: Record<number, FieldErrors> = {};
+    for (const key of keys) {
+      const d = this.drafts[key];
+      const e: FieldErrors = {};
+      if (!d.types.length) e.types = 'Choose at least one file type';
+      if (!d.groups.length) e.groups = 'Choose at least one group';
+      if (e.types || e.groups) nextErrors[key] = e;
     }
+    this.errors = nextErrors;
+    if (Object.keys(nextErrors).length) return;
+
+    let rules = this.rules;
+    for (const key of keys) {
+      const d = this.drafts[key];
+      const values: RuleState = { enabled: d.enabled, types: [...d.types], groups: [...d.groups], level: d.level };
+      if (key === 0) {
+        rules = [{ id: this.nextRuleId++, ...values }, ...rules];
+      } else {
+        rules = rules.map(r => (r.id === key ? { id: key, ...values } : r));
+      }
+    }
+    this.rules = rules;
+
     this.toast.show({
       variant: 'success',
-      message: 'File type rule saved. Existing files were updated.',
+      message: keys.length === 1
+        ? 'File type rule saved. Existing files were updated.'
+        : `${keys.length} file type rules saved. Existing files were updated.`,
     });
-    this.cancelDraft();
+    this.cancelAll();
   }
 
-  deleteDraft(): void {
-    if (!this.draft || this.draft.id === null) return;
-    const id = this.draft.id;
-    this.rules = this.rules.filter(r => r.id !== id);
-    this.toast.show({ variant: 'info', message: 'File type rule deleted' });
-    this.cancelDraft();
-  }
-
-  // ── Outside click / Escape close pickers ──────────────────
+  // ── Outside click / Escape close pickers and menus ────────
 
   @HostListener('document:mousedown', ['$event'])
   onDocMouseDown(e: MouseEvent): void {
-    if (!this.openPicker) return;
     const target = e.target as Element | null;
-    if (target?.closest?.('.picker, .picker-trigger')) return;
-    this.openPicker = null;
+    if (this.picker && !target?.closest?.('.picker, .field')) this.picker = null;
+    if (this.menuFor !== null && !target?.closest?.('.menu, .more-btn')) this.menuFor = null;
   }
 
   @HostListener('document:keydown.escape')
   onEscape(): void {
-    if (this.openPicker) this.openPicker = null;
+    this.picker = null;
+    this.menuFor = null;
   }
 
   ngOnInit(): void { this.tracker.trackPageView(SLUG); }
