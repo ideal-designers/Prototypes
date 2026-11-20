@@ -225,6 +225,14 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
     description: 'How a changed permission bar shows its saved level — Saved (dashed frame), Compare (hold to see before), Pin and Dot — on the draft model without the changes panel or the changed-only filter',
   },
     {
+    slug: 'permissions-file-type-rules',
+    title: 'File type rules',
+    module: 'Permissions',
+    figma: 'https://www.figma.com/design/E2LJ0seWC3c1bJrgenukSS/%F0%9F%94%90-Permissions?node-id=1902-85780',
+    status: 'wip',
+    description: 'Documents entry with a File type rules button, then the rules table: rules added and edited inline (no modals) with file type and group pickers, a 7-level permission bar, validation errors and an empty state',
+  },
+    {
     slug: 'added-column-hover',
     title: 'Documents — Added column hover',
     module: 'Documents',

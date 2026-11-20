@@ -188,6 +188,11 @@ export const routes: Routes = [
       import('./prototypes/permissions-draft-highlight/permissions-draft-highlight.component').then(m => m.PermissionsDraftHighlightComponent),
   },
     {
+    path: 'permissions-file-type-rules',
+    loadComponent: () =>
+      import('./prototypes/permissions-file-type-rules/permissions-file-type-rules.component').then(m => m.PermissionsFileTypeRulesComponent),
+  },
+    {
     path: 'added-column-hover',
     loadComponent: () =>
       import('./prototypes/added-column-hover/added-column-hover.component').then(m => m.AddedColumnHoverComponent),
