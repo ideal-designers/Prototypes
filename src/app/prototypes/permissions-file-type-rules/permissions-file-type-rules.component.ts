@@ -22,7 +22,7 @@ const SLUG = 'permissions-file-type-rules';
 
 type View = 'documents' | 'rules';
 type Variant = 'read' | 'inline' | 'click';
-type FieldKind = 'types' | 'groups';
+type FieldKind = 'types' | 'groups' | 'perm';
 
 interface PermCol { label: string; icon: FvdrIconName }
 
@@ -75,6 +75,11 @@ const PERM_COLS: PermCol[] = [
 ];
 
 const LEVEL_LABELS = ['No access', ...PERM_COLS.map(c => c.label)];
+
+/** Icons for levels 0–7; "No access" uses the close icon, as in the Figma dropdown. */
+const PERM_ICONS: FvdrIconName[] = ['cancel', ...PERM_COLS.map(c => c.icon)];
+
+const LEVEL_OPTIONS = LEVEL_LABELS.map((label, level) => ({ level, label, icon: PERM_ICONS[level] }));
 
 const DEFAULT_LEVEL = 2;
 
@@ -375,7 +380,29 @@ const SEED_RULES: FileTypeRule[] = [
                   </ng-template>
                 </div>
 
-                <!-- Permission levels: cumulative bar. Clickable where the version allows editing. -->
+                <!-- Permission level: a dropdown while editing in A, otherwise the cumulative bar -->
+                <div class="cell-field" *ngIf="variant === 'read' && row.editing; else barTpl">
+                  <div class="field perm-field" [class.is-open]="isPicker(row, 'perm')" (click)="openPicker(row, 'perm')">
+                    <fvdr-icon [name]="permIcon(levelOf(row))" />
+                    <span>{{ levelLabels[levelOf(row)] }}</span>
+                    <fvdr-icon name="chevron-down" class="field-chev" />
+                  </div>
+                  <div class="picker picker--perm" *ngIf="isPicker(row, 'perm')">
+                    <button
+                      *ngFor="let o of levelOptions"
+                      type="button"
+                      class="perm-option"
+                      [class.is-selected]="o.level === levelOf(row)"
+                      (click)="pickLevel(row, o.level, $event)"
+                    >
+                      <fvdr-icon [name]="o.icon" />
+                      <span>{{ o.label }}</span>
+                    </button>
+                  </div>
+                </div>
+
+                <ng-template #barTpl>
+                <!-- Clickable segments where the version allows editing. -->
                 <div class="bar">
                   <span
                     *ngFor="let c of cells(levelOf(row)); let i = index"
@@ -390,6 +417,7 @@ const SEED_RULES: FileTypeRule[] = [
                     (click)="onLevelClick(row, i + 1, $event)"
                   ></span>
                 </div>
+                </ng-template>
 
                 <!-- Row actions (A only) -->
                 <div class="cell-actions" *ngIf="variant === 'read'">
@@ -660,6 +688,26 @@ const SEED_RULES: FileTypeRule[] = [
       display: flex; flex-direction: column; gap: var(--space-2);
     }
     .picker--groups { width: 280px; }
+
+    /* Permission dropdown (version A) */
+    .perm-field { width: 240px; cursor: pointer; flex-wrap: nowrap; }
+    .perm-field span { white-space: nowrap; }
+    .perm-field fvdr-icon { color: var(--color-text-secondary); }
+    .picker--perm {
+      width: 240px; max-height: none;
+      padding: var(--space-1) 0; gap: 0;
+    }
+    .perm-option {
+      height: 40px; width: 100%;
+      display: flex; align-items: center; gap: var(--space-3);
+      padding: 0 var(--space-3);
+      background: none; border: none; cursor: pointer;
+      font: inherit; font-size: var(--font-size-base); color: var(--color-text-primary);
+      text-align: left;
+    }
+    .perm-option:hover { background: var(--color-hover-bg); }
+    .perm-option.is-selected { background: var(--color-primary-50); }
+    .perm-option fvdr-icon { color: var(--color-text-secondary); }
     .picker-list { display: flex; flex-direction: column; gap: var(--space-2); }
     .picker-sub { display: flex; flex-direction: column; gap: var(--space-2); padding-left: var(--space-6); }
 
@@ -740,6 +788,7 @@ export class PermissionsFileTypeRulesComponent implements OnInit, OnDestroy {
   // ── Static data exposed to the template ───────────────────
   readonly permCols = PERM_COLS;
   readonly levelLabels = LEVEL_LABELS;
+  readonly levelOptions = LEVEL_OPTIONS;
   readonly groupOptions = GROUP_OPTIONS;
   readonly allGroupsLabel = ALL_GROUPS;
   readonly documentGroups = DOCUMENT_GROUPS;
@@ -951,6 +1000,18 @@ export class PermissionsFileTypeRulesComponent implements OnInit, OnDestroy {
     if (!this.isLive(row)) return;
     this.ensure(row.key, row.rule);
     this.patch(row.key, { level });
+  }
+
+  permIcon(level: number): FvdrIconName {
+    return PERM_ICONS[level];
+  }
+
+  /** Version A dropdown: choosing a permission sets the draft level and closes the list. */
+  pickLevel(row: TableRow, level: number, event: MouseEvent): void {
+    event.stopPropagation();
+    this.ensure(row.key, row.rule);
+    this.patch(row.key, { level });
+    this.picker = null;
   }
 
   openPicker(row: TableRow, kind: FieldKind): void {
