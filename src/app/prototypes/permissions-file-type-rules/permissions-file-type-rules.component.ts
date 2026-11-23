@@ -31,6 +31,18 @@ interface RuleState {
   types: string[];
   groups: string[];   // group names, or [ALL_GROUPS]
   level: number;      // 0–7, cumulative across PERM_COLS
+  applyNoAccess?: boolean;  // set in the Add rule dialog
+  folders?: string[];       // folders selected in the Add rule dialog
+}
+
+type ModalPicker = 'types' | 'groups' | 'folders' | 'perm';
+
+interface ModalDraft {
+  types: string[];
+  groups: string[];
+  level: number;
+  applyNoAccess: boolean;
+  folders: string[];
 }
 
 interface FileTypeRule extends RuleState { id: number }
@@ -102,6 +114,8 @@ const DOCUMENTS: DocRow[] = [
   { name: 'Tax returns.pdf', index: '7', type: 'pdf', level: 2 },
   { name: 'Registration with tax authorities', index: '8', type: 'doc', level: 2, ruleManaged: true },
 ];
+
+const FOLDER_OPTIONS = DOCUMENTS.filter(d => d.type === 'folder').map(d => `${d.index} ${d.name}`);
 
 const SEED_RULES: FileTypeRule[] = [
   { id: 1, enabled: true,  types: ['XLSX', 'CSV', 'XLS'], groups: [ALL_GROUPS], level: 5 },
@@ -470,6 +484,141 @@ const SEED_RULES: FileTypeRule[] = [
 
       </div>
 
+      <fvdr-modal
+        [visible]="modalOpen"
+        title="Set permissions by file type"
+        size="md"
+        confirmLabel="Apply"
+        cancelLabel="Cancel"
+        (confirmed)="applyModal()"
+        (cancelled)="closeModal()"
+        (closed)="onModalClosed()"
+      >
+        <div class="m-form">
+
+          <div class="m-field">
+            <span class="m-label">File types</span>
+            <div class="field" [class.is-open]="modalPicker === 'types'" [class.is-error]="!!modalErrors.types" (click)="toggleModalPicker('types')">
+              <span class="chip" *ngFor="let t of modalDraft.types">
+                {{ t }}
+                <button type="button" class="chip-x" [attr.aria-label]="'Remove ' + t" (click)="modalRemoveType(t, $event)">
+                  <fvdr-icon name="close" />
+                </button>
+              </span>
+              <span class="field-placeholder" *ngIf="!modalDraft.types.length">Select</span>
+              <button *ngIf="modalDraft.types.length" type="button" class="clear-btn" aria-label="Clear file types" (click)="modalClearTypes($event)">
+                <fvdr-icon name="close" />
+              </button>
+              <fvdr-icon name="chevron-down" class="field-chev" />
+            </div>
+            <div class="field-error" *ngIf="modalErrors.types">{{ modalErrors.types }}</div>
+            <div class="m-panel" *ngIf="modalPicker === 'types'">
+              <fvdr-search placeholder="Search" [(ngModel)]="pickerQuery" />
+              <div class="picker-list">
+                <div class="picker-cat" *ngFor="let cat of filteredCategories">
+                  <fvdr-checkbox
+                    [label]="cat.label"
+                    [checked]="allModalTypesOf(cat.types)"
+                    [indeterminate]="someModalTypesOf(cat.types)"
+                    (checkedChange)="modalToggleCategory(cat.types, $event)"
+                  />
+                  <div class="picker-sub">
+                    <fvdr-checkbox
+                      *ngFor="let t of cat.types"
+                      [label]="t"
+                      [checked]="isModalTypeSelected(t)"
+                      (checkedChange)="modalToggleType(t)"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="m-field">
+            <span class="m-label">Permission</span>
+            <div class="field perm-field m-full" [class.is-open]="modalPicker === 'perm'" (click)="toggleModalPicker('perm')">
+              <fvdr-icon [name]="permIcon(modalDraft.level)" />
+              <span>{{ levelLabels[modalDraft.level] }}</span>
+              <fvdr-icon name="chevron-down" class="field-chev" />
+            </div>
+            <div class="m-panel" *ngIf="modalPicker === 'perm'">
+              <button
+                *ngFor="let o of levelOptions"
+                type="button"
+                class="perm-option"
+                [class.is-selected]="o.level === modalDraft.level"
+                (click)="modalPickLevel(o.level)"
+              >
+                <fvdr-icon [name]="o.icon" />
+                <span>{{ o.label }}</span>
+              </button>
+            </div>
+          </div>
+
+          <fvdr-checkbox
+            label="Apply to files that have no access"
+            [checked]="modalDraft.applyNoAccess"
+            (checkedChange)="setApplyNoAccess($event)"
+          />
+
+          <div class="m-field">
+            <span class="m-label">Groups</span>
+            <div class="field" [class.is-open]="modalPicker === 'groups'" [class.is-error]="!!modalErrors.groups" (click)="toggleModalPicker('groups')">
+              <span class="chip chip--group" *ngFor="let g of modalDraft.groups">
+                <fvdr-icon [name]="g === allGroupsLabel ? 'users-groups' : 'nav-participants'" />
+                {{ g }}
+                <button type="button" class="chip-x" [attr.aria-label]="'Remove ' + g" (click)="modalRemoveGroup(g, $event)">
+                  <fvdr-icon name="close" />
+                </button>
+              </span>
+              <span class="field-placeholder" *ngIf="!modalDraft.groups.length">Select</span>
+              <button *ngIf="modalDraft.groups.length" type="button" class="clear-btn" aria-label="Clear groups" (click)="modalClearGroups($event)">
+                <fvdr-icon name="close" />
+              </button>
+              <fvdr-icon name="chevron-down" class="field-chev" />
+            </div>
+            <div class="field-error" *ngIf="modalErrors.groups">{{ modalErrors.groups }}</div>
+            <div class="m-panel" *ngIf="modalPicker === 'groups'">
+              <fvdr-checkbox
+                [label]="allGroupsLabel"
+                [checked]="isModalGroupSelected(allGroupsLabel)"
+                (checkedChange)="modalToggleGroup(allGroupsLabel)"
+              />
+              <fvdr-checkbox
+                *ngFor="let g of groupOptions"
+                [label]="g"
+                [checked]="isModalGroupSelected(g)"
+                [disabled]="isModalGroupSelected(allGroupsLabel)"
+                (checkedChange)="modalToggleGroup(g)"
+              />
+            </div>
+          </div>
+
+          <div class="m-field">
+            <button type="button" class="m-link" (click)="toggleModalPicker('folders')">Select folders</button>
+            <div class="m-chips" *ngIf="modalDraft.folders.length">
+              <span class="chip" *ngFor="let f of modalDraft.folders">
+                <fvdr-icon name="folder" />
+                {{ f }}
+                <button type="button" class="chip-x" [attr.aria-label]="'Remove ' + f" (click)="modalRemoveFolder(f, $event)">
+                  <fvdr-icon name="close" />
+                </button>
+              </span>
+            </div>
+            <div class="m-panel" *ngIf="modalPicker === 'folders'">
+              <fvdr-checkbox
+                *ngFor="let f of folderOptions"
+                [label]="f"
+                [checked]="modalDraft.folders.includes(f)"
+                (checkedChange)="modalToggleFolder(f)"
+              />
+            </div>
+          </div>
+
+        </div>
+      </fvdr-modal>
+
       <fvdr-toast-host />
     </div>
   `,
@@ -694,6 +843,34 @@ const SEED_RULES: FileTypeRule[] = [
     }
     .picker--groups { width: 280px; }
 
+    /* "Set permissions by file type" dialog (version A) */
+    .m-form { display: flex; flex-direction: column; gap: var(--space-4); }
+    .m-field { position: relative; display: flex; flex-direction: column; gap: var(--space-2); }
+    .m-label { font-size: var(--font-size-base); font-weight: 600; color: var(--color-text-primary); }
+    .m-full { width: 100%; }
+    .m-panel {
+      display: flex; flex-direction: column; gap: var(--space-2);
+      max-height: 240px; overflow-y: auto;
+      padding: var(--space-3);
+      border: 1px solid var(--color-divider);
+      border-radius: var(--radius-md);
+      background: var(--color-stone-0);
+    }
+    .m-panel .perm-option { height: 40px; }
+    .m-panel .picker-sub { padding-left: var(--space-6); }
+    .m-link {
+      align-self: flex-start;
+      background: none; border: none; padding: 0; cursor: pointer;
+      font: inherit; font-size: var(--font-size-base); color: var(--color-primary-500);
+    }
+    .m-chips { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+    .clear-btn {
+      position: absolute; right: var(--space-8); top: 50%; transform: translateY(-50%);
+      background: none; border: none; padding: 0; cursor: pointer;
+      display: inline-flex; color: var(--color-stone-600);
+    }
+    .clear-btn:hover { color: var(--color-text-primary); }
+
     /* Single permission shown in preview (version A) */
     .perm-value {
       min-height: 36px; width: 100%;
@@ -828,6 +1005,14 @@ export class PermissionsFileTypeRulesComponent implements OnInit, OnDestroy {
   pickerQuery = '';
   /** Open row actions menu (version A). */
   menuFor: number | null = null;
+
+  /** "Set permissions by file type" dialog, used for Add rule in version A. */
+  modalOpen = false;
+  modalDraft: ModalDraft = { types: [], groups: [], level: DEFAULT_LEVEL, applyNoAccess: false, folders: [] };
+  modalErrors: FieldErrors = {};
+  modalPicker: ModalPicker | null = null;
+  private ignoreNextModalClose = false;
+  readonly folderOptions = FOLDER_OPTIONS;
 
   navItems: SidebarNavItem[] = [];
 
@@ -977,9 +1162,146 @@ export class PermissionsFileTypeRulesComponent implements OnInit, OnDestroy {
   }
 
   addRule(): void {
-    if (this.drafts[0]) return;
     this.menuFor = null;
+    if (this.variant === 'read') {
+      this.openModal();
+      return;
+    }
+    if (this.drafts[0]) return;
     this.ensure(0, null);
+  }
+
+  // ── "Set permissions by file type" dialog (version A) ─────
+
+  openModal(): void {
+    this.modalDraft = { types: [], groups: [], level: DEFAULT_LEVEL, applyNoAccess: false, folders: [] };
+    this.modalErrors = {};
+    this.modalPicker = null;
+    this.modalOpen = true;
+  }
+
+  closeModal(): void {
+    this.modalOpen = false;
+    this.modalPicker = null;
+  }
+
+  /** The DS modal emits `closed` right after `confirmed`; a failed Apply must keep the dialog open. */
+  onModalClosed(): void {
+    if (this.ignoreNextModalClose) {
+      this.ignoreNextModalClose = false;
+      return;
+    }
+    this.closeModal();
+  }
+
+  toggleModalPicker(kind: ModalPicker): void {
+    this.modalPicker = this.modalPicker === kind ? null : kind;
+    this.pickerQuery = '';
+  }
+
+  isModalTypeSelected(type: string): boolean {
+    return this.modalDraft.types.includes(type);
+  }
+
+  allModalTypesOf(types: string[]): boolean {
+    return types.length > 0 && types.every(t => this.isModalTypeSelected(t));
+  }
+
+  someModalTypesOf(types: string[]): boolean {
+    return types.some(t => this.isModalTypeSelected(t)) && !this.allModalTypesOf(types);
+  }
+
+  modalToggleType(type: string): void {
+    const list = this.modalDraft.types;
+    this.modalDraft = { ...this.modalDraft, types: list.includes(type) ? list.filter(t => t !== type) : [...list, type] };
+    this.modalErrors = { ...this.modalErrors, types: undefined };
+  }
+
+  modalToggleCategory(types: string[], checked: boolean): void {
+    const rest = this.modalDraft.types.filter(t => !types.includes(t));
+    this.modalDraft = { ...this.modalDraft, types: checked ? [...rest, ...types] : rest };
+    this.modalErrors = { ...this.modalErrors, types: undefined };
+  }
+
+  isModalGroupSelected(group: string): boolean {
+    return this.modalDraft.groups.includes(group);
+  }
+
+  modalToggleGroup(group: string): void {
+    const list = this.modalDraft.groups;
+    let next: string[];
+    if (group === ALL_GROUPS) {
+      next = list.includes(ALL_GROUPS) ? [] : [ALL_GROUPS];
+    } else {
+      const without = list.filter(g => g !== ALL_GROUPS);
+      next = without.includes(group) ? without.filter(g => g !== group) : [...without, group];
+    }
+    this.modalDraft = { ...this.modalDraft, groups: next };
+    this.modalErrors = { ...this.modalErrors, groups: undefined };
+  }
+
+  modalToggleFolder(folder: string): void {
+    const list = this.modalDraft.folders;
+    this.modalDraft = { ...this.modalDraft, folders: list.includes(folder) ? list.filter(f => f !== folder) : [...list, folder] };
+  }
+
+  modalRemoveType(type: string, event: MouseEvent): void {
+    event.stopPropagation();
+    this.modalDraft = { ...this.modalDraft, types: this.modalDraft.types.filter(t => t !== type) };
+  }
+
+  modalRemoveGroup(group: string, event: MouseEvent): void {
+    event.stopPropagation();
+    this.modalDraft = { ...this.modalDraft, groups: this.modalDraft.groups.filter(g => g !== group) };
+  }
+
+  modalRemoveFolder(folder: string, event: MouseEvent): void {
+    event.stopPropagation();
+    this.modalDraft = { ...this.modalDraft, folders: this.modalDraft.folders.filter(f => f !== folder) };
+  }
+
+  modalClearTypes(event: MouseEvent): void {
+    event.stopPropagation();
+    this.modalDraft = { ...this.modalDraft, types: [] };
+  }
+
+  modalClearGroups(event: MouseEvent): void {
+    event.stopPropagation();
+    this.modalDraft = { ...this.modalDraft, groups: [] };
+  }
+
+  modalPickLevel(level: number): void {
+    this.modalDraft = { ...this.modalDraft, level };
+    this.modalPicker = null;
+  }
+
+  setApplyNoAccess(checked: boolean): void {
+    this.modalDraft = { ...this.modalDraft, applyNoAccess: checked };
+  }
+
+  applyModal(): void {
+    const d = this.modalDraft;
+    const errors: FieldErrors = {};
+    if (!d.types.length) errors.types = 'Choose at least one file type';
+    if (!d.groups.length) errors.groups = 'Choose at least one group';
+    this.modalErrors = errors;
+    if (errors.types || errors.groups) {
+      this.ignoreNextModalClose = true;
+      return;
+    }
+
+    const rule: FileTypeRule = {
+      id: this.nextRuleId++,
+      enabled: true,
+      types: [...d.types],
+      groups: [...d.groups],
+      level: d.level,
+      applyNoAccess: d.applyNoAccess,
+      folders: [...d.folders],
+    };
+    this.rules = [rule, ...this.rules];
+    this.toast.show({ variant: 'success', message: 'File type rule saved. Existing files were updated.' });
+    this.closeModal();
   }
 
   startEdit(row: TableRow, event: MouseEvent): void {
@@ -1127,7 +1449,7 @@ export class PermissionsFileTypeRulesComponent implements OnInit, OnDestroy {
       if (key === 0) {
         rules = [{ id: this.nextRuleId++, ...values }, ...rules];
       } else {
-        rules = rules.map(r => (r.id === key ? { id: key, ...values } : r));
+        rules = rules.map(r => (r.id === key ? { ...r, ...values } : r));
       }
     }
     this.rules = rules;
@@ -1154,6 +1476,7 @@ export class PermissionsFileTypeRulesComponent implements OnInit, OnDestroy {
   onEscape(): void {
     this.picker = null;
     this.menuFor = null;
+    this.modalPicker = null;
   }
 
   ngOnInit(): void { this.tracker.trackPageView(SLUG); }
