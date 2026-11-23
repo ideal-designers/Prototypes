@@ -235,12 +235,13 @@ const SEED_RULES: FileTypeRule[] = [
                 <span *ngIf="variant !== 'read'">Status</span>
                 <span>File type</span>
                 <span>Groups</span>
-                <div class="perm-heads">
+                <div class="perm-heads" *ngIf="variant !== 'read'">
                   <div class="perm-head" *ngFor="let c of permCols">
                     <fvdr-icon [name]="c.icon" />
                     <span>{{ c.label }}</span>
                   </div>
                 </div>
+                <span *ngIf="variant === 'read'">Permission</span>
                 <span *ngIf="variant === 'read'"></span>
               </div>
 
@@ -381,8 +382,12 @@ const SEED_RULES: FileTypeRule[] = [
                 </div>
 
                 <!-- Permission level: a dropdown while editing in A, otherwise the cumulative bar -->
-                <div class="cell-field" *ngIf="variant === 'read' && row.editing; else barTpl">
-                  <div class="field perm-field" [class.is-open]="isPicker(row, 'perm')" (click)="openPicker(row, 'perm')">
+                <div class="cell-field" *ngIf="variant === 'read'; else barTpl">
+                  <div class="perm-value" *ngIf="!row.editing">
+                    <fvdr-icon [name]="permIcon(levelOf(row))" />
+                    <span>{{ levelLabels[levelOf(row)] }}</span>
+                  </div>
+                  <div class="field perm-field" *ngIf="row.editing" [class.is-open]="isPicker(row, 'perm')" (click)="openPicker(row, 'perm')">
                     <fvdr-icon [name]="permIcon(levelOf(row))" />
                     <span>{{ levelLabels[levelOf(row)] }}</span>
                     <fvdr-icon name="chevron-down" class="field-chev" />
@@ -600,7 +605,7 @@ const SEED_RULES: FileTypeRule[] = [
       grid-template-columns: 64px minmax(190px, 1fr) minmax(220px, 1.3fr) 434px;
     }
     .rule-grid.grid--read {
-      grid-template-columns: minmax(190px, 1fr) minmax(220px, 1.3fr) 434px 40px;
+      grid-template-columns: minmax(190px, 1fr) minmax(220px, 1.3fr) 240px 40px;
     }
     .tbl-head {
       min-height: 48px;
@@ -688,6 +693,14 @@ const SEED_RULES: FileTypeRule[] = [
       display: flex; flex-direction: column; gap: var(--space-2);
     }
     .picker--groups { width: 280px; }
+
+    /* Single permission shown in preview (version A) */
+    .perm-value {
+      min-height: 36px; width: 100%;
+      display: flex; align-items: center; gap: var(--space-2);
+      font-size: var(--font-size-base); color: var(--color-text-primary);
+    }
+    .perm-value fvdr-icon { color: var(--color-text-secondary); }
 
     /* Permission dropdown (version A) */
     .perm-field { width: 240px; cursor: pointer; flex-wrap: nowrap; }
