@@ -31,7 +31,7 @@ interface Row { n: TreeNode; level: number; folder: boolean; open: boolean; inde
   template: `
     <div class="app">
       <fvdr-sidebar-nav variant="vdr" accountName="Nike" accountMark="N" [items]="navItems"
-        [collapsed]="flyoutOpen" (collapsedChange)="flyoutOpen = $event"></fvdr-sidebar-nav>
+        [collapsed]="sidebarCollapsed" (collapsedChange)="sidebarCollapsed = $event"></fvdr-sidebar-nav>
 
       <div class="col">
         <fvdr-header [breadcrumbs]="crumbs" [actions]="headerActions" userName="A I"></fvdr-header>
@@ -61,8 +61,9 @@ interface Row { n: TreeNode; level: number; folder: boolean; open: boolean; inde
               <span class="top__spacer"></span>
               <button type="button" class="ibtn" aria-label="Sources" fvdrTooltip="Sources"><fvdr-icon name="note"></fvdr-icon></button>
             </div>
-            <div class="top top--bare" *ngIf="!turns.length && !flyoutOpen">
-              <button type="button" class="ibtn" aria-label="Show chats" fvdrTooltip="Show chats" (click)="flyoutOpen = true"><fvdr-icon name="sidebar-mode"></fvdr-icon></button>
+            <!-- always rendered in the empty state (button just hides) so opening Chats never shifts the centred block vertically -->
+            <div class="top top--bare" *ngIf="!turns.length">
+              <button type="button" class="ibtn" aria-label="Show chats" fvdrTooltip="Show chats" [style.visibility]="flyoutOpen ? 'hidden' : 'visible'" (click)="flyoutOpen = true"><fvdr-icon name="sidebar-mode"></fvdr-icon></button>
             </div>
 
             <!-- Messages -->
@@ -80,8 +81,8 @@ interface Row { n: TreeNode; level: number; folder: boolean; open: boolean; inde
                     </div>
                     <ng-container *ngIf="!t.busy && t.scope as s">
                       <div class="a__body">
-                        <ng-container>{{ s.picker === 'popover' ? 'According to the documents in scope, I found FY2025 revenue was' : 'FY2025 revenue was' }} <strong>$448M</strong>, up 12% from $400M in FY2024<span class="a__cites"><span class="cite">1</span><span class="cite">2</span></span>.
-                          Growth came mainly from direct-to-consumer sales (+21%) and price increases in Europe (+4%). Wholesale was flat.</ng-container>
+                        {{ s.picker === 'popover' ? 'According to the documents in scope, I found FY2025 revenue was' : 'FY2025 revenue was' }} <strong>$448M</strong>, up 12% from $400M in FY2024<span class="a__cites"><span class="cite">1</span><span class="cite">2</span></span>.
+                        Growth came mainly from direct-to-consumer sales (+21%) and price increases in Europe (+4%). Wholesale was flat.
                       </div>
 
                       
@@ -369,11 +370,13 @@ export class AiDocScopeComponent implements OnInit, OnDestroy {
   readonly recentThreads = CHAT_THREADS.filter(t => !t.pinned);
 
   // ── Shell ──
+  /** The main menu and the Chats panel are independent: each has its own control. */
+  sidebarCollapsed = false;
   flyoutOpen = false;
   crumbs: BreadcrumbItem[] = [{ id: 'ai', label: 'AI assistant' }];
   headerActions: HeaderAction[] = [{ id: 'help', icon: 'help' }];
   navItems: SidebarNavItem[] = [
-    { id: 'ai', label: 'AI assistant', icon: 'ai-assistant', iconActive: 'ai-assistant', active: true },
+    { id: 'ai', label: 'AI assistant', icon: 'ai-assistant-logo', iconActive: 'ai-assistant-logo', active: true },
     { id: 'dashboard', label: 'Dashboard', icon: 'nav-overview', iconActive: 'nav-overview-active' },
     { id: 'documents', label: 'Documents', icon: 'documents', iconActive: 'documents-active', children: [{ id: 'all', label: 'All' }] },
     { id: 'participants', label: 'Participants', icon: 'users-groups', iconActive: 'users-groups-active' },
@@ -495,7 +498,9 @@ export class AiDocScopeComponent implements OnInit, OnDestroy {
     if (this.streaming || !prompt.trim()) return;
     if (!this.turns.length) {
       this.chatTitle = prompt === REVENUE_QUESTION ? 'What was our revenue growth in FY2025?' : (prompt.length > 38 ? prompt.slice(0, 38) + '…' : prompt);
+      // as in the mockup, the first message lands in the chat layout (menu collapsed, Chats panel open) — after that each toggles on its own
       this.flyoutOpen = true;
+      this.sidebarCollapsed = true;
     }
     this.lastPrompt = prompt;
     const a = 'a' + ++this.seq;
@@ -528,7 +533,7 @@ export class AiDocScopeComponent implements OnInit, OnDestroy {
     return { docs, entire: false, picker: this.picker };
   }
 
-  reset(): void { this.newChat(); this.resetScope(); this.pickerOpen = false; this.flyoutOpen = false; }
+  reset(): void { this.newChat(); this.resetScope(); this.pickerOpen = false; this.flyoutOpen = false; this.sidebarCollapsed = false; }
 
   @HostListener('document:keydown.escape') onEsc(): void { if (this.pickerOpen) this.cancel(); }
   /** Click outside the popover closes it (the chip and the popover itself are excluded). */
