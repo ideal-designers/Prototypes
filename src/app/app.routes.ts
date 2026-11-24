@@ -309,6 +309,11 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./prototypes/advisory-banners/advisory-banners.component').then(m => m.AdvisoryBannersComponent),
   },
+    {
+    path: 'ai-doc-scope',
+    loadComponent: () =>
+      import('./prototypes/ai-doc-scope/ai-doc-scope.component').then(m => m.AiDocScopeComponent),
+  },
   // PROTO_ROUTES_PLACEHOLDER
   {
     path: '**',

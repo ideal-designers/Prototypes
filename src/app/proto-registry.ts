@@ -413,5 +413,13 @@ export const PROTO_REGISTRY: ProtoMeta[] = [
     status: 'wip',
     description: 'Ideals points banners: large dashboard banner and compact project banner, with counter roll-up, hover and shine effects',
   },
+    {
+    slug: 'ai-doc-scope',
+    title: 'AI Assistant — Document scope',
+    module: 'Documents',
+    figma: 'https://www.figma.com/design/Vhy3jLaJ9nasbzTtqbu3qB/AI-assistant?node-id=1620-151965',
+    status: 'wip',
+    description: 'Choose which folders and files the AI assistant answers from — popover vs modal picker',
+  },
   // REGISTRY_PLACEHOLDER
 ];
