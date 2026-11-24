@@ -234,5 +234,9 @@ export const PROTO_META: Record<string, ProtoMetaInfo> = {
   "advisory-banners": {
     "updated": "2026-11-18T12:35:18+01:00",
     "author": "Nikita Tonkonozhenko"
+  },
+  "ai-doc-scope": {
+    "updated": "2026-11-24T10:19:42+01:00",
+    "author": "olenazhyvodorova-sketch"
   }
 };
