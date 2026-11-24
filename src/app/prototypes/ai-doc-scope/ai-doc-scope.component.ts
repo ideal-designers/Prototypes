@@ -123,7 +123,6 @@ interface Row { n: TreeNode; level: number; folder: boolean; open: boolean; inde
               <div class="filters">
                 <button type="button" class="chip" [class.chip--on]="pickerOpen" (click)="togglePicker()" aria-haspopup="dialog" [attr.aria-expanded]="pickerOpen">
                   <fvdr-icon name="folders"></fvdr-icon><span>{{ scopeLabel }}</span><fvdr-icon name="chevron-down" class="chip__arrow"></fvdr-icon></button>
-                <button *ngIf="limited" type="button" class="reset" (click)="resetScope()">Reset</button>
               </div>
               <div class="field" [class.field--focus]="focused" [class.field--live]="streaming">
                 <textarea #input class="field__in" rows="1" placeholder="Ask AI assistant" [(ngModel)]="draft"
@@ -281,8 +280,6 @@ interface Row { n: TreeNode; level: number; folder: boolean; open: boolean; inde
     .chip:hover, .chip--on { background: var(--color-hover-bg); }
     .chip fvdr-icon { font-size: var(--font-size-lg, 16px); color: var(--color-text-secondary); }
     .chip .chip__arrow { font-size: var(--text-caption1-size, 12px); }
-    .reset { height: 32px; padding: 0 var(--space-2); border: none; background: transparent; border-radius: var(--radius-sm); cursor: pointer; font-size: var(--font-size-base, 14px); color: var(--color-text-secondary); }
-    .reset:hover { background: var(--color-hover-bg); color: var(--color-text-primary); }
     .field { display: flex; align-items: center; gap: var(--space-2); min-height: 48px; padding: var(--space-2) var(--space-4); box-sizing: border-box;
       background: var(--color-stone-0); border: 1px solid var(--color-stone-500); border-radius: var(--radius-sm); }
     .field--focus { border-color: var(--color-primary-500); }
