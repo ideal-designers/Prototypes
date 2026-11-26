@@ -100,3 +100,53 @@ export const AI_SCOPE_ICON: Record<AiScopeKind, FvdrFileType> = {
   document: 'pdf',
   selection: 'placeholder',
 };
+
+// ── V1.1: chat scope, sources panel, answer coverage ─────────────────────────
+
+/** A folder or file in the scope picker tree. Folders carry children; files are leaves. */
+export interface AiScopeNode {
+  id: string;
+  name: string;
+  type: FvdrFileType;
+  /** Parent path shown under a file in the dialog's Selected list, e.g. "3. Commercial". */
+  path?: string;
+  children?: AiScopeNode[];
+}
+
+/** One file in the Sources panel "By file" view, with the citation numbers it backs. */
+export interface AiSourceFile {
+  doc: AiDocRef;
+  /** Where in the file: "Page 14, 18", "Sheet “Revenue”", "Section 2 · Pages 9–10". */
+  locator?: string;
+  citations: number[];
+  /** Version marker when the cited version is not the latest, e.g. "v2". */
+  version?: string;
+}
+
+export interface AiSourceFolder {
+  name: string;
+  files: AiSourceFile[];
+}
+
+/** One citation in the "By question" view. */
+export interface AiSourceCitation {
+  n: number;
+  doc: AiDocRef;
+  locator?: string;
+  /** The quoted passage, shown when the citation is opened. */
+  quote?: string;
+}
+
+export interface AiSourceQuestion {
+  question: string;
+  citations: AiSourceCitation[];
+}
+
+/**
+ * How much of the question the answer could cover inside the chat's scope.
+ *  complete  — all requested data found in the whole-project scope
+ *  narrowed  — all data found, but the user narrowed the scope (folders / files)
+ *  partial   — some data was not found in scope
+ *  not-found — nothing in scope; the assistant does not guess
+ */
+export type AiCoverageState = 'complete' | 'narrowed' | 'partial' | 'not-found';

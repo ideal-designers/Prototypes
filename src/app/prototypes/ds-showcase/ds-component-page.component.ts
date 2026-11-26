@@ -10,6 +10,7 @@ import {
   SmartSearchResult, DocInfoField, AiStat, AiBarItem, AiPersonRow,
   BreadcrumbItem, HeaderNavItem, HeaderAction, StatusBtnVariant,
   BadgeVariant, EmptyStateStep, EMPTY_STATE_ILLUSTRATIONS, BADGE_COLORS,
+  AiScopeNode, AiScopeSelection, AiSourceFolder, AiSourceQuestion,
 } from '../../shared/ds';
 import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, ComponentCategory } from './ds-registry';
 
@@ -3212,6 +3213,14 @@ interface SidebarGroup { category: (typeof DS_CATEGORIES)[number]; items: Compon
         <!-- AI SUGGESTIONS -->
         <ng-container *ngSwitchCase="'ai-suggestions'">
           <div class="examples-group">
+            <h3 class="examples-group__title">Select — pick several (Chat 1.1 · What next, multiple selection)</h3>
+            <div class="examples-row examples-row--chat">
+              <fvdr-ai-suggestions layout="select" title="What contract do you mean?"
+                [items]="['Master Services Agreement — ACME Inc.', 'Supply agreement 2024 — Globex', 'NDA — Initech']"
+                (submitted)="onAiPrompt($event.join(' + '))" (dismissed)="onAiPrompt('Dismissed')"></fvdr-ai-suggestions>
+            </div>
+          </div>
+          <div class="examples-group">
             <h3 class="examples-group__title">Wrap — default</h3>
             <div class="examples-row examples-row--chat">
               <fvdr-ai-suggestions
@@ -3473,6 +3482,16 @@ interface SidebarGroup { category: (typeof DS_CATEGORIES)[number]; items: Compon
               <fvdr-ai-composer placeholder="Ask about this folder…"></fvdr-ai-composer>
             </div>
           </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Banner — after a scope is applied (Chat 1.1)</h3>
+            <div class="examples-row examples-row--stack examples-row--chat">
+              <div>
+                <fvdr-ai-scope-bar variant="banner" changeLabel="Edit" label="Answers are limited to 1 folder and 2 files (5 documents)"
+                  (changeRequested)="onAiPrompt('Edit scope')" (resetRequested)="onAiPrompt('Reset to all files')"></fvdr-ai-scope-bar>
+                <fvdr-ai-composer placeholder="Ask AI assistant"></fvdr-ai-composer>
+              </div>
+            </div>
+          </div>
         </ng-container>
 
         <!-- AI INLINE PROMPT -->
@@ -3597,6 +3616,63 @@ interface SidebarGroup { category: (typeof DS_CATEGORIES)[number]; items: Compon
             <h3 class="examples-group__title">Compact — the assistant header</h3>
             <div class="examples-row examples-row--chat">
               <fvdr-ai-usage-meter [used]="940" [limit]="1000" [compact]="true" (upgradeRequested)="onAiPrompt('Open billing')"></fvdr-ai-usage-meter>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- ═══ AI SCOPE PICKER ═══ -->
+        <ng-container *ngSwitchCase="'ai-scope-picker'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">Popover — opens above the composer</h3>
+            <div class="examples-row examples-row--chat" style="flex-direction:column; align-items:flex-start; gap:12px">
+              <fvdr-ai-scope-picker mode="popover" [open]="true" [nodes]="demoScopeTree" [selected]="demoScopeIds"
+                (applied)="onDemoScope($event)" (closed)="onAiPrompt('Closed')"></fvdr-ai-scope-picker>
+              <fvdr-ai-scope-bar variant="banner" changeLabel="Edit" [label]="demoScopeLabel"
+                (changeRequested)="demoScopeDialog = true" (resetRequested)="onDemoScope({ ids: [], folders: 0, files: 0, documents: 0 })"></fvdr-ai-scope-bar>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Dialog — the full picker</h3>
+            <fvdr-btn label="Open the dialog" variant="secondary" size="m" (clicked)="demoScopeDialog = true"></fvdr-btn>
+            <fvdr-ai-scope-picker mode="dialog" [open]="demoScopeDialog" projectName="Project Atlas"
+              [nodes]="demoScopeTree" [selected]="demoScopeIds"
+              (applied)="onDemoScope($event)" (closed)="demoScopeDialog = false"></fvdr-ai-scope-picker>
+          </div>
+        </ng-container>
+
+        <!-- ═══ AI SOURCES PANEL ═══ -->
+        <ng-container *ngSwitchCase="'ai-sources-panel'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">By file · By question — next to the conversation</h3>
+            <div class="drawer-demo" style="height:620px">
+              <div class="drawer-demo__list drawer-demo__list--blank" style="padding:24px">
+                <fvdr-btn *ngIf="!demoSourcesOpen" label="11 sources" variant="secondary" size="s" iconName="link" (clicked)="demoSourcesOpen = true"></fvdr-btn>
+              </div>
+              <fvdr-ai-sources-panel *ngIf="demoSourcesOpen" mode="push" [folders]="demoSourceFolders" [questions]="demoSourceQuestions"
+                (closed)="demoSourcesOpen = false" (docOpened)="onAiDoc($event)"
+                (exportRequested)="onAiPrompt('Export list')" (useAsScope)="onAiPrompt('Use as chat scope')"></fvdr-ai-sources-panel>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- ═══ AI COVERAGE ═══ -->
+        <ng-container *ngSwitchCase="'ai-coverage'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">Full answer — in scope · narrowed scope</h3>
+            <div class="examples-row examples-row--stack examples-row--chat">
+              <fvdr-ai-coverage state="complete" [used]="2" [inScope]="11" (scopeRequested)="onAiPrompt('View scope')"></fvdr-ai-coverage>
+              <fvdr-ai-coverage state="narrowed" scopeLabel="1. Financial and 2 selected files" (scopeRequested)="onAiPrompt('Edit scope')"></fvdr-ai-coverage>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Partial answer · not found</h3>
+            <div class="examples-row examples-row--stack examples-row--chat">
+              <fvdr-ai-coverage state="partial" [used]="2" [inScope]="11"
+                [missing]="['regional breakdown outside Europe', 'FY2026 forecast']"
+                (expandScope)="onAiPrompt('Expand scope')" (searchAll)="onAiPrompt('Search all files')"></fvdr-ai-coverage>
+              <fvdr-ai-coverage state="not-found"
+                hint="Files outside this chat’s scope, for example in “1. Financial”, may contain this data."
+                (expandScope)="onAiPrompt('Expand scope')" (searchAll)="onAiPrompt('Search all files')"></fvdr-ai-coverage>
             </div>
           </div>
         </ng-container>
@@ -5984,6 +6060,75 @@ export class DsComponentPageComponent implements OnInit, OnDestroy {
 
   demoFloatingPanelItems: FloatingPanelItem[] = [];
   demoFpActiveId = '';
+
+  // ── AI V1.1 demos (scope picker, sources panel) ──
+  readonly demoScopeTree: AiScopeNode[] = [
+    { id: 'f1', name: '1. Financial', type: 'folder', children: [
+      { id: 'd11', name: '1.1 Audited financial statements FY2025.pdf', type: 'pdf', path: '1. Financial' },
+      { id: 'd12', name: '1.2 Management accounts Q3 2026.xlsx', type: 'xls', path: '1. Financial' },
+      { id: 'd13', name: '1.3 Revenue by channel FY2025.xlsx', type: 'xls', path: '1. Financial' },
+    ] },
+    { id: 'f2', name: '2. Legal', type: 'folder', children: [
+      { id: 'd21', name: '2.1 SPA.pdf', type: 'pdf', path: '2. Legal' },
+      { id: 'd22', name: '2.2 Supplier agreements summary.xlsx', type: 'xls', path: '2. Legal' },
+    ] },
+    { id: 'f3', name: '3. Commercial', type: 'folder', children: [
+      { id: 'd31', name: '3.1 Europe pricing review.pdf', type: 'pdf', path: '3. Commercial' },
+      { id: 'd32', name: '3.2 Wholesale contracts overview.docx', type: 'doc', path: '3. Commercial' },
+    ] },
+    { id: 'f5', name: '5. Management', type: 'folder', children: [
+      { id: 'd51', name: '5.1 Board minutes Oct 2026.pdf', type: 'pdf', path: '5. Management' },
+      { id: 'd52', name: '5.2 Management presentation.pptx', type: 'ppt', path: '5. Management' },
+    ] },
+  ];
+  demoScopeIds: string[] = ['f1', 'd31'];
+  demoScopeLabel = 'Answers are limited to 1 folder and 1 file (4 documents)';
+  demoScopeDialog = false;
+  onDemoScope(sel: AiScopeSelection): void {
+    this.demoScopeIds = sel.ids;
+    const part = (k: number, w: string) => k ? `${k} ${w}${k === 1 ? '' : 's'}` : '';
+    this.demoScopeLabel = sel.ids.length
+      ? `Answers are limited to ${[part(sel.folders, 'folder'), part(sel.files, 'file')].filter(Boolean).join(' and ')} (${sel.documents} documents)`
+      : 'Answers use all files and folders';
+  }
+
+  demoSourcesOpen = true;
+  private srcDoc = (id: string, name: string, type: AiDocRef['type']): AiDocRef => ({ id, name, type });
+  readonly demoSourceFolders: AiSourceFolder[] = [
+    { name: '1. Financial', files: [
+      { doc: this.srcDoc('d11', '1.1 Audited financial statements FY2025.pdf', 'pdf'), locator: 'Page 14, 18', citations: [1, 2] },
+      { doc: this.srcDoc('d12', '1.2 Management accounts Q3 2026.xlsx', 'xls'), locator: 'Sheet “Revenue”', citations: [3] },
+      { doc: this.srcDoc('d13', '1.3 Revenue by channel FY2025.xlsx', 'xls'), locator: 'Sheets “DTC”, “Wholesale”, “Europe”', citations: [4, 5, 6] },
+    ] },
+    { name: '3. Commercial', files: [
+      { doc: this.srcDoc('d31', '3.1 Europe pricing review.pdf', 'pdf'), locator: 'Section 2 · Pages 9–10', citations: [7, 8], version: 'v2' },
+      { doc: this.srcDoc('d32', '3.2 Wholesale contracts overview.docx', 'doc'), locator: 'Section 4 · Page 12', citations: [9] },
+    ] },
+    { name: '5. Management', files: [
+      { doc: this.srcDoc('d51', '5.1 Board minutes Oct 2026.pdf', 'pdf'), locator: 'Page 6', citations: [10] },
+      { doc: this.srcDoc('d52', '5.2 Management presentation.pptx', 'ppt'), locator: 'Slide 18', citations: [11] },
+    ] },
+  ];
+  readonly demoSourceQuestions: AiSourceQuestion[] = [
+    { question: 'What was our revenue growth in FY2025 and what drove it?', citations: [
+      { n: 1, doc: this.srcDoc('d11', '1.1 Audited financial statements FY2025.pdf', 'pdf'), locator: 'Page 14' },
+      { n: 2, doc: this.srcDoc('d13', '1.3 Revenue by channel FY2025.xlsx', 'xls'), locator: 'Sheet “DTC”' },
+      { n: 3, doc: this.srcDoc('d31', '3.1 Europe pricing review.pdf', 'pdf'), locator: 'Section 2 · Page 9',
+        quote: 'Europe net revenue grew 9%, of which 4 pts came from list price increases implemented in March 2025…' },
+      { n: 4, doc: this.srcDoc('d51', '5.1 Board minutes Oct 2026.pdf', 'pdf'), locator: 'Page 6' },
+      { n: 5, doc: this.srcDoc('d12', '1.2 Management accounts Q3 2026.xlsx', 'xls'), locator: 'Sheet “Revenue”' },
+    ] },
+    { question: 'Break down DTC growth by region', citations: [
+      { n: 6, doc: this.srcDoc('d13', '1.3 Revenue by channel FY2025.xlsx', 'xls'), locator: 'Sheet “Europe”' },
+      { n: 7, doc: this.srcDoc('d31', '3.1 Europe pricing review.pdf', 'pdf'), locator: 'Page 10' },
+      { n: 8, doc: this.srcDoc('d32', '3.2 Wholesale contracts overview.docx', 'doc'), locator: 'Page 12' },
+      { n: 9, doc: this.srcDoc('d52', '5.2 Management presentation.pptx', 'ppt'), locator: 'Slide 18' },
+    ] },
+    { question: 'Any one-off items in FY2025 revenue?', citations: [
+      { n: 10, doc: this.srcDoc('d11', '1.1 Audited financial statements FY2025.pdf', 'pdf'), locator: 'Page 18' },
+      { n: 11, doc: this.srcDoc('d51', '5.1 Board minutes Oct 2026.pdf', 'pdf'), locator: 'Page 6' },
+    ] },
+  ];
 
   // ── Drawer + Empty state demos ──
   readonly demoDrawerItems: { ref: string; name: string; status: string; variant: BadgeVariant }[] = [

@@ -778,6 +778,7 @@ const aiSuggestions = ai({
     { index: 3, part: 'Stack variant', spec: "flex-column, chips full width — for narrow shells" },
   ],
   states: [
+    { name: 'Select', description: "layout=\"select\": a checklist card (Figma What next · multiple selection) — title, options, optional free-text row, \"n selected\" and Send. Emits submitted(string[])." },
     { name: 'Wrap',   description: "Default — chips flow onto as many lines as they need." },
     { name: 'Stack',  description: "Narrow shells: one chip per line. A half-wrapped chip reads as broken." },
     { name: 'Capped', description: "Anything past `max` (default 4) is dropped — the point is to narrow, not to browse." },
@@ -794,7 +795,7 @@ const aiSuggestions = ai({
   (chosen)="send($event)"
 ></fvdr-ai-suggestions>`,
   claudePrompt:
-    'Build fvdr-ai-suggestions: items:string[], layout:"wrap"|"stack"="wrap", behaviour:"send"|"prefill"="send", max:number=4; output chosen:string. Renders fvdr-chip variant="grey" size="l" [clickable]="true" per item. layout="stack" for narrow shells. Keyboard: each chip is a real button in tab order.',
+    'Build fvdr-ai-suggestions: items:string[], layout:"wrap"|"stack"="wrap", behaviour:"send"|"prefill"="send", max:number=4; output chosen:string. Renders fvdr-chip variant="grey" size="l" [clickable]="true" per item. layout="stack" for narrow shells. Keyboard: each chip is a real button in tab order. layout="select" renders the multi-select card: title, allowCustom, customPlaceholder; outputs submitted(string[]), dismissed.',
 });
 
 const aiMarkdown = ai({
@@ -1263,6 +1264,7 @@ const aiScopeBar = ai({
     { index: 5, part: 'Change',    spec: "primary-coloured text button, right-aligned" },
   ],
   states: [
+    { name: 'Banner', description: "variant=\"banner\": the primary-50 strip above the composer after a scope is applied — \"Answers are limited to 1 folder and 2 files (5 documents)\" · Edit · Reset to all files (resetRequested)." },
     { name: 'Room',      description: "Whole data room — the widest scope, and the slowest." },
     { name: 'Folder',    description: "Seeded from the folder the chat was opened in." },
     { name: 'Document',  description: "Single file, the viewer's inline case." },
@@ -1283,7 +1285,7 @@ const aiScopeBar = ai({
   (changeRequested)="openScopePicker()"
 ></fvdr-ai-scope-bar>`,
   claudePrompt:
-    'Build fvdr-ai-scope-bar: kind:"room"|"folder"|"document"|"selection", label:string, docCount?:number, editable:boolean=true; output changeRequested. A single quiet row: fvdr-file-icon for the kind, the label (ellipsised, 13px --color-text-secondary), "· N documents", and a "Change" text button on the right. Height 32px, no border — it reads as a caption, not a toolbar.',
+    'Build fvdr-ai-scope-bar: kind:"room"|"folder"|"document"|"selection", label:string, docCount?:number, editable:boolean=true; output changeRequested. A single quiet row: fvdr-file-icon for the kind, the label (ellipsised, 13px --color-text-secondary), "· N documents", and a "Change" text button on the right. Height 32px, no border — it reads as a caption, not a toolbar. variant="banner" shows the applied-scope strip (label = the sentence) with Edit and Reset to all files; output resetRequested.',
 });
 
 const aiInlinePrompt = ai({
@@ -1578,6 +1580,131 @@ const aiUsageMeter = ai({
 // ─────────────────────────────────────────────────────────────────────────────
 
 /** The five atoms the section started from, plus the answer surfaces built straight on them. */
+// ─────────────────────────────────────────────────────────────────────────────
+// Chat V1.1 — scope, sources, coverage (Figma "Chat · 1.1", documented 2026-11-26)
+// ─────────────────────────────────────────────────────────────────────────────
+
+const aiScopePicker = ai({
+  id: 'ai-scope-picker',
+  name: 'AI Scope Picker',
+  selector: 'fvdr-ai-scope-picker',
+  figmaNode: 'https://www.figma.com/design/Vhy3jLaJ9nasbzTtqbu3qB/AI-Assistant?node-id=2739-60220',
+  description:
+    'Lets the user limit what the assistant may use in this chat to chosen folders and files. Popover — a compact tree above the composer. Dialog — the full picker: tree on the left, the Selected list and the document count on the right. A folder checkbox selects everything inside it; nothing selected means the whole project.',
+  whenToUse: [
+    'The scope control of the composer ("All files and folders" ▾)',
+    'Edit scope / View scope from an answer or from the scope banner',
+    'Dialog — when the user needs to review a long selection or search a big project',
+  ],
+  whenNotToUse: [
+    'Attaching one file to a single prompt — use AI Attachment',
+    'Choosing files to download or move — that is a Documents action, not chat scope',
+  ],
+  relatedComponents: ['ai-scope-bar', 'ai-composer', 'ai-coverage', 'tree'],
+  anatomy: [
+    { index: 1, part: 'Header',     spec: 'Popover: "Use in this chat" (Label L) + close · Dialog: title, subtitle, close' },
+    { index: 2, part: 'Search',     spec: 'fvdr-search M · filters the tree and opens matching folders' },
+    { index: 3, part: 'All row',    spec: 'Popover only: "All files and folders" · tri-state checkbox · total count · stone-200 strip' },
+    { index: 4, part: 'Tree',       spec: '35px rows · caret · fvdr-checkbox (mixed for partly selected folders) · fvdr-file-icon · name · leaf count · selected rows primary-50' },
+    { index: 5, part: 'Footer',     spec: 'Popover: "1 folder, 2 files selected" + "5 documents will be used" · Clear (ghost) · Apply (primary)' },
+    { index: 6, part: 'Selected',   spec: 'Dialog right pane (stone-100): cards with icon, name, "3 files" or path, remove × · Clear all · info note with the document count' },
+    { index: 7, part: 'Dialog footer', spec: '"Reset to all files" on the left · Cancel (secondary) + Apply (primary) on the right' },
+  ],
+  states: [
+    { name: 'Whole project', description: 'Nothing picked — Apply returns ids: [] and the chat uses every file' },
+    { name: 'Folder',        description: 'A fully selected folder collapses to the folder id in the result' },
+    { name: 'Mixed',         description: 'Some files in a folder — the folder checkbox shows the mixed state and the files are returned one by one' },
+  ],
+  codeSnippet: `<!-- Popover above the composer -->
+<fvdr-ai-scope-picker mode="popover" [open]="scopeOpen" [nodes]="projectTree"
+  [selected]="scopeIds" (applied)="onScope($event)" (closed)="scopeOpen = false">
+</fvdr-ai-scope-picker>
+
+<!-- Full dialog -->
+<fvdr-ai-scope-picker mode="dialog" [open]="dialogOpen" projectName="Project Atlas"
+  [nodes]="projectTree" [selected]="scopeIds"
+  (applied)="onScope($event)" (closed)="dialogOpen = false">
+</fvdr-ai-scope-picker>`,
+  claudePrompt:
+    'For chat scope use <fvdr-ai-scope-picker>: mode "popover"|"dialog", open, nodes: AiScopeNode[] {id, name, type: FvdrFileType, path?, children?}, selected: string[] (applied ids; [] = whole project), title, projectName. Output applied: AiScopeSelection {ids, folders, files, documents}; closed. The parent positions the popover (above the composer). After Apply show fvdr-ai-scope-bar variant="banner" ("Answers are limited to 1 folder and 2 files (5 documents)") with Edit / Reset to all files.',
+});
+
+const aiSourcesPanel = ai({
+  id: 'ai-sources-panel',
+  name: 'AI Sources Panel',
+  selector: 'fvdr-ai-sources-panel',
+  figmaNode: 'https://www.figma.com/design/Vhy3jLaJ9nasbzTtqbu3qB/AI-Assistant?node-id=2739-61739',
+  description:
+    'Every citation of the chat in a drawer next to the conversation. By file — grouped by folder, each file with the citation numbers it backs and an old-version marker. By question — grouped by the question asked; a citation opens its quoted passage with "Open in Documents". Footer: Export list, Use as chat scope.',
+  whenToUse: [
+    'The "N sources" action under an answer, or the sources icon in the chat header',
+    'Reviewing everything a long conversation relied on before quoting it in a memo',
+  ],
+  whenNotToUse: [
+    'The short list under a single answer — use AI Source List',
+    'One inline marker in the answer text — use AI Citation',
+  ],
+  relatedComponents: ['ai-source-list', 'ai-citation', 'drawer', 'ai-scope-picker'],
+  anatomy: [
+    { index: 1, part: 'Drawer',   spec: 'fvdr-drawer 440 · header "Sources" + total count pill · close / Esc' },
+    { index: 2, part: 'Tabs',     spec: 'fvdr-tabs S: By file · By question · divider below' },
+    { index: 3, part: 'Search',   spec: 'fvdr-search M · filters files (and questions)' },
+    { index: 4, part: 'Meta row', spec: '"11 citations from 7 files" / "3 questions · 11 citations" · Collapse all / Expand all link' },
+    { index: 5, part: 'Group',    spec: 'By file: folder strip (stone-200, Label S, count) · By question: the question (Label S, ellipsised) + "5 sources"' },
+    { index: 6, part: 'Row',      spec: 'fvdr-file-icon · name (Body 3) + locator (Caption) · version badge (blue, xs, rounded) · citation numbers · "…" (fvdrTooltip)' },
+    { index: 7, part: 'Quote',    spec: 'By question: the open citation (number turns primary) shows the quoted passage + "Open in Documents"' },
+    { index: 8, part: 'Footer',   spec: 'Export list · Use as chat scope — both secondary with icons' },
+  ],
+  codeSnippet: `<fvdr-ai-sources-panel [folders]="sourceFolders" [questions]="sourceQuestions"
+  [(view)]="sourcesView" (docOpened)="openDoc($event)"
+  (useAsScope)="scopeFromSources()" (exportRequested)="exportSources()"
+  (closed)="sourcesOpen = false">
+</fvdr-ai-sources-panel>`,
+  claudePrompt:
+    'For all citations of a chat use <fvdr-ai-sources-panel> (it is an fvdr-drawer, place it as the last child of the chat row). Inputs: folders: AiSourceFolder[] {name, files: AiSourceFile[] {doc, locator?, citations: number[], version?}}, questions: AiSourceQuestion[] {question, citations: AiSourceCitation[] {n, doc, locator?, quote?}}, view "file"|"question" (two-way), open, mode. Outputs: closed, docOpened(AiDocRef), moreClicked, exportRequested, useAsScope.',
+});
+
+const aiCoverage = ai({
+  id: 'ai-coverage',
+  name: 'AI Answer Coverage',
+  selector: 'fvdr-ai-coverage',
+  figmaNode: 'https://www.figma.com/design/Vhy3jLaJ9nasbzTtqbu3qB/AI-Assistant?node-id=2798-199636',
+  description:
+    'Says how much of the question the answer could cover inside the chat scope. Everything found — one quiet line ("Based on 2 of 11 documents in scope · All requested data found · View scope"). Something missing — a card that names what was not found and offers Expand scope and Search all files. The assistant never fills a gap by guessing; this component is where it says so.',
+  whenToUse: [
+    'Under every answer in a chat with a scope',
+    'Partial — some requested data is outside the scope',
+    'Not found — nothing in scope; the answer says it won’t guess',
+  ],
+  whenNotToUse: [
+    'Answers filtered by the user’s permissions — use AI Permission Note',
+    'A failed request (timeout, rate limit) — use AI Error',
+  ],
+  relatedComponents: ['ai-permission-note', 'ai-scope-picker', 'ai-scope-bar'],
+  anatomy: [
+    { index: 1, part: 'Line',    spec: 'complete / narrowed: finished icon (primary) · Body 3 secondary · View scope / Edit scope link (semibold primary)' },
+    { index: 2, part: 'Card',    spec: 'partial / not-found: stone-100 · 1px divider · radius-md · padding 12/16/16' },
+    { index: 3, part: 'Title',   spec: 'attention icon (yellow) + Label M: "Based on 2 of 11 documents in scope" / "Not found in scope"' },
+    { index: 4, part: 'Text',    spec: 'Body 3 secondary: "Not found in scope: a · b" / where the data may be' },
+    { index: 5, part: 'Actions', spec: 'Expand scope · Search all files — fvdr-btn secondary S' },
+  ],
+  states: [
+    { name: 'complete',  description: 'Whole-project scope, all data found' },
+    { name: 'narrowed',  description: 'All data found inside a narrowed scope — the line names it and offers Edit scope' },
+    { name: 'partial',   description: 'Some data not in scope — card lists what is missing' },
+    { name: 'not-found', description: 'Nothing in scope — card says where the data may be instead' },
+  ],
+  codeSnippet: `<fvdr-ai-coverage state="complete" [used]="2" [inScope]="11"></fvdr-ai-coverage>
+<fvdr-ai-coverage state="narrowed" scopeLabel="1. Financial and 2 selected files"></fvdr-ai-coverage>
+<fvdr-ai-coverage state="partial" [used]="2" [inScope]="11"
+  [missing]="['regional breakdown outside Europe', 'FY2026 forecast']"
+  (expandScope)="openScope()" (searchAll)="searchEverywhere()">
+</fvdr-ai-coverage>
+<fvdr-ai-coverage state="not-found" hint="Files outside this chat’s scope, for example in “1. Financial”, may contain this data."></fvdr-ai-coverage>`,
+  claudePrompt:
+    'Under every scoped answer put <fvdr-ai-coverage>: state "complete"|"narrowed"|"partial"|"not-found", used, inScope, scopeLabel (narrowed), missing: string[] (partial), hint (not-found). Outputs scopeRequested (View/Edit scope), expandScope, searchAll. Never let an answer that missed data look complete.',
+});
+
 export const DS_AI_SHIPPED: ComponentDocEntry[] = [
   aiComposer,
   aiSteps,
@@ -1609,6 +1736,9 @@ export const DS_AI_PLANNED: ComponentDocEntry[] = [
   aiSourceList,
   aiPermissionNote,
   aiScopeBar,
+  aiScopePicker,
+  aiSourcesPanel,
+  aiCoverage,
   aiInlinePrompt,
   // Shells, history & governance
   aiPanel,

@@ -5,7 +5,7 @@ import { ButtonComponent } from '../button/button.component';
 import { BehaviorSubject } from 'rxjs';
 import { Injectable } from '@angular/core';
 
-export type ModalSize = 's' | 'md' | 'm' | 'l' | 'xl';
+export type ModalSize = 's' | 'md' | 'm' | 'l' | 'xl' | 'xxl';
 
 export interface ModalConfig {
   id?: string;
@@ -47,16 +47,20 @@ export interface ModalConfig {
     <div *ngIf="visible" class="modal-overlay" (click)="onOverlayClick($event)">
       <div class="modal modal--{{ size }}" (click)="$event.stopPropagation()">
         <div class="modal__header">
-          <span class="modal__title">{{ title }}</span>
+          <div class="modal__heading">
+            <span class="modal__title">{{ title }}</span>
+            <span *ngIf="subtitle" class="modal__subtitle">{{ subtitle }}</span>
+          </div>
           <button class="modal__close" (click)="close()">
             <fvdr-icon name="close" />
           </button>
         </div>
-        <div class="modal__body">
+        <div class="modal__body" [class.modal__body--flush]="flush">
           <ng-content></ng-content>
           <p *ngIf="content" class="modal__content-text">{{ content }}</p>
         </div>
         <div *ngIf="confirmLabel || cancelLabel" class="modal__footer">
+          <span class="modal__footer-start"><ng-content select="[modal-footer-start]"></ng-content></span>
           <fvdr-btn *ngIf="cancelLabel" [label]="cancelLabel" [variant]="cancelVariant" (clicked)="cancel()" />
           <fvdr-btn *ngIf="confirmLabel" [label]="confirmLabel" [variant]="confirmVariant || 'primary'" [disabled]="confirmDisabled" (clicked)="confirm()" />
         </div>
@@ -92,6 +96,7 @@ export interface ModalConfig {
     .modal--m  { width: 520px; }
     .modal--l  { width: 640px; }
     .modal--xl { width: 800px; }
+    .modal--xxl { width: 920px; }
 
     .modal__header {
       display: flex;
@@ -115,6 +120,20 @@ export interface ModalConfig {
       color: var(--color-text-primary);
       line-height: var(--text-sub2-lh);
     }
+
+    .modal__header:has(.modal__subtitle) { align-items: flex-start; }
+    .modal__header:has(+ .modal__body--flush) { padding-bottom: var(--space-4); }
+    .modal__heading { display: flex; flex-direction: column; gap: var(--space-1); min-width: 0; }
+    .modal__subtitle {
+      font-family: var(--font-family);
+      font-size: var(--text-body3-size);
+      line-height: var(--text-body3-lh);
+      color: var(--color-text-secondary);
+    }
+    .modal__body--flush { padding: 0; border-top: 1px solid var(--color-divider); }
+    .modal__footer-start { margin-right: auto; display: inline-flex; align-items: center; gap: var(--space-4); }
+    .modal__footer-start:empty { display: none; }
+    .modal__body--flush + .modal__footer { border-top: 1px solid var(--color-divider); padding-top: var(--space-4); }
 
     .modal__close {
       display: flex;
@@ -168,6 +187,10 @@ export class ModalComponent {
   @Input() cancelVariant: 'ghost' | 'secondary' = 'ghost';
   @Input() confirmDisabled = false;
   @Input() closeOnOverlay = true;
+  /** One line under the title (Figma Modal description). */
+  @Input() subtitle = '';
+  /** Body without padding, divided from header and footer — for split layouts. */
+  @Input() flush = false;
   @Output() closed = new EventEmitter<void>();
   @Output() confirmed = new EventEmitter<void>();
   @Output() cancelled = new EventEmitter<void>();

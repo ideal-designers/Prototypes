@@ -177,6 +177,9 @@ import { AiThreadListComponent } from './components/ai/ai-thread-list/ai-thread-
 import { AiFeedbackModalComponent } from './components/ai/ai-feedback-modal/ai-feedback-modal.component';
 import { AiConsentBannerComponent } from './components/ai/ai-consent-banner/ai-consent-banner.component';
 import { AiUsageMeterComponent } from './components/ai/ai-usage-meter/ai-usage-meter.component';
+import { AiScopePickerComponent } from './components/ai/ai-scope-picker/ai-scope-picker.component';
+import { AiSourcesPanelComponent } from './components/ai/ai-sources-panel/ai-sources-panel.component';
+import { AiCoverageComponent } from './components/ai/ai-coverage/ai-coverage.component';
 
 // ─── Re-exports ───────────────────────────────────────────────────────────────
 
@@ -390,6 +393,11 @@ export { AiConsentBannerComponent } from './components/ai/ai-consent-banner/ai-c
 export type { AiConsentVariant, AiConsentTerms } from './components/ai/ai-consent-banner/ai-consent-banner.component';
 
 export { AiUsageMeterComponent } from './components/ai/ai-usage-meter/ai-usage-meter.component';
+export { AiScopePickerComponent } from './components/ai/ai-scope-picker/ai-scope-picker.component';
+export type { AiScopePickerMode, AiScopeSelection } from './components/ai/ai-scope-picker/ai-scope-picker.component';
+export { AiSourcesPanelComponent } from './components/ai/ai-sources-panel/ai-sources-panel.component';
+export type { AiSourcesView } from './components/ai/ai-sources-panel/ai-sources-panel.component';
+export { AiCoverageComponent } from './components/ai/ai-coverage/ai-coverage.component';
 
 export { AI_SCOPE_ICON } from './components/ai/ai.models';
 export type {
@@ -403,6 +411,12 @@ export type {
   AiChatMessage,
   AiThread,
   AiScopeKind,
+  AiScopeNode,
+  AiSourceFile,
+  AiSourceFolder,
+  AiSourceCitation,
+  AiSourceQuestion,
+  AiCoverageState,
 } from './components/ai/ai.models';
 
 /** Convenience array — spread into component imports[] */
@@ -499,6 +513,9 @@ export const DS_COMPONENTS = [
   AiFeedbackModalComponent,
   AiConsentBannerComponent,
   AiUsageMeterComponent,
+  AiScopePickerComponent,
+  AiSourcesPanelComponent,
+  AiCoverageComponent,
 ];
 export { TooltipDirective } from './components/tooltip/tooltip.directive';
 export type { TooltipPosition } from './components/tooltip/tooltip.directive';
