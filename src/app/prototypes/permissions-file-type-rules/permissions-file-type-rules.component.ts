@@ -13,14 +13,17 @@ const SLUG = 'permissions-file-type-rules';
  *                         "Set permissions by file type" dialog, prefilled with the rule.
  *  C · Click to edit      The table stays read-only until you click a permission
  *                         segment or the edit icon next to the chips.
+ *  D · Inline + dropdown  Every row is editable in place, as in the inline version:
+ *                         status toggle, chip inputs, and a permission dropdown.
+ *                         Add rule creates an inline row with Cancel / Save.
  *
  * All versions share one draft model: a change creates a draft for its row, and the
  * footer's Cancel / Save applies every draft at once.
  */
 
 type View = 'documents' | 'rules';
-type Variant = 'read' | 'click';
-type FieldKind = 'types' | 'groups';
+type Variant = 'read' | 'click' | 'inline';
+type FieldKind = 'types' | 'groups' | 'perm';
 
 interface PermCol { label: string; icon: FvdrIconName }
 
@@ -96,6 +99,7 @@ const DEFAULT_LEVEL = 2;
 const VARIANTS: SegmentItem[] = [
   { id: 'read',   label: 'A · Read-only + Edit' },
   { id: 'click',  label: 'C · Click to edit' },
+  { id: 'inline', label: 'D · Inline + dropdown' },
 ];
 
 const DOCUMENT_GROUPS = ['Yellow Co.', 'Red Co.', 'Green Co.', 'Blue Co.', 'White team'];
@@ -243,15 +247,16 @@ const SEED_RULES: FileTypeRule[] = [
             <div class="rules-table" *ngIf="tableRows.length; else emptyState">
 
               <div class="tbl-head rule-grid" [ngClass]="gridClass">
+                <span *ngIf="variant === 'inline'">Status</span>
                 <span>File type</span>
                 <span>Groups</span>
-                <div class="perm-heads" *ngIf="variant !== 'read'">
+                <div class="perm-heads" *ngIf="variant === 'click'">
                   <div class="perm-head" *ngFor="let c of permCols">
                     <fvdr-icon [name]="c.icon" />
                     <span>{{ c.label }}</span>
                   </div>
                 </div>
-                <span *ngIf="variant === 'read'">Permission</span>
+                <span *ngIf="variant !== 'click'">Permission</span>
                 <span *ngIf="variant === 'read'"></span>
               </div>
 
@@ -260,8 +265,16 @@ const SEED_RULES: FileTypeRule[] = [
                 class="tbl-row rule-grid"
                 [ngClass]="gridClass"
                 [class.is-editing]="row.editing"
-                [class.is-muted]="hasDrafts && !row.editing"
+                [class.is-muted]="variant !== 'inline' && hasDrafts && !row.editing"
               >
+                <!-- Status (D only) -->
+                <div class="cell-status" *ngIf="variant === 'inline'">
+                  <fvdr-toggle
+                    [checked]="stateOf(row).enabled"
+                    (checkedChange)="onToggle(row, $event)"
+                  />
+                </div>
+
                 <!-- File types -->
                 <div class="cell-field">
                   <ng-container *ngIf="inputMode(row); else staticTypes">
@@ -383,16 +396,36 @@ const SEED_RULES: FileTypeRule[] = [
                   </ng-template>
                 </div>
 
-                <!-- Permission level: a single value in A (edited in the dialog), otherwise the cumulative bar -->
-                <div class="cell-field" *ngIf="variant === 'read'; else barTpl">
+                <!-- Permission level: a value in A (edited in the dialog), a dropdown in D, the bar in C -->
+                <div class="cell-field" *ngIf="variant === 'read'">
                   <div class="perm-value">
                     <fvdr-icon [name]="permIcon(levelOf(row))" />
                     <span>{{ levelLabels[levelOf(row)] }}</span>
                   </div>
                 </div>
 
-                <ng-template #barTpl>
-                <!-- Clickable segments where the version allows editing. -->
+                <div class="cell-field" *ngIf="variant === 'inline'">
+                  <div class="field perm-field" [class.is-open]="isPicker(row, 'perm')" (click)="openPicker(row, 'perm')">
+                    <fvdr-icon [name]="permIcon(levelOf(row))" />
+                    <span>{{ levelLabels[levelOf(row)] }}</span>
+                    <fvdr-icon name="chevron-down" class="field-chev" />
+                  </div>
+                  <div class="picker picker--perm" *ngIf="isPicker(row, 'perm')">
+                    <button
+                      *ngFor="let o of levelOptions"
+                      type="button"
+                      class="perm-option"
+                      [class.is-selected]="o.level === levelOf(row)"
+                      (click)="pickLevel(row, o.level, $event)"
+                    >
+                      <fvdr-icon [name]="o.icon" />
+                      <span>{{ o.label }}</span>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Clickable segments in C. -->
+                <ng-container *ngIf="variant === 'click'">
                 <div class="bar">
                   <span
                     *ngFor="let c of cells(levelOf(row)); let i = index"
@@ -407,7 +440,7 @@ const SEED_RULES: FileTypeRule[] = [
                     (click)="onLevelClick(row, i + 1, $event)"
                   ></span>
                 </div>
-                </ng-template>
+                </ng-container>
 
                 <!-- Row actions (A only) -->
                 <div class="cell-actions" *ngIf="variant === 'read'">
@@ -724,6 +757,9 @@ const SEED_RULES: FileTypeRule[] = [
     .rule-grid.grid--click {
       grid-template-columns: minmax(190px, 1fr) minmax(220px, 1.3fr) 434px;
     }
+    .rule-grid.grid--inline {
+      grid-template-columns: 64px minmax(190px, 1fr) minmax(220px, 1.3fr) 240px;
+    }
     .rule-grid.grid--read {
       grid-template-columns: minmax(190px, 1fr) minmax(220px, 1.3fr) 240px 40px;
     }
@@ -999,7 +1035,10 @@ export class PermissionsFileTypeRulesComponent implements OnInit, OnDestroy {
 
   get hasDrafts(): boolean { return Object.keys(this.drafts).length > 0; }
 
-  get gridClass(): string { return this.variant === 'read' ? 'grid--read' : 'grid--click'; }
+  get gridClass(): string {
+    if (this.variant === 'read') return 'grid--read';
+    return this.variant === 'inline' ? 'grid--inline' : 'grid--click';
+  }
 
   get breadcrumbs(): { id: string; label: string }[] {
     return this.view === 'documents'
@@ -1048,7 +1087,7 @@ export class PermissionsFileTypeRulesComponent implements OnInit, OnDestroy {
 
   /** Fields render as inputs only while the row is being edited. */
   inputMode(row: TableRow): boolean {
-    return row.editing;
+    return this.variant === 'inline' || row.editing;
   }
 
   /** Edit icon next to chips — only in C, only on rows that are not being edited. */
@@ -1059,6 +1098,20 @@ export class PermissionsFileTypeRulesComponent implements OnInit, OnDestroy {
   /** Permission segments respond to clicks: in C always, in A only while editing. */
   isLive(row: TableRow): boolean {
     return this.variant !== 'read' || row.editing;
+  }
+
+  /** Status toggle (D): changes the draft; Save applies it. */
+  onToggle(row: TableRow, checked: boolean): void {
+    this.ensure(row.key, row.rule);
+    this.patch(row.key, { enabled: checked });
+  }
+
+  /** Permission dropdown (D): choosing a level sets the draft and closes the list. */
+  pickLevel(row: TableRow, level: number, event: MouseEvent): void {
+    event.stopPropagation();
+    this.ensure(row.key, row.rule);
+    this.patch(row.key, { level });
+    this.picker = null;
   }
 
   trackRow = (_: number, row: TableRow): number => row.key;
