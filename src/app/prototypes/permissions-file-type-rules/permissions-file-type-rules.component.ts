@@ -9,8 +9,8 @@ const SLUG = 'permissions-file-type-rules';
 /**
  * Permissions — File type rules, three interaction versions behind a switcher.
  *
- *  A · Read-only + Edit   Rules table is read-only. The row "…" menu opens Edit,
- *                         which turns that row's cells into inputs. No status column.
+ *  A · Read-only + Edit   Rules table is read-only. The row "…" menu opens Edit in the
+ *                         "Set permissions by file type" dialog, prefilled with the rule.
  *  C · Click to edit      The table stays read-only until you click a permission
  *                         segment or the edit icon next to the chips.
  *
@@ -20,7 +20,7 @@ const SLUG = 'permissions-file-type-rules';
 
 type View = 'documents' | 'rules';
 type Variant = 'read' | 'click';
-type FieldKind = 'types' | 'groups' | 'perm';
+type FieldKind = 'types' | 'groups';
 
 interface PermCol { label: string; icon: FvdrIconName }
 
@@ -383,28 +383,11 @@ const SEED_RULES: FileTypeRule[] = [
                   </ng-template>
                 </div>
 
-                <!-- Permission level: a dropdown while editing in A, otherwise the cumulative bar -->
+                <!-- Permission level: a single value in A (edited in the dialog), otherwise the cumulative bar -->
                 <div class="cell-field" *ngIf="variant === 'read'; else barTpl">
-                  <div class="perm-value" *ngIf="!row.editing">
+                  <div class="perm-value">
                     <fvdr-icon [name]="permIcon(levelOf(row))" />
                     <span>{{ levelLabels[levelOf(row)] }}</span>
-                  </div>
-                  <div class="field perm-field" *ngIf="row.editing" [class.is-open]="isPicker(row, 'perm')" (click)="openPicker(row, 'perm')">
-                    <fvdr-icon [name]="permIcon(levelOf(row))" />
-                    <span>{{ levelLabels[levelOf(row)] }}</span>
-                    <fvdr-icon name="chevron-down" class="field-chev" />
-                  </div>
-                  <div class="picker picker--perm" *ngIf="isPicker(row, 'perm')">
-                    <button
-                      *ngFor="let o of levelOptions"
-                      type="button"
-                      class="perm-option"
-                      [class.is-selected]="o.level === levelOf(row)"
-                      (click)="pickLevel(row, o.level, $event)"
-                    >
-                      <fvdr-icon [name]="o.icon" />
-                      <span>{{ o.label }}</span>
-                    </button>
                   </div>
                 </div>
 
@@ -1000,6 +983,8 @@ export class PermissionsFileTypeRulesComponent implements OnInit, OnDestroy {
   modalErrors: FieldErrors = {};
   modalPicker: ModalPicker | null = null;
   private ignoreNextModalClose = false;
+  /** Rule being edited in the dialog; null when adding a new rule. */
+  modalRuleId: number | null = null;
   readonly folderOptions = FOLDER_OPTIONS;
 
   navItems: SidebarNavItem[] = [];
@@ -1159,8 +1144,11 @@ export class PermissionsFileTypeRulesComponent implements OnInit, OnDestroy {
 
   // ── "Set permissions by file type" dialog (version A) ─────
 
-  openModal(): void {
-    this.modalDraft = { types: [], groups: [], level: DEFAULT_LEVEL, applyNoAccess: false, folders: [] };
+  openModal(rule: FileTypeRule | null = null): void {
+    this.modalRuleId = rule ? rule.id : null;
+    this.modalDraft = rule
+      ? { types: [...rule.types], groups: [...rule.groups], level: rule.level, applyNoAccess: !!rule.applyNoAccess, folders: [...(rule.folders ?? [])] }
+      : { types: [], groups: [], level: DEFAULT_LEVEL, applyNoAccess: false, folders: [] };
     this.modalErrors = {};
     this.modalPicker = null;
     this.modalOpen = true;
@@ -1276,16 +1264,19 @@ export class PermissionsFileTypeRulesComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const rule: FileTypeRule = {
-      id: this.nextRuleId++,
-      enabled: true,
+    const values = {
       types: [...d.types],
       groups: [...d.groups],
       level: d.level,
       applyNoAccess: d.applyNoAccess,
       folders: [...d.folders],
     };
-    this.rules = [rule, ...this.rules];
+    if (this.modalRuleId === null) {
+      this.rules = [{ id: this.nextRuleId++, enabled: true, ...values }, ...this.rules];
+    } else {
+      const id = this.modalRuleId;
+      this.rules = this.rules.map(r => (r.id === id ? { ...r, ...values } : r));
+    }
     this.toast.show({ variant: 'success', message: 'File type rule saved. Existing files were updated.' });
     this.closeModal();
   }
@@ -1293,7 +1284,7 @@ export class PermissionsFileTypeRulesComponent implements OnInit, OnDestroy {
   startEdit(row: TableRow, event: MouseEvent): void {
     event.stopPropagation();
     this.menuFor = null;
-    if (row.rule) this.ensure(row.key, row.rule);
+    if (row.rule) this.openModal(row.rule);
   }
 
   toggleMenu(key: number, event: MouseEvent): void {
@@ -1320,14 +1311,6 @@ export class PermissionsFileTypeRulesComponent implements OnInit, OnDestroy {
 
   permIcon(level: number): FvdrIconName {
     return PERM_ICONS[level];
-  }
-
-  /** Version A dropdown: choosing a permission sets the draft level and closes the list. */
-  pickLevel(row: TableRow, level: number, event: MouseEvent): void {
-    event.stopPropagation();
-    this.ensure(row.key, row.rule);
-    this.patch(row.key, { level });
-    this.picker = null;
   }
 
   openPicker(row: TableRow, kind: FieldKind): void {
