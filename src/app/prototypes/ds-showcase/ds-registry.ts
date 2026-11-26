@@ -2475,6 +2475,134 @@ const bottomSheet: ComponentDocEntry = {
     'On mobile use <fvdr-bottom-sheet> instead of fvdr-modal: visible, title, confirmLabel, cancelLabel, confirmVariant (primary|danger); outputs confirmed, cancelled, closed. Content goes in ng-content.',
 };
 
+const drawer: ComponentDocEntry = {
+  id: 'drawer',
+  name: 'Drawer',
+  selector: 'fvdr-drawer',
+  category: 'layout',
+  status: 'stable',
+  figmaNode: '40068-1409',
+  description:
+    'The details of one item (a row, a request, a file) next to the list it came from. Full height on the right; it pushes the page on wide screens and overlays below the breakpoint. Header Title or Item (status + ref, "n of N", ↑↓), content sections, and an optional footer for actions that save or send.',
+  whenToUse: [
+    'Details, review or editing of an item picked from a list or a table',
+    'Working through items one by one (Item header: counter and ↑↓)',
+    'A conversation thread next to its list (Q&A, width 564)',
+    'A file preview next to the Documents list (Viewer, width 640)',
+  ],
+  whenNotToUse: [
+    'A short confirmation or one focused decision — use fvdr-modal',
+    'A task with several steps or more fields than fit one screen — use a page',
+    'Feedback on the result of an action — use a toast or fvdr-inline-message',
+  ],
+  anatomy: [
+    { index: 1, part: 'Close',          spec: 'Always first on the left of the header · ghost icon button · Esc closes too · emits (closed)' },
+    { index: 2, part: 'Header content', spec: 'Title (Label L) or Item: fvdr-badge status + ref (Label M) · slot [drawer-header] replaces it' },
+    { index: 3, part: 'Header end',     spec: 'Icon actions [drawer-actions] (with fvdrTooltip) · Item: "n of N" (Caption) + ↑↓ · emits (prev) / (next)' },
+    { index: 4, part: 'Header frame',   spec: '64 high · padding 0 16 · 8 between elements · divider bottom' },
+    { index: 5, part: 'Content',        spec: 'Default slot · padding 24 · 24 between sections · space instead of dividers · scrolls on its own' },
+    { index: 6, part: 'Footer',         spec: '[drawer-footer] Primary left + Secondary · [drawer-footer-end] pinned right · padding 16/24 · gap 12 · divider top · hidden when empty or [showFooter]=false' },
+    { index: 7, part: 'Container',      spec: 'Width 440 / 564 / 640 only · full height · stone-0 · divider left · no shadow (push) / shadow-modal (overlay)' },
+  ],
+  states: [
+    { name: 'Push',    description: 'mode="auto" at ≥ 1280 (440) or ≥ 1440 (564 / 640): part of the layout, the list reflows' },
+    { name: 'Overlay', description: 'Below those widths: fixed on the right over the page, with a shadow and no scrim' },
+    { name: 'Read-only', description: 'No footer; object actions go to the header as icon buttons with tooltips' },
+  ],
+  tokens: [
+    { token: '--color-stone-0',  value: '#FFFFFF', usage: 'Background' },
+    { token: '--color-divider',  value: '#DEE0EB', usage: 'Left edge, header bottom, footer top' },
+    { token: '--space-16',       value: '64px',    usage: 'Header height' },
+    { token: '--space-6',        value: '24px',    usage: 'Content padding and section gap, footer side padding' },
+    { token: '--shadow-modal',   value: '0 8px 32px rgba(0,0,0,.2)', usage: 'Overlay mode only' },
+  ],
+  usedIn: ['DD checklist (Checklist matching)', 'Q&A', 'Insights', 'Permissions drafts'],
+  relatedComponents: ['modal', 'bottom-sheet', 'table', 'badge'],
+  codeSnippet: `<div class="page-row" style="display:flex; height:100%">
+  <app-request-list [selectedId]="current?.id" (open)="current = $event" style="flex:1; min-width:0" />
+
+  <fvdr-drawer *ngIf="current" header="item"
+    status="To review" statusVariant="warning" [ref]="current.ref"
+    [index]="i" [total]="requests.length"
+    (prev)="go(-1)" (next)="go(1)" (closed)="current = null">
+
+    <section>…</section>
+
+    <fvdr-btn drawer-footer label="Save" variant="primary" (clicked)="save()" />
+    <fvdr-btn drawer-footer label="Cancel" variant="secondary" (clicked)="current = null" />
+    <fvdr-btn drawer-footer-end label="Ask in Q&A" variant="ghost" />
+  </fvdr-drawer>
+</div>`,
+  claudePrompt:
+    'For item details next to a list use <fvdr-drawer> as the last child of a horizontal flex row — never hand-build a drawer. Inputs: width 440|564|640 (440 default; 564 Q&A; 640 Viewer), header "title"|"item", title, status + statusVariant (BadgeVariant) + ref, index (0-based) + total for "n of N" and ↑↓, showFooter, mode "auto"|"push"|"overlay". Outputs: closed (close icon or Esc), prev, next. Slots: [drawer-header], [drawer-actions] (icon buttons with fvdrTooltip), default content (sections with 24 gap, no dividers), [drawer-footer] (Primary left, Secondary next), [drawer-footer-end]. Read-only drawers have no footer. Keep the row that opened the drawer highlighted (primary-50) and replace the content when another row is clicked — never stack drawers.',
+};
+
+const emptyState: ComponentDocEntry = {
+  id: 'empty-state',
+  name: 'Empty State',
+  selector: 'fvdr-empty-state',
+  category: 'feedback',
+  status: 'stable',
+  figmaNode: '25440-12257',
+  description:
+    'What a page, panel or modal shows when there is nothing to list yet: a DS illustration, a title and one line that says what to do. Three types — Default, Buttons (with actions) and Onboarding (numbered steps) — in Big and Small sizes.',
+  whenToUse: [
+    'A list, table or folder with no items yet (Default or Buttons)',
+    'No results for a search or a filter — illustration "not-found", no buttons',
+    'A feature that needs setup in a few steps (Onboarding)',
+    'Small — inside a modal, a drawer or a card; Big — a page or a large panel',
+  ],
+  whenNotToUse: [
+    'An error or a failed load — use fvdr-inline-message or an Inline panel',
+    'The AI assistant — use fvdr-ai-empty-state',
+    'A one-word placeholder inside a table cell — use "—"',
+  ],
+  anatomy: [
+    { index: 1, part: 'Illustration', spec: '176×120 DS illustration ([illustration] name, assets/illustrations/empty/) · 32 to the text (24 when Title=No)' },
+    { index: 2, part: 'Title',        spec: 'Big: Sub 2 (18/24 semibold) · Small: Label L (16/24) · text-primary · optional' },
+    { index: 3, part: 'Description',  spec: 'Big: Body 2 (15/24) · Small: Body 3 (14/20) · text-secondary · 8 below the title' },
+    { index: 4, part: 'Actions',      spec: 'Buttons type: fvdr-btn (M) in the [empty-actions] slot · 24 below the text · 16 apart' },
+    { index: 5, part: 'Steps',        spec: 'Onboarding: 176-wide columns — illustration, numbered bullet (20, stone-300) + step name, text, one action; dashed arrow between' },
+  ],
+  states: [
+    { name: 'Default',    description: 'Illustration + title + description' },
+    { name: 'Buttons',    description: 'Default + one or two actions (the main one primary)' },
+    { name: 'Onboarding', description: 'Title + description + 2–3 numbered steps, each with its own action' },
+    { name: 'Title = No', description: 'Small only: illustration + one line of secondary text' },
+  ],
+  tokens: [
+    { token: '--text-sub2-size',      value: '18px',    usage: 'Big title' },
+    { token: '--text-label-l-size',   value: '16px',    usage: 'Small title' },
+    { token: '--color-text-secondary', value: '#5F616A', usage: 'Description, step text' },
+    { token: '--color-stone-300',     value: '#ECEEF9', usage: 'Step number circle' },
+    { token: '--space-8',             value: '32px',    usage: 'Illustration to text' },
+  ],
+  usedIn: ['Documents', 'Participants', 'Q&A', 'Search results', 'Recycle bin'],
+  relatedComponents: ['ai-empty-state', 'drop-area', 'button'],
+  codeSnippet: `<!-- Default -->
+<fvdr-empty-state illustration="not-found" title="No matching results"
+  description="Try adjusting the filters or using another search query">
+</fvdr-empty-state>
+
+<!-- Buttons -->
+<fvdr-empty-state illustration="no-documents" title="You have no documents yet"
+  description="Drag and drop files here or start by creating folder structure">
+  <fvdr-btn empty-actions label="Import folder structure" variant="secondary" iconName="folder" />
+  <fvdr-btn empty-actions label="Upload" variant="primary" iconName="upload" />
+</fvdr-empty-state>
+
+<!-- Small, no title -->
+<fvdr-empty-state size="small" illustration="no-documents" description="You have no folders yet" />
+
+<!-- Onboarding -->
+<fvdr-empty-state title="No index file uploaded yet"
+  description="To bulk rename files and folders, upload index file below"
+  [steps]="steps" (stepAction)="onStep($event)">
+</fvdr-empty-state>`,
+  claudePrompt:
+    'For empty lists, folders, searches and setup screens use <fvdr-empty-state> — never hand-build an empty state or an <img> + text block. Inputs: illustration (EmptyStateIllustration: not-found, no-documents, upload, search-file, no-text-found, files-uploaded, no-users, no-projects, no-questions, no-notes, no-notifications, report, trash-empty, access-denied, no-connection, no-recovery-codes, export-xls, rename, drop-xls), title, description, size "big"|"small", steps: EmptyStateStep[] {illustration, title, text, actionLabel, actionIcon?, actionVariant?} for Onboarding; output stepAction(index). Actions go in the [empty-actions] slot as fvdr-btn size m: primary for the main action, secondary for the rest. Search with no results: illustration "not-found", no buttons. Small inside modals, drawers and cards.',
+};
+
 const askIdeon: ComponentDocEntry = {
   id: 'ask-ideon',
   name: 'Ask Ideon',
@@ -2709,6 +2837,8 @@ export const DS_REGISTRY: ComponentDocEntry[] = [
   pageHeader,
   statusBtn,
   bottomSheet,
+  drawer,
+  emptyState,
   // AI Assistant — ask-ideon and thinking-orbs are the section's two original atoms
   askIdeon,
   thinkingOrbs,

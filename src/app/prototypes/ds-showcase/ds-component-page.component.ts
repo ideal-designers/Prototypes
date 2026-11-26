@@ -9,6 +9,7 @@ import {
   AiStep, AiRating, AiDocRef, AiSummaryGroup, AiReportSection, AiChatMessage, AiThread, AiPanelMode, AiFeedback,
   SmartSearchResult, DocInfoField, AiStat, AiBarItem, AiPersonRow,
   BreadcrumbItem, HeaderNavItem, HeaderAction, StatusBtnVariant,
+  BadgeVariant, EmptyStateStep, EMPTY_STATE_ILLUSTRATIONS,
 } from '../../shared/ds';
 import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, ComponentCategory } from './ds-registry';
 
@@ -3538,6 +3539,112 @@ interface SidebarGroup { category: (typeof DS_CATEGORIES)[number]; items: Compon
           </div>
         </ng-container>
 
+        <!-- ═══ DRAWER ═══ -->
+        <ng-container *ngSwitchCase="'drawer'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">Item header — review requests one by one (push, 440)</h3>
+            <div class="drawer-demo">
+              <ul class="drawer-demo__list">
+                <li *ngFor="let r of demoDrawerItems; let i = index"
+                    class="drawer-demo__row" [class.drawer-demo__row--selected]="demoDrawerOpen && i === demoDrawerIndex"
+                    (click)="demoDrawerIndex = i; demoDrawerOpen = true">
+                  <span class="drawer-demo__ref">{{ r.ref }}</span>
+                  <span class="drawer-demo__name">{{ r.name }}</span>
+                  <fvdr-badge [label]="r.status" [variant]="r.variant"></fvdr-badge>
+                </li>
+              </ul>
+              <fvdr-drawer *ngIf="demoDrawerOpen" mode="push" header="item"
+                [status]="demoDrawerItems[demoDrawerIndex].status" [statusVariant]="demoDrawerItems[demoDrawerIndex].variant"
+                [ref]="demoDrawerItems[demoDrawerIndex].ref"
+                [index]="demoDrawerIndex" [total]="demoDrawerItems.length"
+                (prev)="demoDrawerIndex = demoDrawerIndex - 1" (next)="demoDrawerIndex = demoDrawerIndex + 1"
+                (closed)="demoDrawerOpen = false">
+                <section class="drawer-demo__section">
+                  <h4 class="drawer-demo__h">Request</h4>
+                  <p class="drawer-demo__p">{{ demoDrawerItems[demoDrawerIndex].name }}</p>
+                </section>
+                <section class="drawer-demo__section">
+                  <h4 class="drawer-demo__h">Linked documents</h4>
+                  <p class="drawer-demo__p drawer-demo__p--muted">Sections are separated by space, not dividers.</p>
+                </section>
+                <fvdr-btn drawer-footer label="Save" variant="primary" size="m" (clicked)="toastSvc.show({ variant: 'success', message: 'Saved' })"></fvdr-btn>
+                <fvdr-btn drawer-footer label="Cancel" variant="secondary" size="m" (clicked)="demoDrawerOpen = false"></fvdr-btn>
+                <fvdr-btn drawer-footer-end label="Ask in Q&A" variant="ghost" size="m"></fvdr-btn>
+              </fvdr-drawer>
+              <div class="drawer-demo__reopen" *ngIf="!demoDrawerOpen">
+                <fvdr-btn label="Open drawer" variant="secondary" size="s" (clicked)="demoDrawerOpen = true"></fvdr-btn>
+              </div>
+            </div>
+          </div>
+
+          <div class="examples-group">
+            <h3 class="examples-group__title">Title header, read-only — no footer, actions in the header</h3>
+            <div class="drawer-demo">
+              <div class="drawer-demo__list drawer-demo__list--blank"></div>
+              <fvdr-drawer mode="push" title="Bidder 3 – accessed files" [showFooter]="false">
+                <fvdr-btn drawer-actions variant="ghost" size="s" iconName="download" [iconOnly]="true" ariaLabel="Export Bidder 3 files"></fvdr-btn>
+                <fvdr-btn drawer-actions variant="ghost" size="s" iconName="share" [iconOnly]="true" ariaLabel="Open full view"></fvdr-btn>
+                <section class="drawer-demo__section">
+                  <h4 class="drawer-demo__h">Summary</h4>
+                  <p class="drawer-demo__p">121 of 168 files accessed since project creation</p>
+                </section>
+              </fvdr-drawer>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- ═══ EMPTY STATE ═══ -->
+        <ng-container *ngSwitchCase="'empty-state'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">Default — Big</h3>
+            <fvdr-empty-state illustration="not-found" title="No matching results"
+              description="Try adjusting the filters or using another search query"></fvdr-empty-state>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Buttons — Big</h3>
+            <fvdr-empty-state illustration="no-documents" title="You have no documents yet"
+              description="Drag and drop files here or start by creating folder structure">
+              <fvdr-btn empty-actions label="Import folder structure" variant="secondary" size="m" iconName="folder"></fvdr-btn>
+              <fvdr-btn empty-actions label="Upload" variant="primary" size="m" iconName="upload"></fvdr-btn>
+            </fvdr-empty-state>
+          </div>
+          <div class="examples-row examples-row--wrap" style="align-items:flex-start; gap:48px">
+            <div class="examples-group">
+              <h3 class="examples-group__title">Default — Small</h3>
+              <fvdr-empty-state size="small" illustration="no-projects" title="You have no folders yet"
+                description="Create new folder to copy files to this project"></fvdr-empty-state>
+            </div>
+            <div class="examples-group">
+              <h3 class="examples-group__title">Small — Title = No</h3>
+              <fvdr-empty-state size="small" illustration="no-documents" description="You have no folders yet"></fvdr-empty-state>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Buttons — Small</h3>
+            <fvdr-empty-state size="small" illustration="no-recovery-codes" title="No recovery codes"
+              description="Generate new codes to ensure you can restore account access">
+              <fvdr-btn empty-actions label="Generate new codes" variant="primary" size="m"></fvdr-btn>
+              <fvdr-btn empty-actions label="Another action" variant="secondary" size="m" iconName="edit"></fvdr-btn>
+            </fvdr-empty-state>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Onboarding</h3>
+            <fvdr-empty-state title="No index file uploaded yet"
+              description="To bulk rename files and folders, upload index file below"
+              [steps]="demoEmptySteps"
+              (stepAction)="toastSvc.show({ variant: 'info', message: 'Step ' + ($event + 1) + ': ' + demoEmptySteps[$event].actionLabel })"></fvdr-empty-state>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Illustrations — [illustration]</h3>
+            <div class="es-gallery">
+              <div class="es-gallery__item" *ngFor="let name of emptyStateIllustrations">
+                <img [src]="'assets/illustrations/empty/' + name + '.svg'" width="176" height="120" alt="" />
+                <code>{{ name }}</code>
+              </div>
+            </div>
+          </div>
+        </ng-container>
+
         <!-- ═══ BREADCRUMBS ═══ -->
         <ng-container *ngSwitchCase="'breadcrumbs'">
           <div class="examples-group">
@@ -3758,6 +3865,36 @@ interface SidebarGroup { category: (typeof DS_CATEGORIES)[number]; items: Compon
 </div>
   `,
   styles: [`
+    /* ── Drawer demo: a list + drawer row inside a framed box ── */
+    .drawer-demo {
+      display: flex;
+      height: 440px;
+      border: 1px solid var(--color-divider);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      background: var(--color-stone-0);
+    }
+    .drawer-demo__list { flex: 1; min-width: 0; margin: 0; padding: var(--space-2) 0; list-style: none; overflow-y: auto; }
+    .drawer-demo__row {
+      display: flex; align-items: center; gap: var(--space-3);
+      height: var(--space-10); padding: 0 var(--space-4);
+      cursor: pointer; font-size: var(--text-body3-size); line-height: var(--text-body3-lh);
+    }
+    .drawer-demo__row:hover { background: var(--color-stone-200); }
+    .drawer-demo__row--selected, .drawer-demo__row--selected:hover { background: var(--color-primary-50); }
+    .drawer-demo__ref { flex: none; width: var(--space-8); font-weight: var(--text-label-s-weight); }
+    .drawer-demo__name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .drawer-demo__reopen { display: flex; align-items: flex-start; padding: var(--space-4); }
+    .drawer-demo__section { display: flex; flex-direction: column; gap: var(--space-2); }
+    .drawer-demo__h { margin: 0; font-size: var(--text-label-m-size); line-height: var(--text-label-m-lh); font-weight: var(--text-label-m-weight); }
+    .drawer-demo__p { margin: 0; font-size: var(--text-body3-size); line-height: var(--text-body3-lh); }
+    .drawer-demo__p--muted { color: var(--color-text-secondary); }
+
+    /* ── Empty state illustration gallery ── */
+    .es-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(192px, 1fr)); gap: var(--space-6) var(--space-4); }
+    .es-gallery__item { display: flex; flex-direction: column; align-items: center; gap: var(--space-2); }
+    .es-gallery__item code { font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); color: var(--color-text-secondary); }
+
     .doc-page {
       display: flex;
       height: calc(100vh - var(--portal-header-h, 0px));
@@ -5785,6 +5922,24 @@ export class DsComponentPageComponent implements OnInit, OnDestroy {
 
   demoFloatingPanelItems: FloatingPanelItem[] = [];
   demoFpActiveId = '';
+
+  // ── Drawer + Empty state demos ──
+  readonly demoDrawerItems: { ref: string; name: string; status: string; variant: BadgeVariant }[] = [
+    { ref: '1.1', name: 'Articles of incorporation and amendments', status: 'Matched',   variant: 'success' },
+    { ref: '1.2', name: 'Shareholder register and cap table',      status: 'To review', variant: 'warning' },
+    { ref: '1.3', name: 'Board minutes for the last 3 years',      status: 'Gap',       variant: 'error' },
+    { ref: '1.4', name: 'Organisational chart',                    status: 'To review', variant: 'warning' },
+    { ref: '1.5', name: 'List of subsidiaries',                    status: 'Matched',   variant: 'success' },
+    { ref: '1.6', name: 'Material contracts over $1M',             status: 'To review', variant: 'warning' },
+  ];
+  demoDrawerIndex = 1;
+  demoDrawerOpen = true;
+  readonly emptyStateIllustrations = EMPTY_STATE_ILLUSTRATIONS;
+  readonly demoEmptySteps: EmptyStateStep[] = [
+    { illustration: 'export-xls', title: 'Export',        text: 'Download index file ready for editing', actionLabel: 'Export', actionIcon: 'download' },
+    { illustration: 'rename',     title: 'Add new names', text: 'Open index file and edit as required',   actionLabel: 'Edit',   actionIcon: 'edit' },
+    { illustration: 'drop-xls',   title: 'Import',        text: 'Drag and drop index file onto page or',  actionLabel: 'Choose file', actionIcon: 'plus' },
+  ];
 
   // ── Layout & navigation demos (breadcrumbs, card, headers, status button, bottom sheet) ──
   readonly demoBreadcrumbsShort: BreadcrumbItem[] = [

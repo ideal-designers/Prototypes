@@ -143,6 +143,8 @@ import { RedactionMarkCardComponent } from './components/redaction-mark-card/red
 import { GhostBtnComponent } from './components/ghost-btn/ghost-btn.component';
 import { FloatingPanelComponent } from './components/floating-panel/floating-panel.component';
 import { FilterBtnComponent } from './components/filter-btn/filter-btn.component';
+import { DrawerComponent } from './components/drawer/drawer.component';
+import { EmptyStateComponent } from './components/empty-state/empty-state.component';
 import { AskIdeonComponent } from './components/ai/ask-ideon/ask-ideon.component';
 import { ThinkingOrbsComponent } from './components/ai/thinking-orbs/thinking-orbs.component';
 import { AiOrbComponent } from './components/ai/ai-orb/ai-orb.component';
@@ -302,6 +304,10 @@ export { FloatingPanelComponent } from './components/floating-panel/floating-pan
 export type { FloatingPanelItem, FloatingPanelOrientation, FloatingPanelSize } from './components/floating-panel/floating-panel.component';
 
 export { FilterBtnComponent } from './components/filter-btn/filter-btn.component';
+export { DrawerComponent } from './components/drawer/drawer.component';
+export type { DrawerWidth, DrawerHeader, DrawerMode } from './components/drawer/drawer.component';
+export { EmptyStateComponent, EMPTY_STATE_ILLUSTRATIONS } from './components/empty-state/empty-state.component';
+export type { EmptyStateIllustration, EmptyStateSize, EmptyStateStep } from './components/empty-state/empty-state.component';
 export type { FilterBtnSize, FilterBtnColor } from './components/filter-btn/filter-btn.component';
 
 export { AskIdeonComponent } from './components/ai/ask-ideon/ask-ideon.component';
@@ -457,6 +463,8 @@ export const DS_COMPONENTS = [
   GhostBtnComponent,
   FloatingPanelComponent,
   FilterBtnComponent,
+  DrawerComponent,
+  EmptyStateComponent,
   // AI Assistant
   AskIdeonComponent,
   ThinkingOrbsComponent,

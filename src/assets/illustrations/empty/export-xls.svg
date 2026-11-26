@@ -1,0 +1,54 @@
+<svg width="176" height="120" viewBox="0 0 176 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Illustrations">
+<g id="Export XLS - Laptop">
+<ellipse id="shadow" cx="88" cy="112" rx="72" ry="8" fill="#F7F7F7"/>
+<g id="laptop">
+<path id="Rectangle 3" d="M41 42C41 40.8954 41.8954 40 43 40H133C134.105 40 135 40.8954 135 42V76V94V105H146C147.105 105 148 105.895 148 107V110C148 111.105 147.105 112 146 112H135H41H30C28.8954 112 28 111.105 28 110V107C28 105.895 28.8954 105 30 105H41V76V42Z" fill="#7FDEA5"/>
+<path id="Rectangle 1305" d="M76 106H100V108C100 109.105 99.1046 110 98 110H78C76.8954 110 76 109.105 76 108V106Z" fill="#3FB67D"/>
+<g id="content">
+<rect id="Rectangle 3_2" x="44" y="43" width="88" height="62" rx="1" fill="white"/>
+<rect id="Rectangle 1285" opacity="0.16" x="54" y="54" width="12" height="12" rx="1" fill="#BBBDC8"/>
+<rect id="Rectangle 1286" opacity="0.16" x="68" y="54" width="12" height="12" rx="1" fill="#BBBDC8"/>
+<rect id="Rectangle 1287" opacity="0.16" x="82" y="54" width="12" height="12" rx="1" fill="#BBBDC8"/>
+<rect id="Rectangle 1288" opacity="0.16" x="96" y="54" width="12" height="12" rx="1" fill="#BBBDC8"/>
+<rect id="Rectangle 1289" opacity="0.16" x="54" y="68" width="12" height="12" rx="1" fill="#BBBDC8"/>
+<rect id="Rectangle 1290" opacity="0.16" x="68" y="68" width="12" height="12" rx="1" fill="#BBBDC8"/>
+<rect id="Rectangle 1291" opacity="0.16" x="82" y="68" width="12" height="12" rx="1" fill="#BBBDC8"/>
+<rect id="Rectangle 1292" opacity="0.16" x="96" y="68" width="12" height="12" rx="1" fill="#BBBDC8"/>
+<rect id="Rectangle 1293" opacity="0.16" x="110" y="54" width="12" height="12" rx="1" fill="#BBBDC8"/>
+<rect id="Rectangle 1294" opacity="0.16" x="110" y="68" width="12" height="12" rx="1" fill="#BBBDC8"/>
+<rect id="Rectangle 1295" opacity="0.16" x="54" y="82" width="12" height="12" rx="1" fill="#BBBDC8"/>
+<rect id="Rectangle 1296" opacity="0.16" x="68" y="82" width="12" height="12" rx="1" fill="#BBBDC8"/>
+<rect id="Rectangle 1297" opacity="0.16" x="82" y="82" width="12" height="12" rx="1" fill="#BBBDC8"/>
+<rect id="Rectangle 1298" opacity="0.16" x="96" y="82" width="12" height="12" rx="1" fill="#BBBDC8"/>
+<rect id="Rectangle 1299" opacity="0.16" x="110" y="82" width="12" height="12" rx="1" fill="#BBBDC8"/>
+</g>
+</g>
+<g id="download">
+<g id="Ellipse 2" filter="url(#filter0_di_15023_113839)">
+<circle cx="88" cy="100" r="18" fill="#2C9C74"/>
+</g>
+<g id="Actions">
+<path id="Vector" d="M94.1108 102.953V106.139H81.9455V102.953H80.125V105.906C80.125 106.989 81.0109 107.875 82.0938 107.875H93.9062C94.9891 107.875 95.875 106.989 95.875 105.906V102.953H94.1108ZM92.9219 99.2125L91.5339 97.975L88.8789 100.562V92.125H87.1299V100.562L84.4661 97.975L83.0781 99.2125L88 103.938L92.9219 99.2125Z" fill="white"/>
+</g>
+</g>
+</g>
+</g>
+<defs>
+<filter id="filter0_di_15023_113839" x="68" y="78" width="40" height="42" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<feFlood flood-opacity="0" result="BackgroundImageFix"/>
+<feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+<feOffset dx="2" dy="2"/>
+<feComposite in2="hardAlpha" operator="out"/>
+<feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.04 0"/>
+<feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_15023_113839"/>
+<feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_15023_113839" result="shape"/>
+<feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+<feOffset dx="-2" dy="-4"/>
+<feGaussianBlur stdDeviation="4"/>
+<feComposite in2="hardAlpha" operator="arithmetic" k2="-1" k3="1"/>
+<feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.08 0"/>
+<feBlend mode="normal" in2="shape" result="effect2_innerShadow_15023_113839"/>
+</filter>
+</defs>
+</svg>
