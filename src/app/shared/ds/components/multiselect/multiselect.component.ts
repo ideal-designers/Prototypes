@@ -154,12 +154,15 @@ export interface MultiselectOption {
     }
 
     /* ── Label ── */
+    /* Figma: Label M for the 40px field */
     .ms-label {
-      display: block;
-      font-size: var(--text-caption1-size);
-      font-weight: 600;
+      font-family: var(--font-family);
+      font-size: var(--text-label-m-size);
+      font-weight: var(--text-label-m-weight);
+      line-height: var(--text-label-m-lh);
       color: var(--color-text-primary);
-      margin-bottom: 4px;
+      display: block;
+      margin-bottom: var(--space-1);
     }
     .ms-required { color: var(--color-error-600, #e54430); margin-left: 2px; }
 

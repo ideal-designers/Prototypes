@@ -295,7 +295,7 @@ const input: ComponentDocEntry = {
     'Date/time selection — use Datepicker or Timepicker',
   ],
   anatomy: [
-    { index: 1, part: 'Label',                  spec: 'font-size: var(--font-size-xs, 12px) · font-weight: 600 · margin-bottom: 4px' },
+    { index: 1, part: 'Label',                  spec: 'Label S / M / L by field size (14/20 · 15/20 · 16/24, 600) · --color-text-primary · 4 above the field' },
     { index: 2, part: 'Container',              spec: 'height: 32/40/48px · border: 1px solid border-input · border-radius: 4px' },
     { index: 3, part: 'Left icon (optional)',   spec: '16×16px · margin: 0 8px' },
     { index: 4, part: 'Text value',             spec: 'font-size: 13/14/15px · flex: 1' },
@@ -928,7 +928,7 @@ const textarea: ComponentDocEntry = {
   whenToUse: ['Collecting multi-line free-form text such as descriptions, notes, or messages.'],
   whenNotToUse: [],
   anatomy: [
-    { index: 1, part: 'Label',        spec: 'caption2 · color:--color-text-secondary · optional required asterisk' },
+    { index: 1, part: 'Label',        spec: 'Label S / M / L by field size (14/20 · 15/20 · 16/24, 600) · --color-text-primary · 4 above the field · optional required asterisk' },
     { index: 2, part: 'Textarea box', spec: 'min-height:80px · border:1.5px --color-stone-400 · radius:4px · padding 8·12 (s) / 8·16 (m, l) · font 14/15/16 · resize:vertical' },
     { index: 3, part: 'Char counter', spec: 'Optional (maxlength) · caption1 · right-aligned · "0 / N"' },
     { index: 4, part: 'Helper text',  spec: 'caption1 · secondary · turns --color-error-600 on error' },
@@ -1157,7 +1157,7 @@ const textEditor: ComponentDocEntry = {
   whenToUse: ['Editing formatted content such as email templates, notes, or documentation.'],
   whenNotToUse: [],
   anatomy: [
-    { index: 1, part: 'Label',        spec: 'caption2 · secondary · optional' },
+    { index: 1, part: 'Label',        spec: 'Label M (15/20, 600) · --color-text-primary · optional' },
     { index: 2, part: 'Toolbar',      spec: 'top bar · white bg · 1px --color-divider bottom border · format buttons' },
     { index: 3, part: 'Content area', spec: 'editable body · base font · min-height:120px' },
     { index: 4, part: 'Container',    spec: 'border:1.5px --color-stone-400 · radius:4px · focus:--color-primary-500' },
@@ -1288,7 +1288,7 @@ const multiselect: ComponentDocEntry = {
   whenToUse: ['Selecting multiple values from a predefined list.'],
   whenNotToUse: [],
   anatomy: [
-    { index: 1, part: 'Label',   spec: 'caption2 · secondary · optional required *' },
+    { index: 1, part: 'Label',   spec: 'Label M (15/20, 600) · --color-text-primary · optional required *' },
     { index: 2, part: 'Trigger', spec: 'text-field style · shows chips or "N selected"' },
     { index: 3, part: 'Chips',   spec: 'selected values as tokens · maxChips before "+N"' },
     { index: 4, part: 'Clear',   spec: 'bulk clear button shown when there is a selection' },
@@ -1585,7 +1585,7 @@ const range: ComponentDocEntry = {
     { index: 1, part: 'Track', spec: 'height:4px · radius:2px · --color-stone-300 (unfilled)' },
     { index: 2, part: 'Fill',  spec: '--color-primary-500 gradient up to the current value' },
     { index: 3, part: 'Thumb', spec: '18×18px · white · 2px --color-primary-500 border · shadow' },
-    { index: 4, part: 'Label', spec: 'optional caption2 label + current value' },
+    { index: 4, part: 'Label', spec: 'optional Label M (15/20, 600, text-primary) + current value' },
   ],
   tokens: [
     { token: '--color-interactive-primary', value: '#2c9c74', usage: 'Track fill and thumb color' },

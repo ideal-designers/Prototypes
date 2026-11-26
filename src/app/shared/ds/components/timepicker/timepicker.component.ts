@@ -81,13 +81,12 @@ export interface TimeValue { hours: number; minutes: number; }
     /* ── Label ── */
     .tp__label {
       font-family: var(--font-family);
-      font-weight: var(--text-label-weight);
+      font-weight: var(--text-label-m-weight);
       color: var(--color-text-primary);
-      line-height: 24px;
     }
-    .tp__label--l { font-size: var(--text-label-l-size, 16px); }
-    .tp__label--m { font-size: var(--text-label-m-size, 14px); }
-    .tp__label--s { font-size: var(--text-label-s-size, 13px); }
+    .tp__label--l { font-size: var(--text-label-l-size); line-height: var(--text-label-l-lh); }
+    .tp__label--m { font-size: var(--text-label-m-size); line-height: var(--text-label-m-lh); }
+    .tp__label--s { font-size: var(--text-label-s-size); line-height: var(--text-label-s-lh); }
 
     /* ── Field ── */
     .tp__field {

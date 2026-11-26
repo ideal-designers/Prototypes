@@ -315,10 +315,14 @@ const DEFAULT_COUNTRIES: PhoneCountry[] = [
 
     .phone__label {
       font-family: var(--font-family);
-      font-size: var(--text-caption2-size);
-      font-weight: var(--text-caption2-weight);
-      color: var(--color-text-secondary);
+      font-size: var(--text-label-m-size);
+      font-weight: var(--text-label-m-weight);
+      line-height: var(--text-label-m-lh);
+      color: var(--color-text-primary);
     }
+    /* Figma: the label scales with the field — Label S / M / L */
+    .phone--s .phone__label { font-size: var(--text-label-s-size); line-height: var(--text-label-s-lh); }
+    .phone--l .phone__label { font-size: var(--text-label-l-size); line-height: var(--text-label-l-lh); }
 
     .phone__wrapper {
       display: flex;

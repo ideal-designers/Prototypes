@@ -45,11 +45,13 @@ import { FvdrIconComponent } from '../../icons/icon.component';
   styles: [`
     .stepper { display: flex; flex-direction: column; gap: var(--space-1); }
     .stepper--disabled { opacity: 0.45; }
+    /* Figma Counter input M: Label M */
     .stepper__label {
       font-family: var(--font-family);
-      font-size: var(--text-caption2-size);
-      font-weight: var(--text-caption2-weight);
-      color: var(--color-text-secondary);
+      font-size: var(--text-label-m-size);
+      font-weight: var(--text-label-m-weight);
+      line-height: var(--text-label-m-lh);
+      color: var(--color-text-primary);
     }
     .stepper__wrapper {
       display: inline-flex;
@@ -175,9 +177,10 @@ export class ProgressComponent {
     .range__label {
       display: flex; justify-content: space-between;
       font-family: var(--font-family);
-      font-size: var(--text-caption2-size);
-      font-weight: var(--text-caption2-weight);
-      color: var(--color-text-secondary);
+      font-size: var(--text-label-m-size);
+      font-weight: var(--text-label-m-weight);
+      line-height: var(--text-label-m-lh);
+      color: var(--color-text-primary);
     }
     .range__val { color: var(--color-text-primary); font-weight: var(--text-base-s-sb-weight); }
     .range__input {

@@ -67,11 +67,14 @@ export type InputState = 'default' | 'error' | 'success' | 'disabled';
 
     .field__label {
       font-family: var(--font-family);
-      font-size: var(--text-caption2-size);
-      font-weight: var(--text-caption2-weight);
-      line-height: var(--text-caption2-lh);
-      color: var(--color-text-secondary);
+      font-size: var(--text-label-m-size);
+      font-weight: var(--text-label-m-weight);
+      line-height: var(--text-label-m-lh);
+      color: var(--color-text-primary);
     }
+    /* Figma: the label scales with the field — Label S / M / L */
+    .field--s .field__label { font-size: var(--text-label-s-size); line-height: var(--text-label-s-lh); }
+    .field--l .field__label { font-size: var(--text-label-l-size); line-height: var(--text-label-l-lh); }
     .field__required { color: var(--color-error-600); }
 
     .field__wrapper {

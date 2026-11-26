@@ -49,11 +49,13 @@ import { CalendarComponent } from '../calendar/calendar.component';
   styles: [`
     .dp { position: relative; display: flex; flex-direction: column; gap: var(--space-1); }
 
+    /* Figma: Label M for the 40px field */
     .dp__label {
       font-family: var(--font-family);
-      font-size: var(--text-caption2-size);
-      font-weight: var(--text-caption2-weight);
-      color: var(--color-text-secondary);
+      font-size: var(--text-label-m-size);
+      font-weight: var(--text-label-m-weight);
+      line-height: var(--text-label-m-lh);
+      color: var(--color-text-primary);
     }
 
     .dp__trigger {

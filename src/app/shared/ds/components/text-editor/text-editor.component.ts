@@ -44,11 +44,13 @@ import { TINYMCE_ICONS } from './editor-icons';
     }
     .editor-wrap--disabled { opacity: 0.45; pointer-events: none; }
 
+    /* Figma: field labels use Label M */
     .editor-label {
       font-family: var(--font-family);
-      font-size: var(--text-caption2-size, 12px);
-      font-weight: var(--text-caption2-weight, 500);
-      color: var(--color-text-secondary);
+      font-size: var(--text-label-m-size);
+      font-weight: var(--text-label-m-weight);
+      line-height: var(--text-label-m-lh);
+      color: var(--color-text-primary);
     }
 
     .editor-helper {
