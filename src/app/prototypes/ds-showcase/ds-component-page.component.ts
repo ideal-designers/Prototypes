@@ -9,7 +9,7 @@ import {
   AiStep, AiRating, AiDocRef, AiSummaryGroup, AiReportSection, AiChatMessage, AiThread, AiPanelMode, AiFeedback,
   SmartSearchResult, DocInfoField, AiStat, AiBarItem, AiPersonRow,
   BreadcrumbItem, HeaderNavItem, HeaderAction, StatusBtnVariant,
-  BadgeVariant, EmptyStateStep, EMPTY_STATE_ILLUSTRATIONS,
+  BadgeVariant, EmptyStateStep, EMPTY_STATE_ILLUSTRATIONS, BADGE_COLORS,
 } from '../../shared/ds';
 import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, ComponentCategory } from './ds-registry';
 
@@ -113,12 +113,10 @@ interface SidebarGroup { category: (typeof DS_CATEGORIES)[number]; items: Compon
 
           <ng-container *ngSwitchCase="'badge'">
             <div class="anatomy-wrap">
-              <fvdr-badge label="Active" variant="primary"></fvdr-badge>
-              <!-- Part labels -->
-              <div class="anatomy-label anatomy-label--top" style="top:-42px;left:50%;transform:translateX(-50%)">root</div>
-              <div class="anatomy-label anatomy-label--left" style="left:-52px;top:50%;transform:translateY(-50%)">dot</div>
-              <!-- Dimensions -->
-              <div class="dim-v" style="right:-44px;top:0;height:20px">20px</div>
+              <fvdr-badge label="To review" variant="yellow" icon="clock" size="m"></fvdr-badge>
+              <div class="anatomy-label anatomy-label--top" style="top:-42px;left:4px">icon</div>
+              <div class="anatomy-label anatomy-label--top" style="top:-42px;right:8px">label</div>
+              <div class="dim-v" style="right:-44px;top:0;height:24px">24px</div>
               <div class="dim-h" style="bottom:-28px;left:0;width:8px">8</div>
               <div class="dim-h" style="bottom:-28px;right:0;width:8px">8</div>
             </div>
@@ -1048,25 +1046,44 @@ interface SidebarGroup { category: (typeof DS_CATEGORIES)[number]; items: Compon
         <!-- BADGE -->
         <ng-container *ngSwitchCase="'badge'">
           <div class="examples-group">
-            <h3 class="examples-group__title">Variants</h3>
+            <h3 class="examples-group__title">Styles — light (default)</h3>
             <div class="examples-row examples-row--wrap">
-              <fvdr-badge label="Primary"   variant="primary"></fvdr-badge>
-              <fvdr-badge label="Success"   variant="success"></fvdr-badge>
-              <fvdr-badge label="Error"     variant="error"></fvdr-badge>
-              <fvdr-badge label="Warning"   variant="warning"></fvdr-badge>
-              <fvdr-badge label="Info"      variant="info"></fvdr-badge>
-              <fvdr-badge label="Neutral"   variant="neutral"></fvdr-badge>
+              <fvdr-badge *ngFor="let c of badgeColors" [label]="c | titlecase" [variant]="c"></fvdr-badge>
             </div>
           </div>
           <div class="examples-group">
-            <h3 class="examples-group__title">Typical labels</h3>
+            <h3 class="examples-group__title">Styles — bold</h3>
             <div class="examples-row examples-row--wrap">
-              <fvdr-badge label="Active"      variant="success"></fvdr-badge>
-              <fvdr-badge label="Inactive"    variant="neutral"></fvdr-badge>
-              <fvdr-badge label="Pending"     variant="warning"></fvdr-badge>
-              <fvdr-badge label="Failed"      variant="error"></fvdr-badge>
-              <fvdr-badge label="New"         variant="info"></fvdr-badge>
-              <fvdr-badge label="Admin"       variant="primary"></fvdr-badge>
+              <fvdr-badge *ngFor="let c of badgeColors" [label]="c | titlecase" [variant]="c" [bold]="true"></fvdr-badge>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Sizes — xs 16 · s 20 · m 24</h3>
+            <div class="examples-row examples-row--wrap" style="align-items:center">
+              <div class="example-labeled"><fvdr-badge label="Badge" variant="green" size="xs"></fvdr-badge><span>xs</span></div>
+              <div class="example-labeled"><fvdr-badge label="Badge" variant="green" size="s"></fvdr-badge><span>s</span></div>
+              <div class="example-labeled"><fvdr-badge label="Badge" variant="green" size="m"></fvdr-badge><span>m</span></div>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Rounded · icon · icon only</h3>
+            <div class="examples-row examples-row--wrap" style="align-items:center">
+              <fvdr-badge label="Rounded" variant="blue" [rounded]="true"></fvdr-badge>
+              <fvdr-badge label="Rounded bold" variant="purple" [rounded]="true" [bold]="true"></fvdr-badge>
+              <fvdr-badge label="Locked" variant="stone" icon="lock-close"></fvdr-badge>
+              <fvdr-badge label="Due today" variant="orange" icon="clock" size="m"></fvdr-badge>
+              <fvdr-badge variant="red" icon="attention" [bold]="true"></fvdr-badge>
+              <fvdr-badge variant="green" icon="check" [rounded]="true"></fvdr-badge>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Semantic aliases — success · error · warning · info · neutral</h3>
+            <div class="examples-row examples-row--wrap">
+              <fvdr-badge label="Matched"   variant="success"></fvdr-badge>
+              <fvdr-badge label="Gap"       variant="error"></fvdr-badge>
+              <fvdr-badge label="To review" variant="warning"></fvdr-badge>
+              <fvdr-badge label="Draft"     variant="info"></fvdr-badge>
+              <fvdr-badge label="Archived"  variant="neutral"></fvdr-badge>
             </div>
           </div>
         </ng-container>
@@ -5935,6 +5952,7 @@ export class DsComponentPageComponent implements OnInit, OnDestroy {
   demoDrawerIndex = 1;
   demoDrawerOpen = true;
   readonly emptyStateIllustrations = EMPTY_STATE_ILLUSTRATIONS;
+  readonly badgeColors = BADGE_COLORS;
   readonly demoEmptySteps: EmptyStateStep[] = [
     { illustration: 'export-xls', title: 'Export',        text: 'Download index file ready for editing', actionLabel: 'Export', actionIcon: 'download' },
     { illustration: 'rename',     title: 'Add new names', text: 'Open index file and edit as required',   actionLabel: 'Edit',   actionIcon: 'edit' },

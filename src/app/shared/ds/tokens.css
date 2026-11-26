@@ -238,6 +238,23 @@
   --chip-icon-grey:     #9c9ea8;
   --chip-icon-coffee:   #8c7355;
 
+  /* ── Badge text / bold fill — the -500 step of each Figma palette (Badges 37560:22038).
+        Light badge = --chip-bg-{hue} fill + this colour as text; bold badge = this colour as fill + white text. ── */
+  --badge-fg-stone:    #5f616a;  /* Stone-700 / Secondary text */
+  --badge-fg-green:    #2c9c74;
+  --badge-fg-grey:     #797979;
+  --badge-fg-red:      #de1135;  /* Severities/Error-text */
+  --badge-fg-blue:     #3b85cc;
+  --badge-fg-teal:     #0095a4;
+  --badge-fg-lime:     #5b9500;
+  --badge-fg-orange:   #df6d00;
+  --badge-fg-yellow:   #e89b00;
+  --badge-fg-coffee:   #886a53;
+  --badge-fg-magenta:  #e142bc;
+  --badge-fg-purple:   #a964f7;
+  --badge-fg-indigo:   #656ee2;
+  --badge-fg-on-bold:  #ffffff;  /* Basic colors/Button inside */
+
   /* ── Redaction mark card (Figma: 02e4Sm7wmZioAEV6imoNR7, node 17313-67932) ── */
   --redaction-status-draft:    #ffc694;  /* categories/orange — draft status square */
   --redaction-status-applied:  #b1eac2;  /* categories/green — applied status square */

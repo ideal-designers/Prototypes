@@ -151,65 +151,59 @@ const badge: ComponentDocEntry = {
   status: 'stable',
   figmaNode: '37560-22038',
   description:
-    'A small label used to highlight status, category, or count. Single size, 6 color variants.',
+    'A small, non-interactive label for a status, a category or a count. 14 Figma styles (Primary, Stone and 12 palette colours), three sizes (16 / 20 / 24), light or bold fill, square or rounded corners, an optional start icon.',
   whenToUse: [
-    'Indicate status of a record (active, inactive, pending)',
-    'Highlight a category or tag on a list item',
-    'Display a numeric count (notifications, results)',
+    'The status of a record: Matched, To review, Gap, Overdue',
+    'A category or a tag on a list item — pick a palette colour per category',
+    'A short count or a "New" marker next to a title',
+    'Bold — when the badge has to stand out on a busy row; light everywhere else',
   ],
   whenNotToUse: [
-    'Long text — badges are limited to 1–3 words or a short number',
-    'Interactive selections — use Chip instead',
-    'Progress indication — use Progress component',
+    'Long text — keep it to 1–3 words or a short number',
+    'Something the user clicks, selects or removes — use fvdr-chip or fvdr-filter-btn',
+    'The project status (Preparation, Live…) — use fvdr-status-btn / fvdr-status',
+    'An unread counter on an icon — use fvdr-counter',
   ],
   anatomy: [
-    { index: 1, part: 'Container',   spec: 'padding: 2px 8px · border-radius: 9999px (full)' },
-    { index: 2, part: 'Label text',  spec: 'font-size: var(--font-size-xs, 12px) · font-weight: 600 · line-height: 16px' },
-  ],
-  tokens: [
-    { token: '--color-interactive-primary', value: '#2c9c74', usage: 'Primary/success variant background tint' },
-    { token: '--color-danger',              value: '#e54430', usage: 'Error variant background tint' },
-    { token: '--color-text-primary',        value: '#1f2129', usage: 'Neutral variant label color' },
-    { token: '--color-text-secondary',      value: '#5f616a', usage: 'Muted variant label color' },
-    { token: '--color-feature-bg',          value: '#ebf4fd', usage: 'Info variant background' },
-    { token: '--color-selected-row',        value: '#ebf8ef', usage: 'Success variant background tint' },
-    { token: '--radius-full',               value: '9999px',  usage: 'Pill shape border-radius' },
-    { token: '--font-size-xs',              value: '12px',    usage: 'Badge label font-size' },
+    { index: 1, part: 'Container', spec: 'Height 16 / 20 / 24 (xs / s / m) · padding 4 / 6 / 8 · gap 4 · radius-sm, or radius-full with [rounded]' },
+    { index: 2, part: 'Icon',      spec: 'Optional [icon] · 14px (16px at m) · inherits the text colour' },
+    { index: 3, part: 'Label',     spec: 'Caption 2 — 12px / 600 / 16 · no wrap' },
+    { index: 4, part: 'Fill',      spec: 'Light: --chip-bg-{hue} + --badge-fg-{hue} text · Bold: --badge-fg-{hue} fill + white text' },
   ],
   states: [
-    { name: 'Default',  description: 'Static display element — not interactive. Always visible with its background color and label.' },
-    { name: 'Truncated', description: 'When label text is too long, it truncates with ellipsis. Tooltip may show full text on hover.' },
+    { name: 'Light (default)', description: 'Tinted fill, coloured text — the quiet default for lists and tables' },
+    { name: 'Bold',            description: '[bold]="true" — solid fill, white text — for the one status that must stand out' },
+    { name: 'Rounded',         description: '[rounded]="true" — pill corners (Figma Rounded=True)' },
+    { name: 'Icon only',       description: '[icon] without [label] — a square badge' },
   ],
-  relatedComponents: ['chip', 'counter', 'status'],
-  usedIn: ['Activity Log (user role)', 'Settings (status labels)', 'DS Showcase'],
-  codeSnippet: `<!-- Default (primary/green) -->
-<fvdr-badge variant="primary">Active</fvdr-badge>
+  tokens: [
+    { token: '--chip-bg-{hue}',      value: '#EAF6ED …', usage: 'Light fill, shared with fvdr-chip (green, yellow, danger, blue …; stone = --chip-bg-default)' },
+    { token: '--badge-fg-{hue}',     value: '#2C9C74 …', usage: 'Light text / bold fill — the -500 step of each Figma palette' },
+    { token: '--badge-fg-on-bold',   value: '#FFFFFF',   usage: 'Bold text' },
+    { token: '--color-primary-50',   value: '#EBF8EF',   usage: 'Primary light fill' },
+    { token: '--color-primary-500',  value: '#2C9C74',   usage: 'Primary text / bold fill' },
+    { token: '--text-caption2-size', value: '12px',      usage: 'Label' },
+    { token: '--radius-sm',          value: '4px',       usage: 'Default corners' },
+  ],
+  relatedComponents: ['chip', 'counter', 'status', 'status-btn'],
+  usedIn: ['DD checklist (request statuses)', 'Drawer item header', 'Activity Log (user role)', 'Settings'],
+  codeSnippet: `<!-- Light (default), size s -->
+<fvdr-badge label="To review" variant="yellow"></fvdr-badge>
 
-<!-- Success -->
-<fvdr-badge variant="success">Completed</fvdr-badge>
+<!-- Bold, rounded -->
+<fvdr-badge label="Overdue" variant="red" [bold]="true" [rounded]="true"></fvdr-badge>
 
-<!-- Error -->
-<fvdr-badge variant="error">Failed</fvdr-badge>
+<!-- Sizes: xs 16 · s 20 · m 24 -->
+<fvdr-badge label="New" variant="blue" size="xs"></fvdr-badge>
+<fvdr-badge label="New" variant="blue" size="m"></fvdr-badge>
 
-<!-- Warning -->
-<fvdr-badge variant="warning">Pending</fvdr-badge>
+<!-- With a start icon -->
+<fvdr-badge label="Locked" variant="stone" icon="lock-close"></fvdr-badge>
 
-<!-- Info -->
-<fvdr-badge variant="info">Draft</fvdr-badge>
-
-<!-- Neutral -->
-<fvdr-badge variant="neutral">Archived</fvdr-badge>
-
-<!-- Numeric count -->
-<fvdr-badge variant="primary">12</fvdr-badge>`,
+<!-- Semantic aliases still work -->
+<fvdr-badge label="Done" variant="success"></fvdr-badge>   <!-- = green -->`,
   claudePrompt:
-    'Implement the fvdr-badge Angular component. Import path: @fvdr/ui/badge. ' +
-    '@Input() variant: "primary" | "success" | "error" | "warning" | "info" | "neutral" = "neutral". ' +
-    'Content is projected via ng-content (text or number). ' +
-    'Shape is always pill: border-radius uses --radius-full (9999px). ' +
-    'Font-size is --font-size-xs (12px), font-weight 600. ' +
-    'Each variant maps to a background tint and a matching text color defined as component-scoped CSS classes. ' +
-    'No @Output() events — badge is display-only.',
+    'Use <fvdr-badge> for non-interactive status, category and count labels — never hand-style a pill. Inputs: label; variant: primary | stone | green | grey | red | blue | teal | lime | orange | yellow | coffee | magenta | purple | indigo (aliases: success→green, error→red, warning→yellow, info→blue, neutral→stone); size: xs (16) | s (20, default) | m (24); bold (solid fill + white text); rounded (pill corners; default square 4px); icon (FvdrIconName). Light is the default — use bold only for the one status that must stand out. Clickable or removable tags are fvdr-chip, not badge.',
 };
 
 // ─────────────────────────────────────────────────────────────────────────────

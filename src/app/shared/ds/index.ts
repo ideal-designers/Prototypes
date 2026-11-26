@@ -192,7 +192,8 @@ export type { CardState, CardSelector } from './components/card/card.component';
 export { CheckboxComponent } from './components/checkbox/checkbox.component';
 
 export { BadgeComponent } from './components/badge/badge.component';
-export type { BadgeVariant } from './components/badge/badge.component';
+export type { BadgeVariant, BadgeColor, BadgeSemantic, BadgeSize } from './components/badge/badge.component';
+export { BADGE_COLORS } from './components/badge/badge.component';
 
 export { AvatarComponent } from './components/avatar/avatar.component';
 export type { AvatarSize } from './components/avatar/avatar.component';
