@@ -8,6 +8,7 @@ import {
   FvdrPlanName, FVDR_PLAN_NAMES, SidebarNavItem,
   AiStep, AiRating, AiDocRef, AiSummaryGroup, AiReportSection, AiChatMessage, AiThread, AiPanelMode, AiFeedback,
   SmartSearchResult, DocInfoField, AiStat, AiBarItem, AiPersonRow,
+  BreadcrumbItem, HeaderNavItem, HeaderAction, StatusBtnVariant,
 } from '../../shared/ds';
 import { DS_REGISTRY, DS_CATEGORIES, ComponentDocEntry, ComponentStatus, ComponentCategory } from './ds-registry';
 
@@ -2274,31 +2275,6 @@ interface SidebarGroup { category: (typeof DS_CATEGORIES)[number]; items: Compon
           </div>
         </ng-container>
 
-        <!-- HEADER -->
-        <ng-container *ngSwitchCase="'header'">
-          <div class="examples-group">
-            <h3 class="examples-group__title">Desktop header with nav</h3>
-            <fvdr-header
-              appName="FVDR"
-              [hasLogo]="true"
-              [navItems]="demoHeaderNav"
-              activeNavId="overview"
-              [actions]="demoHeaderActions"
-              userName="Alice Johnson"
-            ></fvdr-header>
-          </div>
-          <div class="examples-group">
-            <h3 class="examples-group__title">With breadcrumbs</h3>
-            <fvdr-header
-              appName="FVDR"
-              [hasLogo]="true"
-              [breadcrumbs]="demoHeaderBreadcrumbs"
-              [actions]="demoHeaderActions"
-              userName="Alice Johnson"
-            ></fvdr-header>
-          </div>
-        </ng-container>
-
         <!-- NUMBER STEPPER -->
         <ng-container *ngSwitchCase="'number-stepper'">
           <div class="examples-group">
@@ -3560,6 +3536,122 @@ interface SidebarGroup { category: (typeof DS_CATEGORIES)[number]; items: Compon
               <fvdr-ai-usage-meter [used]="940" [limit]="1000" [compact]="true" (upgradeRequested)="onAiPrompt('Open billing')"></fvdr-ai-usage-meter>
             </div>
           </div>
+        </ng-container>
+
+        <!-- ═══ BREADCRUMBS ═══ -->
+        <ng-container *ngSwitchCase="'breadcrumbs'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">Up to 4 items — all visible</h3>
+            <div class="examples-row examples-row--wrap">
+              <fvdr-breadcrumbs [items]="demoBreadcrumbsShort" (itemClick)="toastSvc.show({ variant: 'info', message: 'Open ' + $event })"></fvdr-breadcrumbs>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">More than 4 — the middle collapses into ···</h3>
+            <div class="examples-row examples-row--wrap">
+              <fvdr-breadcrumbs [items]="demoBreadcrumbsLong"></fvdr-breadcrumbs>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- ═══ CARD ═══ -->
+        <ng-container *ngSwitchCase="'card'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">Selectable tiles — hoverable + active</h3>
+            <div class="examples-row examples-row--wrap" style="align-items:stretch">
+              <fvdr-card *ngFor="let p of demoCardPlans" style="width:220px; cursor:pointer"
+                [title]="p.title" [badge]="p.id === demoCardPlan ? 'Selected' : ''"
+                [hoverable]="true" [active]="p.id === demoCardPlan"
+                (click)="demoCardPlan = p.id">{{ p.body }}</fvdr-card>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Header actions + no title</h3>
+            <div class="examples-row examples-row--wrap" style="align-items:stretch">
+              <fvdr-card title="Watermarks" style="width:260px">
+                <fvdr-toggle card-header-actions [checked]="true"></fvdr-toggle>
+                Show the viewer's email on every page.
+              </fvdr-card>
+              <fvdr-card style="width:260px">A card without a title — just the body.</fvdr-card>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- ═══ HEADER ═══ -->
+        <ng-container *ngSwitchCase="'header'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">Logo + nav items + actions</h3>
+            <div style="border:1px solid var(--color-divider); border-radius:var(--radius-md); overflow:hidden">
+              <fvdr-header [hasLogo]="true" [navItems]="demoLhNav" [activeNavId]="demoLhActive"
+                [actions]="demoLhActions" userName="Anna Ivanova"
+                (navClick)="demoLhActive = $event"></fvdr-header>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Breadcrumbs mode</h3>
+            <div style="border:1px solid var(--color-divider); border-radius:var(--radius-md); overflow:hidden">
+              <fvdr-header [breadcrumbs]="demoBreadcrumbsLong" [showMenu]="true"
+                [actions]="demoLhActions" userName="Anna Ivanova"></fvdr-header>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- ═══ MOBILE HEADER ═══ -->
+        <ng-container *ngSwitchCase="'mobile-header'">
+          <div class="examples-row examples-row--wrap" style="align-items:flex-start">
+            <div class="examples-group" style="width:375px">
+              <h3 class="examples-group__title">Main — menu button</h3>
+              <div style="border:1px solid var(--color-divider); border-radius:var(--radius-md); overflow:hidden">
+                <fvdr-mobile-header title="Documents" [actions]="[{ id: 'search', icon: 'search' }]" userName="Anna Ivanova"></fvdr-mobile-header>
+              </div>
+            </div>
+            <div class="examples-group" style="width:375px">
+              <h3 class="examples-group__title">Back to</h3>
+              <div style="border:1px solid var(--color-divider); border-radius:var(--radius-md); overflow:hidden">
+                <fvdr-mobile-header title="Contracts" [showBack]="true" [showMenu]="false" [actions]="[{ id: 'more', icon: 'more' }]"></fvdr-mobile-header>
+              </div>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- ═══ PAGE HEADER ═══ -->
+        <ng-container *ngSwitchCase="'page-header'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">Title only</h3>
+            <fvdr-page-header title="Participants"></fvdr-page-header>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">With a parent trail</h3>
+            <fvdr-page-header title="Integrations" [parentItems]="['Settings', 'Account']"></fvdr-page-header>
+          </div>
+        </ng-container>
+
+        <!-- ═══ PROJECT STATUS BUTTON ═══ -->
+        <ng-container *ngSwitchCase="'status-btn'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">Variants</h3>
+            <div class="examples-row examples-row--wrap">
+              <div class="example-labeled" *ngFor="let v of demoStatusBtnVariants">
+                <fvdr-status-btn [variant]="v" (clicked)="toastSvc.show({ variant: 'info', message: 'Open the status menu' })"></fvdr-status-btn>
+                <span>{{ v }}</span>
+              </div>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- ═══ BOTTOM SHEET ═══ -->
+        <ng-container *ngSwitchCase="'bottom-sheet'">
+          <div class="examples-group">
+            <h3 class="examples-group__title">Confirmation (opens from the bottom of the window)</h3>
+            <div class="examples-row examples-row--wrap">
+              <fvdr-btn label="Open bottom sheet" variant="secondary" size="m" (clicked)="demoBottomSheetOpen = true"></fvdr-btn>
+            </div>
+          </div>
+          <fvdr-bottom-sheet [visible]="demoBottomSheetOpen" title="Delete file?"
+            confirmLabel="Delete" cancelLabel="Cancel" confirmVariant="danger"
+            (confirmed)="demoBottomSheetOpen = false" (cancelled)="demoBottomSheetOpen = false" (closed)="demoBottomSheetOpen = false">
+            <p style="margin:0">The file moves to the recycle bin. You can restore it within 30 days.</p>
+          </fvdr-bottom-sheet>
         </ng-container>
 
         <!-- DEFAULT STUB -->
@@ -5693,6 +5785,30 @@ export class DsComponentPageComponent implements OnInit, OnDestroy {
 
   demoFloatingPanelItems: FloatingPanelItem[] = [];
   demoFpActiveId = '';
+
+  // ── Layout & navigation demos (breadcrumbs, card, headers, status button, bottom sheet) ──
+  readonly demoBreadcrumbsShort: BreadcrumbItem[] = [
+    { id: 'root', label: 'Project Nova' }, { id: 'legal', label: 'Legal' }, { id: 'contracts', label: 'Contracts' },
+  ];
+  readonly demoBreadcrumbsLong: BreadcrumbItem[] = [
+    { id: 'root', label: 'Project Nova' }, { id: 'legal', label: 'Legal' }, { id: 'contracts', label: 'Contracts' },
+    { id: 'suppliers', label: 'Suppliers' }, { id: '2026', label: '2026' }, { id: 'signed', label: 'Signed' },
+  ];
+  readonly demoCardPlans = [
+    { id: 'std', title: 'Standard',   body: 'Up to 50 users · 100 GB' },
+    { id: 'pro', title: 'Pro',        body: 'Unlimited users · 1 TB' },
+    { id: 'ent', title: 'Enterprise', body: 'Unlimited users and storage' },
+  ];
+  demoCardPlan = 'pro';
+  readonly demoLhNav: HeaderNavItem[] = [
+    { id: 'docs', label: 'Documents' }, { id: 'qna', label: 'Q&A', badge: 3 }, { id: 'reports', label: 'Reports' },
+  ];
+  demoLhActive = 'docs';
+  readonly demoLhActions: HeaderAction[] = [
+    { id: 'help', icon: 'help', label: 'Help' }, { id: 'bell', icon: 'bell', label: 'Notifications', badge: 2 },
+  ];
+  readonly demoStatusBtnVariants: StatusBtnVariant[] = ['preparation', 'live', 'locked', 'archived'];
+  demoBottomSheetOpen = false;
 
   // ── Filter button demo ────────────────────────────────────
   statusChipValue: 'draft' | 'ready' | 'reviewed' = 'draft';

@@ -25,6 +25,7 @@ const aiComposer: ComponentDocEntry = {
   selector: 'fvdr-ai-composer',
   category: 'ai',
   status: 'beta',
+  figmaNode: 'https://www.figma.com/design/Vhy3jLaJ9nasbzTtqbu3qB/AI-Assistant?node-id=2735-57884',
   description:
     'The prompt input. Auto-grows with the typed text, submits on Enter (Shift+Enter for a newline) and exposes add-context, voice and send affordances. Fluid — it fills whatever shell it is dropped into: full-screen, right sidebar or floating panel. Two layouts: `stacked` (default — textarea over an action bar, for chat shells) and `inline` (one row, 4px radius, mic + send at the right edge — for prompts embedded in a page, e.g. the AI Overview follow-up).',
   whenToUse: [
@@ -555,6 +556,7 @@ const aiActions: ComponentDocEntry = {
   selector: 'fvdr-ai-actions',
   category: 'ai',
   status: 'beta',
+  figmaNode: 'https://www.figma.com/design/Vhy3jLaJ9nasbzTtqbu3qB/AI-Assistant?node-id=1068-131126',
   description:
     'The action row under a finished assistant turn — regenerate, copy, and thumbs up/down. Copy confirms itself with a transient check; the rating is a toggle, so clicking the active thumb clears it. This is the feedback loop that tells us whether the assistant is trusted.',
   whenToUse: [
@@ -757,6 +759,7 @@ const aiSuggestions = ai({
   id: 'ai-suggestions',
   name: 'AI Suggestions',
   selector: 'fvdr-ai-suggestions',
+  figmaNode: 'https://www.figma.com/design/Vhy3jLaJ9nasbzTtqbu3qB/AI-Assistant?node-id=1165-164245',
   description:
     'Starter and follow-up prompt chips. Two behaviours worth separating: a starter sends immediately, while a follow-up may instead pre-fill the composer so the user can edit it before sending.',
   whenToUse: [
@@ -891,6 +894,7 @@ const aiAttachment = ai({
   id: 'ai-attachment',
   name: 'AI Attachment',
   selector: 'fvdr-ai-attachment',
+  figmaNode: 'https://www.figma.com/design/Vhy3jLaJ9nasbzTtqbu3qB/AI-Assistant?node-id=115-9497',
   description:
     'A context chip inside the composer: the documents or folders this prompt is pinned to. In a VDR the attachment is a reference to something already in the room, not an upload — so it carries the file icon, the name, and a remove affordance.',
   whenToUse: [
@@ -1166,6 +1170,7 @@ const aiSourceList = ai({
   id: 'ai-source-list',
   name: 'AI Source List',
   selector: 'fvdr-ai-source-list',
+  figmaNode: 'https://www.figma.com/design/Vhy3jLaJ9nasbzTtqbu3qB/AI-Assistant?node-id=1068-140638',
   description:
     'The collected sources of one answer, numbered to match the inline citation markers, collapsed by default ("6 sources"). Gives a reviewer one place to check everything the answer stood on.',
   whenToUse: [
@@ -1389,6 +1394,7 @@ const aiThreadList = ai({
   id: 'ai-thread-list',
   name: 'AI Thread List',
   selector: 'fvdr-ai-thread-list',
+  figmaNode: 'https://www.figma.com/design/Vhy3jLaJ9nasbzTtqbu3qB/AI-Assistant?node-id=2735-58325',
   description:
     'Recent conversations: title, preview, relative time, grouped by day, with rename, pin and delete. In a VDR a thread is also a record of what was asked about the room, so deletion needs a confirm and pinning matters for long deals.',
   whenToUse: [

@@ -50,7 +50,7 @@ const button: ComponentDocEntry = {
   selector: 'fvdr-btn',
   category: 'controls',
   status: 'stable',
-  figmaNode: '15023-113844',
+  figmaNode: '632-5366',
   description:
     'A clickable element that triggers an action. Supports 6 visual variants, 3 sizes, loading and disabled states.',
   whenToUse: [
@@ -149,7 +149,7 @@ const badge: ComponentDocEntry = {
   selector: 'fvdr-badge',
   category: 'display',
   status: 'stable',
-  figmaNode: '15023-badge',
+  figmaNode: '37560-22038',
   description:
     'A small label used to highlight status, category, or count. Single size, 6 color variants.',
   whenToUse: [
@@ -220,6 +220,7 @@ const avatar: ComponentDocEntry = {
   selector: 'fvdr-avatar',
   category: 'display',
   status: 'stable',
+  figmaNode: '4693-21073',
   description:
     'Displays a user representation using an image or generated initials. Supports 4 sizes and an optional online-status indicator.',
   whenToUse: [
@@ -286,6 +287,7 @@ const input: ComponentDocEntry = {
   selector: 'fvdr-input',
   category: 'controls',
   status: 'stable',
+  figmaNode: '933-6665',
   description:
     'A single-line text field with label, helper text, optional icons, and validation states. Integrates with Angular Reactive Forms.',
   whenToUse: [
@@ -388,6 +390,7 @@ const dropdown: ComponentDocEntry = {
   selector: 'fvdr-dropdown',
   category: 'controls',
   status: 'stable',
+  figmaNode: '4033-19672',
   description:
     'A select-style control that opens a floating panel of options. Supports single selection, search filtering, and option groups.',
   whenToUse: [
@@ -566,6 +569,7 @@ const toggle: ComponentDocEntry = {
   selector: 'fvdr-toggle',
   category: 'controls',
   status: 'stable',
+  figmaNode: '704-5370',
   description:
     'A binary on/off switch for boolean settings. Animates the thumb between states and supports a label on either side.',
   whenToUse: [
@@ -632,6 +636,7 @@ const checkbox: ComponentDocEntry = {
   selector: 'fvdr-checkbox',
   category: 'controls',
   status: 'stable',
+  figmaNode: '677-5797',
   description:
     'A binary input for selecting one or more independent options. Supports indeterminate state for parent checkboxes in tree structures.',
   whenToUse: [
@@ -702,6 +707,7 @@ const tabs: ComponentDocEntry = {
   selector: 'fvdr-tabs',
   category: 'navigation',
   status: 'stable',
+  figmaNode: '981-7093',
   description:
     'A horizontal navigation bar that switches the visible content panel. Supports icon labels, badges, and underline or pill style variants.',
   whenToUse: [
@@ -774,6 +780,7 @@ const status: ComponentDocEntry = {
   selector: 'fvdr-status',
   category: 'display',
   status: 'stable',
+  figmaNode: '4605-21347',
   description:
     'An inline dot-and-label indicator for operational states such as active, inactive, error, or pending. Lighter than a Badge for compact contexts.',
   whenToUse: [
@@ -836,6 +843,7 @@ const modal: ComponentDocEntry = {
   selector: 'fvdr-modal',
   category: 'feedback',
   status: 'stable',
+  figmaNode: '39913-3574',
   description:
     'A blocking dialog overlay for confirmations, destructive actions, and focused data entry. Traps focus and dismisses on Escape or overlay click.',
   whenToUse: [
@@ -920,6 +928,7 @@ const textarea: ComponentDocEntry = {
   selector: 'fvdr-textarea',
   category: 'controls',
   status: 'stable',
+  figmaNode: '3971-19046',
   description:
     'A multi-line text input with auto-grow support, character count, and validation states. Shares visual language with fvdr-input.',
   whenToUse: ['Collecting multi-line free-form text such as descriptions, notes, or messages.'],
@@ -946,6 +955,7 @@ const search: ComponentDocEntry = {
   selector: 'fvdr-search',
   category: 'controls',
   status: 'stable',
+  figmaNode: '4118-21885',
   description:
     'A specialised input pre-configured with a search icon, clear button, and debounced output for filtering lists or data tables.',
   whenToUse: ['Filtering a list or table by a text query.'],
@@ -1038,6 +1048,7 @@ const calendar: ComponentDocEntry = {
   selector: 'fvdr-calendar',
   category: 'controls',
   status: 'stable',
+  figmaNode: '20400-15176',
   description:
     'A standalone month-grid calendar for selecting a single date or date range. Used internally by Datepicker.',
   whenToUse: ['Inline date selection when a popup datepicker would be too compact.'],
@@ -1065,6 +1076,7 @@ const datepicker: ComponentDocEntry = {
   selector: 'fvdr-datepicker',
   category: 'controls',
   status: 'stable',
+  figmaNode: '4084-22164',
   description:
     'An input that opens a floating fvdr-calendar panel for date selection. Formats output using Angular DatePipe.',
   whenToUse: ['Collecting a date via a compact field that expands on demand.'],
@@ -1091,6 +1103,7 @@ const timepicker: ComponentDocEntry = {
   selector: 'fvdr-timepicker',
   category: 'controls',
   status: 'stable',
+  figmaNode: '5590-26501',
   description:
     'A time input that offers either a scroll-wheel panel or typed HH:MM entry with AM/PM toggle.',
   whenToUse: ['Collecting a time-of-day value in a scheduling or reminder form.'],
@@ -1117,6 +1130,7 @@ const phoneInput: ComponentDocEntry = {
   selector: 'fvdr-phone-input',
   category: 'controls',
   status: 'stable',
+  figmaNode: '19636-3521',
   description:
     'A phone number field with a country-code prefix dropdown and automatic formatting as the user types.',
   whenToUse: ['Collecting an international phone number in a registration or contact form.'],
@@ -1143,6 +1157,7 @@ const textEditor: ComponentDocEntry = {
   selector: 'fvdr-text-editor',
   category: 'controls',
   status: 'beta',
+  figmaNode: '37426-10971',
   description:
     'A rich-text editor with a minimal toolbar (bold, italic, lists, links). Outputs HTML or markdown depending on configuration.',
   whenToUse: ['Editing formatted content such as email templates, notes, or documentation.'],
@@ -1169,6 +1184,7 @@ const radio: ComponentDocEntry = {
   selector: 'fvdr-radio',
   category: 'controls',
   status: 'stable',
+  figmaNode: '654-5338',
   description:
     'A group of mutually exclusive options where exactly one can be selected at a time. Use fvdr-radio-group as the container.',
   whenToUse: ['Selecting exactly one option from 2–5 visible choices.'],
@@ -1199,6 +1215,7 @@ const segment: ComponentDocEntry = {
   selector: 'fvdr-segment',
   category: 'controls',
   status: 'stable',
+  figmaNode: '18667-229',
   description:
     'A compact button-group control for switching between 2–4 mutually exclusive options, rendered as a pill or boxed strip.',
   whenToUse: ['Switching between a small number of view modes or filter states inline.'],
@@ -1225,6 +1242,7 @@ const chip: ComponentDocEntry = {
   selector: 'fvdr-chip',
   category: 'controls',
   status: 'stable',
+  figmaNode: '4069-19936',
   description:
     'A compact label element with 14 color variants, 5 sizes, and pill/rect shape toggle. Used in filter bars, tag inputs, and category labels.',
   whenToUse: [
@@ -1270,6 +1288,7 @@ const multiselect: ComponentDocEntry = {
   selector: 'fvdr-multiselect',
   category: 'controls',
   status: 'stable',
+  figmaNode: '4033-19672',
   description:
     'A dropdown that allows selecting multiple options, displaying selections as fvdr-chip tokens inside the trigger.',
   whenToUse: ['Selecting multiple values from a predefined list.'],
@@ -1297,6 +1316,7 @@ const droplist: ComponentDocEntry = {
   selector: 'fvdr-droplist',
   category: 'layout',
   status: 'stable',
+  figmaNode: '4066-19735',
   description:
     'A drag-and-drop sortable list container. Wraps Angular CDK DragDropModule with design-system styled handles and drop zones.',
   whenToUse: ['Reordering a list of items by drag and drop.'],
@@ -1324,6 +1344,7 @@ const counter: ComponentDocEntry = {
   selector: 'fvdr-counter',
   category: 'display',
   status: 'stable',
+  figmaNode: '29774-21452',
   description:
     'An animated numeric display that counts up or down to a target value. Used for KPI cards and summary stats.',
   whenToUse: ['Highlighting a key metric on a dashboard or summary card.'],
@@ -1348,6 +1369,7 @@ const inlineMessage: ComponentDocEntry = {
   selector: 'fvdr-inline-message',
   category: 'feedback',
   status: 'stable',
+  figmaNode: '5595-26757',
   description:
     'A contextual feedback strip with an icon and text, rendered inline within a form or content area. Supports info, success, warning, and error variants.',
   whenToUse: ['Displaying contextual validation or guidance directly adjacent to the relevant UI.'],
@@ -1373,6 +1395,7 @@ const infoBanner: ComponentDocEntry = {
   selector: 'fvdr-info-banner',
   category: 'feedback',
   status: 'stable',
+  figmaNode: '39918-4894',
   description:
     'A full-width informational strip pinned to the top of a page or section. Used for trial notices, maintenance warnings, and system announcements.',
   whenToUse: ['Surfacing a persistent site-wide notice that all users must see.'],
@@ -1398,6 +1421,7 @@ const toast: ComponentDocEntry = {
   selector: 'fvdr-toast',
   category: 'feedback',
   status: 'stable',
+  figmaNode: '5595-27130',
   description:
     'A non-blocking notification that appears at a corner of the screen and auto-dismisses. Injected programmatically via ToastService.',
   whenToUse: ['Confirming a completed action (saved, copied, deleted) without blocking the UI.'],
@@ -1429,6 +1453,7 @@ const table: ComponentDocEntry = {
   selector: 'fvdr-table',
   category: 'data',
   status: 'stable',
+  figmaNode: '4826-23246',
   description:
     'A data table with sortable columns, row selection checkboxes, pagination, and optional row actions menu. Consumes a column definition array.',
   whenToUse: ['Displaying structured tabular data with sort and pagination controls.'],
@@ -1455,6 +1480,7 @@ const tree: ComponentDocEntry = {
   selector: 'fvdr-tree',
   category: 'data',
   status: 'stable',
+  figmaNode: '19212-23008',
   description:
     'A hierarchical tree view with expand/collapse nodes, optional checkboxes for multi-selection, colour-coded file icons and a branded mark for project/root rows.',
   whenToUse: [
@@ -1502,6 +1528,7 @@ const dropArea: ComponentDocEntry = {
   selector: 'fvdr-drop-area',
   category: 'controls',
   status: 'stable',
+  figmaNode: '35320-20181',
   description:
     'A file upload zone that accepts drag-and-drop and click-to-browse interactions. Displays file previews and upload progress.',
   whenToUse: ['Collecting file uploads in a form with visual drag-and-drop affordance.'],
@@ -1528,6 +1555,7 @@ const numberStepper: ComponentDocEntry = {
   selector: 'fvdr-number-stepper',
   category: 'controls',
   status: 'stable',
+  figmaNode: '39917-8783',
   description:
     'A numeric input with increment and decrement buttons. Supports min, max, and step constraints.',
   whenToUse: ['Adjusting a bounded numeric value such as quantity, duration, or seat count.'],
@@ -1554,6 +1582,7 @@ const range: ComponentDocEntry = {
   selector: 'fvdr-range',
   category: 'controls',
   status: 'stable',
+  figmaNode: '21176-1948',
   description:
     'A slider for selecting a value or range within defined bounds. Supports single-thumb and dual-thumb (range) modes.',
   whenToUse: ['Selecting a value from a continuous numeric range like price, volume, or zoom level.'],
@@ -1830,7 +1859,7 @@ const planIcon: ComponentDocEntry = {
   selector: 'fvdr-plan-icon',
   category: 'display',
   status: 'stable',
-  figmaNode: '15846-7469',
+  figmaNode: '28014-392',
   description:
     'A color-coded brand badge for an iDeals subscription plan or data-room type. Each plan has a distinct fill color and white glyph, and ships in three native sizes (24 / 32 / 40px). Covers all 13 plans: Basic, Business, Core, Demo/Test, Elite, Enterprise, Premier, Preparation Area, Pro24, Trial, Vault, Vault Max and Vault Trial.',
   whenToUse: [
@@ -1880,7 +1909,7 @@ const ghostBtn: ComponentDocEntry = {
   selector: 'fvdr-ghost-btn',
   category: 'controls',
   status: 'stable',
-  figmaNode: '7023:23051',
+  figmaNode: 'https://www.figma.com/design/02e4Sm7wmZioAEV6imoNR7/FVDR---Viewers?node-id=7023-23051',
   description: 'Ghost button with a configurable icon — a DS icon name via [icon], or a raw SVG path via [iconPath]. Two sizes — Big (40px) and Small (32px) — and four interaction states: default, hover, active, selected. Optionally shows a text label, chevron arrow, and keyboard shortcut badge. This is the DS icon-only button for card headers, table chrome and panel headers.',
   whenToUse: [
     'Toolbar action to invite or add viewers to a document',
@@ -1939,7 +1968,7 @@ const floatingPanel: ComponentDocEntry = {
   selector: 'fvdr-floating-panel',
   category: 'controls',
   status: 'stable',
-  figmaNode: '11255:9878',
+  figmaNode: 'https://www.figma.com/design/02e4Sm7wmZioAEV6imoNR7/FVDR---Viewers?node-id=11255-9878',
   description: 'Organism: a floating toolbar of icon-only ghost buttons. Supports vertical and horizontal orientation, two sizes (big/small), and any number of configurable items.',
   whenToUse: [
     'Document viewer toolbars (search, AI, comments, info)',
@@ -2167,12 +2196,292 @@ const filterBtn: ComponentDocEntry = {
   claudePrompt: 'Use fvdr-filter-btn for a color-coded filter toggle. @Input() label:string="Filter". @Input() size:"M"|"S"="M". @Input() color:"default"|"stone"|"blue"|"yellow"|"orange"|"lime"|"teal"|"indigo"|"purple"|"magenta"|"danger"|"coffee"="default". @Input() selected:boolean. @Input() disabled:boolean. @Input() showIcon:boolean=true (leading icon). @Input() icon?:FvdrIconName — preferred; renders fvdr-icon instead of the path SVG. @Input() iconPath:string (SVG path d=, default=color-picker target) for glyphs outside the DS set. @Input() clearable:boolean — trailing X that emits (cleared) without firing (clicked); use it for an applied, removable filter. @Input() showStatus:boolean (color dot). @Input() showCounter:boolean; counter:string. @Input() showArrow:boolean (chevron). @Output() clicked.',
 };
 
+// ─────────────────────────────────────────────────────────────────────────────
+// LAYOUT & NAVIGATION — built earlier, documented 2026-11-26 (Figma ↔ /ds audit)
+// ─────────────────────────────────────────────────────────────────────────────
+
+const breadcrumbs: ComponentDocEntry = {
+  id: 'breadcrumbs',
+  name: 'Breadcrumbs',
+  selector: 'fvdr-breadcrumbs',
+  category: 'navigation',
+  status: 'stable',
+  figmaNode: '22780-6033',
+  description:
+    'Inline trail from the project root to the current folder. Up to 4 items show in full; longer paths keep the first two and last two and collapse the middle into "···". The last item is the current location and opens a menu (chevron-down).',
+  whenToUse: [
+    'Folder paths inside a project (Documents, Q&A categories)',
+    'Inside fvdr-header when the page is deep in a hierarchy',
+  ],
+  whenNotToUse: [
+    'Top-level pages with no parent — show a page title instead (fvdr-page-header)',
+    'Switching between sibling views — use fvdr-tabs or fvdr-segment',
+  ],
+  anatomy: [
+    { index: 1, part: 'Start item', spec: 'Clickable · text-secondary · truncates with ellipsis · emits (itemClick)' },
+    { index: 2, part: 'Separator',  spec: 'fvdr-icon chevron-right · stone-600' },
+    { index: 3, part: 'More item',  spec: '"···" (icon more) — replaces the middle when there are more than 4 items' },
+    { index: 4, part: 'Last item',  spec: 'Current location · text-primary semibold · chevron-down (opens a context menu)' },
+  ],
+  states: [
+    { name: 'Default', description: 'Secondary text for parents, primary text for the current item' },
+    { name: 'Hover',   description: 'Hover background on the item (Figma: Breadcrumb start/more/last item · hover)' },
+    { name: 'Open',    description: 'The last item while its menu is open' },
+  ],
+  tokens: [
+    { token: '--color-text-secondary', value: '#5F616A', usage: 'Parent items' },
+    { token: '--color-text-primary',   value: '#1F2129', usage: 'Current item' },
+    { token: '--color-hover-bg',       value: '#ECEEF9', usage: 'Item hover' },
+  ],
+  usedIn: ['fvdr-header (breadcrumbs mode)', 'Documents', 'Q&A'],
+  relatedComponents: ['header', 'page-header', 'tree'],
+  codeSnippet: `<fvdr-breadcrumbs
+  [items]="[{ id: 'root', label: 'Project Nova' }, { id: 'f1', label: 'Legal' }, { id: 'f2', label: 'Contracts' }]"
+  (itemClick)="openFolder($event)">
+</fvdr-breadcrumbs>`,
+  claudePrompt:
+    'Use <fvdr-breadcrumbs [items]="BreadcrumbItem[]" (itemClick)="id"> for folder paths. BreadcrumbItem = { id, label }. Collapses to first 2 + ··· + last 2 when there are more than 4 items. The last item is the current location. Don\'t hand-build breadcrumb markup.',
+};
+
+const card: ComponentDocEntry = {
+  id: 'card',
+  name: 'Card',
+  selector: 'fvdr-card',
+  category: 'layout',
+  status: 'stable',
+  figmaNode: '18725-6459',
+  description:
+    'A bordered container for one selectable or grouped piece of content: an optional title row with a badge and header actions, plus a free-form body (ng-content).',
+  whenToUse: [
+    'A choice between a few options shown as tiles (plans, templates, integrations)',
+    'Grouping a small, self-contained block of settings or a summary',
+  ],
+  whenNotToUse: [
+    'Page sections — content areas are white and borderless, separated by space or dividers',
+    'Lists of many rows — use fvdr-table or a plain list',
+  ],
+  anatomy: [
+    { index: 1, part: 'Container', spec: 'stone-0 bg · 1px stone-400 border · radius-md · padding space-4 (noPadding removes it)' },
+    { index: 2, part: 'Title',     spec: 'Optional · text-primary semibold' },
+    { index: 3, part: 'Badge',     spec: 'Optional text badge · primary-500 on primary-50' },
+    { index: 4, part: 'Header actions', spec: 'Slot: [card-header-actions]' },
+    { index: 5, part: 'Body',      spec: 'Default ng-content' },
+  ],
+  states: [
+    { name: 'Default', description: 'Neutral border' },
+    { name: 'Hover',   description: '[hoverable] — primary-500 border + raised shadow (Figma: hover-active)' },
+    { name: 'Active',  description: '[active] — primary-500 border (selected tile)' },
+  ],
+  tokens: [
+    { token: '--color-stone-0',     value: '#FFFFFF', usage: 'Background' },
+    { token: '--color-stone-400',   value: '#DEE0EB', usage: 'Border' },
+    { token: '--color-primary-500', value: '#2C9C74', usage: 'Active border, badge text' },
+    { token: '--color-primary-50',  value: '#EBF8EF', usage: 'Badge background' },
+  ],
+  usedIn: ['Settings', 'Integrations', 'Plan pickers'],
+  relatedComponents: ['radio', 'checkbox', 'badge'],
+  codeSnippet: `<fvdr-card title="Standard" badge="Current" [hoverable]="true" [active]="plan === 'std'">
+  Up to 50 users · 100 GB
+</fvdr-card>`,
+  claudePrompt:
+    'Use <fvdr-card> for selectable tiles or small grouped blocks: title, badge, [active], [hoverable], [noPadding]; header actions go in an element with the card-header-actions attribute. Don\'t wrap whole page sections in cards — content areas stay white and borderless.',
+};
+
+const header: ComponentDocEntry = {
+  id: 'header',
+  name: 'Header',
+  selector: 'fvdr-header',
+  category: 'navigation',
+  status: 'stable',
+  figmaNode: '16474-28912',
+  description:
+    'The 64px desktop top bar. Two modes: logo + nav items, or breadcrumbs (with an optional menu button). Action icons with badges and the user avatar sit on the right.',
+  whenToUse: [
+    'The top bar of a full-page prototype screen',
+    'Breadcrumbs mode for pages deep inside a project',
+  ],
+  whenNotToUse: [
+    'Small screens — use fvdr-mobile-header',
+    'A title inside the content area — use fvdr-page-header',
+  ],
+  anatomy: [
+    { index: 1, part: 'Container',   spec: 'height 64px · stone-0 bg · 1px divider bottom border' },
+    { index: 2, part: 'Logo / app name', spec: '[hasLogo] wordmark, else [appName] · emits (logoClick)' },
+    { index: 3, part: 'Nav items',   spec: 'HeaderNavItem[] with optional icon / activeIcon / badge · emits (navClick)' },
+    { index: 4, part: 'Breadcrumbs', spec: 'Shown instead of logo + nav when [breadcrumbs] has items' },
+    { index: 5, part: 'Actions',     spec: 'Icon buttons (HeaderAction[]) with a badge · emits (actionClick)' },
+    { index: 6, part: 'Avatar',      spec: 'fvdr-avatar from [userName] / [userAvatar] · emits (avatarClick)' },
+  ],
+  tokens: [
+    { token: '--color-stone-0',  value: '#FFFFFF', usage: 'Background' },
+    { token: '--color-divider',  value: '#DEE0EB', usage: 'Bottom border' },
+    { token: '--color-text-primary', value: '#1F2129', usage: 'Active nav item' },
+  ],
+  usedIn: ['Full-page prototypes', 'Documents (breadcrumbs mode)'],
+  relatedComponents: ['mobile-header', 'breadcrumbs', 'sidebar-nav', 'avatar'],
+  codeSnippet: `<fvdr-header
+  [hasLogo]="true"
+  [navItems]="[{ id: 'docs', label: 'Documents' }, { id: 'qna', label: 'Q&A', badge: 3 }]"
+  activeNavId="docs"
+  [actions]="[{ id: 'help', icon: 'help' }, { id: 'bell', icon: 'bell', badge: 2 }]"
+  userName="Anna Ivanova"
+  (navClick)="go($event)">
+</fvdr-header>`,
+  claudePrompt:
+    'Use <fvdr-header> for the 64px desktop top bar. Inputs: appName, hasLogo, navItems: HeaderNavItem[] {id,label,icon?,activeIcon?,badge?}, activeNavId, actions: HeaderAction[] {id,icon,label?,badge?}, userName, userAvatar, breadcrumbs: BreadcrumbItem[] (switches to breadcrumbs mode), showMenu. Outputs: navClick, actionClick, avatarClick, breadcrumbClick, menuClick, logoClick.',
+};
+
+const mobileHeader: ComponentDocEntry = {
+  id: 'mobile-header',
+  name: 'Mobile Header',
+  selector: 'fvdr-mobile-header',
+  category: 'navigation',
+  status: 'beta',
+  figmaNode: '16414-26936',
+  description:
+    'The mobile top bar: a menu button or a back arrow, a centred title, action icons and the avatar. Figma has more types (Modal, Button, with search, stepper, segment control…); code covers Main and Back to.',
+  whenToUse: [
+    'Mobile layouts below 1024px',
+    'Back to — a drill-down screen that returns to its parent',
+  ],
+  whenNotToUse: [
+    'Desktop and tablet — use fvdr-header',
+    'Modal screens on mobile — use fvdr-bottom-sheet',
+  ],
+  anatomy: [
+    { index: 1, part: 'Leading',  spec: '[showMenu] burger, or [showBack] arrow · emits (menuClick) / (backClick)' },
+    { index: 2, part: 'Title',    spec: 'Single line, truncated' },
+    { index: 3, part: 'Actions',  spec: 'HeaderAction[] icon buttons · emits (actionClick)' },
+    { index: 4, part: 'Avatar',   spec: 'From [userName] · emits (avatarClick)' },
+  ],
+  tokens: [
+    { token: '--color-stone-0', value: '#FFFFFF', usage: 'Background' },
+    { token: '--color-divider', value: '#DEE0EB', usage: 'Bottom border' },
+  ],
+  usedIn: ['Mobile prototypes'],
+  relatedComponents: ['header', 'bottom-sheet'],
+  codeSnippet: `<fvdr-mobile-header title="Contracts" [showBack]="true" [showMenu]="false"
+  [actions]="[{ id: 'search', icon: 'search' }]"
+  (backClick)="goUp()">
+</fvdr-mobile-header>`,
+  claudePrompt:
+    'Use <fvdr-mobile-header> below 1024px: title, showMenu (default true), showBack, actions: HeaderAction[], userName. Outputs: menuClick, backClick, actionClick, avatarClick.',
+};
+
+const pageHeader: ComponentDocEntry = {
+  id: 'page-header',
+  name: 'Page Header',
+  selector: 'fvdr-page-header',
+  category: 'layout',
+  status: 'stable',
+  description:
+    'The title block at the top of a content area: a static parent trail (non-clickable) above an H1 page title.',
+  whenToUse: [
+    'The title of a settings or list page inside the shell',
+    'When the parent path is context only, not navigation',
+  ],
+  whenNotToUse: [
+    'Clickable folder paths — use fvdr-breadcrumbs',
+    'The global top bar — use fvdr-header',
+  ],
+  anatomy: [
+    { index: 1, part: 'Container',    spec: 'padding space-4 / space-6 · stone-0 bg · column gap space-1' },
+    { index: 2, part: 'Parent trail', spec: '[parentItems] strings · text-secondary · chevron-right separators' },
+    { index: 3, part: 'Title',        spec: 'H1 · text-primary' },
+  ],
+  tokens: [
+    { token: '--color-text-secondary', value: '#5F616A', usage: 'Parent trail' },
+    { token: '--color-text-primary',   value: '#1F2129', usage: 'Title' },
+  ],
+  usedIn: ['Settings pages', 'Account pages'],
+  relatedComponents: ['breadcrumbs', 'header'],
+  codeSnippet: `<fvdr-page-header title="Integrations" [parentItems]="['Settings']"></fvdr-page-header>`,
+  claudePrompt:
+    'Use <fvdr-page-header title="..." [parentItems]="string[]"> for the H1 block at the top of a content area. The parent trail is static text; for clickable paths use fvdr-breadcrumbs.',
+};
+
+const statusBtn: ComponentDocEntry = {
+  id: 'status-btn',
+  name: 'Project Status Button',
+  selector: 'fvdr-status-btn',
+  category: 'controls',
+  status: 'stable',
+  figmaNode: '30812-4292',
+  description:
+    'A filled 32px button that shows the project status (Preparation, Live, Locked, Archived) and opens the status menu. Figma (Chips-CA-Dashboard) also has Frozen, Pending, Closed and On hold — not built yet.',
+  whenToUse: [
+    'The project status control in a project header, where an admin can change the status',
+  ],
+  whenNotToUse: [
+    'A read-only status in a table or list — use fvdr-status',
+    'Workflow or item states — use fvdr-chip or fvdr-badge',
+  ],
+  anatomy: [
+    { index: 1, part: 'Container', spec: 'height 32px · padding 0 12px · radius-sm · filled with the status colour' },
+    { index: 2, part: 'Icon',      spec: 'Status icon, white' },
+    { index: 3, part: 'Label',     spec: 'Semibold, white' },
+    { index: 4, part: 'Chevron',   spec: 'chevron-down — signals the status menu · emits (clicked)' },
+  ],
+  states: [
+    { name: 'Default', description: 'Status colour fill' },
+    { name: 'Hover',   description: 'Fill darkened (brightness 0.92)' },
+  ],
+  tokens: [
+    { token: '--color-text-inverse', value: '#FFFFFF', usage: 'Label + icons' },
+    { token: '--radius-sm',          value: '4px',     usage: 'Corner radius' },
+  ],
+  usedIn: ['Project header', 'CA Dashboard'],
+  relatedComponents: ['status', 'droplist'],
+  codeSnippet: `<fvdr-status-btn variant="live" (clicked)="openStatusMenu()"></fvdr-status-btn>`,
+  claudePrompt:
+    'Use <fvdr-status-btn variant="preparation|live|locked|archived" (clicked)> for the changeable project status in a project header; pair it with fvdr-droplist for the menu. For read-only statuses use fvdr-status.',
+};
+
+const bottomSheet: ComponentDocEntry = {
+  id: 'bottom-sheet',
+  name: 'Bottom Sheet',
+  selector: 'fvdr-bottom-sheet',
+  category: 'feedback',
+  status: 'stable',
+  description:
+    'The mobile counterpart of fvdr-modal: a sheet that slides up from the bottom with a title, free content and Cancel / Confirm actions.',
+  whenToUse: [
+    'Confirmations and short forms on mobile',
+    'Action lists that would be a dropdown on desktop',
+  ],
+  whenNotToUse: [
+    'Desktop — use fvdr-modal',
+    'Long multi-step flows — use a full screen',
+  ],
+  anatomy: [
+    { index: 1, part: 'Overlay',  spec: 'Dimmed backdrop · click closes · emits (closed)' },
+    { index: 2, part: 'Sheet',    spec: 'stone-0 · top corners radius-lg · max-height 90vh · drag handle · slides up' },
+    { index: 3, part: 'Header',   spec: 'Optional [title] + close icon button' },
+    { index: 4, part: 'Content',  spec: 'ng-content' },
+    { index: 5, part: 'Actions',  spec: 'Full-width L buttons: [cancelLabel] ghost + [confirmLabel] primary/danger · emit (cancelled) / (confirmed)' },
+  ],
+  tokens: [
+    { token: '--color-stone-0', value: '#FFFFFF', usage: 'Sheet background' },
+    { token: '--radius-lg',     value: '12px',    usage: 'Top corners' },
+  ],
+  usedIn: ['Mobile prototypes'],
+  relatedComponents: ['modal', 'mobile-header'],
+  codeSnippet: `<fvdr-bottom-sheet [visible]="open" title="Delete file?"
+  confirmLabel="Delete" cancelLabel="Cancel" confirmVariant="danger"
+  (confirmed)="remove()" (cancelled)="open = false" (closed)="open = false">
+  The file moves to the recycle bin.
+</fvdr-bottom-sheet>`,
+  claudePrompt:
+    'On mobile use <fvdr-bottom-sheet> instead of fvdr-modal: visible, title, confirmLabel, cancelLabel, confirmVariant (primary|danger); outputs confirmed, cancelled, closed. Content goes in ng-content.',
+};
+
 const askIdeon: ComponentDocEntry = {
   id: 'ask-ideon',
   name: 'Ask Ideon',
   selector: 'fvdr-ask-ideon',
   category: 'ai',
   status: 'beta',
+  figmaNode: 'https://www.figma.com/design/Vhy3jLaJ9nasbzTtqbu3qB/AI-Assistant?node-id=208-22519',
   description:
     'Branded entry point for Ideon, the global AI assistant. A fully-rounded glass pill with a sparkle glyph, sitting on a slowly drifting iridescent mesh gradient.',
   whenToUse: [
@@ -2295,6 +2604,7 @@ const tooltip: ComponentDocEntry = {
   selector: '[fvdrTooltip]',
   category: 'feedback',
   status: 'stable',
+  figmaNode: '9054-48922',
   description:
     'Short dark label that explains an icon-only control. Applied as a directive on any element; appears on hover (300ms) and immediately on keyboard focus, flips when there is no room, and is appended to <body> so it is never clipped. Rule: every icon-only button must have a tooltip — icon-only fvdr-btn shows its ariaLabel automatically.',
   whenToUse: [
@@ -2391,6 +2701,14 @@ export const DS_REGISTRY: ComponentDocEntry[] = [
   ghostBtn,
   floatingPanel,
   filterBtn,
+  // Layout & navigation — documented 2026-11-26
+  breadcrumbs,
+  card,
+  header,
+  mobileHeader,
+  pageHeader,
+  statusBtn,
+  bottomSheet,
   // AI Assistant — ask-ideon and thinking-orbs are the section's two original atoms
   askIdeon,
   thinkingOrbs,
