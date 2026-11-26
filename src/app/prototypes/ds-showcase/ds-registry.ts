@@ -283,7 +283,7 @@ const input: ComponentDocEntry = {
   status: 'stable',
   figmaNode: '933-6665',
   description:
-    'A single-line text field with label, helper text, optional icons, and validation states. Integrates with Angular Reactive Forms.',
+    'A single-line text field with label, helper text, optional icons, and validation states. Integrates with Angular Reactive Forms. Read only ([readonly]) shows the value as text under the label, with no field box (Figma State=Read only).',
   whenToUse: [
     'Collecting short, free-form text (name, email, title)',
     'Any form field that requires inline validation feedback',
@@ -373,7 +373,7 @@ const input: ComponentDocEntry = {
     '@Input() disabled: boolean = false. ' +
     '@Output() valueChange = new EventEmitter<string>(). ' +
     'Focus state switches border to --color-interactive-primary (#2c9c74). ' +
-    'Default border is --color-border-input (#bbbdc8). Border-radius is --radius-sm (4px).',
+    'Default border is --color-border-input (#bbbdc8). Border-radius is --radius-sm (4px). [readonly]=true renders label + value text (secondary) with no box — use it on view-only screens instead of a disabled field. Sizes s|m|l = 32/40/48; m and l have 16px side padding.',
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -565,7 +565,7 @@ const toggle: ComponentDocEntry = {
   status: 'stable',
   figmaNode: '704-5370',
   description:
-    'A binary on/off switch for boolean settings. Animates the thumb between states and supports a label on either side.',
+    'A binary on/off switch for boolean settings. Animates the thumb between states and supports a label on either side. Sizes L (36×20 track in a 48px row, 16px label), M (36×20, default) and S (30×16).',
   whenToUse: [
     'Enabling or disabling a feature or setting immediately on change',
     'Binary preferences where the effect is instant (no save required)',
@@ -578,7 +578,7 @@ const toggle: ComponentDocEntry = {
   ],
   anatomy: [
     { index: 1, part: 'Track',       spec: 'width: 36px · height: 20px · border-radius: 9999px · background: interactive-primary when on' },
-    { index: 2, part: 'Thumb',       spec: 'width: 16px · height: 16px · border-radius: 9999px · background: white · transition: 0.2s' },
+    { index: 2, part: 'Thumb',       spec: '18×18 (L, M) / 14×14 (S) · 1px inset · white · transition: 0.2s' },
     { index: 3, part: 'Label (optional)', spec: 'font-size: var(--font-size-base, 14px) · color: text-primary · margin-left: 8px' },
   ],
   tokens: [
@@ -619,7 +619,7 @@ const toggle: ComponentDocEntry = {
     'Track dimensions: 36×20px, border-radius --radius-full. ' +
     'Checked track color: --color-interactive-primary (#2c9c74); unchecked: --color-border (#dee0eb). ' +
     'Thumb is white, 16×16px, positioned left: 2px (off) or left: 18px (on), transition: transform 0.2s ease. ' +
-    'Disabled: pointer-events none, opacity 0.4.',
+    'Disabled: pointer-events none, opacity 0.4. size: "l" | "m" (default) | "s". L lines up with 48px fields.',
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -924,12 +924,12 @@ const textarea: ComponentDocEntry = {
   status: 'stable',
   figmaNode: '3971-19046',
   description:
-    'A multi-line text input with auto-grow support, character count, and validation states. Shares visual language with fvdr-input.',
+    'A multi-line text input with auto-grow support, character count, and validation states. Shares visual language with fvdr-input. Sizes S / M / L (14 / 15 / 16px) and a read-only mode that shows the full text under the label.',
   whenToUse: ['Collecting multi-line free-form text such as descriptions, notes, or messages.'],
   whenNotToUse: [],
   anatomy: [
     { index: 1, part: 'Label',        spec: 'caption2 · color:--color-text-secondary · optional required asterisk' },
-    { index: 2, part: 'Textarea box', spec: 'min-height:80px · border:1.5px --color-stone-400 · radius:4px · padding:8px 12px · resize:vertical' },
+    { index: 2, part: 'Textarea box', spec: 'min-height:80px · border:1.5px --color-stone-400 · radius:4px · padding 8·12 (s) / 8·16 (m, l) · font 14/15/16 · resize:vertical' },
     { index: 3, part: 'Char counter', spec: 'Optional (maxlength) · caption1 · right-aligned · "0 / N"' },
     { index: 4, part: 'Helper text',  spec: 'caption1 · secondary · turns --color-error-600 on error' },
   ],
@@ -940,7 +940,7 @@ const textarea: ComponentDocEntry = {
   ],
   usedIn: ['Deal Room', 'Settings (profile bio)'],
   codeSnippet: `<fvdr-textarea label="Description" placeholder="Enter description…" formControlName="description"></fvdr-textarea>`,
-  claudePrompt: 'Use fvdr-textarea for multi-line text. Import: @fvdr/ui/textarea. Implements ControlValueAccessor. Shares token set with fvdr-input.',
+  claudePrompt: 'Use fvdr-textarea for multi-line text. Import: @fvdr/ui/textarea. Implements ControlValueAccessor. Shares token set with fvdr-input. size: s (default) | m | l — match the inputs next to it. [readonly]=true shows the text (primary, pre-wrap) under the label with no box.',
 };
 
 const search: ComponentDocEntry = {
@@ -1126,14 +1126,14 @@ const phoneInput: ComponentDocEntry = {
   status: 'stable',
   figmaNode: '19636-3521',
   description:
-    'A phone number field with a country-code prefix dropdown and automatic formatting as the user types.',
+    'A phone number field with a country-code prefix dropdown and automatic formatting as the user types. Three sizes like fvdr-input: S 32, M 40 (default), L 48.',
   whenToUse: ['Collecting an international phone number in a registration or contact form.'],
   whenNotToUse: [],
   anatomy: [
     { index: 1, part: 'Country selector', spec: 'flag + calling code + chevron · hover bg:--color-hover-bg' },
     { index: 2, part: 'Divider',          spec: '1px × 20px · --color-stone-400' },
     { index: 3, part: 'Number input',     spec: 'flex:1 · base-s font · tel type' },
-    { index: 4, part: 'Wrapper / root',   spec: 'height:40px · border:1.5px --color-stone-400 · radius:4px' },
+    { index: 4, part: 'Wrapper / root',   spec: 'height 32 / 40 / 48 (s / m / l) · font 14 / 15 / 16 · border:1.5px --color-stone-400 · radius:4px' },
   ],
   tokens: [
     { token: '--color-border-input',     value: '#bbbdc8', usage: 'Field border' },
@@ -1142,7 +1142,7 @@ const phoneInput: ComponentDocEntry = {
   ],
   usedIn: ['Settings (profile)', 'Deal Room (contact fields)'],
   codeSnippet: `<fvdr-phone-input label="Phone" formControlName="phone"></fvdr-phone-input>`,
-  claudePrompt: 'Use fvdr-phone-input for phone fields. Import: @fvdr/ui/phone-input. Implements ControlValueAccessor. Value is an E.164 formatted string.',
+  claudePrompt: 'Use fvdr-phone-input for phone fields. Import: @fvdr/ui/phone-input. Implements ControlValueAccessor. Value is an E.164 formatted string. size: s | m (default) | l — the same scale as fvdr-input.',
 };
 
 const textEditor: ComponentDocEntry = {
@@ -1180,12 +1180,12 @@ const radio: ComponentDocEntry = {
   status: 'stable',
   figmaNode: '654-5338',
   description:
-    'A group of mutually exclusive options where exactly one can be selected at a time. Use fvdr-radio-group as the container.',
+    'A group of mutually exclusive options where exactly one can be selected at a time. Use fvdr-radio-group as the container. Three sizes: S / M / L label at 14 / 15 / 16px.',
   whenToUse: ['Selecting exactly one option from 2–5 visible choices.'],
   whenNotToUse: [],
   anatomy: [
-    { index: 1, part: 'Circle', spec: '18×18px · border:1.5px --color-stone-400 · --color-primary-500 when checked' },
-    { index: 2, part: 'Dot',    spec: '8×8px · --color-primary-500 · shown when selected' },
+    { index: 1, part: 'Circle', spec: '16×16px (Figma, every size) · border:1.5px --color-stone-400 · --color-primary-500 when checked' },
+    { index: 2, part: 'Dot',    spec: '6×6px · --color-primary-500 · shown when selected' },
     { index: 3, part: 'Label',  spec: 'base-s · --color-text-primary · gap:8px' },
     { index: 4, part: 'Group',  spec: 'vertical (gap:8px) or horizontal (gap:16px)' },
   ],
@@ -1200,7 +1200,7 @@ const radio: ComponentDocEntry = {
   <fvdr-radio value="editor" label="Editor"></fvdr-radio>
   <fvdr-radio value="viewer" label="Viewer"></fvdr-radio>
 </fvdr-radio-group>`,
-  claudePrompt: 'Use fvdr-radio-group + fvdr-radio for mutually exclusive choices. Import: @fvdr/ui/radio. Group implements ControlValueAccessor.',
+  claudePrompt: 'Use fvdr-radio-group + fvdr-radio for mutually exclusive choices. Import: @fvdr/ui/radio. Group implements ControlValueAccessor. size: s (default, 14px) | m (15px) | l (16px) — match the fields around it.',
 };
 
 const segment: ComponentDocEntry = {

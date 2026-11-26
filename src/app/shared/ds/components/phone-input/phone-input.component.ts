@@ -271,7 +271,7 @@ const DEFAULT_COUNTRIES: PhoneCountry[] = [
     { provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => PhoneInputComponent), multi: true },
   ],
   template: `
-    <div class="phone" [class.phone--disabled]="disabled">
+    <div class="phone phone--{{ size }}" [class.phone--disabled]="disabled">
       <label *ngIf="label" class="phone__label">{{ label }}</label>
       <div class="phone__wrapper" [class.phone__wrapper--focused]="focused">
         <!-- Country selector -->
@@ -396,6 +396,16 @@ const DEFAULT_COUNTRIES: PhoneCountry[] = [
     }
     .phone__input::placeholder { color: var(--color-text-placeholder); }
 
+    /* Sizes — Figma 32 (14px, pad 12) · 40 (15px, pad 16) · 48 (16px, pad 16) */
+    .phone--s .phone__wrapper { height: 32px; }
+    .phone--m .phone__code, .phone--m .phone__input { font-size: var(--text-base-m-size); }
+    .phone--m .phone__country { padding-left: var(--space-4); }
+    .phone--m .phone__input { padding: 0 var(--space-4); }
+    .phone--l .phone__wrapper { height: 48px; }
+    .phone--l .phone__code, .phone--l .phone__input { font-size: var(--text-base-l-size); }
+    .phone--l .phone__country { padding-left: var(--space-4); }
+    .phone--l .phone__input { padding: 0 var(--space-4); }
+
     .phone__error {
       font-family: var(--font-family);
       font-size: var(--text-caption1-size);
@@ -408,6 +418,8 @@ export class PhoneInputComponent implements ControlValueAccessor {
   @Input() placeholder = '000 000 0000';
   @Input() disabled = false;
   @Input() errorText = '';
+  /** s — 32px · m — 40px (default) · l — 48px; same scale as fvdr-input. */
+  @Input() size: 's' | 'm' | 'l' = 'm';
   @Input() countries: PhoneCountry[] = DEFAULT_COUNTRIES;
 
   selectedCountry: PhoneCountry =

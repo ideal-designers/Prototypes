@@ -30,6 +30,13 @@ export type InputState = 'default' | 'error' | 'success' | 'disabled';
     { provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => InputComponent), multi: true },
   ],
   template: `
+    <!-- Read only (Figma State=Read only): label + value as text, no field box -->
+    <div *ngIf="readonly; else editable" class="field field--{{ size }} field--readonly">
+      <span *ngIf="label" class="field__label">{{ label }}</span>
+      <span class="field__value">{{ value || '—' }}</span>
+    </div>
+
+    <ng-template #editable>
     <div class="field field--{{ size }}" [class.field--error]="state === 'error'" [class.field--success]="state === 'success'" [class.field--disabled]="state === 'disabled'">
       <label *ngIf="label" class="field__label">{{ label }}<span *ngIf="required" class="field__required"> *</span></label>
       <div class="field__wrapper" [class.field__wrapper--focused]="focused">
@@ -53,6 +60,7 @@ export type InputState = 'default' | 'error' | 'success' | 'disabled';
       <span *ngIf="state === 'error' && errorText" class="field__helper field__helper--error">{{ errorText }}</span>
       <span *ngIf="state !== 'error' && helperText" class="field__helper">{{ helperText }}</span>
     </div>
+    </ng-template>
   `,
   styles: [`
     .field { display: flex; flex-direction: column; gap: var(--space-1); }
@@ -102,9 +110,25 @@ export type InputState = 'default' | 'error' | 'success' | 'disabled';
     .field--s .field__wrapper { height: 32px; }
     .field--s .field__input { font-size: var(--text-base-s-size); }
     .field--m .field__wrapper { height: 40px; }
-    .field--m .field__input { font-size: var(--text-base-m-size); }
+    .field--m .field__input { font-size: var(--text-base-m-size); padding: 0 var(--space-4); }
     .field--l .field__wrapper { height: 48px; }
-    .field--l .field__input { font-size: var(--text-base-l-size); }
+    .field--l .field__input { font-size: var(--text-base-l-size); padding: 0 var(--space-4); }
+    .field--m .field__input--icon-left, .field--l .field__input--icon-left { padding-left: var(--space-10); }
+    .field--m .field__input--icon-right, .field--l .field__input--icon-right { padding-right: var(--space-10); }
+    .field--m .field__icon--left, .field--l .field__icon--left { left: var(--space-4); }
+    .field--m .field__icon--right, .field--l .field__icon--right { right: var(--space-4); }
+
+    /* Read only — label + value, 8 apart; value in secondary text at the field's size */
+    .field--readonly { gap: var(--space-2); }
+    .field__value {
+      font-family: var(--font-family);
+      color: var(--color-text-secondary);
+      font-size: var(--text-base-m-size);
+      line-height: var(--text-base-m-lh);
+      word-break: break-word;
+    }
+    .field--s .field__value { font-size: var(--text-base-s-size); line-height: var(--text-base-s-lh); }
+    .field--l .field__value { font-size: var(--text-base-l-size); line-height: var(--text-base-l-lh); }
 
     .field__icon {
       position: absolute;
@@ -139,6 +163,8 @@ export class InputComponent implements ControlValueAccessor {
   @Input() errorText = '';
   @Input() iconLeft?: FvdrIconName;
   @Input() iconRight?: FvdrIconName;
+  /** Figma State=Read only: shows the value as text under the label, with no field box. */
+  @Input() readonly = false;
 
   value = '';
   focused = false;

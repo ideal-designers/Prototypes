@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
 export type TextareaState = 'default' | 'error' | 'disabled';
+export type TextareaSize = 's' | 'm' | 'l';
 
 /**
  * DS Input / Text area — Figma: liyNDiFf1piO8SQmHNKoeU, node 15032-12204
@@ -26,7 +27,14 @@ export type TextareaState = 'default' | 'error' | 'disabled';
     { provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => TextareaComponent), multi: true },
   ],
   template: `
-    <div class="field" [class.field--error]="state === 'error'" [class.field--disabled]="state === 'disabled'">
+    <!-- Read only (Figma State=Read only): label + the full text, no box -->
+    <div *ngIf="readonly; else editable" class="field field--{{ size }}">
+      <span *ngIf="label" class="field__label">{{ label }}</span>
+      <p class="field__value">{{ value || '—' }}</p>
+    </div>
+
+    <ng-template #editable>
+    <div class="field field--{{ size }}" [class.field--error]="state === 'error'" [class.field--disabled]="state === 'disabled'">
       <label *ngIf="label" class="field__label">{{ label }}<span *ngIf="required" class="field__required"> *</span></label>
       <textarea
         class="field__textarea"
@@ -43,6 +51,7 @@ export type TextareaState = 'default' | 'error' | 'disabled';
       <span *ngIf="state === 'error' && errorText" class="field__helper field__helper--error">{{ errorText }}</span>
       <span *ngIf="state !== 'error' && helperText" class="field__helper">{{ helperText }}</span>
     </div>
+    </ng-template>
   `,
   styles: [`
     .field { display: flex; flex-direction: column; gap: var(--space-1); }
@@ -72,6 +81,22 @@ export type TextareaState = 'default' | 'error' | 'disabled';
       outline: none;
       transition: border-color 0.15s, background 0.15s;
     }
+    /* Sizes — Figma S 14/20 pad 8·12 · M 15/24 pad 8·16 · L 16/24 pad 8·16 */
+    .field--m .field__textarea { font-size: var(--text-base-m-size); line-height: var(--text-base-m-lh); padding: var(--space-2) var(--space-4); }
+    .field--l .field__textarea { font-size: var(--text-base-l-size); line-height: var(--text-base-l-lh); padding: var(--space-2) var(--space-4); }
+
+    .field__value {
+      margin: 0;
+      font-family: var(--font-family);
+      color: var(--color-text-primary);
+      font-size: var(--text-base-s-size);
+      line-height: var(--text-base-s-lh);
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .field--m .field__value { font-size: var(--text-base-m-size); line-height: var(--text-base-m-lh); }
+    .field--l .field__value { font-size: var(--text-base-l-size); line-height: var(--text-base-l-lh); }
+
     .field__textarea::placeholder { color: var(--color-text-placeholder); }
     .field__textarea--focused,
     .field__textarea:focus {
@@ -105,6 +130,10 @@ export class TextareaComponent implements ControlValueAccessor {
   @Input() helperText = '';
   @Input() errorText = '';
   @Input() maxlength?: number;
+  /** s — 14px (default) · m — 15px · l — 16px; match the inputs next to it. */
+  @Input() size: TextareaSize = 's';
+  /** Figma State=Read only: the text under the label, with no box. */
+  @Input() readonly = false;
 
   value = '';
   focused = false;

@@ -27,7 +27,7 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
     { provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => ToggleComponent), multi: true },
   ],
   template: `
-    <label class="toggle" [class.toggle--disabled]="disabled" [class.toggle--s]="size === 's'" (click)="!disabled && toggle()">
+    <label class="toggle" [class.toggle--disabled]="disabled" [class.toggle--s]="size === 's'" [class.toggle--l]="size === 'l'" (click)="!disabled && toggle()">
       <span class="toggle__track" [class.toggle__track--on]="checked">
         <span class="toggle__thumb"></span>
       </span>
@@ -59,12 +59,13 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
     .toggle:not(.toggle--disabled):hover .toggle__track { background: var(--color-stone-500); }
     .toggle:not(.toggle--disabled):hover .toggle__track--on { background: var(--color-primary-600); }
 
+    /* Figma: 18px thumb, 1px inset, on a 36×20 track (L and M) */
     .toggle__thumb {
       position: absolute;
-      top: 2px;
-      left: 2px;
-      width: 16px;
-      height: 16px;
+      top: 1px;
+      left: 1px;
+      width: 18px;
+      height: 18px;
       border-radius: 50%;
       background: var(--color-stone-0);
       box-shadow: 0 1px 3px rgba(0,0,0,0.2);
@@ -72,17 +73,21 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
     }
     .toggle__track--on .toggle__thumb { transform: translateX(16px); }
 
-    /* ── Size S ── */
+    /* ── Size S — Figma 30×16 track, 14px thumb ── */
     .toggle--s .toggle__track {
-      width: 28px;
-      height: 16px;
+      width: 30px;
+      height: var(--space-4);
       border-radius: 8px;
     }
     .toggle--s .toggle__thumb {
-      width: 12px;
-      height: 12px;
+      width: 14px;
+      height: 14px;
     }
-    .toggle--s .toggle__track--on .toggle__thumb { transform: translateX(12px); }
+    .toggle--s .toggle__track--on .toggle__thumb { transform: translateX(14px); }
+
+    /* ── Size L — same 36×20 track as M; 48px row to line up with L fields, 16px label ── */
+    .toggle--l { min-height: var(--space-12); }
+    .toggle--l .toggle__label { font-size: var(--text-base-l-size); line-height: var(--text-base-l-lh); }
 
     .toggle__label {
       font-family: var(--font-family);
@@ -97,8 +102,8 @@ export class ToggleComponent implements ControlValueAccessor {
   @Input() label = '';
   @Input() checked = false;
   @Input() disabled = false;
-  /** Size: 'm' (default, 36×20px) or 's' (28×16px) */
-  @Input() size: 'm' | 's' = 'm';
+  /** Figma sizes: 'l' (36×20 track, 48px row), 'm' (default, 36×20), 's' (30×16) */
+  @Input() size: 'l' | 'm' | 's' = 'm';
   @Output() checkedChange = new EventEmitter<boolean>();
 
   private onChange: (v: boolean) => void = () => {};

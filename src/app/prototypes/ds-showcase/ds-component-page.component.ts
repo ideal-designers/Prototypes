@@ -1136,6 +1136,15 @@ interface SidebarGroup { category: (typeof DS_CATEGORIES)[number]; items: Compon
               <fvdr-input label="Password" iconRight="lock-close" placeholder="Enter password…" type="password"></fvdr-input>
             </div>
           </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Read only — [readonly]="true" (label + value, no field box)</h3>
+            <div class="examples-col">
+              <fvdr-input label="Project name" size="l" [readonly]="true" [ngModel]="'Project Nova — acquisition of Acme Ltd'"></fvdr-input>
+              <fvdr-input label="Project name" size="m" [readonly]="true" [ngModel]="'Project Nova — acquisition of Acme Ltd'"></fvdr-input>
+              <fvdr-input label="Project name" size="s" [readonly]="true" [ngModel]="'Project Nova — acquisition of Acme Ltd'"></fvdr-input>
+              <fvdr-input label="Empty value" [readonly]="true"></fvdr-input>
+            </div>
+          </div>
         </ng-container>
 
         <!-- DROPDOWN -->
@@ -1248,6 +1257,14 @@ interface SidebarGroup { category: (typeof DS_CATEGORIES)[number]; items: Compon
               <div class="example-labeled"><fvdr-toggle [checked]="true"></fvdr-toggle><span>On</span></div>
               <div class="example-labeled"><fvdr-toggle [disabled]="true"></fvdr-toggle><span>Disabled off</span></div>
               <div class="example-labeled"><fvdr-toggle [checked]="true" [disabled]="true"></fvdr-toggle><span>Disabled on</span></div>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Sizes — L (36×20, 48 row) · M (36×20) · S (30×16)</h3>
+            <div class="examples-row" style="align-items:center">
+              <div class="example-labeled"><fvdr-toggle size="l" [checked]="true" label="Large"></fvdr-toggle><span>l</span></div>
+              <div class="example-labeled"><fvdr-toggle size="m" [checked]="true" label="Medium"></fvdr-toggle><span>m</span></div>
+              <div class="example-labeled"><fvdr-toggle size="s" [checked]="true" label="Small"></fvdr-toggle><span>s</span></div>
             </div>
           </div>
         </ng-container>
@@ -1466,6 +1483,18 @@ interface SidebarGroup { category: (typeof DS_CATEGORIES)[number]; items: Compon
             <h3 class="examples-group__title">With character limit</h3>
             <fvdr-textarea label="Notes" [maxlength]="200" placeholder="Max 200 characters…" helperText="Enter up to 200 characters"></fvdr-textarea>
           </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Sizes — S 14 (default) · M 15 · L 16</h3>
+            <div class="examples-col">
+              <fvdr-textarea label="Small"  size="s" [rows]="2" placeholder="Enter description…"></fvdr-textarea>
+              <fvdr-textarea label="Medium" size="m" [rows]="2" placeholder="Enter description…"></fvdr-textarea>
+              <fvdr-textarea label="Large"  size="l" [rows]="2" placeholder="Enter description…"></fvdr-textarea>
+            </div>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Read only — [readonly]="true" (label + full text, no box)</h3>
+            <fvdr-textarea label="Request description" size="m" [readonly]="true" [ngModel]="demoReadonlyText"></fvdr-textarea>
+          </div>
         </ng-container>
 
         <!-- SEARCH -->
@@ -1584,6 +1613,14 @@ interface SidebarGroup { category: (typeof DS_CATEGORIES)[number]; items: Compon
               <fvdr-phone-input label="With error" errorText="Invalid phone number"></fvdr-phone-input>
             </div>
           </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Sizes — L 48 · M 40 (default) · S 32</h3>
+            <div class="examples-col">
+              <fvdr-phone-input label="Large"  size="l"></fvdr-phone-input>
+              <fvdr-phone-input label="Medium" size="m"></fvdr-phone-input>
+              <fvdr-phone-input label="Small"  size="s"></fvdr-phone-input>
+            </div>
+          </div>
         </ng-container>
 
         <!-- TEXT EDITOR -->
@@ -1611,6 +1648,14 @@ interface SidebarGroup { category: (typeof DS_CATEGORIES)[number]; items: Compon
           <div class="examples-group">
             <h3 class="examples-group__title">Horizontal</h3>
             <fvdr-radio [options]="demoRadioOptions" [(value)]="demoRadioValue" layout="horizontal"></fvdr-radio>
+          </div>
+          <div class="examples-group">
+            <h3 class="examples-group__title">Sizes — S 14 (default) · M 15 · L 16</h3>
+            <div class="examples-row" style="align-items:flex-start; gap:48px">
+              <fvdr-radio [options]="demoRadioOptions" [(value)]="demoRadioValue" size="s"></fvdr-radio>
+              <fvdr-radio [options]="demoRadioOptions" [(value)]="demoRadioValue" size="m"></fvdr-radio>
+              <fvdr-radio [options]="demoRadioOptions" [(value)]="demoRadioValue" size="l"></fvdr-radio>
+            </div>
           </div>
         </ng-container>
 
@@ -5953,6 +5998,7 @@ export class DsComponentPageComponent implements OnInit, OnDestroy {
   demoDrawerOpen = true;
   readonly emptyStateIllustrations = EMPTY_STATE_ILLUSTRATIONS;
   readonly badgeColors = BADGE_COLORS;
+  readonly demoReadonlyText = 'Provide the board minutes for the last three financial years, including any written resolutions.\nRedacted copies are fine for the 2023 meetings.';
   readonly demoEmptySteps: EmptyStateStep[] = [
     { illustration: 'export-xls', title: 'Export',        text: 'Download index file ready for editing', actionLabel: 'Export', actionIcon: 'download' },
     { illustration: 'rename',     title: 'Add new names', text: 'Open index file and edit as required',   actionLabel: 'Edit',   actionIcon: 'edit' },

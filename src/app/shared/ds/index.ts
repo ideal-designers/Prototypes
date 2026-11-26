@@ -212,7 +212,7 @@ export { InputComponent } from './components/input/input.component';
 export type { InputSize, InputState } from './components/input/input.component';
 
 export { TextareaComponent } from './components/textarea/textarea.component';
-export type { TextareaState } from './components/textarea/textarea.component';
+export type { TextareaState, TextareaSize } from './components/textarea/textarea.component';
 
 export { SearchComponent } from './components/search/search.component';
 export { SmartSearchComponent } from './components/smart-search/smart-search.component';
