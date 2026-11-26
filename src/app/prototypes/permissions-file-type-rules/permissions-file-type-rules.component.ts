@@ -13,9 +13,9 @@ const SLUG = 'permissions-file-type-rules';
  *                         "Set permissions by file type" dialog, prefilled with the rule.
  *  C · Click to edit      The table stays read-only until you click a permission
  *                         segment or the edit icon next to the chips.
- *  D · Inline + dropdown  Every row is editable in place, as in the inline version:
- *                         status toggle, chip inputs, and a permission dropdown.
- *                         Add rule creates an inline row with Cancel / Save.
+ *  D · Click + dropdown   Same as C, but the permission bar is a dropdown. Rows are
+ *                         read-only until you click the edit icon next to the chips
+ *                         or the permission dropdown.
  *
  * All versions share one draft model: a change creates a draft for its row, and the
  * footer's Cancel / Save applies every draft at once.
@@ -99,7 +99,7 @@ const DEFAULT_LEVEL = 2;
 const VARIANTS: SegmentItem[] = [
   { id: 'read',   label: 'A · Read-only + Edit' },
   { id: 'click',  label: 'C · Click to edit' },
-  { id: 'inline', label: 'D · Inline + dropdown' },
+  { id: 'inline', label: 'D · Click to edit + dropdown' },
 ];
 
 const DOCUMENT_GROUPS = ['Yellow Co.', 'Red Co.', 'Green Co.', 'Blue Co.', 'White team'];
@@ -247,7 +247,6 @@ const SEED_RULES: FileTypeRule[] = [
             <div class="rules-table" *ngIf="tableRows.length; else emptyState">
 
               <div class="tbl-head rule-grid" [ngClass]="gridClass">
-                <span *ngIf="variant === 'inline'">Status</span>
                 <span>File type</span>
                 <span>Groups</span>
                 <div class="perm-heads" *ngIf="variant === 'click'">
@@ -265,16 +264,8 @@ const SEED_RULES: FileTypeRule[] = [
                 class="tbl-row rule-grid"
                 [ngClass]="gridClass"
                 [class.is-editing]="row.editing"
-                [class.is-muted]="variant !== 'inline' && hasDrafts && !row.editing"
+                [class.is-muted]="hasDrafts && !row.editing"
               >
-                <!-- Status (D only) -->
-                <div class="cell-status" *ngIf="variant === 'inline'">
-                  <fvdr-toggle
-                    [checked]="stateOf(row).enabled"
-                    (checkedChange)="onToggle(row, $event)"
-                  />
-                </div>
-
                 <!-- File types -->
                 <div class="cell-field">
                   <ng-container *ngIf="inputMode(row); else staticTypes">
@@ -758,7 +749,7 @@ const SEED_RULES: FileTypeRule[] = [
       grid-template-columns: minmax(190px, 1fr) minmax(220px, 1.3fr) 434px;
     }
     .rule-grid.grid--inline {
-      grid-template-columns: 64px minmax(190px, 1fr) minmax(220px, 1.3fr) 240px;
+      grid-template-columns: minmax(190px, 1fr) minmax(220px, 1.3fr) 240px;
     }
     .rule-grid.grid--read {
       grid-template-columns: minmax(190px, 1fr) minmax(220px, 1.3fr) 240px 40px;
@@ -1066,7 +1057,7 @@ export class PermissionsFileTypeRulesComponent implements OnInit, OnDestroy {
 
   /** Warning shown in version C when a pending change lowers access for existing files. */
   get lowerAccessWarning(): string | null {
-    if (this.variant !== 'click') return null;
+    if (this.variant === 'read') return null;
     for (const rule of this.rules) {
       const d = this.drafts[rule.id];
       if (d && d.level < rule.level) {
@@ -1087,23 +1078,17 @@ export class PermissionsFileTypeRulesComponent implements OnInit, OnDestroy {
 
   /** Fields render as inputs only while the row is being edited. */
   inputMode(row: TableRow): boolean {
-    return this.variant === 'inline' || row.editing;
+    return row.editing;
   }
 
   /** Edit icon next to chips — only in C, only on rows that are not being edited. */
   pencilVisible(row: TableRow): boolean {
-    return this.variant === 'click' && !row.editing && !!row.rule;
+    return this.variant !== 'read' && !row.editing && !!row.rule;
   }
 
   /** Permission segments respond to clicks: in C always, in A only while editing. */
   isLive(row: TableRow): boolean {
     return this.variant !== 'read' || row.editing;
-  }
-
-  /** Status toggle (D): changes the draft; Save applies it. */
-  onToggle(row: TableRow, checked: boolean): void {
-    this.ensure(row.key, row.rule);
-    this.patch(row.key, { enabled: checked });
   }
 
   /** Permission dropdown (D): choosing a level sets the draft and closes the list. */
