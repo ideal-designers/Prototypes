@@ -11,8 +11,6 @@ const SLUG = 'permissions-file-type-rules';
  *
  *  A · Read-only + Edit   Rules table is read-only. The row "…" menu opens Edit,
  *                         which turns that row's cells into inputs. No status column.
- *  B · Inline inputs      Every cell is an input. Status, file types, groups and the
- *                         permission bar change on the fly.
  *  C · Click to edit      The table stays read-only until you click a status toggle, a
  *                         permission segment or the edit icon next to the chips.
  *
@@ -21,7 +19,7 @@ const SLUG = 'permissions-file-type-rules';
  */
 
 type View = 'documents' | 'rules';
-type Variant = 'read' | 'inline' | 'click';
+type Variant = 'read' | 'click';
 type FieldKind = 'types' | 'groups' | 'perm';
 
 interface PermCol { label: string; icon: FvdrIconName }
@@ -97,7 +95,6 @@ const DEFAULT_LEVEL = 2;
 
 const VARIANTS: SegmentItem[] = [
   { id: 'read',   label: 'A · Read-only + Edit' },
-  { id: 'inline', label: 'B · Inline inputs' },
   { id: 'click',  label: 'C · Click to edit' },
 ];
 
@@ -264,9 +261,9 @@ const SEED_RULES: FileTypeRule[] = [
                 class="tbl-row rule-grid"
                 [ngClass]="gridClass"
                 [class.is-editing]="row.editing"
-                [class.is-muted]="variant !== 'inline' && hasDrafts && !row.editing"
+                [class.is-muted]="hasDrafts && !row.editing"
               >
-                <!-- Status (B and C) -->
+                <!-- Status (C only) -->
                 <div class="cell-status" *ngIf="variant !== 'read'">
                   <fvdr-toggle
                     [checked]="stateOf(row).enabled"
@@ -1073,9 +1070,9 @@ export class PermissionsFileTypeRulesComponent implements OnInit, OnDestroy {
 
   levelOf(row: TableRow): number { return this.stateOf(row).level; }
 
-  /** Fields render as inputs: always in B, only while editing in A and C. */
+  /** Fields render as inputs only while the row is being edited. */
   inputMode(row: TableRow): boolean {
-    return this.variant === 'inline' || row.editing;
+    return row.editing;
   }
 
   /** Edit icon next to chips — only in C, only on rows that are not being edited. */
@@ -1083,7 +1080,7 @@ export class PermissionsFileTypeRulesComponent implements OnInit, OnDestroy {
     return this.variant === 'click' && !row.editing && !!row.rule;
   }
 
-  /** Permission segments respond to clicks: always in B and C, while editing in A. */
+  /** Permission segments respond to clicks: in C always, in A only while editing. */
   isLive(row: TableRow): boolean {
     return this.variant !== 'read' || row.editing;
   }
