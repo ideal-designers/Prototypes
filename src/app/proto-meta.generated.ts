@@ -131,7 +131,7 @@ export const PROTO_META: Record<string, ProtoMetaInfo> = {
     "author": "Yuliia Porokhivnyk"
   },
   "permissions-file-type-rules": {
-    "updated": "2026-11-26T12:36:29+02:00",
+    "updated": "2026-11-26T12:51:44+02:00",
     "author": "Yuliia Porokhivnyk"
   },
   "added-column-hover": {
