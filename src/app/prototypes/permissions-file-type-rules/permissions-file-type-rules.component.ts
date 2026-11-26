@@ -396,10 +396,9 @@ const SEED_RULES: FileTypeRule[] = [
                 </div>
 
                 <div class="cell-field" *ngIf="variant === 'inline'">
-                  <div class="field perm-field" [class.is-open]="isPicker(row, 'perm')" (click)="openPicker(row, 'perm')">
+                  <div class="perm-value perm-trigger" [class.is-open]="isPicker(row, 'perm')" (click)="openPicker(row, 'perm')">
                     <fvdr-icon [name]="permIcon(levelOf(row))" />
                     <span>{{ levelLabels[levelOf(row)] }}</span>
-                    <fvdr-icon name="chevron-down" class="field-chev" />
                   </div>
                   <div class="picker picker--perm" *ngIf="isPicker(row, 'perm')">
                     <button
@@ -876,6 +875,9 @@ const SEED_RULES: FileTypeRule[] = [
       font-size: var(--font-size-base); color: var(--color-text-primary);
     }
     .perm-value fvdr-icon { color: var(--color-text-secondary); }
+    .perm-trigger { cursor: pointer; border-radius: var(--radius-sm); padding: 0 var(--space-2); }
+    .perm-trigger:hover,
+    .perm-trigger.is-open { background: var(--color-hover-bg); }
 
     /* Permission dropdown (version A) */
     .perm-field { width: 240px; cursor: pointer; flex-wrap: nowrap; }
@@ -1470,7 +1472,7 @@ export class PermissionsFileTypeRulesComponent implements OnInit, OnDestroy {
   @HostListener('document:mousedown', ['$event'])
   onDocMouseDown(e: MouseEvent): void {
     const target = e.target as Element | null;
-    if (this.picker && !target?.closest?.('.picker, .field')) this.picker = null;
+    if (this.picker && !target?.closest?.('.picker, .field, .perm-trigger')) this.picker = null;
     if (this.menuFor !== null && !target?.closest?.('.menu, .more-btn')) this.menuFor = null;
   }
 
