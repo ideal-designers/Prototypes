@@ -11,8 +11,8 @@ const SLUG = 'permissions-file-type-rules';
  *
  *  A · Read-only + Edit   Rules table is read-only. The row "…" menu opens Edit,
  *                         which turns that row's cells into inputs. No status column.
- *  C · Click to edit      The table stays read-only until you click a status toggle, a
- *                         permission segment or the edit icon next to the chips.
+ *  C · Click to edit      The table stays read-only until you click a permission
+ *                         segment or the edit icon next to the chips.
  *
  * All versions share one draft model: a change creates a draft for its row, and the
  * footer's Cancel / Save applies every draft at once.
@@ -243,7 +243,6 @@ const SEED_RULES: FileTypeRule[] = [
             <div class="rules-table" *ngIf="tableRows.length; else emptyState">
 
               <div class="tbl-head rule-grid" [ngClass]="gridClass">
-                <span *ngIf="variant !== 'read'">Status</span>
                 <span>File type</span>
                 <span>Groups</span>
                 <div class="perm-heads" *ngIf="variant !== 'read'">
@@ -263,14 +262,6 @@ const SEED_RULES: FileTypeRule[] = [
                 [class.is-editing]="row.editing"
                 [class.is-muted]="hasDrafts && !row.editing"
               >
-                <!-- Status (C only) -->
-                <div class="cell-status" *ngIf="variant !== 'read'">
-                  <fvdr-toggle
-                    [checked]="stateOf(row).enabled"
-                    (checkedChange)="onToggle(row, $event)"
-                  />
-                </div>
-
                 <!-- File types -->
                 <div class="cell-field">
                   <ng-container *ngIf="inputMode(row); else staticTypes">
@@ -747,8 +738,8 @@ const SEED_RULES: FileTypeRule[] = [
       align-items: center; column-gap: var(--space-4);
       padding: 0 var(--space-4);
     }
-    .rule-grid.grid--full {
-      grid-template-columns: 64px minmax(190px, 1fr) minmax(220px, 1.3fr) 434px;
+    .rule-grid.grid--click {
+      grid-template-columns: minmax(190px, 1fr) minmax(220px, 1.3fr) 434px;
     }
     .rule-grid.grid--read {
       grid-template-columns: minmax(190px, 1fr) minmax(220px, 1.3fr) 240px 40px;
@@ -1023,7 +1014,7 @@ export class PermissionsFileTypeRulesComponent implements OnInit, OnDestroy {
 
   get hasDrafts(): boolean { return Object.keys(this.drafts).length > 0; }
 
-  get gridClass(): string { return this.variant === 'read' ? 'grid--read' : 'grid--full'; }
+  get gridClass(): string { return this.variant === 'read' ? 'grid--read' : 'grid--click'; }
 
   get breadcrumbs(): { id: string; label: string }[] {
     return this.view === 'documents'
@@ -1099,7 +1090,6 @@ export class PermissionsFileTypeRulesComponent implements OnInit, OnDestroy {
         children: [
           { id: 'perm-documents', label: 'Documents', active: this.view === 'documents' },
           { id: 'perm-qa',        label: 'Q&A attachments' },
-          { id: 'perm-rules',     label: 'File type rules', active: this.view === 'rules' },
         ],
       },
       { id: 'reports',  label: 'Reports',    icon: 'nav-reports',  iconActive: 'nav-reports-active' },
@@ -1114,7 +1104,6 @@ export class PermissionsFileTypeRulesComponent implements OnInit, OnDestroy {
 
   onSubNav(id: string): void {
     if (id === 'perm-documents') this.setView('documents');
-    if (id === 'perm-rules') this.setView('rules');
   }
 
   setView(view: View): void {
@@ -1320,11 +1309,6 @@ export class PermissionsFileTypeRulesComponent implements OnInit, OnDestroy {
     delete remaining[key];
     this.drafts = remaining;
     this.toast.show({ variant: 'info', message: 'File type rule deleted' });
-  }
-
-  onToggle(row: TableRow, checked: boolean): void {
-    this.ensure(row.key, row.rule);
-    this.patch(row.key, { enabled: checked });
   }
 
   onLevelClick(row: TableRow, level: number, event: MouseEvent): void {
