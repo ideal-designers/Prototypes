@@ -451,280 +451,257 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
     </div>
 
     <!-- ── Drawer (same anatomy as v3): header · sections separated by space · actions in the footer ── -->
-    <aside class="drawer" *ngIf="drawerOpen" role="dialog" aria-label="Details">
+    <ng-container *ngIf="drawerOpen">
       <!-- What AI read -->
-      <ng-container *ngIf="readOpen">
-        <header class="dh">
-          <span class="dh__title">What AI read</span>
-          <span class="spacer"></span>
-          <fvdr-btn variant="ghost" size="s" iconName="close" [iconOnly]="true" ariaLabel="Close" (clicked)="closeRead()" />
-        </header>
-        <div class="db">
-          <section class="ds" *ngIf="sc.details?.fields?.length">
-            <div class="ds__row"><h3 class="ds__h">Checklist details</h3><span class="ds__meta" *ngIf="sc.details?.metaRows">{{ sc.details?.metaRows }}</span></div>
-            <dl class="kv"><ng-container *ngFor="let f of sc.details?.fields"><dt>{{ f.label }}</dt><dd>{{ f.value }}</dd></ng-container></dl>
-          </section>
-          <section class="ds">
-            <h3 class="ds__h">Requests</h3>
-            <dl class="kvs">
-              <div><dt>Header row</dt><dd><fvdr-dropdown [options]="headerRowOptions" [value]="'' + headerRow" (valueChange)="changeHeaderRow(asString($event))" /></dd></div>
-              <div><dt>Found</dt><dd>{{ structLine }}</dd></div>
-              <div *ngIf="sc.details?.columnsUsed"><dt>Read from</dt><dd>{{ sc.details?.columnsUsed?.join(', ') }}</dd></div>
-            </dl>
-          </section>
-          <section class="ds">
-            <h3 class="ds__h">Where results go</h3>
-            <dl class="kvs">
-              <div><dt>Columns</dt><dd>{{ hasResultCols ? sc.details?.resultCols?.join(', ') : 'New columns in the export' }}</dd></div>
-              <div *ngIf="sc.statusMap"><dt>Status values</dt><dd>{{ sc.statusMap.covered }}, {{ sc.statusMap.partial }}, {{ sc.statusMap.gap }}, {{ sc.statusMap.na }}</dd></div>
-            </dl>
-          </section>
-        </div>
-        <footer class="df"><fvdr-btn label="Done" (clicked)="closeRead()" /></footer>
-      </ng-container>
+      <fvdr-drawer *ngIf="readOpen" class="drawer" mode="push" [closeOnEsc]="false" title="What AI read" (closed)="closeRead()">
+        <section class="ds" *ngIf="sc.details?.fields?.length">
+          <div class="ds__row"><h3 class="ds__h">Checklist details</h3><span class="ds__meta" *ngIf="sc.details?.metaRows">{{ sc.details?.metaRows }}</span></div>
+          <dl class="kv"><ng-container *ngFor="let f of sc.details?.fields"><dt>{{ f.label }}</dt><dd>{{ f.value }}</dd></ng-container></dl>
+        </section>
+        <section class="ds">
+          <h3 class="ds__h">Requests</h3>
+          <dl class="kvs">
+            <div><dt>Header row</dt><dd><fvdr-dropdown [options]="headerRowOptions" [value]="'' + headerRow" (valueChange)="changeHeaderRow(asString($event))" /></dd></div>
+            <div><dt>Found</dt><dd>{{ structLine }}</dd></div>
+            <div *ngIf="sc.details?.columnsUsed"><dt>Read from</dt><dd>{{ sc.details?.columnsUsed?.join(', ') }}</dd></div>
+          </dl>
+        </section>
+        <section class="ds">
+          <h3 class="ds__h">Where results go</h3>
+          <dl class="kvs">
+            <div><dt>Columns</dt><dd>{{ hasResultCols ? sc.details?.resultCols?.join(', ') : 'New columns in the export' }}</dd></div>
+            <div *ngIf="sc.statusMap"><dt>Status values</dt><dd>{{ sc.statusMap.covered }}, {{ sc.statusMap.partial }}, {{ sc.statusMap.gap }}, {{ sc.statusMap.na }}</dd></div>
+          </dl>
+        </section>
+        <ng-container ngProjectAs="[drawer-footer]">
+          <fvdr-btn label="Done" (clicked)="closeRead()" />
+        </ng-container>
+      </fvdr-drawer>
 
       <!-- Edit a request while checking what AI read -->
-      <ng-container *ngIf="!readOpen && editOpen && editVm as e">
-        <header class="dh">
+      <fvdr-drawer *ngIf="!readOpen && editOpen && editVm as e" class="drawer" mode="push" [closeOnEsc]="false" (closed)="cancelRowEdit()">
+        <ng-container ngProjectAs="[drawer-header]">
           <fvdr-chip [label]="e.pill.label" [variant]="e.pill.variant" size="s" />
           <span class="dh__ref">{{ e.label }}</span>
-          <span class="spacer"></span>
+        </ng-container>
+        <ng-container ngProjectAs="[drawer-actions]">
           <span class="dh__pos">{{ e.pos }}</span>
           <span class="dh__nav">
             <fvdr-btn variant="ghost" size="s" iconName="chevron-up" [iconOnly]="true" ariaLabel="Previous (K)" (clicked)="stepEdit(-1)" />
             <fvdr-btn variant="ghost" size="s" iconName="chevron-down" [iconOnly]="true" ariaLabel="Next (J)" (clicked)="stepEdit(1)" />
           </span>
-          <fvdr-btn variant="ghost" size="s" iconName="close" [iconOnly]="true" ariaLabel="Close (Esc)" (clicked)="cancelRowEdit()" />
-        </header>
-        <div class="db">
-          <section class="ds ds--req">
-            <p class="req">{{ e.text }}</p>
-            <ul class="meta">
-              <li><span class="meta__k">Row</span><fvdr-chip [label]="'' + e.row" variant="grey" size="s" [clickable]="true" [fvdrTooltip]="'Open row ' + e.row + ' in the source file'" (clicked)="openSrc(e.row, e.id)" /></li>
-              <li *ngIf="e.priority"><span class="meta__k">Priority</span>{{ e.priority }}</li>
-              <li *ngIf="e.asAt"><span class="meta__k">As at</span>{{ e.asAt }}</li>
-            </ul>
-          </section>
-          <section class="ds">
-            <fvdr-dropdown label="Type" [options]="clsOptions" [value]="editCls" (valueChange)="editCls = $any(asString($event))" />
-            <p class="ds__p ds__p--hint">{{ clsHint[editCls] }}</p>
-          </section>
-          <section class="ds">
-            <fvdr-textarea [(ngModel)]="editRowText" label="Request text" [rows]="4" [maxlength]="500" helperText="Changes what AI matches against. The text in your file isn't changed." />
-          </section>
-          <section class="ds">
-            <h3 class="ds__h">In your file</h3>
-            <figure class="quote">
-              <blockquote>{{ e.original }}</blockquote>
-              <figcaption>{{ e.where }}</figcaption>
-            </figure>
-          </section>
-        </div>
-        <footer class="df">
+        </ng-container>
+        <section class="ds ds--req">
+          <p class="req">{{ e.text }}</p>
+          <ul class="meta">
+            <li><span class="meta__k">Row</span><fvdr-chip [label]="'' + e.row" variant="grey" size="s" [clickable]="true" [fvdrTooltip]="'Open row ' + e.row + ' in the source file'" (clicked)="openSrc(e.row, e.id)" /></li>
+            <li *ngIf="e.priority"><span class="meta__k">Priority</span>{{ e.priority }}</li>
+            <li *ngIf="e.asAt"><span class="meta__k">As at</span>{{ e.asAt }}</li>
+          </ul>
+        </section>
+        <section class="ds">
+          <fvdr-dropdown label="Type" [options]="clsOptions" [value]="editCls" (valueChange)="editCls = $any(asString($event))" />
+          <p class="ds__p ds__p--hint">{{ clsHint[editCls] }}</p>
+        </section>
+        <section class="ds">
+          <fvdr-textarea [(ngModel)]="editRowText" label="Request text" [rows]="4" [maxlength]="500" helperText="Changes what AI matches against. The text in your file isn't changed." />
+        </section>
+        <section class="ds">
+          <h3 class="ds__h">In your file</h3>
+          <figure class="quote">
+            <blockquote>{{ e.original }}</blockquote>
+            <figcaption>{{ e.where }}</figcaption>
+          </figure>
+        </section>
+        <ng-container ngProjectAs="[drawer-footer]">
           <fvdr-btn label="Save" (clicked)="saveRowEdit()" />
           <fvdr-btn label="Cancel" variant="secondary" (clicked)="cancelRowEdit()" />
-        </footer>
-      </ng-container>
+        </ng-container>
+      </fvdr-drawer>
 
       <!-- A request -->
-      <ng-container *ngIf="!readOpen && panel === 'item' && sel as s">
-        <header class="dh">
+      <fvdr-drawer *ngIf="!readOpen && panel === 'item' && sel as s" class="drawer" mode="push" [closeOnEsc]="false" (closed)="clearSel()">
+        <ng-container ngProjectAs="[drawer-header]">
           <fvdr-chip [label]="s.pill.label" [variant]="s.pill.variant" size="s" />
           <span class="dh__ref">{{ s.label }}</span>
-          <span class="spacer"></span>
+        </ng-container>
+        <ng-container ngProjectAs="[drawer-actions]">
           <span class="dh__pos" *ngIf="s.queue">{{ s.queue }}</span>
           <span class="dh__nav">
             <fvdr-btn variant="ghost" size="s" iconName="chevron-up" [iconOnly]="true" ariaLabel="Previous (K)" (clicked)="stepAny(-1)" />
             <fvdr-btn variant="ghost" size="s" iconName="chevron-down" [iconOnly]="true" ariaLabel="Next (J)" (clicked)="stepAny(1)" />
           </span>
-          <fvdr-btn variant="ghost" size="s" iconName="close" [iconOnly]="true" ariaLabel="Close (Esc)" (clicked)="clearSel()" />
-        </header>
-        <div class="db">
-          <!-- The request itself is in the selected table row; the drawer keeps only its place in the file -->
-          <section class="ds ds--req">
-            <ul class="meta">
-              <li class="meta__row"><span class="meta__k">Row</span><fvdr-chip [label]="'' + s.row" variant="grey" size="s" [clickable]="true" [fvdrTooltip]="'Open row ' + s.row + ' in the source file'" (clicked)="openSrc(s.row, s.id)" /></li>
-            </ul>
-          </section>
+        </ng-container>
+        <!-- The request itself is in the selected table row; the drawer keeps only its place in the file -->
+        <section class="ds ds--req">
+          <ul class="meta">
+            <li class="meta__row"><span class="meta__k">Row</span><fvdr-chip [label]="'' + s.row" variant="grey" size="s" [clickable]="true" [fvdrTooltip]="'Open row ' + s.row + ' in the source file'" (clicked)="openSrc(s.row, s.id)" /></li>
+          </ul>
+        </section>
 
-          <fvdr-inline-message *ngIf="s.isGap && autoGapFor === s.id" variant="info" message="All documents were unlinked, so the status changed to Gap." />
+        <fvdr-inline-message *ngIf="s.isGap && autoGapFor === s.id" variant="info" message="All documents were unlinked, so the status changed to Gap." />
 
-          <section class="ds" *ngIf="s.isGap && s.isReopened">
-            <h3 class="ds__h">{{ s.gapTitle }}</h3>
-            <p class="ds__p">{{ s.gapText }}</p>
-          </section>
+        <section class="ds" *ngIf="s.isGap && s.isReopened">
+          <h3 class="ds__h">{{ s.gapTitle }}</h3>
+          <p class="ds__p">{{ s.gapText }}</p>
+        </section>
 
-          <!-- Documents: one block for every status. Link / unlink everywhere except a question or an instruction -->
-          <section class="ds" *ngIf="s.isReview || s.isCovered || s.isGap">
-            <h3 class="ds__h">{{ s.isReview ? (s.docs.length > 1 ? 'Suggested documents' : 'Suggested document') : 'Documents' }}</h3>
-            <div class="doc" *ngFor="let d of s.docs">
-              <fvdr-file-icon [type]="d.type" />
-              <div class="doc__b">
-                <button class="doc__name" (click)="openPreview(d.name)">{{ d.label }}</button>
-                <button class="doc__path doc__path--link" (click)="openFolder(d.name)">{{ d.meta }}</button>
-              </div>
-              <fvdr-btn variant="ghost" size="s" iconName="close" [iconOnly]="true" ariaLabel="Unlink from this request" (clicked)="unlink(d.name)" />
+        <!-- Documents: one block for every status. Link / unlink everywhere except a question or an instruction -->
+        <section class="ds" *ngIf="s.isReview || s.isCovered || s.isGap">
+          <h3 class="ds__h">{{ s.isReview ? (s.docs.length > 1 ? 'Suggested documents' : 'Suggested document') : 'Documents' }}</h3>
+          <div class="doc" *ngFor="let d of s.docs">
+            <fvdr-file-icon [type]="d.type" />
+            <div class="doc__b">
+              <button class="doc__name" (click)="openPreview(d.name)">{{ d.label }}</button>
+              <button class="doc__path doc__path--link" (click)="openFolder(d.name)">{{ d.meta }}</button>
             </div>
-            <div class="dempty" *ngIf="!s.docs.length">
-              <p class="dempty__t">No documents linked yet</p>
-              <p class="ds__p ds__p--b3">Link a document to cover this request, or ask for it in Q&amp;A.</p>
-            </div>
-            <fvdr-btn *ngIf="!s.isCovered || s.isPartial" class="lnk--start" label="Link documents…" variant="secondary" size="s" (clicked)="openLink()" />
-          </section>
+            <fvdr-btn variant="ghost" size="s" iconName="close" [iconOnly]="true" ariaLabel="Unlink from this request" (clicked)="unlink(d.name)" />
+          </div>
+          <div class="dempty" *ngIf="!s.docs.length">
+            <p class="dempty__t">No documents linked yet</p>
+            <p class="ds__p ds__p--b3">Link a document to cover this request, or ask for it in Q&amp;A.</p>
+          </div>
+          <fvdr-btn *ngIf="!s.isCovered || s.isPartial" class="lnk--start" label="Link documents…" variant="secondary" size="s" (clicked)="openLink()" />
+        </section>
 
-          <section class="ds" *ngIf="s.isQuestion || s.isInstruction || s.isNote || s.isNa">
-            <p class="ds__p" *ngIf="s.isQuestion">A question asks for a written answer, not documents. It isn't matched and doesn't count toward coverage.</p>
-            <p class="ds__p" *ngIf="s.isInstruction">An instruction on how to respond. It isn't matched and stays visible to people uploading documents.</p>
-            <p class="ds__p" *ngIf="s.isNote">A note, such as a link, legend or definition. It isn't matched.</p>
-            <p class="ds__p" *ngIf="s.isNa">Marked not applicable. It won't appear in the gap report.</p>
-          </section>
+        <section class="ds" *ngIf="s.isQuestion || s.isInstruction || s.isNote || s.isNa">
+          <p class="ds__p" *ngIf="s.isQuestion">A question asks for a written answer, not documents. It isn't matched and doesn't count toward coverage.</p>
+          <p class="ds__p" *ngIf="s.isInstruction">An instruction on how to respond. It isn't matched and stays visible to people uploading documents.</p>
+          <p class="ds__p" *ngIf="s.isNote">A note, such as a link, legend or definition. It isn't matched.</p>
+          <p class="ds__p" *ngIf="s.isNa">Marked not applicable. It won't appear in the gap report.</p>
+        </section>
 
-          <section class="ds" *ngIf="s.issues.length">
-            <h3 class="ds__h ds__h--ai"><fvdr-icon name="ai-sparkle" />Needs attention</h3>
-            <ul class="issues">
-              <li *ngFor="let i of s.issues"><span><b>{{ i.title }}</b> {{ i.text }}</span></li>
-            </ul>
-          </section>
+        <section class="ds" *ngIf="s.issues.length">
+          <h3 class="ds__h ds__h--ai"><fvdr-icon name="ai-sparkle" />Needs attention</h3>
+          <ul class="issues">
+            <li *ngFor="let i of s.issues"><span><b>{{ i.title }}</b> {{ i.text }}</span></li>
+          </ul>
+        </section>
 
-          <section class="ds" *ngIf="composeOpen">
-            <h3 class="ds__h">{{ isBidder ? 'Question to the seller' : 'Upload request to the seller' }}</h3>
-            <fvdr-textarea [(ngModel)]="composeText" [rows]="6" />
-            <p class="ds__p">Goes to {{ isBidder ? 'Q&A' : 'the seller team' }} only when you click Send. You can edit it first.</p>
-          </section>
+        <section class="ds" *ngIf="composeOpen">
+          <h3 class="ds__h">{{ isBidder ? 'Question to the seller' : 'Upload request to the seller' }}</h3>
+          <fvdr-textarea [(ngModel)]="composeText" [rows]="6" />
+          <p class="ds__p">Goes to {{ isBidder ? 'Q&A' : 'the seller team' }} only when you click Send. You can edit it first.</p>
+        </section>
 
-          <section class="ds" *ngIf="(s.isReview || s.isCovered) && !composeOpen">
-            <fvdr-dropdown label="Status" [options]="statusOptions" [value]="reviewStatus" (valueChange)="reviewStatus = $any(asString($event))" />
-          </section>
-          <!-- A gap has no documents, so its status can't change until one is linked -->
-          <section class="ds" *ngIf="s.isGap && !composeOpen">
-            <div fvdrTooltip="Link a document to change the status" tooltipPosition="bottom">
-              <fvdr-dropdown label="Status" [options]="statusOptions" value="gap" [disabled]="true" />
-            </div>
-          </section>
+        <section class="ds" *ngIf="(s.isReview || s.isCovered) && !composeOpen">
+          <fvdr-dropdown label="Status" [options]="statusOptions" [value]="reviewStatus" (valueChange)="reviewStatus = $any(asString($event))" />
+        </section>
+        <!-- A gap has no documents, so its status can't change until one is linked -->
+        <section class="ds" *ngIf="s.isGap && !composeOpen">
+          <div fvdrTooltip="Link a document to change the status" tooltipPosition="bottom">
+            <fvdr-dropdown label="Status" [options]="statusOptions" value="gap" [disabled]="true" />
+          </div>
+        </section>
 
-          <section class="ds" *ngIf="s.writes && !s.isReview && !s.isCovered && !s.isGap">
-            <h3 class="ds__h">In your file</h3>
-            <dl class="kvs">
-              <div *ngFor="let w of s.writes"><dt>{{ w.col }}</dt><dd [class.kv__empty]="!w.val">{{ w.val || 'Empty' }}</dd></div>
-            </dl>
-          </section>
+        <section class="ds" *ngIf="s.writes && !s.isReview && !s.isCovered && !s.isGap">
+          <h3 class="ds__h">In your file</h3>
+          <dl class="kvs">
+            <div *ngFor="let w of s.writes"><dt>{{ w.col }}</dt><dd [class.kv__empty]="!w.val">{{ w.val || 'Empty' }}</dd></div>
+          </dl>
+        </section>
 
-        </div>
-        <footer class="df">
+        <ng-container ngProjectAs="[drawer-footer]">
           <!-- Covered: Save only · To review / Partial: Save + Ask in Q&A · Gap: Ask in Q&A -->
           <ng-container *ngIf="(s.isReview || s.isCovered) && !composeOpen">
-            <fvdr-btn label="Save" [fvdrTooltip]="s.isReview ? 'A' : ''" (clicked)="saveReview()" />
-            <span class="spacer"></span>
-            <fvdr-btn *ngIf="(s.isReview || s.isPartial) && !s.requested" [label]="isBidder ? 'Ask in Q&A' : 'Request from seller'" variant="secondary" (clicked)="openCompose()" />
+          <fvdr-btn label="Save" [fvdrTooltip]="s.isReview ? 'A' : ''" (clicked)="saveReview()" />
+          <span class="spacer"></span>
+          <fvdr-btn *ngIf="(s.isReview || s.isPartial) && !s.requested" [label]="isBidder ? 'Ask in Q&A' : 'Request from seller'" variant="secondary" (clicked)="openCompose()" />
           </ng-container>
           <ng-container *ngIf="composeOpen">
-            <fvdr-btn [label]="isBidder ? 'Send to Q&A' : 'Send request'" (clicked)="sendCompose()" />
-            <fvdr-btn label="Cancel" variant="secondary" (clicked)="composeOpen = false" />
+          <fvdr-btn [label]="isBidder ? 'Send to Q&A' : 'Send request'" (clicked)="sendCompose()" />
+          <fvdr-btn label="Cancel" variant="secondary" (clicked)="composeOpen = false" />
           </ng-container>
           <ng-container *ngIf="!composeOpen && !s.requested && !s.isReview && !s.isCovered">
-            <fvdr-btn *ngIf="s.isReopened" label="Restore file" (clicked)="restoreFile()" />
-            <fvdr-btn *ngIf="s.isGap || s.isQuestion" [label]="isBidder ? (s.isQuestion ? 'Send to Q&A' : 'Ask in Q&A') : 'Request from seller'" [variant]="s.isReopened ? 'secondary' : 'primary'" (clicked)="openCompose()" />
-            <fvdr-btn *ngIf="s.isNa" label="Undo N/A" variant="secondary" (clicked)="undoNa()" />
+          <fvdr-btn *ngIf="s.isReopened" label="Restore file" (clicked)="restoreFile()" />
+          <fvdr-btn *ngIf="s.isGap || s.isQuestion" [label]="isBidder ? (s.isQuestion ? 'Send to Q&A' : 'Ask in Q&A') : 'Request from seller'" [variant]="s.isReopened ? 'secondary' : 'primary'" (clicked)="openCompose()" />
+          <fvdr-btn *ngIf="s.isNa" label="Undo N/A" variant="secondary" (clicked)="undoNa()" />
           </ng-container>
           <span class="df__done" *ngIf="s.requested && !composeOpen">{{ isBidder ? 'Asked in Q&A' : 'Requested from the seller' }}</span>
-        </footer>
-      </ng-container>
+        </ng-container>
+      </fvdr-drawer>
 
       <!-- Coverage: what the % is made of, where the gaps are, what to do next -->
-      <ng-container *ngIf="!readOpen && panel === 'coverage' && cov as c">
-        <header class="dh">
-          <span class="dh__title">Coverage</span>
-          <span class="spacer"></span>
-          <fvdr-btn variant="ghost" size="s" iconName="close" [iconOnly]="true" ariaLabel="Close" (clicked)="clearSel()" />
-        </header>
-        <div class="db db--cov">
-          <section class="ds">
-            <div class="cov">
-              <div class="donut" (mouseleave)="covHover = null">
-                <svg viewBox="0 0 144 144" role="img" [attr.aria-label]="c.pct + '% covered'">
-                  <circle class="donut__track" cx="72" cy="72" [attr.r]="donutR" />
-                  <circle *ngFor="let g of c.segs" class="donut__seg" cx="72" cy="72" [attr.r]="donutR"
-                    [style.stroke]="g.color" [attr.stroke-dasharray]="g.dash" [attr.stroke-dashoffset]="g.offset"
-                    [class.donut__seg--dim]="covHover && covHover !== g.k" (mouseenter)="covHover = g.k" />
-                </svg>
-                <span class="donut__c"><b>{{ c.pct }}%</b><span>covered</span></span>
-              </div>
-              <ul class="legend-l">
-                <li *ngFor="let g of c.segs">
-                  <button class="legend-l__row" [class.legend-l__row--on]="filter === g.k" [attr.aria-pressed]="filter === g.k"
-                    (mouseenter)="covHover = g.k" (mouseleave)="covHover = null" (click)="pickFilter($any(filter === g.k ? 'all' : g.k))">
-                    <span class="sq" [style.background]="g.color"></span>
-                    <span class="legend-l__label">{{ g.label }}</span>
-                    <b>{{ g.count }}</b>
-                    <span class="legend-l__pct">{{ g.pct }}%</span>
-                  </button>
-                </li>
-              </ul>
+      <fvdr-drawer *ngIf="!readOpen && panel === 'coverage' && cov as c" class="drawer" mode="push" [closeOnEsc]="false" title="Coverage" (closed)="clearSel()">
+        <section class="ds">
+          <div class="cov">
+            <div class="donut" (mouseleave)="covHover = null">
+              <svg viewBox="0 0 144 144" role="img" [attr.aria-label]="c.pct + '% covered'">
+                <circle class="donut__track" cx="72" cy="72" [attr.r]="donutR" />
+                <circle *ngFor="let g of c.segs" class="donut__seg" cx="72" cy="72" [attr.r]="donutR"
+                  [style.stroke]="g.color" [attr.stroke-dasharray]="g.dash" [attr.stroke-dashoffset]="g.offset"
+                  [class.donut__seg--dim]="covHover && covHover !== g.k" (mouseenter)="covHover = g.k" />
+              </svg>
+              <span class="donut__c"><b>{{ c.pct }}%</b><span>covered</span></span>
             </div>
-            <p class="ds__p ds__p--b3">{{ c.note }}</p>
-          </section>
-          <section class="ds" *ngIf="c.since as v">
-            <div class="ds__row"><h3 class="ds__h">Since your last visit</h3><span class="ds__meta">{{ v.date }}</span></div>
-            <div class="prog">
-              <span class="prog__was">{{ v.was }}%</span><span class="prog__was" aria-hidden="true">→</span>
-              <b>{{ c.pct }}% covered</b>
-              <span class="prog__delta" *ngIf="v.delta">{{ v.delta > 0 ? '+' : '' }}{{ v.delta }} pts</span>
+            <ul class="legend-l">
+              <li *ngFor="let g of c.segs">
+                <button class="legend-l__row" [class.legend-l__row--on]="filter === g.k" [attr.aria-pressed]="filter === g.k"
+                  (mouseenter)="covHover = g.k" (mouseleave)="covHover = null" (click)="pickFilter($any(filter === g.k ? 'all' : g.k))">
+                  <span class="sq" [style.background]="g.color"></span>
+                  <span class="legend-l__label">{{ g.label }}</span>
+                  <b>{{ g.count }}</b>
+                  <span class="legend-l__pct">{{ g.pct }}%</span>
+                </button>
+              </li>
+            </ul>
+          </div>
+          <p class="ds__p ds__p--b3">{{ c.note }}</p>
+        </section>
+        <section class="ds" *ngIf="c.since as v">
+          <div class="ds__row"><h3 class="ds__h">Since your last visit</h3><span class="ds__meta">{{ v.date }}</span></div>
+          <div class="prog">
+            <span class="prog__was">{{ v.was }}%</span><span class="prog__was" aria-hidden="true">→</span>
+            <b>{{ c.pct }}% covered</b>
+            <span class="prog__delta" *ngIf="v.delta">{{ v.delta > 0 ? '+' : '' }}{{ v.delta }} pts</span>
+          </div>
+          <div class="chg-l" *ngIf="v.changes.length">
+            <span *ngFor="let x of v.changes"><span class="sq" [style.background]="x.color"></span>{{ x.label }}</span>
+          </div>
+        </section>
+        <section class="ds" *ngIf="c.prio.length > 1">
+          <h3 class="ds__h">By priority</h3>
+          <div class="bars">
+            <div class="bar-r" *ngFor="let b of c.prio">
+              <div class="bar-r__top"><span class="bar-r__name">{{ b.name }}</span><span class="ds__meta">{{ b.meta }}</span><span class="bar-r__gaps" *ngIf="b.gaps">· {{ b.gaps }} {{ b.gaps === 1 ? 'gap' : 'gaps' }}</span></div>
+              <div class="sbar"><span *ngFor="let x of b.segs" [style.background]="x.color" [style.flex-grow]="x.count"></span></div>
             </div>
-            <div class="chg-l" *ngIf="v.changes.length">
-              <span *ngFor="let x of v.changes"><span class="sq" [style.background]="x.color"></span>{{ x.label }}</span>
-            </div>
-          </section>
-          <section class="ds" *ngIf="c.prio.length > 1">
-            <h3 class="ds__h">By priority</h3>
-            <div class="bars">
-              <div class="bar-r" *ngFor="let b of c.prio">
-                <div class="bar-r__top"><span class="bar-r__name">{{ b.name }}</span><span class="ds__meta">{{ b.meta }}</span><span class="bar-r__gaps" *ngIf="b.gaps">· {{ b.gaps }} {{ b.gaps === 1 ? 'gap' : 'gaps' }}</span></div>
-                <div class="sbar"><span *ngFor="let x of b.segs" [style.background]="x.color" [style.flex-grow]="x.count"></span></div>
-              </div>
-            </div>
-          </section>
-          <section class="ds" *ngIf="c.secs.length">
-            <h3 class="ds__h">By section</h3>
-            <div class="bars">
-              <button class="bar-r bar-r--btn" *ngFor="let b of c.secs" (click)="jumpToSection(b.id)" [attr.aria-label]="'Show section ' + b.name">
-                <div class="bar-r__top"><span class="bar-r__name">{{ b.name }}</span><span class="ds__meta">{{ b.meta }}</span></div>
-                <div class="sbar"><span *ngFor="let x of b.segs" [style.background]="x.color" [style.flex-grow]="x.count"></span></div>
-              </button>
-            </div>
-          </section>
-        </div>
-        <footer class="df">
+          </div>
+        </section>
+        <section class="ds" *ngIf="c.secs.length">
+          <h3 class="ds__h">By section</h3>
+          <div class="bars">
+            <button class="bar-r bar-r--btn" *ngFor="let b of c.secs" (click)="jumpToSection(b.id)" [attr.aria-label]="'Show section ' + b.name">
+              <div class="bar-r__top"><span class="bar-r__name">{{ b.name }}</span><span class="ds__meta">{{ b.meta }}</span></div>
+              <div class="sbar"><span *ngFor="let x of b.segs" [style.background]="x.color" [style.flex-grow]="x.count"></span></div>
+            </button>
+          </div>
+        </section>
+        <ng-container ngProjectAs="[drawer-footer]">
           <fvdr-btn *ngIf="c.review" [label]="'Review ' + c.review + (c.review === 1 ? ' suggestion' : ' suggestions')" (clicked)="startReview()" />
           <fvdr-btn *ngIf="c.gaps" [label]="'Show ' + c.gaps + (c.gaps === 1 ? ' gap' : ' gaps')" [variant]="c.review ? 'secondary' : 'primary'" (clicked)="showGaps()" />
           <fvdr-btn *ngIf="!c.review && !c.gaps" label="Done" (clicked)="clearSel()" />
-        </footer>
-      </ng-container>
+        </ng-container>
+      </fvdr-drawer>
 
       <!-- Changes in the source file -->
-      <ng-container *ngIf="!readOpen && panel === 'diff' && sc.edits as e">
-        <header class="dh">
-          <span class="dh__title">Changes in {{ sc.sheets[0].name }}</span>
-          <span class="spacer"></span>
-          <fvdr-btn variant="ghost" size="s" iconName="close" [iconOnly]="true" ariaLabel="Close" (clicked)="panel = 'none'; recompute()" />
-        </header>
-        <div class="db">
-          <p class="ds__p">Edited by {{ e.editedBy }} after the requests were extracted. Confirmed matches on other requests stay as they are.</p>
-          <section class="ds">
-            <h3 class="ds__h">Added · row {{ e.added.row }}</h3>
-            <p class="ds__p ds__p--strong">{{ e.added.text }}</p>
-          </section>
-          <section class="ds">
-            <h3 class="ds__h">Changed · row {{ e.changed.row }} · {{ e.changed.id }}</h3>
-            <span class="diff__old">{{ e.changed.from }}</span>
-            <span class="diff__new">{{ e.changed.to }}</span>
-          </section>
-        </div>
-        <footer class="df">
+      <fvdr-drawer *ngIf="!readOpen && panel === 'diff' && sc.edits as e" class="drawer" mode="push" [closeOnEsc]="false" [title]="'Changes in ' + sc.sheets[0].name" (closed)="panel = 'none'; recompute()">
+        <p class="ds__p">Edited by {{ e.editedBy }} after the requests were extracted. Confirmed matches on other requests stay as they are.</p>
+        <section class="ds">
+          <h3 class="ds__h">Added · row {{ e.added.row }}</h3>
+          <p class="ds__p ds__p--strong">{{ e.added.text }}</p>
+        </section>
+        <section class="ds">
+          <h3 class="ds__h">Changed · row {{ e.changed.row }} · {{ e.changed.id }}</h3>
+          <span class="diff__old">{{ e.changed.from }}</span>
+          <span class="diff__new">{{ e.changed.to }}</span>
+        </section>
+        <ng-container ngProjectAs="[drawer-footer]">
           <fvdr-btn label="Apply and match 2 requests" (clicked)="applyDiff()" />
           <fvdr-btn label="Not now" variant="secondary" (clicked)="panel = 'none'; recompute()" />
-        </footer>
-      </ng-container>
-    </aside>
+        </ng-container>
+      </fvdr-drawer>
+    </ng-container>
 
 
     <fvdr-modal [visible]="howOpen" size="m" title="How matching works" confirmLabel="Got it" (confirmed)="howOpen = false" (closed)="howOpen = false">
@@ -1071,13 +1048,10 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
     .tdoc__name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
     /* ── Drawer, same anatomy as v3 ── */
-    .drawer { flex: none; width: 440px; height: 100%; display: flex; flex-direction: column; background: var(--color-stone-0); border-left: 1px solid var(--color-divider);
-      font-size: var(--text-body3-size); line-height: var(--text-body3-lh); color: var(--color-text-primary); }
-    .drawer .dh { flex: none; display: flex; align-items: center; gap: var(--space-2); height: var(--space-16); box-sizing: border-box; padding: 0 var(--space-4) 0 var(--space-6); border-bottom: 1px solid var(--color-divider); }
-    .drawer .dh__title { font-size: var(--text-label-l-size); line-height: var(--text-label-l-lh); font-weight: var(--text-label-l-weight); }
+    /* Shell (width, header, body, footer) comes from fvdr-drawer; these are the content styles */
+    .drawer { font-size: var(--text-body3-size); line-height: var(--text-body3-lh); color: var(--color-text-primary); }
     .drawer .dh__ref { font-weight: var(--text-label-s-weight); color: var(--color-text-secondary); }
     .drawer .dh__pos { font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); color: var(--color-text-secondary); margin-right: var(--space-1); }
-    .drawer .db { flex: 1; overflow-y: auto; padding: var(--space-6); display: flex; flex-direction: column; gap: var(--space-8); }
     .drawer .ds { display: flex; flex-direction: column; gap: var(--space-3); }
     .drawer .ds__h { margin: 0; font-size: var(--text-label-m-size); line-height: var(--text-label-m-lh); font-weight: var(--text-label-m-weight); }
     .drawer .ds__h--ai { display: inline-flex; align-items: center; gap: var(--space-2); }
@@ -1133,7 +1107,6 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
     .drawer .hist ol { margin: 0; padding-left: var(--space-5); display: flex; flex-direction: column; gap: var(--space-3); }
     .drawer .hist li { display: flex; flex-direction: column; gap: 2px; }
     .drawer .hist__who { font-size: var(--text-caption1-size); line-height: var(--text-caption1-lh); color: var(--color-text-secondary); }
-    .drawer .db--cov { gap: var(--space-6); }
     .drawer .ds__p--b3 { font-size: var(--text-body3-size); line-height: var(--text-body3-lh); }
     .drawer .cov { display: flex; align-items: center; gap: var(--space-6); }
     .drawer .donut { position: relative; flex: none; width: 144px; height: 144px; }
@@ -1170,7 +1143,6 @@ const FOLDER_CHIP: Record<string, ChipVariant> = { linked: 'green', partial: 'te
     .drawer .bar-r__gaps { font-size: var(--text-body3-size); line-height: var(--text-body3-lh); color: var(--color-alert-error); }
     .drawer .sbar { display: flex; gap: 2px; height: var(--space-2); border-radius: var(--radius-sm); overflow: hidden; background: var(--color-stone-200); }
     .drawer .sbar > span { flex-basis: 0; min-width: 2px; }
-    .drawer .df { flex: none; display: flex; align-items: center; gap: var(--space-3); padding: var(--space-4) var(--space-6); border-top: 1px solid var(--color-divider); }
     .drawer .df__done { color: var(--color-primary-600); }
   `],
 })

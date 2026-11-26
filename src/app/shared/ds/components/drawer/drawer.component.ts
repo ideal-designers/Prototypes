@@ -1,6 +1,6 @@
 import {
   Component, Input, Output, EventEmitter, HostBinding, HostListener,
-  ElementRef, ViewChild, AfterViewInit, OnChanges, SimpleChanges,
+  ElementRef, AfterViewInit, OnChanges, SimpleChanges,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ButtonComponent } from '../button/button.component';
@@ -45,7 +45,7 @@ export type DrawerMode = 'auto' | 'push' | 'overlay';
   imports: [CommonModule, ButtonComponent, BadgeComponent],
   template: `
     <header class="dr-head">
-      <span class="dr-close" #closeBtn>
+      <span class="dr-close">
         <fvdr-btn variant="ghost" size="s" iconName="close" [iconOnly]="true" ariaLabel="Close" (clicked)="close()"></fvdr-btn>
       </span>
 
@@ -109,6 +109,7 @@ export type DrawerMode = 'auto' | 'push' | 'overlay';
       box-shadow: var(--shadow-modal);
     }
     :host(.dr--closed) { display: none; }
+    :host(:focus) { outline: none; }
 
     /* Header — 64 high, padding 16 left/right, 8 between elements */
     .dr-head {
@@ -214,6 +215,8 @@ export class DrawerComponent implements AfterViewInit, OnChanges {
   @Input() total = 0;
   @Input() showFooter = true;
   @Input() mode: DrawerMode = 'auto';
+  /** Esc closes the drawer. Turn off when the screen already handles Esc itself (e.g. layered panels). */
+  @Input() closeOnEsc = true;
   /** Aria label for the region when the header has no plain title. */
   @Input() ariaLabel = '';
 
@@ -221,11 +224,13 @@ export class DrawerComponent implements AfterViewInit, OnChanges {
   @Output() prev = new EventEmitter<void>();
   @Output() next = new EventEmitter<void>();
 
-  @ViewChild('closeBtn') private closeBtn?: ElementRef<HTMLElement>;
+  constructor(private host: ElementRef<HTMLElement>) {}
 
   private viewport = typeof window !== 'undefined' ? window.innerWidth : 1440;
 
   @HostBinding('attr.role') readonly role = 'region';
+  /** Focus target on open: the region itself, so keyboard users land in the drawer without popping the close tooltip. */
+  @HostBinding('attr.tabindex') readonly tabindex = -1;
   @HostBinding('attr.aria-label') get label() { return this.ariaLabel || this.title || this.ref || 'Details'; }
   @HostBinding('style.width.px') get w() { return this.width; }
   @HostBinding('class.dr--overlay') get overlay() { return this.resolvedMode === 'overlay'; }
@@ -237,21 +242,27 @@ export class DrawerComponent implements AfterViewInit, OnChanges {
     return this.viewport >= (this.width === 440 ? 1280 : 1440) ? 'push' : 'overlay';
   }
 
-  ngAfterViewInit(): void { this.focusClose(); }
+  ngAfterViewInit(): void { this.focusRegion(); }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['open'] && this.open && !changes['open'].firstChange) setTimeout(() => this.focusClose());
+    if (changes['open'] && this.open && !changes['open'].firstChange) setTimeout(() => this.focusRegion());
   }
 
   @HostListener('window:resize')
   onResize(): void { this.viewport = window.innerWidth; }
 
-  @HostListener('document:keydown.escape')
-  onEsc(): void { if (this.open) this.close(); }
+  @HostListener('document:keydown.escape', ['$event'])
+  onEsc(e: KeyboardEvent): void {
+    if (!this.open || !this.closeOnEsc || e.defaultPrevented) return;
+    // Esc while typing clears the field, not the drawer
+    const t = e.target as HTMLElement | null;
+    if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+    this.close();
+  }
 
   close(): void { this.closed.emit(); }
 
-  private focusClose(): void {
-    if (this.open) this.closeBtn?.nativeElement.querySelector('button')?.focus({ preventScroll: true });
+  private focusRegion(): void {
+    if (this.open) this.host.nativeElement.focus({ preventScroll: true });
   }
 }

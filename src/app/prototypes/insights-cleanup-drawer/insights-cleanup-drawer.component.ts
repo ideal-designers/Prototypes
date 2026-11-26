@@ -175,15 +175,10 @@ function buildEmpty(): EmptyFolder[] {
         </div>
 
         <!-- ── Clean up drawer ── -->
-        <aside class="drawer" *ngIf="drawerOpen">
-          <div class="drawer__head">
-            <span class="drawer__title">Clean up</span>
-            <div class="drawer__actions">
-              <button class="ibtn" title="Export to Excel" (click)="toastInfo('Export started')"><fvdr-icon name="export"></fvdr-icon></button>
-              <button class="ibtn" title="Open in new tab"><fvdr-icon name="link"></fvdr-icon></button>
-              <button class="ibtn" title="Close" (click)="drawerOpen = false"><fvdr-icon name="cancel"></fvdr-icon></button>
-            </div>
-          </div>
+        <!-- DS Drawer, read-only: close first, object actions in the header, no footer -->
+        <fvdr-drawer *ngIf="drawerOpen" class="drawer" mode="push" title="Clean up" [showFooter]="false" (closed)="drawerOpen = false">
+          <fvdr-btn drawer-actions variant="ghost" size="s" iconName="export" [iconOnly]="true" ariaLabel="Export to Excel" (clicked)="toastInfo('Export started')"></fvdr-btn>
+          <fvdr-btn drawer-actions variant="ghost" size="s" iconName="link" [iconOnly]="true" ariaLabel="Open in new tab"></fvdr-btn>
 
           <div class="tabs">
             <button class="tab" [class.tab--on]="tab === 'empty'" (click)="setTab('empty')">
@@ -272,7 +267,7 @@ function buildEmpty(): EmptyFolder[] {
             </ng-container>
 
           </div>
-        </aside>
+        </fvdr-drawer>
       </div>
     </div>
   </div>
@@ -413,16 +408,8 @@ function buildEmpty(): EmptyFolder[] {
     .docs__row .c-act .ibtn { opacity: 0; }
     .docs__row:hover .c-act .ibtn { opacity: 1; }
 
-    /* Drawer — 480px */
-    .drawer {
-      width: calc(var(--space-16) * 7 + var(--space-8)); flex-shrink: 0;
-      display: flex; flex-direction: column; gap: var(--space-6); padding: var(--space-4);
-      background: var(--color-bg-page); border-top-left-radius: var(--radius-sm); box-shadow: var(--shadow-popup);
-      position: relative; z-index: var(--z-sticky);
-    }
-    .drawer__head { display: flex; align-items: center; justify-content: space-between; }
-    .drawer__title { font-size: var(--font-size-xl); line-height: var(--line-height-lg); font-weight: var(--font-weight-semi); }
-    .drawer__actions { display: flex; gap: var(--space-4); }
+    /* Drawer — DS fvdr-drawer (440, push, divider on the left); only the content is styled here */
+    .drawer { position: relative; z-index: var(--z-sticky); }
     .ibtn {
       width: var(--space-6); height: var(--space-6); display: flex; align-items: center; justify-content: center;
       border: 0; background: none; cursor: pointer; padding: 0; border-radius: var(--radius-sm);
@@ -430,7 +417,6 @@ function buildEmpty(): EmptyFolder[] {
     }
     .ibtn:hover { background: var(--color-bg-surface); color: var(--color-text-primary); }
 
-    .drawer > .tabs { margin-bottom: calc(var(--space-4) * -1); }
     .tabs { display: flex; flex-shrink: 0; }
     .tab {
       height: var(--space-10); display: flex; align-items: center; gap: var(--space-3); padding: 0 var(--space-4);
