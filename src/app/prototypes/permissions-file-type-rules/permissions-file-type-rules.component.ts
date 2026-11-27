@@ -399,6 +399,7 @@ const SEED_RULES: FileTypeRule[] = [
                   <div class="perm-value perm-trigger" [class.is-open]="isPicker(row, 'perm')" (click)="openPicker(row, 'perm')">
                     <fvdr-icon [name]="permIcon(levelOf(row))" />
                     <span>{{ levelLabels[levelOf(row)] }}</span>
+                    <fvdr-icon name="chevron-down" class="perm-chev" />
                   </div>
                   <div class="picker picker--perm" *ngIf="isPicker(row, 'perm')">
                     <button
@@ -878,6 +879,12 @@ const SEED_RULES: FileTypeRule[] = [
     .perm-trigger { cursor: pointer; border-radius: var(--radius-sm); padding: 0 var(--space-2); }
     .perm-trigger:hover,
     .perm-trigger.is-open { background: var(--color-hover-bg); }
+    .perm-chev {
+      margin-left: auto; color: var(--color-stone-600);
+      opacity: 0; transition: opacity 0.15s ease;
+    }
+    .perm-trigger:hover .perm-chev,
+    .perm-trigger.is-open .perm-chev { opacity: 1; }
 
     /* Permission dropdown (version A) */
     .perm-field { width: 240px; cursor: pointer; flex-wrap: nowrap; }
